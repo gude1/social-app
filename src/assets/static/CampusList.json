@@ -1,0 +1,46 @@
+[
+    {
+        "key": "NONE",
+        "value": "none"
+    },
+    {
+        "key": "OAU",
+        "value": "oau"
+    },
+    {
+        "key": "UI",
+        "value": "ui"
+    },
+    {
+        "key": "UNILAG",
+        "value": "unilag"
+    },
+    {
+        "key": "UNIABUJA",
+        "value": "uniabuja"
+    },
+    {
+        "key": "UNIOSUN",
+        "value": "uniosun"
+    },
+    {
+        "key": "UNIILORIN",
+        "value": "uniilorin"
+    },
+    {
+        "key": "UNIBEN",
+        "value": "uniben"
+    },
+    {
+        "key": "OOU",
+        "value": "oou"
+    },
+    {
+        "key": "BABCOCK",
+        "value": "babcock"
+    },
+    {
+        "key": "ACU",
+        "value": "acu"
+    }
+]

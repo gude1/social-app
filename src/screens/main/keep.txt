@@ -1,0 +1,53 @@
+places where api that are used are not cross platform and must be changed
+
+1. index src/actions --api ToastAndroid
+2.createpostscreem --api ToastAndroid
+
+width < 320 || width > 1080
+height < 566 || height > 1350
+
+
+  <View style={styles.postTextContainer}>
+                            <View style={styles.commentStyle}>
+                                <Avatar
+                                    size={'small'}
+                                    containerStyle={{ marginTop: 2 }}
+                                    icon={{ name: 'user', type: 'antdesign', color: 'white' }}
+                                    rounded
+                                    overlayContainerStyle={styles.commentAvatar}
+                                />
+                                <View style={styles.commentTextCtn}>
+                                    <Text>
+                                        <Text style={{ color: colors.text, fontWeight: "bold" }}>Chris Brown </Text>
+                                        <Text style={{ color: colors.text, }}>Who plays a game like it aint cool but its really nice. Yo Thinking about how to break that shit its vexing message1 what you say jarvis? :)
+                                        </Text>
+                                    </Text>
+                                    <Text style={{ color: 'silver' }}>3d</Text>
+                                </View>
+                            </View>
+                        </View>
+
+ <View style={styles.commentStyle}>
+                            <Avatar
+                                size={'small'}
+                                containerStyle={{ marginTop: 2 }}
+                                source={require('../../assets/images/Penguins.jpg')}
+                                icon={{ name: 'user', type: 'antdesign', color: 'white' }}
+                                rounded
+                                overlayContainerStyle={styles.commentAvatar}
+                            />
+                            <View style={styles.commentTextCtn}>
+
+                                <Text>
+                                    <Text style={styles.title}>heart </Text>
+                                    <Text style={styles.subtitle}>
+                                        Everyone is looking for that something, something that makes the world revolve round us
+                                    </Text>
+                                </Text>
+                                <View style={styles.listItemBottomCtnStyle}>
+                                    <Text style={styles.bottomCtnLeftText}>2hrs</Text>
+                                    <Text style={styles.bottomCtnRightText}>Reply</Text>
+                                </View>
+                            </View>
+                        </View>
+
