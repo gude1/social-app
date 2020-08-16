@@ -1,17 +1,32 @@
 import React, { } from 'react';
 import { FlatList, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
-import { ListItem, ConfirmModal } from './reusable/ResuableWidgets';
+import { ListItem, ConfirmModal, BottomListModal } from './ResuableWidgets';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
-import { useTheme } from '../assets/themes/index';
-import { checkData } from '../utilities/index';
-import { Icon } from 'react-native-elements';
+import { useTheme } from '../../assets/themes';
+import { checkData } from '../../utilities';
+import { Icon, Overlay } from 'react-native-elements';
 
 const { colors } = useTheme();
 export default class PostCommentList extends React.PureComponent {
     constructor(props) {
         super(props);
         this.reswidth = responsiveWidth(100);
-        this.state = { confirmdeletevisible: false };
+        this.state = { confirmdeletevisible: false, usercommentmodal: false, otherscommentmodal: false };
+        this.cuurentcommentid = null;
+        this.currentcommentownerid = null;
+        this.bottomodallistowneroptions = [
+            {
+                listtext: 'Delete Post',
+                onPress: () => {
+                    this.setState({ usercommentmodal: false });
+                    this.setState({ confirmdeletevisible: true });
+                },
+                icon: {
+                    name: 'trash',
+                    type: 'entypo'
+                }
+            },
+        ];
     }
     componentDidMount() {
         if (checkData(this.props.parentpost)) {
@@ -42,6 +57,27 @@ export default class PostCommentList extends React.PureComponent {
         }
         return null;
     };
+    _setSelected = (commentid, ownerid) => {
+        if (checkData(commentid) && checkData(ownerid)) {
+            this.cuurentcommentid = commentid;
+            this.currentcommentownerid = ownerid;
+        }
+        if (ownerid == this.props.userprofile.profile_id) {
+            this._openUserBottomModal();
+        } else {
+            this._openOthersBottomModal();
+        }
+    };
+    _openOthersBottomModal = () => {
+        this.setState({ otherscommentmodal: true })
+    };
+    _openUserBottomModal = () => {
+        this.setState({ usercommentmodal: true })
+    };
+    _onDeletePress = () => {
+        this.setState({ confirmdeletevisible: false });
+        this.props.onDelete(this.cuurentcommentid, this.currentcommentownerid);
+    };
     _onItemLiked = (commentid, likestatus, numlikes) => {
         if (checkData(commentid) != true ||
             checkData(likestatus) != true ||
@@ -70,7 +106,7 @@ export default class PostCommentList extends React.PureComponent {
             <ListItem
                 time={item.created_at}
                 onRetryPress={item.onRetry}
-                onLongPress={() => alert('hmm')}
+                onLongPress={() => this._setSelected(item.commentid, item.profile.profile_id)}
                 //replyPress={}
                 leftAvatar={{ uri: item.profile.avatar[1] }}
                 title={item.profile.user.username}
@@ -141,10 +177,13 @@ export default class PostCommentList extends React.PureComponent {
                 margin: 10,
                 alignItems: "center"
             }}>
-                <Text
+                <Icon
+                    color={colors.text}
+                    size={responsiveFontSize(5)}
                     onPress={() => this.props.onLoadMore(this.props.parentpost.postid)}
-                    style={{ color: "#2196F3", fontSize: responsiveFontSize(1.5) }}>
-                    Load more comment</Text>
+                    name="plus"
+                    type="evilicon"
+                />
             </View>;
         }
 
@@ -169,12 +208,32 @@ export default class PostCommentList extends React.PureComponent {
             />
             <ConfirmModal
                 isVisible={this.state.confirmdeletevisible}
-                confirmMsg="Delete Post?"
-                acceptText="Yes"
+                confirmMsg="Delete comment?"
+                acceptText="Yeah"
                 acceptAction={this._onDeletePress}
                 rejectAction={() => this.setState({ confirmdeletevisible: false })}
-                rejectText="No"
+                rejectText="Nah"
             />
+
+            <BottomListModal
+                listData={this.bottomodallistowneroptions}
+                visible={this.state.usercommentmodal}
+                onRequestClose={() => {
+                    this.setState({ usercommentmodal: false });
+                }}
+            />
+            <Overlay
+                isVisible={this.props.deleting}
+                animationType="fade"
+                overlayStyle={styles.progressOverlay}
+            >
+                <View style={styles.progressOverlay}>
+                    <Text style={{ color: colors.text }}>Deleting</Text>
+                    <ActivityIndicator
+                        size={'small'}
+                        color={colors.border} />
+                </View>
+            </Overlay>
             </>
         );
     }
@@ -185,4 +244,12 @@ const styles = StyleSheet.create({
         borderBottomWidth: 0.3,
         borderColor: colors.border
     },
+    progressOverlay: {
+        width: 100,
+        backgroundColor: colors.background,
+        flexDirection: 'row',
+        height: 70,
+        alignItems: "center",
+        justifyContent: "space-around"
+    }
 });

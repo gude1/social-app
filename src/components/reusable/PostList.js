@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, TouchableHighlight } from 'react-native';
-import { Header, ImageViewPager, BottomListModal, ConfirmModal } from '../../components/reusable/ResuableWidgets';
+import { Header, ImageViewPager, BottomListModal, ConfirmModal } from './ResuableWidgets';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveWidth, responsiveFontSize, responsiveHeight } from 'react-native-responsive-dimensions';
 import { Icon, Avatar, Image, Overlay, Button } from 'react-native-elements';
@@ -554,9 +554,13 @@ export default class PostList extends React.PureComponent {
                 margin: 6,
                 alignItems: "center"
             }}>
-                <Text
+                <Icon
+                    color={colors.text}
+                    size={responsiveFontSize(7)}
                     onPress={this.props.onLoadMorePress}
-                    style={{ color: "#2196F3" }}>Load more post</Text>
+                    name="plus"
+                    type="evilicon"
+                />
             </View>;
         }
 

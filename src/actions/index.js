@@ -1398,10 +1398,10 @@ export const prependPostCommentForm = (data: Array) => {
     };
 };
 
-export const removePostCommentForm = (data: String) => {
+export const removePostCommentForm = (commentid: String) => {
     return {
         type: REMOVE_POST_COMMENT_FORM,
-        payload: data
+        payload: commentid
     }
 };
 
@@ -1723,9 +1723,40 @@ export const loadMorePostComment = (postid) => {
     }
 };
 
-export const deletePostComment = (postid) => {
+export const deletePostComment = (postcommentid, ownerid) => {
     return async (dispatch) => {
-
+        const { user, profile } = store.getState();
+        if (checkData(postcommentid) != true || checkData(ownerid) != true || ownerid != profile.profile_id) {
+            ToastAndroid.show('Could not delete comment', ToastAndroid.LONG);
+            return;
+        }
+        dispatch(setProcessing(true, 'postcommentformdeleting'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('postcommentdelete', { postcommentid }, options);
+            const { errmsg, status, message, ownerpost } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'postcommentformdeleting'));
+                    dispatch(updateTimelinePost(ownerpost));
+                    dispatch(updateTimelinePostForm(ownerpost));
+                    dispatch(removePostCommentForm(postcommentid));
+                    break;
+                case 401:
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'postcommentformdeleting'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'postcommentformdeleting'));
+            alert(err.toString())
+            //alert(JSON.stringify(err));
+            ToastAndroid.show('could not post comment please try gain', ToastAndroid.LONG);
+        }
     }
 };
 

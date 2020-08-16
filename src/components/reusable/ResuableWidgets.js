@@ -307,11 +307,6 @@ export class BottomListModal extends Component {
 
 
 export const ConfirmModal = ({ isVisible, acceptText, acceptAction, rejectAction, rejectText, confirmMsg, }) => {
-
-    const setModal = () => {
-        alert('good');
-    };
-
     return (
         <Overlay
             fullScreen={false}

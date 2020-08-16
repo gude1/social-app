@@ -8,12 +8,13 @@ import { Icon, Avatar, Input } from 'react-native-elements';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes/index';
 import TouchableScale from 'react-native-touchable-scale';
-import PostCommentList from '../../components/PostCommentList';
 import { checkData } from '../../utilities/index';
+import PostCommentList from '../../components/reusable/PostCommentList';
 
 const { colors } = useTheme();
 const PostCommentScreen = ({ navparent,
     componentId,
+    profile,
     ownerpostid,
     timelineposts,
     profileimage,
@@ -23,7 +24,9 @@ const PostCommentScreen = ({ navparent,
     makePostComment,
     loadMorePostComment,
     likePostComment,
-    refreshPostComment
+    refreshPostComment,
+    deletePostComment
+
 }) => {
     let ownerpost = timelineposts.find(item => item.postid == ownerpostid);
     const [loaded, setLoaded] = useState(false);
@@ -86,6 +89,8 @@ const PostCommentScreen = ({ navparent,
                     <View style={styles.parentStyle}>
                         <PostCommentList
                             onFetch={fetchPostComment}
+                            fetching={postcommentform.fetching}
+                            userprofile={profile}
                             setFlatlistRef={setFlatlistRef}
                             parentpost={ownerpost}
                             data={postcommentform.postcomments}
@@ -94,7 +99,8 @@ const PostCommentScreen = ({ navparent,
                             loadingmore={postcommentform.loadmore}
                             onRefresh={refreshPostComment}
                             refreshing={postcommentform.refreshing}
-                            fetching={postcommentform.fetching}
+                            onDelete={deletePostComment}
+                            deleting={postcommentform.deleting}
                         />
                     </View>
                     <InputBox
@@ -106,7 +112,7 @@ const PostCommentScreen = ({ navparent,
                             setInputText('');
                             makePostComment(ownerpost.postid, inputtext);
                             if (checkData(inputtext)) {
-                                flatlistref.scrollToIndex({ index: 0 })
+                                flatlistref.scrollToOffset({ offset: 0 })
                             }
                         }}
                         maxLength={300}
@@ -127,6 +133,7 @@ PostCommentScreen.options = {
 const mapStateToProps = (state) => {
     return {
         profileimage: state.profile.avatarlocal || state.profile.avatarremote,
+        profile: state.profile,
         timelineposts: state.timelinepostform.timelineposts,
         postcommentform: state.postcommentform
     }
