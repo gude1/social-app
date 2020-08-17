@@ -454,6 +454,26 @@ export class ListItem extends Component {
             </TouchableScale>
         );
     }
+};
+
+export class ActivityOverlay extends React.PureComponent {
+    render() {
+        const { isVisible, text } = this.props;
+        return (
+            <Overlay
+                isVisible={isVisible}
+                animationType="fade"
+                overlayStyle={styles.activityOverlay}
+            >
+                <View style={styles.activityOverlay}>
+                    <Text style={{ color: colors.text }}>{text}</Text>
+                    <ActivityIndicator
+                        size={'small'}
+                        color={colors.border} />
+                </View>
+            </Overlay>
+        );
+    }
 }
 
 
@@ -637,5 +657,12 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         flex: 1
     },
-
+    activityOverlay: {
+        width: 100,
+        backgroundColor: colors.background,
+        flexDirection: 'row',
+        height: 70,
+        alignItems: "center",
+        justifyContent: "space-around"
+    }
 });

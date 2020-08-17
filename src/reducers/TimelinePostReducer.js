@@ -4,7 +4,8 @@ import {
     RESET,
     DELETE_TIMELINE_POST,
     SET_TIMELINE_POST_LINKS,
-    REMOVE_PROFILE_TIMELINE_POST
+    REMOVE_PROFILE_TIMELINE_POST,
+    PREPEND_TIMELINE_POST
 } from '../actions/types';
 import { checkData } from '../utilities/index';
 
@@ -46,6 +47,10 @@ const TimelinePostReducer = (state = INITIAL_STATE, action) => {
         case ADD_TIMELINE_POST:
             let addedstate = { ...state, timelineposts: [...state.timelineposts, ...action.payload] };
             return { ...addedstate, timelineposts: arrayReduce(addedstate.timelineposts) };
+            break;
+        case PREPEND_TIMELINE_POST:
+            let addedstate2 = { ...state, timelineposts: [...action.payload, ...state.timelineposts] };
+            return { ...addedstate2, timelineposts: arrayReduce(addedstate2.timelineposts) };
             break;
         case UPDATE_TIMELINE_POST:
             let updatedstate = state.timelineposts.map(item => {

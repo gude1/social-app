@@ -25,8 +25,8 @@ const PostCommentScreen = ({ navparent,
     loadMorePostComment,
     likePostComment,
     refreshPostComment,
+    hidePostCommentAction,
     deletePostComment
-
 }) => {
     let ownerpost = timelineposts.find(item => item.postid == ownerpostid);
     const [loaded, setLoaded] = useState(false);
@@ -99,6 +99,8 @@ const PostCommentScreen = ({ navparent,
                             loadingmore={postcommentform.loadmore}
                             onRefresh={refreshPostComment}
                             refreshing={postcommentform.refreshing}
+                            onHide={hidePostCommentAction}
+                            hiding={postcommentform.hiding}
                             onDelete={deletePostComment}
                             deleting={postcommentform.deleting}
                         />

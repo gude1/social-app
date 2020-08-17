@@ -6,6 +6,7 @@ import {
     TIMELINE_POST_FORM_REFRESH,
     DELETE_TIMELINE_POST_FORM,
     REMOVE_PROFILE_TIMELINE_POST_FORM,
+    PREPEND_TIMELINE_POST_FORM,
     PROCESSING,
     RESET,
 } from '../actions/types';
@@ -73,6 +74,9 @@ const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case ADD_TIMELINE_POST_FORM:
             return { ...state, timelineposts: [...state.timelineposts, ...action.payload] };
+            break;
+        case PREPEND_TIMELINE_POST_FORM:
+            return { ...state, timelineposts: [...action.payload, ...state.timelineposts] };
             break;
         case UPDATE_TIMELINE_POST_FORM:
             let updatedstate = state.timelineposts.map(item => {

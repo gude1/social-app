@@ -290,16 +290,13 @@ const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts,
                                 labelStyle={[styles.labelStyle, { color: placeholderColor }]}
                                 inputContainerStyle={{ borderBottomWidth: 0 }}
                                 multiline={true}
-                                rightIcon={
-                                    <TouchableOpacity onPressIn={() => setUpdatedPostFormText('')}>
-                                        <Icon
-                                            name={'closecircleo'}
-                                            type="antdesign"
-                                            size={30}
-                                            color={colors.text}
-                                        />
-                                    </TouchableOpacity>
-                                }
+                                rightIcon={{
+                                    name: 'closecircleo',
+                                    type: "antdesign",
+                                    size: 30,
+                                    color: colors.text,
+                                    onPress: () => setUpdatedPostFormText('')
+                                }}
                             />
                         </View>
                         <View style={[styles.middleContainerStyle]} >

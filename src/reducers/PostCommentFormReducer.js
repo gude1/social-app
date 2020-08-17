@@ -16,6 +16,7 @@ const INITIAL_STATE = {
     ownerpost: null,
     fetching: false,
     processing: false,
+    hiding: false,
     deleting: false,
     loadmore: false,
     refreshing: false,
@@ -34,6 +35,9 @@ const handleProcessing = (key, value, state) => {
             break;
         case 'postcommentformdeleting':
             return { ...state, deleting: value };
+            break;
+        case 'postcommentformhiding':
+            return { ...state, hiding: value };
             break;
         default:
             return state;

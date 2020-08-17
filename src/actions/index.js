@@ -39,6 +39,8 @@ import {
     REMOVE_PROFILE_TIMELINE_POST,
     REMOVE_PROFILE_TIMELINE_POST_FORM,
     ADD_POST_COMMENT_FORM,
+    PREPEND_TIMELINE_POST_FORM,
+    PREPEND_TIMELINE_POST,
     POST_COMMENT_FORM_REFRESH,
     POST_COMMENT_FORM_DELETE,
     PREPEND_POST_COMMENT_FORM,
@@ -635,9 +637,12 @@ export const makePost = (postimages, posttext) => {
             let { errors, errmsg, status, perror, post } = response.data;
             switch (status) {
                 case 200:
+                    dispatch(prependTimelinePostForm([post]));
+                    dispatch(prependTimelinePost([post]));
                     ToastAndroid.show('Posted!', ToastAndroid.LONG);
                     if (checkData(perror)) {
                         ToastAndroid.show(perror, ToastAndroid.LONG);
+                        //perror from backend means not all images were succefull uploaded to backend
                     }
                     if (checkData(post)) {
                         dispatch(savePost(post));
@@ -648,7 +653,7 @@ export const makePost = (postimages, posttext) => {
                     if (postcompleted == 'postfalse' && getAppInfo(store.getState().posts, 'post') == 'posttrue') {
                         setRoute(store.getState());
                     } else {
-                        console.warn('Navigate to postshow page');
+                        //console.warn('Navigate to postshow page');
                     }
                     break;
                 case 400:
@@ -678,6 +683,7 @@ export const makePost = (postimages, posttext) => {
                     break;
             }
         } catch (e) {
+            //alert(e.toString());
             deleteMultiImage(resizedimgcaches);
             dispatch(setProcessing(false, 'POSTFORM'));
             if (e.toString().indexOf('Network Error') != -1) {
@@ -737,13 +743,13 @@ const deleteMultiImage = (images) => {
 /**
  * ACTION CREATOR FOR POST REDUCER
  */
-export const savePost = (post) => {
+export const savePost = (post: Object) => {
     return {
         type: UPDATE_POST,
         payload: post
     }
 };
-export const removePost = (postid) => {
+export const removePost = (postid: String) => {
     return {
         type: REMOVE_POST,
         payload: postid,
@@ -757,6 +763,13 @@ export const removePost = (postid) => {
 export const addTimelinePost = (timelinepost) => {
     return {
         type: ADD_TIMELINE_POST,
+        payload: timelinepost
+    }
+};
+
+export const prependTimelinePost = (timelinepost: Array) => {
+    return {
+        type: PREPEND_TIMELINE_POST,
         payload: timelinepost
     }
 };
@@ -798,6 +811,13 @@ export const addTimelinePostForm = (data) => {
         payload: data
     }
 }
+export const prependTimelinePostForm = (data: Array) => {
+    return {
+        type: PREPEND_TIMELINE_POST_FORM,
+        payload: data
+    }
+};
+
 export const updateTimelinePostForm = (data) => {
     return {
         type: UPDATE_TIMELINE_POST_FORM,
@@ -1010,13 +1030,16 @@ export const archiveTimelinePost = (postid, postprofileid) => {
             const response = await session.post('postarchive', {
                 postid: postid
             }, options);
-            const { errmsg, message, status } = response.data;
+            const { errmsg, message, resetpost, status } = response.data;
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'processarchivetimelinepostform'));
                     dispatch(deleteTimeLinePost(postid));
                     dispatch(deleteTimelinePostForm(postid));
                     dispatch(removePost(postid));
+                    if (checkData(resetpost)) {
+                        dispatch(savePost(resetpost));
+                    }
                     ToastAndroid.show(message, ToastAndroid.LONG);
                     break;
                 case 400:
@@ -1184,13 +1207,16 @@ export const deleteTimelinePost = (postid, postprofileid) => {
             const response = await session.post('postdelete', {
                 postid: postid
             }, options);
-            const { errmsg, message, status } = response.data;
+            const { errmsg, message, status, resetpost } = response.data;
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'processdeletetimelinepostform'));
                     dispatch(deleteTimeLinePost(postid));
                     dispatch(deleteTimelinePostForm(postid));
                     dispatch(removePost(postid));
+                    if (checkData(resetpost)) {
+                        dispatch(savePost(resetpost));
+                    }
                     ToastAndroid.show(message, ToastAndroid.LONG);
                     break;
                 case 400:
@@ -1753,11 +1779,48 @@ export const deletePostComment = (postcommentid, ownerid) => {
             }
         } catch (err) {
             dispatch(setProcessing(false, 'postcommentformdeleting'));
-            alert(err.toString())
+            //alert(err.toString())
             //alert(JSON.stringify(err));
             ToastAndroid.show('could not post comment please try gain', ToastAndroid.LONG);
         }
     }
+};
+
+export const hidePostCommentAction = (commentid, ownerid) => {
+    return async (dispatch) => {
+        const { user, profile } = store.getState();
+        if (checkData(commentid) != true ||
+            checkData(ownerid) != true ||
+            ownerid != profile.profile_id) {
+            ToastAndroid.show('Could not hide comment', ToastAndroid.LONG);
+            return;
+        }
+        dispatch(setProcessing(true, 'postcommentformhiding'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('postcommenthide', { commentid }, options);
+            const { errmsg, status, message } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'postcommentformhiding'));
+                    dispatch(removePostCommentForm(commentid));
+                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    break;
+                case 401:
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'postcommentformhiding'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'postcommentformhiding'));
+            //alert(err.toString());
+            ToastAndroid.show('something went wrong could not hide comment please try again', ToastAndroid.LONG)
+        }
+    };
 };
 
 /**

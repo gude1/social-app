@@ -1,6 +1,6 @@
 import React, { } from 'react';
 import { FlatList, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
-import { ListItem, ConfirmModal, BottomListModal } from './ResuableWidgets';
+import { ListItem, ConfirmModal, BottomListModal, ActivityOverlay } from './ResuableWidgets';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes';
 import { checkData } from '../../utilities';
@@ -11,12 +11,17 @@ export default class PostCommentList extends React.PureComponent {
     constructor(props) {
         super(props);
         this.reswidth = responsiveWidth(100);
-        this.state = { confirmdeletevisible: false, usercommentmodal: false, otherscommentmodal: false };
-        this.cuurentcommentid = null;
+        this.state = {
+            confirmdeletevisible: false,
+            confirmhidevisible: false,
+            usercommentmodal: false,
+            otherscommentmodal: false,
+        };
+        this.currentcommentid = null;
         this.currentcommentownerid = null;
         this.bottomodallistowneroptions = [
             {
-                listtext: 'Delete Post',
+                listtext: 'Delete Comment',
                 onPress: () => {
                     this.setState({ usercommentmodal: false });
                     this.setState({ confirmdeletevisible: true });
@@ -27,6 +32,32 @@ export default class PostCommentList extends React.PureComponent {
                 }
             },
         ];
+        this.bottomodallistothersoptions = [
+            {
+                listtext: 'Mute profile',
+                icon: {
+                    name: 'volume-x',
+                    type: 'feather'
+                },
+                onPress: () => {
+                    this.setState({ otherscommentmodal: false });
+                },
+            },
+        ];
+        if (this.props.userprofile.profile_id == this.props.parentpost.profile.profile_id) {
+            this.bottomodallistothersoptions = [...this.bottomodallistothersoptions, {
+                listtext: 'Hide comment',
+                icon: {
+                    name: 'eye-off',
+                    type: 'feather'
+                },
+                onPress: () => {
+                    this.setState({ otherscommentmodal: false });
+                    this.setState({ confirmhidevisible: true });
+                }
+            }]
+        }
+
     }
     componentDidMount() {
         if (checkData(this.props.parentpost)) {
@@ -59,7 +90,7 @@ export default class PostCommentList extends React.PureComponent {
     };
     _setSelected = (commentid, ownerid) => {
         if (checkData(commentid) && checkData(ownerid)) {
-            this.cuurentcommentid = commentid;
+            this.currentcommentid = commentid;
             this.currentcommentownerid = ownerid;
         }
         if (ownerid == this.props.userprofile.profile_id) {
@@ -76,7 +107,7 @@ export default class PostCommentList extends React.PureComponent {
     };
     _onDeletePress = () => {
         this.setState({ confirmdeletevisible: false });
-        this.props.onDelete(this.cuurentcommentid, this.currentcommentownerid);
+        this.props.onDelete(this.currentcommentid, this.currentcommentownerid);
     };
     _onItemLiked = (commentid, likestatus, numlikes) => {
         if (checkData(commentid) != true ||
@@ -97,10 +128,6 @@ export default class PostCommentList extends React.PureComponent {
         { length: this.reswidth, offset: this.reswidth * index, index }
     )
     _keyExtractor = (item, index) => item.commentid;
-    scrollToIndex = () => {
-        let random = Math.floor(Math.random(Date.now())) * this.props.data.length;
-        this.flatlist.scrollToIndex({ animated: true, index: random })
-    };
     _renderItem = ({ item }) => {
         return (
             <ListItem
@@ -214,6 +241,25 @@ export default class PostCommentList extends React.PureComponent {
                 rejectAction={() => this.setState({ confirmdeletevisible: false })}
                 rejectText="Nah"
             />
+            <ActivityOverlay
+                text="deleting"
+                isVisible={this.props.deleting}
+            />
+            <ConfirmModal
+                isVisible={this.state.confirmhidevisible}
+                confirmMsg="Hide comment?"
+                acceptText="Yeah"
+                acceptAction={() => {
+                    this.setState({ confirmhidevisible: false });
+                    this.props.onHide(this.currentcommentid, this.props.userprofile.profile_id);
+                }}
+                rejectAction={() => this.setState({ confirmhidevisible: false })}
+                rejectText="Nah"
+            />
+            <ActivityOverlay
+                text="hiding"
+                isVisible={this.props.hiding}
+            />
 
             <BottomListModal
                 listData={this.bottomodallistowneroptions}
@@ -222,18 +268,13 @@ export default class PostCommentList extends React.PureComponent {
                     this.setState({ usercommentmodal: false });
                 }}
             />
-            <Overlay
-                isVisible={this.props.deleting}
-                animationType="fade"
-                overlayStyle={styles.progressOverlay}
-            >
-                <View style={styles.progressOverlay}>
-                    <Text style={{ color: colors.text }}>Deleting</Text>
-                    <ActivityIndicator
-                        size={'small'}
-                        color={colors.border} />
-                </View>
-            </Overlay>
+            <BottomListModal
+                listData={this.bottomodallistothersoptions}
+                visible={this.state.otherscommentmodal}
+                onRequestClose={() => {
+                    this.setState({ otherscommentmodal: false });
+                }}
+            />
             </>
         );
     }
@@ -244,12 +285,4 @@ const styles = StyleSheet.create({
         borderBottomWidth: 0.3,
         borderColor: colors.border
     },
-    progressOverlay: {
-        width: 100,
-        backgroundColor: colors.background,
-        flexDirection: 'row',
-        height: 70,
-        alignItems: "center",
-        justifyContent: "space-around"
-    }
 });
