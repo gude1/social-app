@@ -22,6 +22,7 @@ import ChatScreen from './src/screens/main/ChatScreen';
 import ProfileScreen from './src/screens/main/ProfileScreen';
 import ExploreScreen from './src/screens/main/ExploreScreen';
 import PostCommentScreen from './src/screens/main/PostCommentScreen';
+import LikesListScreen from './src/screens/main/LikesListScreen';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
@@ -118,6 +119,7 @@ Navigation.events().registerAppLaunchedListener(async () => {
         Navigation.registerComponentWithRedux('PhotoList', () => PhotoListScreen, Provider, store);
         Navigation.registerComponentWithRedux('PhotoViewer', () => PhotoViewerScreen, Provider, store);
         Navigation.registerComponentWithRedux('PostComment', () => PostCommentScreen, Provider, store);
+        Navigation.registerComponentWithRedux('LikesList', () => LikesListScreen, Provider, store);
         //Navigation.setRoot(AUTHROUTE);
         store.dispatch(getGalleryPhotos());
         setTheDefault();

@@ -27,5 +27,5 @@ const persistConfig = {
 
 const pReducer = persistReducer(persistConfig, reducers);
 export const store = createStore(pReducer, applyMiddleware(thunk));
-//const persistor = persistStore(store);
-//persistor.purge();
+const persistor = persistStore(store);
+persistor.purge();

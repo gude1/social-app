@@ -10,7 +10,7 @@ import AppInfoReducer from './AppInfoReducer';
 import TimelinePostReducer from './TimelinePostReducer';
 import TimelinePostFormReducer from './TimelinePostFormReducer'
 import PostCommentFormReducer from './PostCommentFormReducer';
-
+import LikesListFormReducer from './LikesListFormReducer';
 export default combineReducers({
     user: userReducer,
     auth: AuthReducer,
@@ -21,6 +21,7 @@ export default combineReducers({
     timelineposts: TimelinePostReducer,
     timelinepostform: TimelinePostFormReducer,
     postcommentform: PostCommentFormReducer,
+    likeslistform: LikesListFormReducer,
     appinfo: AppInfoReducer,
     photogalleryform: PhotoGalleryReducer,
 });

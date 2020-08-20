@@ -950,13 +950,32 @@ export const likeTimelinePostAction = (postid, likestatus, numpostlikes) => {
                 case 401:
                     break;
                 case 500:
-                    ToastAndroid.show('could not like post please try again', ToastAndroid.LONG);
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    dispatch(updateTimelinePostForm({
+                        postid, postliked: likestatus == "postliked" ? 'notliked' : 'postliked',
+                        num_post_likes: likestatus == "postliked" ? numpostlikes - 1 : numpostlikes + 1,
+                    }));
                     break;
                 case 400:
                     ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    dispatch(updateTimelinePostForm({
+                        postid, postliked: likestatus == "postliked" ? 'notliked' : 'postliked',
+                        num_post_likes: likestatus == "postliked" ? numpostlikes - 1 : numpostlikes + 1,
+                    }));
+                    break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    dispatch(updateTimelinePostForm({
+                        postid, postliked: likestatus == "postliked" ? 'notliked' : 'postliked',
+                        num_post_likes: likestatus == "postliked" ? numpostlikes - 1 : numpostlikes + 1,
+                    }));
                     break;
                 default:
-                    ToastAndroid.show('something went wrong please try again later', ToastAndroid.LONG);
+                    ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
+                    dispatch(updateTimelinePostForm({
+                        postid, postliked: likestatus == "postliked" ? 'notliked' : 'postliked',
+                        num_post_likes: likestatus == "postliked" ? numpostlikes - 1 : numpostlikes + 1,
+                    }));
                     break;
             }
         } catch (error) {
@@ -997,16 +1016,36 @@ export const shareTimelinePostAction = (postid, sharestatus, numpostshares) => {
                     break;
                 case 500:
                     ToastAndroid.show('could not share post please try again', ToastAndroid.LONG);
+                    dispatch(updateTimelinePostForm({
+                        postid, postshared: sharestatus == "postshared" ? "notshared" : "postshared",
+                        num_post_shares: sharestatus == "postshared" ? numpostshares - 1 : numpostshares + 1
+                    }));
                     break;
                 case 400:
                     ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    dispatch(updateTimelinePostForm({
+                        postid, postshared: sharestatus == "postshared" ? "notshared" : "postshared",
+                        num_post_shares: sharestatus == "postshared" ? numpostshares - 1 : numpostshares + 1
+                    }));
+                    break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    dispatch(updateTimelinePostForm({
+                        postid, postshared: sharestatus == "postshared" ? "notshared" : "postshared",
+                        num_post_shares: sharestatus == "postshared" ? numpostshares - 1 : numpostshares + 1
+                    }));
                     break;
                 default:
-                    ToastAndroid.show('something went wrong please try again later', ToastAndroid.LONG);
+                    ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
+                    dispatch(updateTimelinePostForm({
+                        postid, postshared: sharestatus == "postshared" ? "notshared" : "postshared",
+                        num_post_shares: sharestatus == "postshared" ? numpostshares - 1 : numpostshares + 1
+                    }));
                     break;
             }
         } catch (error) {
             //ToastAndroid.show('could not share post posibbly a network error', ToastAndroid.LONG);
+
             //console.warn(error.toString());
         }
     }
@@ -1051,6 +1090,9 @@ export const archiveTimelinePost = (postid, postprofileid) => {
                     ToastAndroid.show(`${errmsg}`, ToastAndroid.LONG);
                     break;
                 case 401:
+                    break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     break;
                 case 500:
                     dispatch(setProcessing(false, 'processarchivetimelinepostform'));
@@ -1103,6 +1145,9 @@ export const blackListTimelinePost = (postid, postprofileid) => {
                     break;
                 case 500:
                     dispatch(setProcessing(false, 'processblacklisttimelinepostform'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 412:
                     ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
@@ -1167,6 +1212,9 @@ export const muteProfileTimelinePost = (profileid) => {
                     dispatch(setProcessing(false, 'processmutetimelinepostform'));
                     ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
                 case 401:
 
                     break;
@@ -1226,6 +1274,9 @@ export const deleteTimelinePost = (postid, postprofileid) => {
                 case 500:
                     dispatch(setProcessing(false, 'processdeletetimelinepostform'));
                     ToastAndroid.show('post not deleted please try again', ToastAndroid.LONG)
+                    break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
                     break;
@@ -1467,6 +1518,10 @@ export const fetchPostComment = (postid) => {
                     dispatch(setProcessing(false, 'postcommentformfetching'));
                     //ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    dispatch(setProcessing(false, 'postcommentformfetching'));
+                    break;
                 case 401:
                     break;
                 default:
@@ -1476,6 +1531,7 @@ export const fetchPostComment = (postid) => {
             }
 
         } catch (err) {
+            alert(err.toString());
             // console.warn(err.toString());
             dispatch(setProcessing('retry', 'postcommentformfetching'));
             //ToastAndroid.show('Could not fetch comments please try again', ToastAndroid.LONG);
@@ -1521,13 +1577,14 @@ export const retryPostComment = (postid, commentid, comment_text) => {
                     //alert(JSON.stringify(comment));
                     break;
                 case 400:
-                    dispatch(removePostCommentForm(tempid));
+                    dispatch(updatePostCommentForm(onretryschema));
                     break;
                 case 404:
                     dispatch(removePostCommentForm(tempid));
                     break;
                 case 412:
                     dispatch(removePostCommentForm(tempid));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
                     break;
@@ -1592,13 +1649,14 @@ export const makePostComment = (postid, comment_text) => {
                     //alert(JSON.stringify(comment));
                     break;
                 case 400:
-                    dispatch(removePostCommentForm(tempid));
+                    dispatch(updatePostCommentForm(onretryschema));
                     break;
                 case 404:
                     dispatch(removePostCommentForm(tempid));
                     break;
                 case 412:
                     dispatch(removePostCommentForm(tempid));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
                     break;
@@ -1642,12 +1700,30 @@ export const likePostComment = (commentid, likestatus, numlikes) => {
             const { errmsg, status, message, comment } = response.data;
             switch (status) {
                 case 200:
-                    dispatch(updatePostCommentForm(comment));
                     //alert(JSON.stringify(comment));
+                    dispatch(updatePostCommentForm(comment));
                     break;
                 case 401:
                     break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    dispatch(
+                        updatePostCommentForm({
+                            commentid: commentid,
+                            commentliked: likestatus ? false : true,
+                            num_likes: likestatus ? numlikes - 1 : numlikes + 1
+                        })
+                    );
+                    break;
                 default:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG)
+                    dispatch(
+                        updatePostCommentForm({
+                            commentid: commentid,
+                            commentliked: likestatus ? false : true,
+                            num_likes: likestatus ? numlikes - 1 : numlikes + 1
+                        })
+                    );
                     break;
             }
         } catch (err) {
@@ -1692,6 +1768,10 @@ export const refreshPostComment = (postid) => {
                     break;
                 case 401:
                     break;
+                case 412:
+                    dispatch(setPostCommentFormRefresh(false));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
                 default:
                     dispatch(setPostCommentFormRefresh(false));
                     ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
@@ -1735,6 +1815,10 @@ export const loadMorePostComment = (postid) => {
                     break;
                 case 404:
                     dispatch(setProcessing(false, 'postcommentformloadmore'));
+                    break;
+                case 412:
+                    dispatch(setProcessing(false, 'postcommentformloadmore'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
                     break;
