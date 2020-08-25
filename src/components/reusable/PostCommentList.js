@@ -5,6 +5,7 @@ import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dim
 import { useTheme } from '../../assets/themes';
 import { checkData } from '../../utilities';
 import { Icon, Overlay } from 'react-native-elements';
+import { Navigation } from 'react-native-navigation';
 
 const { colors } = useTheme();
 export default class PostCommentList extends React.PureComponent {
@@ -66,15 +67,15 @@ export default class PostCommentList extends React.PureComponent {
     }
     _setEmptyPlaceholder = () => {
         if (this.props.fetching == true) {
-            return <View style={{
+            return (<View style={{
                 alignItems: "center",
                 height: 200,
                 justifyContent: 'center'
             }}>
                 <ActivityIndicator size="large" color={'silver'} />
-            </View>;
+            </View>);
         } else if (this.props.fetching == 'retry') {
-            return <View
+            return (<View
                 style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
                 <Icon
                     onPress={() => this.props.onFetch(this.props.parentpost.postid)}
@@ -84,7 +85,7 @@ export default class PostCommentList extends React.PureComponent {
                     type="antdesign"
                 />
                 <Text style={{ color: colors.text }}>Tap to retry </Text>
-            </View>
+            </View>);
         }
         return null;
     };
@@ -124,9 +125,24 @@ export default class PostCommentList extends React.PureComponent {
         }
         this.props.onItemLike(commentid, likestatus, numlikes);
     };
+    _navShowLikes = (commentid) => {
+        if (checkData(commentid) != true) {
+            return;
+        }
+        Navigation.showModal({
+            component: {
+                name: 'LikesList',
+                passProps: {
+                    navparent: true,
+                    requrl: 'postcommentlikes',
+                    reqdata: { commentid }
+                },
+            }
+        });
+    };
     _getItemLayout = (data, index) => (
         { length: this.reswidth, offset: this.reswidth * index, index }
-    )
+    );
     _keyExtractor = (item, index) => item.commentid;
     _renderItem = ({ item }) => {
         return (
@@ -139,6 +155,7 @@ export default class PostCommentList extends React.PureComponent {
                 title={item.profile.user.username}
                 subtitle={item.comment_text}
                 likes={item.num_likes}
+                numLikesPress={() => this._navShowLikes(item.commentid)}
                 likebtn
                 likePress={() => this._onItemLiked(item.commentid, item.commentliked, item.num_likes)}
                 liked={item.commentliked}
@@ -153,12 +170,15 @@ export default class PostCommentList extends React.PureComponent {
             <View style={styles.postTextContainer}>
                 {<ListItem
                     time={this.props.parentpost.created_at}
+                    likes={this.props.parentpost.num_post_likes}
                     title={this.props.parentpost.profile.user.username}
                     leftAvatar={{ uri: this.props.parentpost.profile.avatar[1] }}
                     subtitle={this.props.parentpost.post_text}
                     timeTextStyle={{ fontSize: responsiveFontSize(1.6) }}
                     BottomContainerItem={
-                        <View style={{ flexDirection: 'row', alignItems: "center" }}>
+                        <View style={{
+                            flexDirection: 'row', alignItems: "center",
+                        }}>
                             <Text style={{
                                 fontSize: responsiveFontSize(1.5),
                                 color: "silver",

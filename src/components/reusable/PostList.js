@@ -202,18 +202,21 @@ class PostItem extends Component {
                 </View>
 
                 <View style={styles.postListItemBottomBar}>
-                    <TouchableScale
-                        activeScale={0.8}
-                        onPress={() => this.props.onLikePress(
-                            this.props.postid,
-                            this.props.postliked,
-                            this.props.numlikes,
-                        )}
-                        style={styles.postListItemBottomBarItem}
-                    >
-                        {this._setLikeIcon()}
+                    <View style={styles.postListItemBottomBarItem}>
+                        <TouchableScale
+                            activeScale={0.8}
+                            onPress={() => this.props.onLikePress(
+                                this.props.postid,
+                                this.props.postliked,
+                                this.props.numlikes,
+                            )}
+                            style={styles.postListItemBottomBarItem}
+                        >
+                            {this._setLikeIcon()}
+                        </TouchableScale>
                         <Text style={styles.postListItemBottomBarText}>{this.props.numlikes}</Text>
-                    </TouchableScale>
+                    </View>
+
                     <View style={styles.postListItemBottomBarItem}>
                         <TouchableScale
                             activeScale={0.7}
@@ -231,20 +234,23 @@ class PostItem extends Component {
                             {this.props.numcomments}
                         </Text>
                     </View>
-                    <TouchableScale
-                        style={styles.postListItemBottomBarItem}
-                        activeScale={0.8}
-                        onPress={() => this.props.onSharePress(
-                            this.props.postid,
-                            this.props.postshared,
-                            this.props.numshares,
-                        )}
-                    >
-                        {this._setShareIcon()}
+                    <View style={styles.postListItemBottomBarItem}>
+                        <TouchableScale
+                            style={styles.postListItemBottomBarItem}
+                            activeScale={0.8}
+                            onPress={() => this.props.onSharePress(
+                                this.props.postid,
+                                this.props.postshared,
+                                this.props.numshares,
+                            )}
+                        >
+                            {this._setShareIcon()}
+                        </TouchableScale>
                         <Text style={styles.postListItemBottomBarText}>
                             {this.props.numshares}
                         </Text>
-                    </TouchableScale>
+                    </View>
+
                 </View>
                 {
                     checkData(this.props.posttext) ?

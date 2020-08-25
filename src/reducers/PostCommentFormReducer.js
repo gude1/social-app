@@ -75,6 +75,8 @@ const PostCommentFormReducer = (state = INITIAL_STATE, action) => {
             if (action.payload.key == 'postcommentform') {
                 return INITIAL_STATE;
             }
+            return state;
+            break;
         case POST_COMMENT_FORM_REFRESH:
             return { ...state, refreshing: action.payload };
             break;

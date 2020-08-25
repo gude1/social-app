@@ -396,7 +396,7 @@ export class ListItem extends Component {
     }
     //onTimePress time liked
     render() {
-        const { title, time, likebtn, onLongPress, liked, onRetryPress, likePress, timeTextStyle, likes,
+        const { title, time, likebtn, onLongPress, liked, likeButtonComponent, onRetryPress, numLikesPress, likePress, timeTextStyle, likes,
             replies, subtitle, BottomContainerItem,
             replyPress, rightIcon, leftAvatar } = this.props;
         //onRetrypress has precedence
@@ -434,13 +434,13 @@ export class ListItem extends Component {
                         </Text>
                         <View style={styles.listItemBottomCtnStyle}>
                             {checkData(time) ? <Text style={[styles.bottomCtnLeftText, timeTextStyle]}>{time}</Text> : null}
-                            {checkData(likes) ? <Text style={styles.bottomCtnRightText}>{likes} likes</Text> : null}
-                            {replyPress ? <Text style={styles.bottomCtnRightText}>Reply </Text> : null}
+                            {checkData(likes) ? <Text onPress={numLikesPress} style={styles.bottomCtnRightText}>{likes} likes</Text> : null}
+                            {replyPress ? <Text onPress={replyPress} style={styles.bottomCtnRightText}>Reply </Text> : null}
                             {checkData(replies) ? <Text style={styles.bottomCtnRightText}>{replies} replies</Text> : null}
                             {BottomContainerItem}
                         </View>
                     </View>
-                    {likebtn == true ? <Icon
+                    {likebtn == true ? likeButtonComponent || <Icon
                         Component={TouchableScale}
                         activeScale={0.8}
                         type="antdesign"

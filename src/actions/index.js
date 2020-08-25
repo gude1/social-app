@@ -47,6 +47,10 @@ import {
     REMOVE_POST_COMMENT_FORM,
     UPDATE_POST_COMMENT_FORM,
     SET_POST_COMMENT_FORM_LINK,
+    ADD_LIKES_LIST_FORM,
+    UPDATE_LIKES_LIST_FORM,
+    PREPEND_LIKES_LIST_FORM,
+    SET_LIKES_LIST_FORM_LINK,
     BOOKMARK,
     RESET,
 } from './types';
@@ -269,15 +273,241 @@ export const logIn = ({ email, password, Navigation, componentId }) => {
             } else {
                 ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
             }
-            dispatch(setProcessing(false, 'login'))
+            dispatch(setProcessing(false, 'login'));
 
         }
     };
 
 };
 
+/**
+ * ACTION CREATORS FOR PROFILEACTIONFORMREDUCER
+ */
+export const followProfileAction = (profileid, initAction, okAction, failedAction) => {
+    return async (dispatch) => {
+        const { user, profile } = store.getState();
+        if (checkData(profileid) != true) {
+            ToastAndroid.show('Request incomplete', ToastAndroid.LONG);
+            return;
+        } else if (profileid == profile.profile_id) {
+            ToastAndroid.show("You can't follow yourself", ToastAndroid.LONG);
+            return;
+        }
+        dispatch(setProcessing(true, 'profileactionfollowing'));
+        initAction && initAction();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('profilefollowaction', { profileid }, options);
+            const { errmsg, message, status } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'profileactionfollowing'));
+                    okAction && okAction();
+                    break;
+                case 400:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    dispatch(setProcessing(false, 'profileactionfollowing'));
+                    failedAction && failedAction();
+                    break;
+                case 412:
+                    dispatch(setProcessing(false, 'profileactionfollowing'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    failedAction && failedAction();
+                default:
+                    dispatch(setProcessing(false, 'profileactionfollowing'));
+                    ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
+                    failedAction && failedAction();
+                    break;
+            }
+        } catch (err) {
+            //console.warn(err.toString());
+            dispatch(setProcessing(false, 'profileactionfollowing'));
+            if (err.toString().search('Failed to connect')) {
+                ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+            }
+            failedAction && failedAction();
+        }
+    };
+};
+
+export const muteProfileAction = (profileid, initAction, okAction, failedAction) => {
+    return async (dispatch) => {
+        const { user, profile } = store.getState();
+        if (checkData(profileid) != true) {
+            ToastAndroid.show('Request incomplete', ToastAndroid.LONG);
+            return;
+        } else if (profileid == profile.profile_id) {
+            ToastAndroid.show("You can't mute yourself", ToastAndroid.LONG);
+            return;
+        }
+        dispatch(setProcessing(true, 'profileactionmuting'));
+        initAction && initAction();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('profilefollowaction', { profileid }, options);
+            const { errmsg, message, status } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'profileactionmuting'));
+                    okAction && okAction();
+                    break;
+                case 400:
+                    dispatch(setProcessing(false, 'profileactionmuting'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    failedAction && failedAction();
+                    break;
+                case 412:
+                    dispatch(setProcessing(false, 'profileactionmuting'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    failedAction && failedAction();
+                default:
+                    ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
+                    failedAction && failedAction();
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'profileactionmuting'));
+            if (err.toString().search('Failed to connect')) {
+                ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+            }
+            failedAction && failedAction();
+        }
+    };
+};
 
 
+/**
+ * ACTION CREATORS FOR LIKESLISTREDUCER
+ */
+export const addToLikesListForm = (data: Array) => {
+    return {
+        type: ADD_LIKES_LIST_FORM,
+        payload: data
+    };
+};
+
+export const prependToLikesListForm = (data: Array) => {
+    return {
+        type: PREPEND_LIKES_LIST_FORM,
+        payload: data
+    };
+};
+
+export const updateLikesListForm = (data: Object) => {
+    return {
+        type: UPDATE_LIKES_LIST_FORM,
+        payload: data
+    };
+};
+export const setLikesListFormLink = (data: String) => {
+    return {
+        type: SET_LIKES_LIST_FORM_LINK,
+        payload: data,
+    }
+};
+
+export const fetchLikes = (requrl, reqdata) => {
+    return async (dispatch) => {
+        if (checkData(requrl) != true) {
+            ToastAndroid.show('request term not specified', ToastAndroid.LONG);
+            return;
+        }
+        dispatch(setProcessing(true, 'likeslistfetching'));
+        const { user, } = store.getState();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post(requrl, reqdata, options);
+            const { errmsg, status, likes_list, message, next_page_url } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'likeslistfetching'));
+                    dispatch(addToLikesListForm(likes_list));
+                    dispatch(setLikesListFormLink(next_page_url));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'likeslistfetching'));
+                    break;
+                case 400:
+                    dispatch(setProcessing('retry', 'likeslistfetching'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 404:
+                    dispatch(setProcessing('retry', 'likeslistfetching'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                default:
+                    dispatch(setProcessing('retry', 'likeslistfetching'));
+                    ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing('retry', 'likeslistfetching'));
+            if (err.toString().search('Failed to connect')) {
+                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+            }
+        }
+    };
+};
+
+export const fetchMoreLikes = (reqdata) => {
+    return async (dispatch) => {
+        const { user, likeslistform } = store.getState();
+        const { nextpageurl } = likeslistform;
+        if (checkData(nextpageurl) != true) {
+            dispatch(setProcessing('done', 'likeslistloadingmore'));
+            return;
+        }
+        dispatch(setProcessing(true, 'likeslistloadingmore'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post(nextpageurl, reqdata, options);
+            const { errmsg, status, likes_list, message, next_page_url } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'likeslistloadingmore'));
+                    dispatch(addToLikesListForm(likes_list));
+                    dispatch(setLikesListFormLink(next_page_url));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'likeslistloadingmore'));
+                    break;
+                case 400:
+                    dispatch(setProcessing('retry', 'likeslistloadingmore'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 404:
+                    dispatch(setProcessing('retry', 'likeslistloadingmore'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                default:
+                    dispatch(setProcessing('retry', 'likeslistloadingmore'));
+                    ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing('retry', 'likeslistloadingmore'));
+            if (err.toString().search('Failed to connect')) {
+                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+            }
+        }
+    };
+};
 
 
 /**
@@ -657,14 +887,22 @@ export const makePost = (postimages, posttext) => {
                     }
                     break;
                 case 400:
-                    ToastAndroid.show(`could not make post please try again ${errmsg}`,
-                        ToastAndroid.LONG
-                    );
+                    if (errmsg) {
+                        ToastAndroid.show(errmsg,
+                            ToastAndroid.LONG
+                        );
+                    } else if (errors) {
+                        errors.errorposttext && ToastAndroid.show(errors.errorposttext, ToastAndroid.LONG);
+                        errors.errpostimage && ToastAndroid.show(errors.errpostimage, ToastAndroid.LONG);
+                    } else {
+                        ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    }
+
                     deleteMultiImage(resizedimgcaches);
                     dispatch(setProcessing(false, 'POSTFORM'));
                     break;
                 case 500:
-                    ToastAndroid.show('something went wrong please try again',
+                    ToastAndroid.show(errmsg,
                         ToastAndroid.LONG
                     );
                     deleteMultiImage(resizedimgcaches);
@@ -915,8 +1153,11 @@ export const refreshTimelinePost = () => {
             }
         } catch (e) {
             dispatch(setTimelinepostRefresh('failed'));
-            ToastAndroid.showWithGravity(`could not refresh feed`,
-                ToastAndroid.LONG, ToastAndroid.CENTER);
+            if (e.toString().search('Failed to connect')) {
+                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show('could not refresh feed', ToastAndroid.LONG);
+            }
         }
     };
 };
@@ -1076,6 +1317,7 @@ export const archiveTimelinePost = (postid, postprofileid) => {
                     dispatch(deleteTimeLinePost(postid));
                     dispatch(deleteTimelinePostForm(postid));
                     dispatch(removePost(postid));
+                    //alert(JSON.stringify(resetpost));
                     if (checkData(resetpost)) {
                         dispatch(savePost(resetpost));
                     }
@@ -1105,7 +1347,12 @@ export const archiveTimelinePost = (postid, postprofileid) => {
             }
         } catch (err) {
             dispatch(setProcessing(false, 'processarchivetimelinepostform'));
-            ToastAndroid.show(`Post not archived ${String(err)}`, ToastAndroid.LONG);
+            if (e.toString().search('Failed to connect')) {
+                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show(`Post not archived`, ToastAndroid.LONG);;
+            }
+
             //console.warn(String(err));
         }
     }
@@ -1287,7 +1534,15 @@ export const deleteTimelinePost = (postid, postprofileid) => {
             }
         } catch (err) {
             dispatch(setProcessing(false, 'processdeletetimelinepostform'));
-            ToastAndroid.show(`Post not deleted please try again`, ToastAndroid.LONG);
+            if (err.toString().indexOf('Network Error') != -1) {
+                ToastAndroid.show(
+                    'action failed please check your internet connection and try again',
+                    ToastAndroid.LONG
+                );
+            } else {
+                ToastAndroid.show(`Post not deleted please try again`, ToastAndroid.LONG);
+            }
+
             //console.warn(String(err))
         }
     }
@@ -1374,7 +1629,15 @@ export const fetchMoreTimelinePost = () => {
             })
             .catch(e => {
                 dispatch(setProcessing('retry', 'processloadmoretimelinepostform'));
-                ToastAndroid.show(`could not load more posts please try again`, ToastAndroid.LONG);
+                if (e.toString().indexOf('Network Error') != -1) {
+                    ToastAndroid.show(
+                        'action failed please check your internet connection and try again',
+                        ToastAndroid.LONG
+                    );
+                } else {
+                    ToastAndroid.show(`could not load more posts please try again`, ToastAndroid.LONG);
+                }
+
             });
 
     };
@@ -1501,7 +1764,6 @@ export const fetchPostComment = (postid) => {
                 postid
             }, options);
             const { errmsg, message, ownerpost, status, comments, nextpageurl } = response.data;
-
             switch (status) {
                 case 302:
                     dispatch(setProcessing(false, 'postcommentformfetching'));

@@ -87,6 +87,13 @@ export const REMOVE_POST_COMMENT_FORM = 'remove_post_comment_form';
 
 
 /**
+ * TYPE CONSTANT FOR LikesListReducer
+ */
+export const ADD_LIKES_LIST_FORM = 'add_likes_list_form';
+export const PREPEND_LIKES_LIST_FORM = 'prepend_likes_list_form';
+export const UPDATE_LIKES_LIST_FORM = 'update_likes_list_form';
+export const SET_LIKES_LIST_FORM_LINK = 'set_likes_list_form_link';
+/**
  * TYPE CONSTANT FOR BOOKMARKS REDUCER
  */
 export const BOOKMARK = 'bookmark';
@@ -99,6 +106,8 @@ export const GET_GALLERY_PHOTOS = 'get_gallery_photos';
 export const SET_SELECTED_LIST = 'set_selected_list';
 export const UNSET_SELECTED_LIST = 'unset_selected_list';
 export const SET_GALLERY_PHOTOS_NUM = 'set_gallery_photos_num';
+
+
 
 /**
  * TYPE CONSTANT FOR APPINFO REDUCER
