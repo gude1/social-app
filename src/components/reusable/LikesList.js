@@ -207,6 +207,9 @@ export default class LikesList extends React.PureComponent {
             <FlatList
                 data={this.props.data}
                 initialNumRender={5}
+                windowSize={2}
+                maxToRenderPerBatch={1}
+                updateCellsBatchingPeriod={1}
                 getItemLayout={this._getItemLayout}
                 keyExtractor={this._keyExtractor}
                 ListEmptyComponent={this._setEmptyPlaceholder()}

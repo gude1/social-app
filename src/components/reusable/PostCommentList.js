@@ -243,6 +243,9 @@ export default class PostCommentList extends React.PureComponent {
                 data={this.props.data}
                 getItemLayout={this._getItemLayout}
                 refreshing={this.props.refreshing}
+                maxToRenderPerBatch={1}
+                updateCellsBatchingPeriod={1}
+                windowSize={2}
                 onRefresh={onRefresh}
                 keyboardShouldPersistTaps='always'
                 initialNumRender={5}
