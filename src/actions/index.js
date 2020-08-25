@@ -1793,7 +1793,7 @@ export const fetchPostComment = (postid) => {
             }
 
         } catch (err) {
-            alert(err.toString());
+            //alert(err.toString());
             // console.warn(err.toString());
             dispatch(setProcessing('retry', 'postcommentformfetching'));
             //ToastAndroid.show('Could not fetch comments please try again', ToastAndroid.LONG);
