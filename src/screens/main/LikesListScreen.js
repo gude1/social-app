@@ -12,7 +12,7 @@ import { checkData } from '../../utilities/index';
 import LikesList from '../../components/reusable/LikesList';
 const { colors } = useTheme();
 const LikesListScreen = ({
-    pagename,
+    screenname,
     componentId,
     setReset,
     navparent,
@@ -59,7 +59,7 @@ const LikesListScreen = ({
     return (
         <SafeAreaView style={styles.containerStyle}>
             <Header
-                headertext={pagename || 'Likes'}
+                headertext={screenname || 'Likes'}
                 headercolor={colors.card}
                 lefticon={lefticon}
                 leftIconPress={lefticonpress}

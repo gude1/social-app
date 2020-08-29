@@ -19,7 +19,22 @@ const postwidth = responsiveWidth(90) > 1080 ? 1080 : responsiveWidth(95);
 const postheight = responsiveWidth(90) > 1080 ? 1080 : responsiveWidth(95);
 
 const HomeScreen = ({ componentId,
-    timelineposts, blackListTimelinePost, fetchMoreTimelinePost, setTimelinePostFormLinks, muteProfileTimelinePost, archiveTimelinePost, deleteTimelinePost, likeTimelinePostAction, shareTimelinePostAction, refreshTimelinePost, setTimelinepostRefresh, fetchTimelinePost, timelinepostform, addTimelinePostForm, updateTimelinePostForm }) => {
+    timelineposts,
+    blackListTimelinePost,
+    fetchMoreTimelinePost,
+    setTimelinePostFormLinks,
+    muteProfileTimelinePost,
+    archiveTimelinePost,
+    deleteTimelinePost,
+    likeTimelinePostAction,
+    shareTimelinePostAction,
+    refreshTimelinePost,
+    setTimelinepostRefresh,
+    fetchTimelinePost,
+    timelinepostform,
+    addTimelinePostForm,
+    updateTimelinePostForm,
+    }) => {
     let righticon = <Icon
         type="antdesign"
         name="bells"

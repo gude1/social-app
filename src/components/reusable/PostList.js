@@ -214,7 +214,11 @@ class PostItem extends Component {
                         >
                             {this._setLikeIcon()}
                         </TouchableScale>
-                        <Text style={styles.postListItemBottomBarText}>{this.props.numlikes}</Text>
+                        <Text
+                            onPress={this.props.onViewLikesPress}
+                            style={styles.postListItemBottomBarText}>
+                            {this.props.numlikes}
+                        </Text>
                     </View>
 
                     <View style={styles.postListItemBottomBarItem}>
@@ -459,6 +463,22 @@ export default class PostList extends React.PureComponent {
         });
     }
 
+    _navShowLikes = (postid) => {
+        if (checkData(postid) != true) {
+            return;
+        }
+        Navigation.showModal({
+            component: {
+                name: 'LikesList',
+                passProps: {
+                    navparent: true,
+                    requrl: 'postlikes',
+                    reqdata: { postid }
+                },
+            }
+        });
+    };
+
     _renderItem = ({ item }) => {
         return <PostItem
             posterusername={item.profile.user.username}
@@ -482,6 +502,7 @@ export default class PostList extends React.PureComponent {
             numcomments={item.num_post_comments}
             numshares={item.num_post_shares}
             onLikePress={this._likePostItem}
+            onViewLikesPress={() => this._navShowLikes(item.postid)}
             onSharePress={this._sharePostItem}
             onCommentPress={() => {
                 this._openComments(item);

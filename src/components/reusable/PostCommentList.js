@@ -171,6 +171,16 @@ export default class PostCommentList extends React.PureComponent {
                 {<ListItem
                     time={this.props.parentpost.created_at}
                     likes={this.props.parentpost.num_post_likes}
+                    numLikesPress={() => Navigation.showModal({
+                        component: {
+                            name: 'LikesList',
+                            passProps: {
+                                navparent: true,
+                                requrl: 'postlikes',
+                                reqdata: { postid: this.props.parentpost.postid }
+                            },
+                        }
+                    })}
                     title={this.props.parentpost.profile.user.username}
                     leftAvatar={{ uri: this.props.parentpost.profile.avatar[1] }}
                     subtitle={this.props.parentpost.post_text}
