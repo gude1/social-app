@@ -1,7 +1,7 @@
 import React, { } from 'react';
 import { FlatList, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import { ListItem, ConfirmModal, BottomListModal, ActivityOverlay } from './ResuableWidgets';
-import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
+import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes';
 import { checkData } from '../../utilities';
 import { Icon, Overlay } from 'react-native-elements';
@@ -12,6 +12,7 @@ export default class PostCommentList extends React.PureComponent {
     constructor(props) {
         super(props);
         this.reswidth = responsiveWidth(100);
+        this.resheight = responsiveHeight(100);
         this.state = {
             confirmdeletevisible: false,
             confirmhidevisible: false,
@@ -140,9 +141,10 @@ export default class PostCommentList extends React.PureComponent {
             }
         });
     };
-    _getItemLayout = (data, index) => (
-        { length: this.reswidth, offset: this.reswidth * index, index }
-    );
+    _getItemLayout = (data, index) => {
+        if (index == -1) return { index, length: 0, height: 0 };
+        return { length: 100, offset: 100 * index, index }
+    };
     _keyExtractor = (item, index) => item.commentid;
     _renderItem = ({ item }) => {
         return (
@@ -263,7 +265,7 @@ export default class PostCommentList extends React.PureComponent {
                 keyExtractor={this._keyExtractor}
                 ListHeaderComponent={headerComponent}
                 ListEmptyComponent={emptyplaceholder}
-                ListFooterComponent={this.props.data.length > 0 && flatlistfooter}
+                ListFooterComponent={this.props.data.length && flatlistfooter}
                 renderItem={this._renderItem}
             />
             <ConfirmModal

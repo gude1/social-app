@@ -214,11 +214,15 @@ class PostItem extends Component {
                         >
                             {this._setLikeIcon()}
                         </TouchableScale>
-                        <Text
+                        <TouchableScale
                             onPress={this.props.onViewLikesPress}
-                            style={styles.postListItemBottomBarText}>
-                            {this.props.numlikes}
-                        </Text>
+                            activeScale={1}
+                        >
+                            <Text
+                                style={styles.postListItemBottomBarText}>
+                                {this.props.numlikes}
+                            </Text>
+                        </TouchableScale>
                     </View>
 
                     <View style={styles.postListItemBottomBarItem}>
@@ -234,7 +238,8 @@ class PostItem extends Component {
                                 size={responsiveFontSize(3)}
                             />
                         </TouchableScale>
-                        <Text style={styles.postListItemBottomBarText}>
+                        <Text
+                            style={styles.postListItemBottomBarText}>
                             {this.props.numcomments}
                         </Text>
                     </View>
@@ -250,9 +255,15 @@ class PostItem extends Component {
                         >
                             {this._setShareIcon()}
                         </TouchableScale>
-                        <Text style={styles.postListItemBottomBarText}>
-                            {this.props.numshares}
-                        </Text>
+                        <TouchableScale
+                            onPress={this.props.onViewSharesPress}
+                            activeScale={1}
+                        >
+                            <Text
+                                style={styles.postListItemBottomBarText}>
+                                {this.props.numshares}
+                            </Text>
+                        </TouchableScale>
                     </View>
 
                 </View>
@@ -479,6 +490,22 @@ export default class PostList extends React.PureComponent {
         });
     };
 
+    _navShowShares = (postid) => {
+        if (checkData(postid) != true) {
+            return;
+        }
+        Navigation.showModal({
+            component: {
+                name: 'SharesList',
+                passProps: {
+                    navparent: true,
+                    requrl: 'postshares',
+                    reqdata: { postid }
+                },
+            }
+        });
+    };
+
     _renderItem = ({ item }) => {
         return <PostItem
             posterusername={item.profile.user.username}
@@ -504,6 +531,7 @@ export default class PostList extends React.PureComponent {
             onLikePress={this._likePostItem}
             onViewLikesPress={() => this._navShowLikes(item.postid)}
             onSharePress={this._sharePostItem}
+            onViewSharesPress={() => this._navShowShares(item.postid)}
             onCommentPress={() => {
                 this._openComments(item);
             }}
@@ -791,7 +819,7 @@ const styles = StyleSheet.create({
     postListItemBottomBarText: {
         color: colors.text,
         marginHorizontal: 1,
-        fontSize: responsiveFontSize(1.8)
+        fontSize: responsiveFontSize(2)
     },
     postText: {
         marginHorizontal: 7,

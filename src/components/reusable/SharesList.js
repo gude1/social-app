@@ -4,9 +4,10 @@ import { ListItem, Button, Icon } from 'react-native-elements';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { checkData } from '../../utilities/index';
+
 const { colors } = useTheme();
 
-class LikesListItem extends Component {
+class SharesListItem extends Component {
     constructor(props) {
         super(props);
     }
@@ -73,7 +74,7 @@ class LikesListItem extends Component {
     }
 };
 
-export default class LikesList extends React.PureComponent {
+export default class SharesList extends React.PureComponent {
     constructor(props) {
         super(props);
         this.reswidth = responsiveWidth(100);
@@ -189,7 +190,7 @@ export default class LikesList extends React.PureComponent {
 
     _renderItem = ({ item }) => {
         return (
-            <LikesListItem
+            <SharesListItem
                 avatar={item.profile.avatar[1]}
                 username={item.profile.user.username}
                 processfollow={item.profile.followprogress || false}

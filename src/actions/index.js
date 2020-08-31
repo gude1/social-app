@@ -51,6 +51,10 @@ import {
     UPDATE_LIKES_LIST_FORM,
     PREPEND_LIKES_LIST_FORM,
     SET_LIKES_LIST_FORM_LINK,
+    ADD_SHARES_LIST_FORM,
+    UPDATE_SHARES_LIST_FORM,
+    PREPEND_SHARES_LIST_FORM,
+    SET_SHARES_LIST_FORM_LINK,
     BOOKMARK,
     RESET,
 } from './types';
@@ -385,7 +389,7 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
 
 
 /**
- * ACTION CREATORS FOR LIKESLISTREDUCER
+ * ACTION CREATORS FOR LIKESLISTFORMREDUCER
  */
 export const addToLikesListForm = (data: Array) => {
     return {
@@ -509,6 +513,131 @@ export const fetchMoreLikes = (reqdata) => {
     };
 };
 
+/**
+ * ACTION CREATORS FOR SHARESLISTFORMREDUCER
+ */
+export const addToSharesListForm = (data: Array) => {
+    return {
+        type: ADD_SHARES_LIST_FORM,
+        payload: data
+    };
+};
+
+export const prependToSharesListForm = (data: Array) => {
+    return {
+        type: PREPEND_SHARES_LIST_FORM,
+        payload: data
+    };
+};
+
+export const updateSharesListForm = (data: Object) => {
+    return {
+        type: UPDATE_SHARES_LIST_FORM,
+        payload: data
+    };
+};
+export const setSharesListFormLink = (data: String) => {
+    return {
+        type: SET_SHARES_LIST_FORM_LINK,
+        payload: data,
+    }
+};
+
+export const fetchShares = (requrl, reqdata) => {
+    return async (dispatch) => {
+        if (checkData(requrl) != true) {
+            ToastAndroid.show('request term not specified', ToastAndroid.LONG);
+            return;
+        }
+        dispatch(setProcessing(true, 'shareslistfetching'));
+        const { user, } = store.getState();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post(requrl, reqdata, options);
+            const { errmsg, status, shares_list, message, next_page_url } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'shareslistfetching'));
+                    dispatch(addToSharesListForm(shares_list));
+                    dispatch(setSharesListFormLink(next_page_url));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'shareslistfetching'));
+                    break;
+                case 400:
+                    dispatch(setProcessing('retry', 'shareslistfetching'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 404:
+                    dispatch(setProcessing('retry', 'shareslistfetching'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                default:
+                    dispatch(setProcessing('retry', 'shareslistfetching'));
+                    ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    break;
+            }
+        } catch (err) {
+            alert(err.toString());
+            dispatch(setProcessing('retry', 'shareslistfetching'));
+            if (err.toString().search('Failed to connect')) {
+                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+            }
+        }
+    };
+};
+
+export const fetchMoreShares = (reqdata) => {
+    return async (dispatch) => {
+        const { user, shareslistform } = store.getState();
+        const { nextpageurl } = shareslistform;
+        if (checkData(nextpageurl) != true) {
+            dispatch(setProcessing('done', 'shareslistloadingmore'));
+            return;
+        }
+        dispatch(setProcessing(true, 'shareslistloadingmore'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post(nextpageurl, reqdata, options);
+            const { errmsg, status, shares_list, message, next_page_url } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'shareslistloadingmore'));
+                    dispatch(addToSharesListForm(shares_list));
+                    dispatch(setSharesListFormLink(next_page_url));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'shareslistloadingmore'));
+                    break;
+                case 400:
+                    dispatch(setProcessing('retry', 'shareslistloadingmore'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 404:
+                    dispatch(setProcessing('retry', 'shareslistloadingmore'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                default:
+                    dispatch(setProcessing('retry', 'shareslistloadingmore'));
+                    ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing('retry', 'shareslistloadingmore'));
+            if (err.toString().search('Failed to connect')) {
+                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+            }
+        }
+    };
+};
 
 /**
  * 

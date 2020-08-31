@@ -85,8 +85,7 @@ const PostCommentScreen = ({ navparent,
                     />}
                     animationType={'zoomIn'}
                 /> :
-                    <>
-                    <View style={styles.parentStyle}>
+                    <View style={{ flex: 1 }}>
                         <PostCommentList
                             onFetch={fetchPostComment}
                             fetching={postcommentform.fetching}
@@ -104,24 +103,23 @@ const PostCommentScreen = ({ navparent,
                             onDelete={deletePostComment}
                             deleting={postcommentform.deleting}
                         />
+                        <InputBox
+                            placeholder={'Add a comment'}
+                            onChangeText={setInputText}
+                            inputvalue={inputtext}
+                            onSubmit={() => {
+                                //flatlistref.scrollToOffset({ offset: 0, animated: true })
+                                setInputText('');
+                                makePostComment(ownerpost.postid, inputtext);
+                                if (checkData(inputtext)) {
+                                    flatlistref.scrollToOffset({ offset: 0 })
+                                }
+                            }}
+                            maxLength={300}
+                            autoFocus={false}
+                            avatar={{ uri: profileimage }}
+                        />
                     </View>
-                    <InputBox
-                        placeholder={'Add a comment'}
-                        onChangeText={setInputText}
-                        inputvalue={inputtext}
-                        onSubmit={() => {
-                            //flatlistref.scrollToOffset({ offset: 0, animated: true })
-                            setInputText('');
-                            makePostComment(ownerpost.postid, inputtext);
-                            if (checkData(inputtext)) {
-                                flatlistref.scrollToOffset({ offset: 0 })
-                            }
-                        }}
-                        maxLength={300}
-                        autoFocus={false}
-                        avatar={{ uri: profileimage }}
-                    />
-                    </>
             }
         </SafeAreaView >
     );
