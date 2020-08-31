@@ -15,14 +15,17 @@ const { colors } = useTheme();
 const PostCommentScreen = ({ navparent,
     componentId,
     profile,
+    muteProfileAction,
     ownerpostid,
     timelineposts,
     profileimage,
     setReset,
     postcommentform,
+    profileactionform,
     fetchPostComment,
     makePostComment,
     loadMorePostComment,
+    updatePostCommentForm,
     likePostComment,
     refreshPostComment,
     hidePostCommentAction,
@@ -93,10 +96,13 @@ const PostCommentScreen = ({ navparent,
                             setFlatlistRef={setFlatlistRef}
                             parentpost={ownerpost}
                             data={postcommentform.postcomments}
+                            updateComment={updatePostCommentForm}
                             onItemLike={likePostComment}
                             onLoadMore={loadMorePostComment}
                             loadingmore={postcommentform.loadmore}
                             onRefresh={refreshPostComment}
+                            onMute={muteProfileAction}
+                            muting={profileactionform.mutingprofile}
                             refreshing={postcommentform.refreshing}
                             onHide={hidePostCommentAction}
                             hiding={postcommentform.hiding}
@@ -135,6 +141,7 @@ const mapStateToProps = (state) => {
         profileimage: state.profile.avatarlocal || state.profile.avatarremote,
         profile: state.profile,
         timelineposts: state.timelinepostform.timelineposts,
+        profileactionform: state.profileactionform,
         postcommentform: state.postcommentform
     }
 };

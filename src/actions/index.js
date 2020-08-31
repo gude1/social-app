@@ -272,7 +272,7 @@ export const logIn = ({ email, password, Navigation, componentId }) => {
             }
         } catch (e) {
             //console.warn(e.toString())
-            if (e.toString().search('Failed to connect')) {
+            if (e.toString().search('Failed to connect') > -1) {
                 ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
                 ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
@@ -328,7 +328,7 @@ export const followProfileAction = (profileid, initAction, okAction, failedActio
         } catch (err) {
             //console.warn(err.toString());
             dispatch(setProcessing(false, 'profileactionfollowing'));
-            if (err.toString().search('Failed to connect')) {
+            if (err.toString().search('Failed to connect') > -1) {
                 ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
             } else {
                 ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
@@ -354,11 +354,12 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
             const options = {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
-            const response = await session.post('profilefollowaction', { profileid }, options);
+            const response = await session.post('profilemuteaction', { profileid }, options);
             const { errmsg, message, status } = response.data;
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'profileactionmuting'));
+                    ToastAndroid.show(message, ToastAndroid.LONG);
                     okAction && okAction();
                     break;
                 case 400:
@@ -376,8 +377,9 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
                     break;
             }
         } catch (err) {
+            console.warn(err.toString());
             dispatch(setProcessing(false, 'profileactionmuting'));
-            if (err.toString().search('Failed to connect')) {
+            if (err.toString().search('Failed to connect') > -1) {
                 ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
             } else {
                 ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
@@ -580,7 +582,6 @@ export const fetchShares = (requrl, reqdata) => {
                     break;
             }
         } catch (err) {
-            alert(err.toString());
             dispatch(setProcessing('retry', 'shareslistfetching'));
             if (err.toString().search('Failed to connect')) {
                 ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
@@ -2276,11 +2277,14 @@ export const hidePostCommentAction = (commentid, ownerid) => {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
             const response = await session.post('postcommenthide', { commentid }, options);
-            const { errmsg, status, message } = response.data;
+            const { errmsg, status, hidden, message } = response.data;
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'postcommentformhiding'));
-                    dispatch(removePostCommentForm(commentid));
+                    dispatch(updatePostCommentForm({
+                        commentid,
+                        hidden: hidden
+                    }));
                     ToastAndroid.show(message, ToastAndroid.LONG);
                     break;
                 case 401:

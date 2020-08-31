@@ -16,10 +16,14 @@ export default class PostCommentList extends React.PureComponent {
         this.state = {
             confirmdeletevisible: false,
             confirmhidevisible: false,
+            commenthidden: false,
+            profilemuted: false,
+            confirmmutevisible: false,
             usercommentmodal: false,
             otherscommentmodal: false,
         };
         this.currentcommentid = null;
+        this.currentcommentownerprofile = null;
         this.currentcommentownerid = null;
         this.bottomodallistowneroptions = [
             {
@@ -37,18 +41,21 @@ export default class PostCommentList extends React.PureComponent {
         this.bottomodallistothersoptions = [
             {
                 listtext: 'Mute profile',
+                id: "muteprofile",
                 icon: {
                     name: 'volume-x',
                     type: 'feather'
                 },
                 onPress: () => {
                     this.setState({ otherscommentmodal: false });
+                    this.setState({ confirmmutevisible: true });
                 },
             },
         ];
         if (this.props.userprofile.profile_id == this.props.parentpost.profile.profile_id) {
             this.bottomodallistothersoptions = [...this.bottomodallistothersoptions, {
                 listtext: 'Hide comment',
+                id: 'hidec',
                 icon: {
                     name: 'eye-off',
                     type: 'feather'
@@ -62,6 +69,10 @@ export default class PostCommentList extends React.PureComponent {
 
     }
     componentDidMount() {
+        this.setState({
+            othersbottommodallist: this.bottomodallistothersoptions,
+            userbottommodallist: this.bottomodallistowneroptions
+        });
         if (checkData(this.props.parentpost)) {
             this.props.onFetch(this.props.parentpost.postid);
         }
@@ -90,17 +101,102 @@ export default class PostCommentList extends React.PureComponent {
         }
         return null;
     };
-    _setSelected = (commentid, ownerid) => {
-        if (checkData(commentid) && checkData(ownerid)) {
+    _setSelected = (commentid, ownerid, item) => {
+        if (checkData(commentid) && checkData(ownerid) && checkData(item.profile)) {
             this.currentcommentid = commentid;
             this.currentcommentownerid = ownerid;
+            this.currentcommentownerprofile = item.profile;
         }
+        this._setOthersModalList(item);
         if (ownerid == this.props.userprofile.profile_id) {
             this._openUserBottomModal();
         } else {
             this._openOthersBottomModal();
         }
     };
+    _setOthersModalList = (item) => {
+        if (!checkData(item) || !checkData(item.profile)) {
+            return;
+        }
+        let adjustedlist = null;
+        /*** for  profile muted */
+        if (item.profile.profilemuted == true) {
+            adjustedlist = this.state.othersbottommodallist.map(item => {
+                return item.id == "muteprofile" ? {
+                    ...item,
+                    listtext: 'Unmute profile',
+                    icon: {
+                        name: 'volume',
+                        type: 'feather'
+                    },
+                } : item
+            });
+            this.setState({
+                othersbottommodallist: adjustedlist,
+                profilemuted: item.profile.profilemuted
+            });
+        } else {
+            adjustedlist = this.state.othersbottommodallist.map(item => {
+                return item.id == "muteprofile" ? {
+                    ...item,
+                    listtext: 'Mute profile',
+                    icon: {
+                        name: 'volume-x',
+                        type: 'feather'
+                    },
+                } : item
+            });
+            this.setState({
+                othersbottommodallist: adjustedlist,
+                profilemuted: item.profile.profilemuted
+            });
+        }
+        /**for hide comment */
+        if (this.props.userprofile.profile_id != this.props.parentpost.profile.profile_id) {
+            return;
+        }
+        if (item.hidden == true) {
+            adjustedlist = this.state.othersbottommodallist.map(item => {
+                return item.id == "hidec" ? {
+                    ...item,
+                    listtext: 'Unhide comment',
+                    icon: {
+                        name: 'eye',
+                        type: 'feather'
+                    }
+                } : item
+            });
+            this.setState({
+                othersbottommodallist: adjustedlist,
+                commenthidden: item.hidden
+            });
+        } else {
+            adjustedlist = this.state.othersbottommodallist.map(item => {
+                return item.id == "hidec" ? {
+                    ...item,
+                    listtext: 'Hide comment',
+                    icon: {
+                        name: 'eye-off',
+                        type: 'feather'
+                    }
+                } : item
+            });
+            this.setState({
+                othersbottommodallist: adjustedlist,
+                commenthidden: item.hidden
+            });
+        }
+    };
+    _muteProfile = () => {
+        this.props.onMute(
+            this.currentcommentownerid,
+            null,
+            () => this.props.updateComment({
+                commentid: this.currentcommentid,
+                profile: { ...this.currentcommentownerprofile, profilemuted: !this.state.profilemuted }
+            })
+        );
+    }
     _openOthersBottomModal = () => {
         this.setState({ otherscommentmodal: true })
     };
@@ -141,34 +237,16 @@ export default class PostCommentList extends React.PureComponent {
             }
         });
     };
+
     _getItemLayout = (data, index) => {
         if (index == -1) return { index, length: 0, height: 0 };
         return { length: 100, offset: 100 * index, index }
     };
+
     _keyExtractor = (item, index) => item.commentid;
-    _renderItem = ({ item }) => {
-        return (
-            <ListItem
-                time={item.created_at}
-                onRetryPress={item.onRetry}
-                onLongPress={() => this._setSelected(item.commentid, item.profile.profile_id)}
-                //replyPress={}
-                leftAvatar={{ uri: item.profile.avatar[1] }}
-                title={item.profile.user.username}
-                subtitle={item.comment_text}
-                likes={item.num_likes}
-                numLikesPress={() => this._navShowLikes(item.commentid)}
-                likebtn
-                likePress={() => this._onItemLiked(item.commentid, item.commentliked, item.num_likes)}
-                liked={item.commentliked}
-                replies={item.num_replies}
-            />)
-    }
-    render() {
-        let emptyplaceholder = this._setEmptyPlaceholder();
-        //to hide pull to refresh functionality  when data is empty
-        let onRefresh = this.props.data < 1 ? null : () => this.props.onRefresh(this.props.parentpost.postid);
-        let headerComponent = checkData(this.props.parentpost) == true ?
+
+    _setHeaderComponent = () => {
+        return checkData(this.props.parentpost) == true ?
             <View style={styles.postTextContainer}>
                 {<ListItem
                     time={this.props.parentpost.created_at}
@@ -201,9 +279,10 @@ export default class PostCommentList extends React.PureComponent {
                 />
                 }
             </View> : null;
-        let flatlistfooter = null;
+    };
+    _setFooterComponent = () => {
         if (this.props.loadingmore == true) {
-            flatlistfooter = <View style={{
+            return (<View style={{
                 flex: 1,
                 justifyContent: "center",
                 margin: 6,
@@ -212,9 +291,9 @@ export default class PostCommentList extends React.PureComponent {
                 <ActivityIndicator
                     size={30}
                     color={colors.border} />
-            </View>;
+            </View>);
         } else if (this.props.loadingmore == 'retry') {
-            flatlistfooter = <View style={{
+            return (<View style={{
                 flex: 1,
                 justifyContent: "center",
                 margin: 6,
@@ -228,9 +307,9 @@ export default class PostCommentList extends React.PureComponent {
                     type="antdesign"
                 />
                 <Text style={{ color: colors.border, fontSize: responsiveFontSize(1.5) }}>Tap to retry</Text>
-            </View>;
+            </View>);
         } else if (this.props.loadingmore == false) {
-            flatlistfooter = <View style={{
+            return (<View style={{
                 flex: 1,
                 justifyContent: "center",
                 margin: 10,
@@ -243,9 +322,38 @@ export default class PostCommentList extends React.PureComponent {
                     name="plus"
                     type="evilicon"
                 />
-            </View>;
+            </View>);
+        } else {
+            return null;
         }
-
+    };
+    _renderItem = ({ item }) => {
+        return (
+            <ListItem
+                time={item.created_at}
+                onRetryPress={item.onRetry}
+                onLongPress={() => this._setSelected(
+                    item.commentid,
+                    item.profile.profile_id,
+                    item
+                )}
+                //replyPress={}
+                leftAvatar={{ uri: item.profile.avatar[1] }}
+                title={item.profile.user.username}
+                subtitle={item.comment_text}
+                profilemuted={item.profile.profilemuted}
+                likes={item.num_likes}
+                hide={item.hidden}
+                numLikesPress={() => this._navShowLikes(item.commentid)}
+                likebtn
+                likePress={() => this._onItemLiked(item.commentid, item.commentliked, item.num_likes)}
+                liked={item.commentliked}
+                replies={item.num_replies}
+            />)
+    }
+    render() {
+        //to hide pull to refresh functionality  when data is empty
+        let onRefresh = this.props.data < 1 ? null : () => this.props.onRefresh(this.props.parentpost.postid);
         return (
             <>
             <FlatList
@@ -263,9 +371,9 @@ export default class PostCommentList extends React.PureComponent {
                 initialNumRender={5}
                 keyboardDismissMode={'on-drag'}
                 keyExtractor={this._keyExtractor}
-                ListHeaderComponent={headerComponent}
-                ListEmptyComponent={emptyplaceholder}
-                ListFooterComponent={this.props.data.length && flatlistfooter}
+                ListHeaderComponent={this._setHeaderComponent()}
+                ListEmptyComponent={this._setEmptyPlaceholder()}
+                ListFooterComponent={this.props.data.length && this._setFooterComponent()}
                 renderItem={this._renderItem}
             />
             <ConfirmModal
@@ -282,7 +390,7 @@ export default class PostCommentList extends React.PureComponent {
             />
             <ConfirmModal
                 isVisible={this.state.confirmhidevisible}
-                confirmMsg="Hide comment?"
+                confirmMsg={this.state.commenthidden == true ? "Unhide comment?" : "Hide comment?"}
                 acceptText="Yeah"
                 acceptAction={() => {
                     this.setState({ confirmhidevisible: false });
@@ -292,19 +400,34 @@ export default class PostCommentList extends React.PureComponent {
                 rejectText="Nah"
             />
             <ActivityOverlay
-                text="hiding"
+                text={this.state.commenthidden == true ? 'unhiding' : 'hiding'}
                 isVisible={this.props.hiding}
             />
 
+            <ConfirmModal
+                isVisible={this.state.confirmmutevisible}
+                confirmMsg={this.state.profilemuted == true ? "Unmute profile?" : "Mute profile?"}
+                acceptText="Yeah"
+                acceptAction={() => {
+                    this.setState({ confirmmutevisible: false });
+                    this._muteProfile();
+                }}
+                rejectAction={() => this.setState({ confirmmutevisible: false })}
+                rejectText="Nah"
+            />
+            <ActivityOverlay
+                text={this.state.profilemuted == true ? 'unmuting' : 'muting'}
+                isVisible={this.props.muting}
+            />
             <BottomListModal
-                listData={this.bottomodallistowneroptions}
+                listData={this.state.userbottommodallist}
                 visible={this.state.usercommentmodal}
                 onRequestClose={() => {
                     this.setState({ usercommentmodal: false });
                 }}
             />
             <BottomListModal
-                listData={this.bottomodallistothersoptions}
+                listData={this.state.othersbottommodallist}
                 visible={this.state.otherscommentmodal}
                 onRequestClose={() => {
                     this.setState({ otherscommentmodal: false });

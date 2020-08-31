@@ -389,7 +389,10 @@ export class ListItem extends Component {
             nextProps.replies != this.props.replies ||
             nextProps.likes != this.props.likes ||
             nextProps.time != this.props.time ||
-            nextProps.BottomContainerItem != this.props.BottomContainerItem) {
+            nextProps.BottomContainerItem != this.props.BottomContainerItem ||
+            nextProps.profilemuted != this.props.profilemuted ||
+            nextProps.hide != this.props.hide
+        ) {
             return true;
         }
         return false
