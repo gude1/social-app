@@ -28,6 +28,7 @@ const PostCommentScreen = ({ navparent,
     updatePostCommentForm,
     likePostComment,
     refreshPostComment,
+    updatePostCommentFormProfileChanges,
     hidePostCommentAction,
     deletePostComment
 }) => {
@@ -100,6 +101,8 @@ const PostCommentScreen = ({ navparent,
                             onItemLike={likePostComment}
                             onLoadMore={loadMorePostComment}
                             loadingmore={postcommentform.loadmore}
+                            profileschanges={postcommentform.profileschanges}
+                            updatePostCommentProfile={updatePostCommentFormProfileChanges}
                             onRefresh={refreshPostComment}
                             onMute={muteProfileAction}
                             muting={profileactionform.mutingprofile}

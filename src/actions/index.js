@@ -53,6 +53,7 @@ import {
     SET_LIKES_LIST_FORM_LINK,
     ADD_SHARES_LIST_FORM,
     UPDATE_SHARES_LIST_FORM,
+    UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES,
     PREPEND_SHARES_LIST_FORM,
     SET_SHARES_LIST_FORM_LINK,
     BOOKMARK,
@@ -1874,6 +1875,13 @@ export const removePostCommentForm = (commentid: String) => {
         payload: commentid
     }
 };
+
+export const updatePostCommentFormProfileChanges = (data: Object) => {
+    return {
+        type: UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES,
+        payload: data
+    }
+}
 
 //to fetch post comment
 export const fetchPostComment = (postid) => {

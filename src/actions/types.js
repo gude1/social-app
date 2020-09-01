@@ -84,7 +84,7 @@ export const POST_COMMENT_FORM_DELETE = 'post_comment_form_delete';
 export const SET_POST_COMMENT_FORM_LINK = 'set_post_comment_form_link';
 export const PREPEND_POST_COMMENT_FORM = 'prepend_post_comment_form';
 export const REMOVE_POST_COMMENT_FORM = 'remove_post_comment_form';
-
+export const UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES = 'update_post_comment_form_profile_changes';
 
 /**
  * TYPE CONSTANT FOR LikesListReducer

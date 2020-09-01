@@ -248,7 +248,6 @@ export default class PhotoGallery extends React.PureComponent {
                 {this.state.loaded == false ? <ActivityIndicator size="large" color="#2196F3" />
                     : <FlatList
                         viewabilityConfig={this.viewabilityConfig}
-                        removeClippedSubviews={true}
                         windowSize={50}
                         updateCellsBatchingPeriod={0}
                         numColumns={2}

@@ -1,14 +1,15 @@
 import React, { } from 'react';
-import { FlatList, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
-import { ListItem, ConfirmModal, BottomListModal, ActivityOverlay } from './ResuableWidgets';
+import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
+import { ListItem, ConfirmModal, BottomListModal, PanelMsg, ActivityOverlay } from './ResuableWidgets';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes';
 import { checkData } from '../../utilities';
-import { Icon, Overlay } from 'react-native-elements';
+import { Icon, Overlay, Text, Button } from 'react-native-elements';
 import { Navigation } from 'react-native-navigation';
+import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
 
 const { colors } = useTheme();
-export default class PostCommentList extends React.PureComponent {
+export default class PostCommentList extends React.Component {
     constructor(props) {
         super(props);
         this.reswidth = responsiveWidth(100);
@@ -119,8 +120,13 @@ export default class PostCommentList extends React.PureComponent {
             return;
         }
         let adjustedlist = null;
+        let profilechangemuted = this.props.profileschanges.find(
+            item => item.profileid == this.currentcommentownerid
+        );
+        profilechangemuted = checkData(profilechangemuted) ? profilechangemuted.profilemuted : null;
+        profilechangemuted = checkData(profilechangemuted) ? profilechangemuted : item.profile.profilemuted;
         /*** for  profile muted */
-        if (item.profile.profilemuted == true) {
+        if (profilechangemuted) {
             adjustedlist = this.state.othersbottommodallist.map(item => {
                 return item.id == "muteprofile" ? {
                     ...item,
@@ -133,7 +139,7 @@ export default class PostCommentList extends React.PureComponent {
             });
             this.setState({
                 othersbottommodallist: adjustedlist,
-                profilemuted: item.profile.profilemuted
+                profilemuted: profilechangemuted
             });
         } else {
             adjustedlist = this.state.othersbottommodallist.map(item => {
@@ -148,7 +154,7 @@ export default class PostCommentList extends React.PureComponent {
             });
             this.setState({
                 othersbottommodallist: adjustedlist,
-                profilemuted: item.profile.profilemuted
+                profilemuted: profilechangemuted
             });
         }
         /**for hide comment */
@@ -191,12 +197,18 @@ export default class PostCommentList extends React.PureComponent {
         this.props.onMute(
             this.currentcommentownerid,
             null,
-            () => this.props.updateComment({
-                commentid: this.currentcommentid,
-                profile: { ...this.currentcommentownerprofile, profilemuted: !this.state.profilemuted }
-            })
+            () => {
+                this.props.updateComment({
+                    commentid: this.currentcommentid,
+                    profile: { ...this.currentcommentownerprofile, profilemuted: !this.state.profilemuted }
+                });
+                this.props.updatePostCommentProfile({
+                    profileid: this.currentcommentownerid,
+                    profilemuted: !this.state.profilemuted
+                });
+            }
         );
-    }
+    };
     _openOthersBottomModal = () => {
         this.setState({ otherscommentmodal: true })
     };
@@ -328,6 +340,24 @@ export default class PostCommentList extends React.PureComponent {
         }
     };
     _renderItem = ({ item }) => {
+        if (item.profile.profilemuted == true && item.mute != false) {
+            return (
+                <PanelMsg
+                    message={'This comment is from someone you have muted'}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updateComment({
+                        commentid: item.commentid,
+                        mute: false
+                    })}
+                />
+            );
+        } else if (item.profile.ublockedprofile == true || item.profile.profileblockedu == true) {
+            return (
+                <PanelMsg
+                    message={'This comment is unavailable'}
+                />
+            )
+        }
         return (
             <ListItem
                 time={item.created_at}

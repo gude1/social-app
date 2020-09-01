@@ -133,6 +133,30 @@ export const OverlayWithImage = ({ isVisible, onAccept,
     )
 };
 
+export class PanelMsg extends Component {
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        return false;
+    }
+    render() {
+        return (
+            <View style={{
+                flex: 1, flexDirection: 'row', padding: 10, justifyContent: "space-between", alignItems: "center", marginVertical: 5,
+                backgroundColor: colors.background,
+            }}>
+                <Text style={{ color: colors.iconcolor }}>
+                    {this.props.message}
+                </Text>
+                {this.props.buttonTitle && <TouchableScale
+                    onPress={this.props.buttonPress}
+                >
+                    <Text
+                        style={{ color: colors.blue }}>
+                        {this.props.buttonTitle}</Text>
+                </TouchableScale>}
+            </View>
+        );
+    }
+}
 
 export class ImageViewPager extends React.Component {
     constructor(props) {

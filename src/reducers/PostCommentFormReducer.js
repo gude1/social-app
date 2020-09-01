@@ -5,6 +5,7 @@ import {
     POST_COMMENT_FORM_REFRESH,
     REMOVE_POST_COMMENT_FORM,
     UPDATE_POST_COMMENT_FORM,
+    UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES,
     PROCESSING,
     RESET,
     SET_POST_COMMENT_FORM_LINK
@@ -13,6 +14,7 @@ import { checkData } from '../utilities/index';
 
 const INITIAL_STATE = {
     postcomments: [],
+    profileschanges: [],
     ownerpost: null,
     fetching: false,
     processing: false,
@@ -79,6 +81,14 @@ const PostCommentFormReducer = (state = INITIAL_STATE, action) => {
             break;
         case POST_COMMENT_FORM_REFRESH:
             return { ...state, refreshing: action.payload };
+            break;
+        case UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES:
+            let updatedprofilestate = state.profileschanges.map(item => {
+                return item.profileid == action.payload.profileid ? { ...item, ...action.payload } : item;
+            });
+            updatedprofilestate.find(item => item.profileid == action.payload.profileid) == undefined ?
+                updatedprofilestate.push({ ...action.payload }) : null;
+            return { ...state, profileschanges: updatedprofilestate };
             break;
         case REMOVE_POST_COMMENT_FORM:
             let newstate = state.postcomments.filter(item => item.commentid != action.payload);
