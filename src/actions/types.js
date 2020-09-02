@@ -87,6 +87,20 @@ export const REMOVE_POST_COMMENT_FORM = 'remove_post_comment_form';
 export const UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES = 'update_post_comment_form_profile_changes';
 
 /**
+ * TYPE CONSTANT FOR POSTCOMMENTREPLYFORM REDUCER
+ */
+export const ADD_POST_COMMENT_REPLY_FORM = 'add_post_comment_reply_form';
+export const UPDATE_POST_COMMENT_REPLY_FORM = 'update_post_comment_reply_form';
+export const POST_COMMENT_REPLY_FORM_REFRESH = 'post_comment_reply_form_refresh';
+export const POST_COMMENT_REPLY_FORM_DELETE = 'post_comment_reply_form_delete';
+export const SET_POST_COMMENT_REPLY_FORM_LINK = 'set_post_comment_reply_form_link';
+export const PREPEND_POST_COMMENT_REPLY_FORM = 'prepend_post_comment_reply_form';
+export const REMOVE_POST_COMMENT_REPLY_FORM = 'remove_post_comment_reply_form';
+export const UPDATE_POST_COMMENT_REPLY_FORM_PROFILE_CHANGES = 'update_post_comment_form_reply_profile_changes';
+
+
+
+/**
  * TYPE CONSTANT FOR LikesListReducer
  */
 export const ADD_LIKES_LIST_FORM = 'add_likes_list_form';

@@ -47,6 +47,14 @@ import {
     REMOVE_POST_COMMENT_FORM,
     UPDATE_POST_COMMENT_FORM,
     SET_POST_COMMENT_FORM_LINK,
+    ADD_POST_COMMENT_REPLY_FORM,
+    PREPEND_POST_COMMENT_REPLY_FORM,
+    POST_COMMENT_REPLY_FORM_DELETE,
+    POST_COMMENT_REPLY_FORM_REFRESH,
+    REMOVE_POST_COMMENT_REPLY_FORM,
+    UPDATE_POST_COMMENT_REPLY_FORM,
+    UPDATE_POST_COMMENT_REPLY_FORM_PROFILE_CHANGES,
+    SET_POST_COMMENT_REPLY_FORM_LINK,
     ADD_LIKES_LIST_FORM,
     UPDATE_LIKES_LIST_FORM,
     PREPEND_LIKES_LIST_FORM,
@@ -1886,7 +1894,6 @@ export const updatePostCommentFormProfileChanges = (data: Object) => {
 //to fetch post comment
 export const fetchPostComment = (postid) => {
     return async (dispatch) => {
-        dispatch(setReset('postcommentform'));
         if (checkData(postid) != true) {
             ToastAndroid.show('Could not fetch comments please try again', ToastAndroid.LONG);
             dispatch(setProcessing('retry', 'postcommentformfetching'));
@@ -1901,7 +1908,7 @@ export const fetchPostComment = (postid) => {
             const response = await session.post('postcommentlist', {
                 postid
             }, options);
-            const { errmsg, message, ownerpost, status, comments, nextpageurl } = response.data;
+            const { errmsg, message, ownerpost, hiddens, status, comments, nextpageurl } = response.data;
             switch (status) {
                 case 302:
                     dispatch(setProcessing(false, 'postcommentformfetching'));
@@ -1909,6 +1916,11 @@ export const fetchPostComment = (postid) => {
                     dispatch(setPostCommentFormLink(nextpageurl));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
+                    hiddens == true && ToastAndroid.showWithGravity(
+                        'some comments are hidden by author',
+                        ToastAndroid.LONG,
+                        ToastAndroid.CENTER
+                    );
                     break;
                 case 400:
                     dispatch(setProcessing('retry', 'postcommentformfetching'));
@@ -2309,6 +2321,255 @@ export const hidePostCommentAction = (commentid, ownerid) => {
         }
     };
 };
+
+/**
+ * ACTION CREATORS FOR POSTCOMMENTREPLYFORM REDUCER
+ */
+export const addPostCommentReplyForm = (data: Array) => {
+    return {
+        type: ADD_POST_COMMENT_REPLY_FORM,
+        payload: data
+    };
+};
+
+export const updatePostCommentReplyForm = (data: Object) => {
+    return {
+        type: UPDATE_POST_COMMENT_REPLY_FORM,
+        payload: data
+    };
+};
+
+export const setPostCommentReplyFormLink = (data: String) => {
+    return {
+        type: SET_POST_COMMENT_REPLY_FORM_LINK,
+        payload: data,
+    };
+};
+
+export const setPostCommentReplyFormRefresh = (data: Boolean) => {
+    return {
+        type: POST_COMMENT_REPLY_FORM_REFRESH,
+        payload: data
+    };
+};
+
+export const prependPostCommentReplyForm = (data: Array) => {
+    return {
+        type: PREPEND_POST_COMMENT_REPLY_FORM,
+        payload: data
+    };
+};
+
+export const removePostCommentReplyForm = (commentid: String) => {
+    return {
+        type: REMOVE_POST_COMMENT_REPLY_FORM,
+        payload: commentid
+    }
+};
+
+export const updatePostCommentReplyFormProfileChanges = (data: Object) => {
+    return {
+        type: UPDATE_POST_COMMENT_REPLY_FORM_PROFILE_CHANGES,
+        payload: data
+    }
+};
+
+//to fetch postcommentreplies
+export const fetchPostCommentReply = (originid) => {
+    return async (dispatch) => {
+        if (checkData(originid) != true) {
+            ToastAndroid.show('Could not fetch replies please try again', ToastAndroid.LONG);
+            dispatch(setProcessing('retry', 'postcommentreplyformfetching'));
+            return;
+        }
+        dispatch(setProcessing(true, 'postcommentreplyformfetching'));
+        const { user, } = store.getState();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('postcommentreplylist', {
+                originid
+            }, options);
+            const { errmsg, message, origin, hiddens, status, replies, nextpageurl } = response.data;
+            switch (status) {
+                case 302:
+                    dispatch(setProcessing(false, 'postcommentreplyformfetching'));
+                    dispatch(addPostCommentReplyForm(replies));
+                    dispatch(setPostCommentReplyFormLink(nextpageurl));
+                    dispatch(updatePostCommentReplyForm(origin));
+                    hiddens == true && ToastAndroid.showWithGravity(
+                        'some replies are hidden by author',
+                        ToastAndroid.LONG,
+                        ToastAndroid.CENTER
+                    );
+                    break;
+                case 400:
+                    dispatch(setProcessing('retry', 'postcommentreplyformfetching'));
+                    //ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 404:
+                    dispatch(setProcessing(false, 'postcommentreplyformfetching'));
+                    //ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    dispatch(setProcessing(false, 'postcommentreplyformfetching'));
+                    break;
+                case 401:
+                    break;
+                default:
+                    dispatch(setProcessing('retry', 'postcommentreplyformfetching'));
+                    //ToastAndroid.show('Could not fetch comments please try again', ToastAndroid.LONG);
+                    break;
+            }
+
+        } catch (err) {
+            dispatch(setProcessing('retry', 'postcommentreplyformfetching'));
+        }
+    };
+};
+
+export const refreshPostCommentReply = (origind) => {
+    return async (dispatch) => {
+        dispatch(setPostCommentFormRefresh(true));
+        if (checkData(postid) != true) {
+            dispatch(setPostCommentFormRefresh(false));
+            ToastAndroid.show('Failed to refresh', ToastAndroid.LONG);
+            return;
+        }
+        const { user } = store.getState();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('postcommentlist', {
+                postid
+            }, options);
+            const { errmsg, message, ownerpost, status, comments, nextpageurl } = response.data;
+
+            switch (status) {
+                case 302:
+                    dispatch(setReset('postcommentreplyform'));
+                    dispatch(setPostCommentReplyFormRefresh(false));
+                    dispatch(addPostCommentReplyForm(replies));
+                    dispatch(setPostCommentReplyFormLink(nextpageurl));
+                    dispatch(updatePostCommentReplyForm(origin));
+                    break;
+                case 400:
+                    dispatch(setPostCommentReplyFormRefresh(false));
+                    ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
+                    break;
+                case 404:
+                    dispatch(setPostCommentReplyFormRefresh(false));
+                    ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
+                    break;
+                case 401:
+                    break;
+                case 412:
+                    dispatch(setPostCommentReplyFormRefresh(false));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                default:
+                    dispatch(setPostCommentReplyFormRefresh(false));
+                    ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
+                    break;
+            }
+
+        } catch (err) {
+            dispatch(setPostCommentReplyFormRefresh(false));
+            if (e.toString().indexOf('Network Error') != -1) {
+                ToastAndroid.show(
+                    'action failed please check your internet connection and try again',
+                    ToastAndroid.LONG
+                );
+            } else {
+                ToastAndroid.show(`failed to refresh`, ToastAndroid.LONG);
+            }
+        }
+    }
+};
+
+
+
+//to make a postcommentreply starts here
+export const makePostCommentReply = (originid, reply_text) => {
+    return async (dispatch) => {
+        if (checkData(originid) != true || checkData(reply_text) != true) {
+            return;
+        }
+        const { user, profile } = store.getState();
+        let tempid = String(Math.floor(Math.random() * 1000000));
+        let onretryschema = {
+            replyid: tempid,
+            created_at: 'Tap to retry',
+            onRetry: () => dispatch(retryPostComment(postid, tempid, comment_text))
+        };
+
+        dispatch(prependPostCommentReplyForm([{
+            originid,
+            reply_text,
+            onRetry: () => { },
+            replyid: tempid,
+            created_at: 'posting...',
+            profile: {
+                avatar: [
+                    profile.avatarremote,
+                    profile.avatarlocal
+                ], user: { username: user.username }
+            }
+        }]));
+
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('postcommentreply', {
+                originid,
+                reply_text,
+            }, options);
+            const { errmsg, origin, message, status, reply } = response.data;
+            switch (status) {
+                case 201:
+                    dispatch(removePostCommentReplyForm(tempid));
+                    dispatch(prependPostCommentReplyForm([reply]));
+                    dispatch(updatePostCommentReplyForm(origin));
+                    //alert(JSON.stringify(comment));
+                    break;
+                case 400:
+                    dispatch(updatePostCommentReplyForm(onretryschema));
+                    break;
+                case 404:
+                    dispatch(removePostCommentReplyForm(tempid));
+                    break;
+                case 412:
+                    dispatch(removePostCommentReplyForm(tempid));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 401:
+                    break;
+                case 500:
+                    dispatch(updatePostCommentReplyForm(onretryschema));
+                    break;
+                default:
+                    dispatch(updatePostCommentReplyForm(onretryschema));
+                    break;
+            }
+        } catch (err) {
+            dispatch(updatePostCommentReplyForm(onretryschema));
+            if (e.toString().indexOf('Network Error') != -1) {
+                ToastAndroid.show(
+                    'action failed please check your internet connection and try again',
+                    ToastAndroid.LONG
+                );
+            } else {
+                ToastAndroid.show(`could not load replies please try again`, ToastAndroid.LONG);
+            }
+        }
+
+    }
+};
+
 
 /**
  * ACTION CREATOR FOR BOOKMARKS REDUCER

@@ -200,6 +200,7 @@ export default class PostCommentList extends React.Component {
             () => {
                 this.props.updateComment({
                     commentid: this.currentcommentid,
+                    muted: !this.state.profilemuted,
                     profile: { ...this.currentcommentownerprofile, profilemuted: !this.state.profilemuted }
                 });
                 this.props.updatePostCommentProfile({
@@ -245,6 +246,20 @@ export default class PostCommentList extends React.Component {
                     navparent: true,
                     requrl: 'postcommentlikes',
                     reqdata: { commentid }
+                },
+            }
+        });
+    };
+    _navShowReplies = (comment) => {
+        if (checkData(comment) != true) {
+            return;
+        }
+        Navigation.showModal({
+            component: {
+                name: "PostCommentReply",
+                passProps: {
+                    navparent: true,
+                    origin: comment
                 },
             }
         });
@@ -340,14 +355,14 @@ export default class PostCommentList extends React.Component {
         }
     };
     _renderItem = ({ item }) => {
-        if (item.profile.profilemuted == true && item.mute != false) {
+        if (item.profile.profilemuted == true && item.muted != false) {
             return (
                 <PanelMsg
                     message={'This comment is from someone you have muted'}
                     buttonTitle={'View'}
                     buttonPress={() => this.props.updateComment({
                         commentid: item.commentid,
-                        mute: false
+                        muted: false
                     })}
                 />
             );
@@ -379,6 +394,7 @@ export default class PostCommentList extends React.Component {
                 likePress={() => this._onItemLiked(item.commentid, item.commentliked, item.num_likes)}
                 liked={item.commentliked}
                 replies={item.num_replies}
+                replyPress={() => this._navShowReplies(item)}
             />)
     }
     render() {

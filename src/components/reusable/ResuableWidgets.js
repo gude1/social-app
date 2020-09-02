@@ -421,6 +421,33 @@ export class ListItem extends Component {
         }
         return false
     }
+
+    _setBtnComponent = () => {
+        if (this.props.likebtn == true && this.props.hide == false) {
+            return (this.props.likeButtonComponent || <Icon
+                Component={TouchableScale}
+                activeScale={0.8}
+                type="antdesign"
+                name={this.props.liked == true ? 'heart' : "hearto"}
+                onPress={this.props.likePress}
+                color={this.props.liked == true ? 'red' : colors.text}
+                iconStyle={styles.listItemRightIconStyle}
+                size={responsiveFontSize(2.5)}
+            />);
+        } else if (this.props.hide == true) {
+            return (
+                <Icon
+                    type="feather"
+                    name={'eye-off'}
+                    color={colors.text}
+                    iconStyle={styles.listItemRightIconStyle}
+                    size={responsiveFontSize(2.5)}
+                />
+            )
+        }
+        return null;
+    };
+
     //onTimePress time liked
     render() {
         const { title, time, likebtn, onLongPress, liked, likeButtonComponent, onRetryPress, numLikesPress, likePress, timeTextStyle, likes,
@@ -462,21 +489,12 @@ export class ListItem extends Component {
                         <View style={styles.listItemBottomCtnStyle}>
                             {checkData(time) ? <Text style={[styles.bottomCtnLeftText, timeTextStyle]}>{time}</Text> : null}
                             {checkData(likes) ? <Text onPress={numLikesPress} style={styles.bottomCtnRightText}>{likes} likes</Text> : null}
-                            {replyPress ? <Text onPress={replyPress} style={styles.bottomCtnRightText}>Reply </Text> : null}
+                            {replyPress && this.props.hide == false ? <Text onPress={replyPress} style={styles.bottomCtnRightText}>Reply </Text> : null}
                             {checkData(replies) ? <Text style={styles.bottomCtnRightText}>{replies} replies</Text> : null}
                             {BottomContainerItem}
                         </View>
                     </View>
-                    {likebtn == true ? likeButtonComponent || <Icon
-                        Component={TouchableScale}
-                        activeScale={0.8}
-                        type="antdesign"
-                        name={liked == true ? 'heart' : "hearto"}
-                        onPress={likePress}
-                        color={liked == true ? 'red' : colors.text}
-                        iconStyle={styles.listItemRightIconStyle}
-                        size={responsiveFontSize(2.5)}
-                    /> : null}
+                    {this._setBtnComponent()}
                 </View>
             </TouchableScale>
         );

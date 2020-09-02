@@ -155,10 +155,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background
     },
-    postTextContainer: {
-        borderBottomWidth: 0.3,
-        borderColor: colors.border
-    },
     parentStyle: {
         flex: 1,
         //borderWidth: 2,

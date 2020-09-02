@@ -22,6 +22,7 @@ import ChatScreen from './src/screens/main/ChatScreen';
 import ProfileScreen from './src/screens/main/ProfileScreen';
 import ExploreScreen from './src/screens/main/ExploreScreen';
 import PostCommentScreen from './src/screens/main/PostCommentScreen';
+import PostCommentReplyScreen from './src/screens/main/PostCommentReplyScreen';
 import LikesListScreen from './src/screens/main/LikesListScreen';
 import SharesListScreen from './src/screens/main/SharesListScreen';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
@@ -120,6 +121,7 @@ Navigation.events().registerAppLaunchedListener(async () => {
         Navigation.registerComponentWithRedux('PhotoList', () => PhotoListScreen, Provider, store);
         Navigation.registerComponentWithRedux('PhotoViewer', () => PhotoViewerScreen, Provider, store);
         Navigation.registerComponentWithRedux('PostComment', () => PostCommentScreen, Provider, store);
+        Navigation.registerComponentWithRedux('PostCommentReply', () => PostCommentReplyScreen, Provider, store);
         Navigation.registerComponentWithRedux('LikesList', () => LikesListScreen, Provider, store);
         Navigation.registerComponentWithRedux('SharesList', () => SharesListScreen, Provider, store);
         //Navigation.setRoot(AUTHROUTE);

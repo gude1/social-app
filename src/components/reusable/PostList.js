@@ -283,7 +283,7 @@ class PostItem extends Component {
 }
 
 
-export default class PostList extends React.PureComponent {
+export default class PostList extends React.Component {
     constructor(prop) {
         super(prop);
         this.state = {
@@ -654,7 +654,7 @@ export default class PostList extends React.PureComponent {
                     updateCellsBatchingPeriod={1}
                     refreshing={refreshing}
                     initialNumRender={5}
-                    windowSize={2}
+                    windowSize={1}
                     onRefresh={onRefresh}
                     data={this.props.data}
                     //extraData={this.props.extraData}
