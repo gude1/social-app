@@ -259,7 +259,7 @@ export default class PostCommentList extends React.Component {
                 name: "PostCommentReply",
                 passProps: {
                     navparent: true,
-                    origin: comment
+                    ownercommentid: comment.commentid
                 },
             }
         });

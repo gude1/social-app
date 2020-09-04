@@ -490,7 +490,7 @@ export class ListItem extends Component {
                             {checkData(time) ? <Text style={[styles.bottomCtnLeftText, timeTextStyle]}>{time}</Text> : null}
                             {checkData(likes) ? <Text onPress={numLikesPress} style={styles.bottomCtnRightText}>{likes} likes</Text> : null}
                             {replyPress && this.props.hide == false ? <Text onPress={replyPress} style={styles.bottomCtnRightText}>Reply </Text> : null}
-                            {checkData(replies) ? <Text style={styles.bottomCtnRightText}>{replies} replies</Text> : null}
+                            {checkData(replies) ? <Text onPress={replyPress} style={styles.bottomCtnRightText}>{replies} replies</Text> : null}
                             {BottomContainerItem}
                         </View>
                     </View>

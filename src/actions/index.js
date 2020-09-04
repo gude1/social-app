@@ -163,10 +163,10 @@ export const setPassword = (data, key) => {
     };
 };
 
-export const setReset = (key) => {
+export const setReset = (key: String, value: String) => {
     return {
         type: RESET,
-        payload: { key }
+        payload: { key, value }
     };
 };
 
@@ -2141,7 +2141,7 @@ export const likePostComment = (commentid, likestatus, numlikes) => {
         } catch (err) {
         }
     }
-}
+};
 
 export const refreshPostComment = (postid) => {
     return async (dispatch) => {
@@ -2159,7 +2159,7 @@ export const refreshPostComment = (postid) => {
             const response = await session.post('postcommentlist', {
                 postid
             }, options);
-            const { errmsg, message, ownerpost, status, comments, nextpageurl } = response.data;
+            const { errmsg, message, ownerpost, hiddens, status, comments, nextpageurl } = response.data;
 
             switch (status) {
                 case 302:
@@ -2169,6 +2169,11 @@ export const refreshPostComment = (postid) => {
                     dispatch(setPostCommentFormLink(nextpageurl));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
+                    hiddens == true && ToastAndroid.showWithGravity(
+                        'some comments are hidden by author',
+                        ToastAndroid.LONG,
+                        ToastAndroid.CENTER
+                    );
                     break;
                 case 400:
                     dispatch(setPostCommentFormRefresh(false));
@@ -2212,7 +2217,7 @@ export const loadMorePostComment = (postid) => {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
             const response = await session.post(postcommentform.nexturl, { postid }, options);
-            const { errmsg, message, ownerpost, status, comments, nextpageurl } = response.data
+            const { errmsg, message, ownerpost, hiddens, status, comments, nextpageurl } = response.data;
             switch (status) {
                 case 302:
                     dispatch(setProcessing(false, 'postcommentformloadmore'));
@@ -2220,6 +2225,11 @@ export const loadMorePostComment = (postid) => {
                     dispatch(setPostCommentFormLink(nextpageurl));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
+                    hiddens == true && ToastAndroid.showWithGravity(
+                        'some comments are hidden by author',
+                        ToastAndroid.LONG,
+                        ToastAndroid.CENTER
+                    );
                     break;
                 case 400:
                     // console.warn(errmsg);
@@ -2277,7 +2287,7 @@ export const deletePostComment = (postcommentid, ownerid) => {
             dispatch(setProcessing(false, 'postcommentformdeleting'));
             //alert(err.toString())
             //alert(JSON.stringify(err));
-            ToastAndroid.show('could not post comment please try gain', ToastAndroid.LONG);
+            ToastAndroid.show('could not delete comment please try gain', ToastAndroid.LONG);
         }
     }
 };
@@ -2397,7 +2407,8 @@ export const fetchPostCommentReply = (originid) => {
                     dispatch(setProcessing(false, 'postcommentreplyformfetching'));
                     dispatch(addPostCommentReplyForm(replies));
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
-                    dispatch(updatePostCommentReplyForm(origin));
+                    checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
+                        : dispatch(updatePostCommentForm(origin));
                     hiddens == true && ToastAndroid.showWithGravity(
                         'some replies are hidden by author',
                         ToastAndroid.LONG,
@@ -2425,15 +2436,135 @@ export const fetchPostCommentReply = (originid) => {
             }
 
         } catch (err) {
+            console.warn(err.toString());
             dispatch(setProcessing('retry', 'postcommentreplyformfetching'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                ToastAndroid.show(
+                    'action failed please check your internet connection and try again',
+                    ToastAndroid.LONG
+                );
+            } else {
+                ToastAndroid.show(`could not fetch replies please try again`, ToastAndroid.LONG);
+            }
         }
     };
 };
 
+export const loadMorePostCommentReply = (originid) => {
+    return async (dispatch) => {
+        const { user, postcommentreplyform } = store.getState();
+        if (checkData(postcommentreplyform.nexturl) != true ||
+            checkData(originid) != true) {
+            dispatch(setProcessing('none', 'postcommentreplyformloadmore'));
+            return;
+        }
+        dispatch(setProcessing(true, 'postcommentreplyformloadmore'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post(postcommentreplyform.nexturl, { originid }, options);
+            const { errmsg, message, origin, hiddens, status, replies, nextpageurl } = response.data;
+            switch (status) {
+                case 302:
+                    dispatch(setProcessing(false, 'postcommentreplyformloadmore'));
+                    dispatch(addPostCommentReplyForm(replies));
+                    dispatch(setPostCommentReplyFormLink(nextpageurl));
+                    checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
+                        : dispatch(updatePostCommentForm(origin));
+                    hiddens == true && ToastAndroid.showWithGravity(
+                        'some replies are hidden by author',
+                        ToastAndroid.LONG,
+                        ToastAndroid.CENTER
+                    );
+                    break;
+                case 400:
+                    // console.warn(errmsg);
+                    dispatch(setProcessing('retry', 'postcommentreplyformloadmore'));
+                    break;
+                case 404:
+                    dispatch(setProcessing(false, 'postcommentreplyformloadmore'));
+                    break;
+                case 412:
+                    dispatch(setProcessing(false, 'postcommentreplyformloadmore'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 401:
+                    break;
+                default:
+                    dispatch(setProcessing('retry', 'postcommentreplyformloadmore'));
+                    break;
+            }
+        } catch (err) {
+            //console.warn(err.toString());
+            dispatch(setProcessing('retry', 'postcommentreplyformloadmore'));
+        }
+    }
+};
+
+
+export const likePostCommentReply = (replyid, likestatus, numlikes) => {
+    return async (dispatch) => {
+        if (checkData(replyid) != true ||
+            checkData(likestatus) != true ||
+            checkData(numlikes) != true) {
+            return;
+        }
+        dispatch(
+            updatePostCommentReplyForm({
+                replyid,
+                replyliked: likestatus,
+                num_likes: numlikes
+            })
+        );
+        const { user } = store.getState();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('postcommentreplylikeaction', {
+                replyid
+            }, options);
+            const { errmsg, status, message, reply } = response.data;
+            switch (status) {
+                case 200:
+                    //alert(JSON.stringify(comment));
+                    dispatch(updatePostCommentReplyForm(reply));
+                    break;
+                case 401:
+                    break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    dispatch(
+                        updatePostCommentReplyForm({
+                            replyid,
+                            replyliked: likestatus ? false : true,
+                            num_likes: likestatus ? numlikes - 1 : numlikes + 1
+                        })
+                    );
+                    break;
+                default:
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG)
+                    dispatch(
+                        updatePostCommentReplyForm({
+                            replyid,
+                            replyliked: likestatus ? false : true,
+                            num_likes: likestatus ? numlikes - 1 : numlikes + 1
+                        })
+                    );
+                    break;
+            }
+        } catch (err) {
+        }
+    }
+}
+
+
+
 export const refreshPostCommentReply = (origind) => {
     return async (dispatch) => {
         dispatch(setPostCommentFormRefresh(true));
-        if (checkData(postid) != true) {
+        if (checkData(originid) != true) {
             dispatch(setPostCommentFormRefresh(false));
             ToastAndroid.show('Failed to refresh', ToastAndroid.LONG);
             return;
@@ -2454,7 +2585,8 @@ export const refreshPostCommentReply = (origind) => {
                     dispatch(setPostCommentReplyFormRefresh(false));
                     dispatch(addPostCommentReplyForm(replies));
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
-                    dispatch(updatePostCommentReplyForm(origin));
+                    checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
+                        : dispatch(updatePostCommentForm(origin));
                     break;
                 case 400:
                     dispatch(setPostCommentReplyFormRefresh(false));
@@ -2478,7 +2610,7 @@ export const refreshPostCommentReply = (origind) => {
 
         } catch (err) {
             dispatch(setPostCommentReplyFormRefresh(false));
-            if (e.toString().indexOf('Network Error') != -1) {
+            if (err.toString().indexOf('Network Error') != -1) {
                 ToastAndroid.show(
                     'action failed please check your internet connection and try again',
                     ToastAndroid.LONG
@@ -2503,7 +2635,7 @@ export const makePostCommentReply = (originid, reply_text) => {
         let onretryschema = {
             replyid: tempid,
             created_at: 'Tap to retry',
-            onRetry: () => dispatch(retryPostComment(postid, tempid, comment_text))
+            onRetry: () => dispatch(retryPostComment(originid, tempid, comment_text))
         };
 
         dispatch(prependPostCommentReplyForm([{
@@ -2533,7 +2665,8 @@ export const makePostCommentReply = (originid, reply_text) => {
                 case 201:
                     dispatch(removePostCommentReplyForm(tempid));
                     dispatch(prependPostCommentReplyForm([reply]));
-                    dispatch(updatePostCommentReplyForm(origin));
+                    checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
+                        : dispatch(updatePostCommentForm(origin));
                     //alert(JSON.stringify(comment));
                     break;
                 case 400:
@@ -2556,8 +2689,9 @@ export const makePostCommentReply = (originid, reply_text) => {
                     break;
             }
         } catch (err) {
+            console.warn(err.toString());
             dispatch(updatePostCommentReplyForm(onretryschema));
-            if (e.toString().indexOf('Network Error') != -1) {
+            if (err.toString().indexOf('Network Error') != -1) {
                 ToastAndroid.show(
                     'action failed please check your internet connection and try again',
                     ToastAndroid.LONG
@@ -2569,6 +2703,70 @@ export const makePostCommentReply = (originid, reply_text) => {
 
     }
 };
+
+//to retry posting a comment if it fails
+export const retryPostCommentReply = (originid, replyid, reply_text) => {
+    return async (dispatch) => {
+        if (checkData(originid) != true || checkData(replyid) != true || checkData(reply_text) != true) {
+            //console.warn('yo');
+            return;
+        }
+        const { user } = store.getState();
+        let onretryschema = {
+            replyid: tempid,
+            created_at: 'Tap to retry',
+            onRetry: () => dispatch(retryPostComment(originid, tempid, comment_text))
+        };
+        dispatch(updatePostCommentReplyForm({
+            onRetry: () => { },
+            replyid,
+            created_at: 'posting...',
+        }));
+
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('postcomment', {
+                postid,
+                comment_text,
+            }, options);
+            const { errmsg, origin, message, status, reply } = response.data;
+            switch (status) {
+                case 201:
+                    dispatch(removePostCommentReplyForm(tempid));
+                    dispatch(prependPostCommentReplyForm([reply]));
+                    checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
+                        : dispatch(updatePostCommentForm(origin));
+                    //alert(JSON.stringify(comment));
+                    break;
+                case 400:
+                    dispatch(updatePostCommentReplyForm(onretryschema));
+                    break;
+                case 404:
+                    dispatch(removePostCommentReplyForm(tempid));
+                    break;
+                case 412:
+                    dispatch(removePostCommentReplyForm(tempid));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 401:
+                    break;
+                case 500:
+                    dispatch(updatePostCommentReplyForm(onretryschema));
+                    break;
+                default:
+                    dispatch(updatePostCommentReplyForm(onretryschema));
+                    break;
+            }
+        } catch (err) {
+            // console.warn(err);
+            dispatch(updatePostCommentReplyForm(onretryschema));
+        }
+
+    };
+}
+
 
 
 /**

@@ -65,9 +65,11 @@ const PostCommentScreen = ({ navparent,
             unsubscribe.remove();
         };
     }, []);
+    /**component functions starts here */
     const setFlatlistRef = (ref) => {
         flatlistref = ref;
     };
+    /**component functions ends here */
     return (
 
         <SafeAreaView style={styles.containerStyle} >
@@ -89,46 +91,46 @@ const PostCommentScreen = ({ navparent,
                     />}
                     animationType={'zoomIn'}
                 /> :
-                    <View style={{ flex: 1 }}>
-                        <PostCommentList
-                            onFetch={fetchPostComment}
-                            fetching={postcommentform.fetching}
-                            userprofile={profile}
-                            setFlatlistRef={setFlatlistRef}
-                            parentpost={ownerpost}
-                            data={postcommentform.postcomments}
-                            updateComment={updatePostCommentForm}
-                            onItemLike={likePostComment}
-                            onLoadMore={loadMorePostComment}
-                            loadingmore={postcommentform.loadmore}
-                            profileschanges={postcommentform.profileschanges}
-                            updatePostCommentProfile={updatePostCommentFormProfileChanges}
-                            onRefresh={refreshPostComment}
-                            onMute={muteProfileAction}
-                            muting={profileactionform.mutingprofile}
-                            refreshing={postcommentform.refreshing}
-                            onHide={hidePostCommentAction}
-                            hiding={postcommentform.hiding}
-                            onDelete={deletePostComment}
-                            deleting={postcommentform.deleting}
-                        />
-                        <InputBox
-                            placeholder={'Add a comment'}
-                            onChangeText={setInputText}
-                            inputvalue={inputtext}
-                            onSubmit={() => {
-                                //flatlistref.scrollToOffset({ offset: 0, animated: true })
-                                setInputText('');
-                                makePostComment(ownerpost.postid, inputtext);
-                                if (checkData(inputtext)) {
-                                    flatlistref.scrollToOffset({ offset: 0 })
-                                }
-                            }}
-                            maxLength={300}
-                            autoFocus={false}
-                            avatar={{ uri: profileimage }}
-                        />
-                    </View>
+                    <>
+                    <PostCommentList
+                        onFetch={fetchPostComment}
+                        fetching={postcommentform.fetching}
+                        userprofile={profile}
+                        setFlatlistRef={setFlatlistRef}
+                        parentpost={ownerpost}
+                        data={postcommentform.postcomments}
+                        updateComment={updatePostCommentForm}
+                        onItemLike={likePostComment}
+                        onLoadMore={loadMorePostComment}
+                        loadingmore={postcommentform.loadmore}
+                        profileschanges={postcommentform.profileschanges}
+                        updatePostCommentProfile={updatePostCommentFormProfileChanges}
+                        onRefresh={refreshPostComment}
+                        onMute={muteProfileAction}
+                        muting={profileactionform.mutingprofile}
+                        refreshing={postcommentform.refreshing}
+                        onHide={hidePostCommentAction}
+                        hiding={postcommentform.hiding}
+                        onDelete={deletePostComment}
+                        deleting={postcommentform.deleting}
+                    />
+                    <InputBox
+                        placeholder={'Add a comment'}
+                        onChangeText={setInputText}
+                        inputvalue={inputtext}
+                        onSubmit={() => {
+                            //flatlistref.scrollToOffset({ offset: 0, animated: true })
+                            setInputText('');
+                            makePostComment(ownerpost.postid, inputtext);
+                            if (checkData(inputtext)) {
+                                flatlistref.scrollToOffset({ offset: 0 })
+                            }
+                        }}
+                        maxLength={300}
+                        autoFocus={false}
+                        avatar={{ uri: profileimage }}
+                    />
+                    </>
             }
         </SafeAreaView >
     );

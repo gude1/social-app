@@ -16,16 +16,31 @@ const { colors } = useTheme();
 const PostCommentReplyScreen = ({
     navparent,
     componentId,
-    origin,
+    ownercommentid,
+    ownerreplyid,
     profile,
     profileimage,
+    muteProfileAction,
     profileactionform,
     postcommentreplyform,
+    postcommentform,
+    fetchPostCommentReply,
+    updatePostCommentReplyForm,
+    updatePostCommentReplyFormProfileChanges,
     makePostCommentReply,
+    likePostCommentReply,
+    hidePostCommentReply,
+    loadMorePostCommentReply,
+    deletePostCommentReply,
     setReset,
 }) => {
+    let origin = checkData(ownercommentid) ?
+        postcommentform.postcomments.find(item => item.commentid == ownercommentid)
+        : postcommentreplyform.postcommentreplies.find(item => item.replyid == ownerreplyid)
+        ;
     const [loaded, setLoaded] = useState(false);
     const [inputtext, setInputText] = useState('');
+    let flatlistref = null;
     let lefticon = navparent == true ? <Icon
         type="evilicon"
         name="arrow-left"
@@ -54,7 +69,11 @@ const PostCommentReplyScreen = ({
             unsubscribe.remove();
         };
     }, []);
-
+    /**component functions starts here */
+    const setFlatlistRef = (ref) => {
+        flatlistref = ref;
+    };
+    /**component functions ends here */
     return (
         <SafeAreaView style={styles.containerStyle}>
             <Header
@@ -75,8 +94,28 @@ const PostCommentReplyScreen = ({
                     />}
                     animationType={'zoomIn'}
                 /> : <>
-                    <View style={styles.parentStyle}>
-                    </View>
+                    <PostCommentReplyList
+                        onFetch={fetchPostCommentReply}
+                        fetching={postcommentreplyform.fetching}
+                        userprofile={profile}
+                        profileschanges={postcommentreplyform.profileschanges}
+                        updatePostCommentReplyProfile={updatePostCommentReplyFormProfileChanges}
+                        updateReply={updatePostCommentReplyForm}
+                        userprofile={profile}
+                        setFlatlistRef={setFlatlistRef}
+                        origin={origin}
+                        onItemLike={likePostCommentReply}
+                        data={postcommentreplyform.postcommentreplies}
+                        onLoadMore={loadMorePostCommentReply}
+                        loadingmore={postcommentreplyform.loadmore}
+                        onMute={muteProfileAction}
+                        muting={profileactionform.mutingprofile}
+                        refreshing={postcommentreplyform.refreshing}
+                        onHide={hidePostCommentReply}
+                        hiding={postcommentreplyform.hiding}
+                        onDelete={deletePostCommentReply}
+                        deleting={postcommentreplyform.deleting}
+                    />
                     <InputBox
                         placeholder={'Post a reply'}
                         onChangeText={setInputText}
@@ -109,6 +148,7 @@ const mapStateToProps = (state) => {
         profileimage: state.profile.avatarlocal || state.profile.avatarremote,
         profile: state.profile,
         profileactionform: state.profileactionform,
+        postcommentform: state.postcommentform,
         postcommentreplyform: state.postcommentreplyform
     }
 };

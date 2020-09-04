@@ -47,6 +47,20 @@ const handleProcessing = (key, value, state) => {
     }
 };
 
+const handleReset = (action, state) => {
+    if (!checkData(action) || !checkData(state)) {
+        return state;
+    }
+    if (action.payload.key == 'postcommentreplyform' && checkData(action.payload.value) == false) {
+        return INITIAL_STATE;
+    } else if (action.payload.key == 'postcommentreplyform' && checkData(action.payload.value) == true) {
+        let postcommentreplies = state.postcommentreplies.filter(item => item.replyid != action.payload.value);
+        return { ...state, postcommentreplies };
+    } else {
+        return state;
+    }
+};
+
 const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case PROCESSING:
@@ -63,21 +77,18 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
             return { ...state, postcommentreplies: [...action.payload, ...state.postcommentreplies] };
             break;
         case UPDATE_POST_COMMENT_REPLY_FORM:
-            let updatedstate = state.postcomments.map(item => {
+            let updatedstate = state.postcommentreplies.map(item => {
                 return item.commentid == action.payload.commentid ? { ...item, ...action.payload } : item;
             });
             updatedstate.find(item => item.commentid == action.payload.commentid) == undefined ?
                 updatedstate.push({ ...action.payload }) : null;
-            return { ...state, postcomments: updatedstate };
+            return { ...state, postcommentreplies: updatedstate };
             break;
         case SET_POST_COMMENT_REPLY_FORM_LINK:
             return { ...state, nexturl: action.payload };
             break;
         case RESET:
-            if (action.payload.key == 'postcommentform') {
-                return INITIAL_STATE;
-            }
-            return state;
+            return handleReset(action, state);
             break;
         case POST_COMMENT_REPLY_FORM_REFRESH:
             return { ...state, refreshing: action.payload };
@@ -91,8 +102,8 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
             return { ...state, profileschanges: updatedprofilestate };
             break;
         case REMOVE_POST_COMMENT_REPLY_FORM:
-            let newstate = state.postcomments.filter(item => item.commentid != action.payload);
-            return { ...state, postcomments: newstate };
+            let newstate = state.postcommentreplies.filter(item => item.replyid != action.payload);
+            return { ...state, postcommentreplies: newstate };
             break;
         default:
             return state;
