@@ -60,7 +60,8 @@ export const DELETE_TIMELINE_POST = 'delete_timeline_post';
 export const REMOVE_PROFILE_TIMELINE_POST = 'remove_profile_timeline_post';
 export const SET_TIMELINE_POST_LINKS = 'set_timeline_post_links';
 export const PREPEND_TIMELINE_POST = 'prepend_timeline_post';
-
+export const UPDATE_TIMELINE_POST_PROFILE_CHANGES = 'update_timeline_post_profile_changes';
+export const SET_TIMELINE_POST_PROFILE_CHANGES = 'set_timeline_post_profile_changes';
 
 /**
  * TYPE CONSTANT FOR TIMELINEPOSTFORM REDUCER
@@ -72,7 +73,8 @@ export const TIMELINE_POST_FORM_REFRESH = 'timeline_post_refresh';
 export const DELETE_TIMELINE_POST_FORM = 'delete_timeline_post_form';
 export const REMOVE_PROFILE_TIMELINE_POST_FORM = 'remove_profile_timeline_post_form';
 export const PREPEND_TIMELINE_POST_FORM = 'prepend_timeline_form_post';
-
+export const UPDATE_TIMELINE_POST_FORM_PROFILE_CHANGES = 'update_timeline_post_form_profile_changes';
+export const SET_TIMELINE_POST_FORM_PROFILE_CHANGES = 'set_timeline_post_form_profile_changes';
 
 /**
  * TYPE CONSTANT FOR POSTCOMMENTFORM REDUCER

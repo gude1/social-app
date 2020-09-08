@@ -1,6 +1,7 @@
-const THEME = 'white';
+const THEME = 'black';
 export const BlackTheme = {
     colors: {
+        theme: 'rgb(1, 1, 1)',
         statusbar: '#000',
         statusbartext: 'white',
         background: "rgb(1, 1, 1)",
@@ -20,6 +21,7 @@ export const BlackTheme = {
 
 export const WhiteTheme = {
     colors: {
+        theme: 'white',
         statusbar: '#f1f1f1',
         statusbartext: 'dark',
         background: 'white',

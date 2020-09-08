@@ -21,7 +21,11 @@ const persistConfig = {
         'postform',
         'photogalleryform',
         'timelinepostform',
-        'postcommentform'
+        'postcommentform',
+        'postcommentreplyform',
+        'likeslistform',
+        'shareslistform',
+        'profileactionform'
     ]
 };
 

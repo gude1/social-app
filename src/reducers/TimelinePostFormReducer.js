@@ -6,6 +6,8 @@ import {
     TIMELINE_POST_FORM_REFRESH,
     DELETE_TIMELINE_POST_FORM,
     REMOVE_PROFILE_TIMELINE_POST_FORM,
+    SET_TIMELINE_POST_FORM_PROFILE_CHANGES,
+    UPDATE_TIMELINE_POST_FORM_PROFILE_CHANGES,
     PREPEND_TIMELINE_POST_FORM,
     PROCESSING,
     RESET,
@@ -14,9 +16,11 @@ import { checkData } from '../utilities/index';
 
 const INITIAL_STATE = {
     timelineposts: [],
+    profileschanges: [],
     loadingmore: false,
     refreshing: false,
     processing: false,
+    fetching: false,
     deleting: false,
     blacklisting: false,
     muting: false,
@@ -62,6 +66,9 @@ const handleProcessing = (key, value, state) => {
         case 'processloadmoretimelinepostform':
             return { ...state, loadingmore: value };
             break;
+        case 'processfetchtimelinepostform':
+            return { ...state, fetching: value };
+            break;
         default:
             return state;
             break;
@@ -102,6 +109,17 @@ const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
         case REMOVE_PROFILE_TIMELINE_POST_FORM:
             let newstate = state.timelineposts.filter(item => item.profile.profile_id != action.payload);
             return { ...state, timelineposts: newstate };
+            break;
+        case SET_TIMELINE_POST_FORM_PROFILE_CHANGES:
+            return { ...state, profileschanges: action.payload };
+            break;
+        case UPDATE_TIMELINE_POST_FORM_PROFILE_CHANGES:
+            let updatedprofilestate = state.profileschanges.map(item => {
+                return item.profileid == action.payload.profileid ? { ...item, ...action.payload } : item;
+            });
+            updatedprofilestate.find(item => item.profileid == action.payload.profileid) == undefined ?
+                updatedprofilestate.push({ ...action.payload }) : null;
+            return { ...state, profileschanges: updatedprofilestate };
             break;
         case RESET:
             if (action.payload.key == 'timelinepostform') {

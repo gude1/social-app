@@ -40,6 +40,8 @@ import {
     REMOVE_PROFILE_TIMELINE_POST_FORM,
     ADD_POST_COMMENT_FORM,
     PREPEND_TIMELINE_POST_FORM,
+    UPDATE_TIMELINE_POST_FORM_PROFILE_CHANGES,
+    UPDATE_TIMELINE_POST_PROFILE_CHANGES,
     PREPEND_TIMELINE_POST,
     POST_COMMENT_FORM_REFRESH,
     POST_COMMENT_FORM_DELETE,
@@ -64,8 +66,10 @@ import {
     UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES,
     PREPEND_SHARES_LIST_FORM,
     SET_SHARES_LIST_FORM_LINK,
-    BOOKMARK,
     RESET,
+    BOOKMARK,
+    SET_TIMELINE_POST_FORM_PROFILE_CHANGES,
+    SET_TIMELINE_POST_PROFILE_CHANGES,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -386,9 +390,9 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
                     break;
             }
         } catch (err) {
-            console.warn(err.toString());
+            //console.warn(err.toString());
             dispatch(setProcessing(false, 'profileactionmuting'));
-            if (err.toString().search('Failed to connect') > -1) {
+            if (err.toString().indexOf('Failed to connect') > -1) {
                 ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
             } else {
                 ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
@@ -443,6 +447,7 @@ export const fetchLikes = (requrl, reqdata) => {
             };
             const response = await session.post(requrl, reqdata, options);
             const { errmsg, status, likes_list, message, next_page_url } = response.data;
+            // console.warn(response.data);
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'likeslistfetching'));
@@ -466,6 +471,7 @@ export const fetchLikes = (requrl, reqdata) => {
                     break;
             }
         } catch (err) {
+            // console.warn(err.toString());
             dispatch(setProcessing('retry', 'likeslistfetching'));
             if (err.toString().search('Failed to connect')) {
                 ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
@@ -1032,7 +1038,10 @@ export const makePost = (postimages, posttext) => {
                         );
                     } else if (errors) {
                         errors.errorposttext && ToastAndroid.show(errors.errorposttext, ToastAndroid.LONG);
+                        errors.errthumbpostimage && ToastAndroid.show(errors.errthumbpostimage, ToastAndroid.LONG);
                         errors.errpostimage && ToastAndroid.show(errors.errpostimage, ToastAndroid.LONG);
+                        errors.errthumbpostimages && ToastAndroid.show(errors.errthumbpostimages, ToastAndroid.LONG);
+                        errors.errpostimages && ToastAndroid.show(errors.errpostimages, ToastAndroid.LONG);
                     } else {
                         ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
                     }
@@ -1086,13 +1095,8 @@ const resizeMultipleImage = async (arr) => {
     resizedImages = await Promise.all(arr.map(async (image) => {
         //return image;
         let { w, h } = await getImageSize(image);
+        let postimageuri = await resizeImage(image, 1500, 1500);
         let thumbimageuri = await resizeImage(image, 100, 100, null, 100);
-        if (w < 320 || w > 1080 || h < 500 || h > 1080) {
-            var postimageuri = await resizeImage(image, 1080, 1080);
-        } else {
-            var postimageuri = image;
-        }
-
         if (thumbimageuri == false || postimageuri == false) {
             return null;
         }
@@ -1172,6 +1176,18 @@ export const deleteTimeLinePost = (postid) => {
     }
 };
 
+export const setTimelinePostProfileChanges = (data: Array) => {
+    return {
+        type: SET_TIMELINE_POST_PROFILE_CHANGES,
+        payload: data
+    }
+};
+export const updateTimelinePostProfileChanges = (data: Object) => {
+    return {
+        type: UPDATE_TIMELINE_POST_PROFILE_CHANGES,
+        payload: data
+    }
+};
 export const removeProfileTimeLinePost = (profileid) => {
     return {
         type: REMOVE_PROFILE_TIMELINE_POST,
@@ -1220,6 +1236,21 @@ export const deleteTimelinePostForm = (postid) => {
         payload: postid
     }
 };
+
+export const setTimelinePostFormProfileChanges = (data: Array) => {
+    return {
+        type: SET_TIMELINE_POST_FORM_PROFILE_CHANGES,
+        payload: data
+    }
+}
+
+export const updateTimelinePostFormProfileChanges = (data: Object) => {
+    return {
+        type: UPDATE_TIMELINE_POST_FORM_PROFILE_CHANGES,
+        payload: data
+    }
+}
+
 export const removeProfileTimeLinePostForm = (profileid) => {
     return {
         type: REMOVE_PROFILE_TIMELINE_POST_FORM,
@@ -1227,9 +1258,57 @@ export const removeProfileTimeLinePostForm = (profileid) => {
     }
 };
 
+export const fetchParticularPost = (postid) => {
+    return async (dispatch) => {
+        if (!checkData(postid)) {
+            ToastAndroid.show('Post not found', ToastAndroid.LONG);
+            dispatch(setProcessing(false, 'processfetchtimelinepostform'));
+            return;
+        }
+        dispatch(setProcessing(true, 'processfetchtimelinepostform'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('postshow', { postid }, options);
+            const { status, message, errmsg, blockmsg, postdetails } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'processfetchtimelinepostform'));
+                    dispatch(updateTimelinePostForm(postdetails));
+                    blockmsg && ToastAndroid.show(blockmsg, ToastAndroid.LONG);
+                    break;
+                case 400:
+                    dispatch(setProcessing('retry', 'processfetchtimelinepostform'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 500:
+                    dispatch(setProcessing('retry', 'processfetchtimelinepostform'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                case 412:
+                    dispatch(setProcessing(false, 'processfetchtimelinepostform'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+                default:
+                    dispatch(setProcessing('retry', 'processfetchtimelinepostform'));
+                    ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    break;
+            }
+        } catch (err) {
+            console.warn(err.toString());
+            dispatch(setProcessing('retry', 'processfetchtimelinepostform'));
+            if (err.toString().indexOf('Failed to connect') > - 1) {
+                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+            }
+        }
+    };
+};
 
 
-export const refreshTimelinePost = () => {
+export const refreshTimelinePost = (okAction, failedAction) => {
     return async (dispatch) => {
         dispatch(setTimelinepostRefresh(true));
         const { user, } = store.getState();
@@ -1261,6 +1340,7 @@ export const refreshTimelinePost = () => {
                     dispatch(setTimelinePostLinks(
                         [followedpostnexturl, generalpostnexturl].filter(url => checkData(url))
                     ));
+                    okAction && okAction();
                     break;
                 case 'campus':
                     dispatch(setReset('timelinepostform'));
@@ -1272,6 +1352,7 @@ export const refreshTimelinePost = () => {
                     dispatch(setTimelinePostLinks(
                         [followedpostnexturl, withincampuspostsnexturl].filter(url => checkData(url))
                     ));
+                    okAction && okAction();
                     break;
                 case 'followedpost':
                     dispatch(setReset('timelinepostform'));
@@ -1283,16 +1364,20 @@ export const refreshTimelinePost = () => {
                     dispatch(setTimelinePostLinks(
                         [followedpostnexturl].filter(url => checkData(url))
                     ));
+                    okAction && okAction();
                     break;
                 default:
+                    failedAction && failedAction();
                     dispatch(setTimelinepostRefresh('failed'));
                     ToastAndroid.showWithGravity('could not refresh feed',
                         ToastAndroid.LONG, ToastAndroid.CENTER);
                     break;
             }
         } catch (e) {
+            //console.warn(e.toString())
+            failedAction && failedAction();
             dispatch(setTimelinepostRefresh('failed'));
-            if (e.toString().search('Failed to connect')) {
+            if (e.toString().indexOf('Failed to connect') > - 1) {
                 ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
                 ToastAndroid.show('could not refresh feed', ToastAndroid.LONG);
@@ -2561,11 +2646,11 @@ export const likePostCommentReply = (replyid, likestatus, numlikes) => {
 
 
 
-export const refreshPostCommentReply = (origind) => {
+export const refreshPostCommentReply = (originid) => {
     return async (dispatch) => {
-        dispatch(setPostCommentFormRefresh(true));
+        dispatch(setPostCommentReplyFormRefresh(true));
         if (checkData(originid) != true) {
-            dispatch(setPostCommentFormRefresh(false));
+            dispatch(setPostCommentReplyFormRefresh(false));
             ToastAndroid.show('Failed to refresh', ToastAndroid.LONG);
             return;
         }
@@ -2574,19 +2659,23 @@ export const refreshPostCommentReply = (origind) => {
             const options = {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
-            const response = await session.post('postcommentlist', {
-                postid
+            const response = await session.post('postcommentreplylist', {
+                originid
             }, options);
-            const { errmsg, message, ownerpost, status, comments, nextpageurl } = response.data;
-
+            const { errmsg, message, origin, hiddens, status, replies, nextpageurl } = response.data;
             switch (status) {
                 case 302:
-                    dispatch(setReset('postcommentreplyform'));
                     dispatch(setPostCommentReplyFormRefresh(false));
+                    dispatch(setReset('postcommentreplyform'));
                     dispatch(addPostCommentReplyForm(replies));
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
+                    hiddens == true && ToastAndroid.showWithGravity(
+                        'some replies are hidden by author',
+                        ToastAndroid.LONG,
+                        ToastAndroid.CENTER
+                    );
                     break;
                 case 400:
                     dispatch(setPostCommentReplyFormRefresh(false));
@@ -2697,7 +2786,7 @@ export const makePostCommentReply = (originid, reply_text) => {
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show(`could not load replies please try again`, ToastAndroid.LONG);
+                ToastAndroid.show(`could not post reply please try again`, ToastAndroid.LONG);
             }
         }
 
@@ -2765,7 +2854,95 @@ export const retryPostCommentReply = (originid, replyid, reply_text) => {
         }
 
     };
-}
+};
+
+export const deletePostCommentReply = (replyid, ownerid) => {
+    return async (dispatch) => {
+        const { user, profile } = store.getState();
+        if (checkData(replyid) != true || checkData(ownerid) != true || ownerid != profile.profile_id) {
+            ToastAndroid.show('Could not delete reply', ToastAndroid.LONG);
+            return;
+        }
+        dispatch(setProcessing(true, 'postcommentreplyformdeleting'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('postcommentreplydelete', { replyid }, options);
+            const { errmsg, status, message, origin } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'postcommentreplyformdeleting'));
+                    dispatch(removePostCommentReplyForm(replyid));
+                    checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
+                        : dispatch(updatePostCommentForm(origin));
+                    break;
+                case 401:
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'postcommentreplyformdeleting'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'postcommentreplyformdeleting'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                ToastAndroid.show(
+                    'action failed please check your internet connection and try again',
+                    ToastAndroid.LONG
+                );
+            } else {
+                ToastAndroid.show(`could not delete replies please try again`, ToastAndroid.LONG);
+            }
+        }
+    }
+};
+
+export const hidePostCommentReply = (replyid, ownerid) => {
+    return async (dispatch) => {
+        const { user, profile } = store.getState();
+        if (checkData(replyid) != true ||
+            checkData(ownerid) != true ||
+            ownerid != profile.profile_id) {
+            ToastAndroid.show('Could not hide reply', ToastAndroid.LONG);
+            return;
+        }
+        dispatch(setProcessing(true, 'postcommentreplyformhiding'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('postcommentreplyhide', { replyid }, options);
+            const { errmsg, status, hidden, message } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'postcommentreplyformhiding'));
+                    dispatch(updatePostCommentReplyForm({
+                        replyid,
+                        hidden: hidden
+                    }));
+                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    break;
+                case 401:
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'postcommentreplyformhiding'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'postcommentreplyformhiding'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                ToastAndroid.show(
+                    'action failed please check your internet connection and try again',
+                    ToastAndroid.LONG
+                );
+            } else {
+                ToastAndroid.show('something went wrong could not hide reply please try again', ToastAndroid.LONG)
+            }
+        }
+    };
+};
 
 
 

@@ -74,9 +74,9 @@ export default class PostCommentList extends React.Component {
             othersbottommodallist: this.bottomodallistothersoptions,
             userbottommodallist: this.bottomodallistowneroptions
         });
-        if (checkData(this.props.parentpost)) {
+        /*if (checkData(this.props.parentpost)) {
             this.props.onFetch(this.props.parentpost.postid);
-        }
+        }*/
     }
     _setEmptyPlaceholder = () => {
         if (this.props.fetching == true) {
@@ -108,10 +108,10 @@ export default class PostCommentList extends React.Component {
             this.currentcommentownerid = ownerid;
             this.currentcommentownerprofile = item.profile;
         }
-        this._setOthersModalList(item);
         if (ownerid == this.props.userprofile.profile_id) {
             this._openUserBottomModal();
         } else {
+            this._setOthersModalList(item);
             this._openOthersBottomModal();
         }
     };
@@ -411,7 +411,7 @@ export default class PostCommentList extends React.Component {
                 refreshing={this.props.refreshing}
                 maxToRenderPerBatch={1}
                 updateCellsBatchingPeriod={1}
-                windowSize={2}
+                //windowSize={50}
                 onRefresh={onRefresh}
                 keyboardShouldPersistTaps='always'
                 initialNumRender={5}

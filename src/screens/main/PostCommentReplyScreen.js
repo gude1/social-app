@@ -31,6 +31,7 @@ const PostCommentReplyScreen = ({
     likePostCommentReply,
     hidePostCommentReply,
     loadMorePostCommentReply,
+    refreshPostCommentReply,
     deletePostCommentReply,
     setReset,
 }) => {
@@ -52,6 +53,7 @@ const PostCommentReplyScreen = ({
     let righticonpress = '';
     useEffect(() => {
         setReset('postcommentreplyform')// set the replies to empty
+        fetchPostCommentReply(ownercommentid || ownerreplyid);
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
@@ -101,7 +103,6 @@ const PostCommentReplyScreen = ({
                         profileschanges={postcommentreplyform.profileschanges}
                         updatePostCommentReplyProfile={updatePostCommentReplyFormProfileChanges}
                         updateReply={updatePostCommentReplyForm}
-                        userprofile={profile}
                         setFlatlistRef={setFlatlistRef}
                         origin={origin}
                         onItemLike={likePostCommentReply}
@@ -110,6 +111,7 @@ const PostCommentReplyScreen = ({
                         loadingmore={postcommentreplyform.loadmore}
                         onMute={muteProfileAction}
                         muting={profileactionform.mutingprofile}
+                        onRefresh={refreshPostCommentReply}
                         refreshing={postcommentreplyform.refreshing}
                         onHide={hidePostCommentReply}
                         hiding={postcommentreplyform.hiding}

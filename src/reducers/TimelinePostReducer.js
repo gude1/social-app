@@ -3,6 +3,8 @@ import {
     UPDATE_TIMELINE_POST,
     RESET,
     DELETE_TIMELINE_POST,
+    UPDATE_TIMELINE_POST_PROFILE_CHANGES,
+    SET_TIMELINE_POST_PROFILE_CHANGES,
     SET_TIMELINE_POST_LINKS,
     REMOVE_PROFILE_TIMELINE_POST,
     PREPEND_TIMELINE_POST
@@ -38,7 +40,8 @@ const handleDelete = (state, data) => {
 
 const INITIAL_STATE = {
     timelineposts: [],
-    links: []
+    links: [],
+    profileschanges: []
 }
 
 
@@ -64,6 +67,17 @@ const TimelinePostReducer = (state = INITIAL_STATE, action) => {
             break;
         case SET_TIMELINE_POST_LINKS:
             return { ...state, links: [...action.payload] };
+            break;
+        case SET_TIMELINE_POST_PROFILE_CHANGES:
+            return { ...state, profileschanges: action.payload };
+            break;
+        case UPDATE_TIMELINE_POST_PROFILE_CHANGES:
+            let updatedprofilestate = state.profileschanges.map(item => {
+                return item.profileid == action.payload.profileid ? { ...item, ...action.payload } : item;
+            });
+            updatedprofilestate.find(item => item.profileid == action.payload.profileid) == undefined ?
+                updatedprofilestate.push({ ...action.payload }) : null;
+            return { ...state, profileschanges: updatedprofilestate };
             break;
         case RESET:
             if (action.payload.key == 'timelinepost') {

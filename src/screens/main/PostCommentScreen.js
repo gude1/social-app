@@ -47,6 +47,7 @@ const PostCommentScreen = ({ navparent,
     let righticonpress = '';
     useEffect(() => {
         setReset('postcommentform')// set the comments to empty
+        fetchPostComment(ownerpostid);
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {

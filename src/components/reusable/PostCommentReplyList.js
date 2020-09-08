@@ -75,9 +75,9 @@ export default class PostCommentReplyList extends Component {
             othersbottommodallist: this.bottomodallistothersoptions,
             userbottommodallist: this.bottomodallistowneroptions
         });
-        if (checkData(this.props.origin)) {
+        /*if (checkData(this.props.origin)) {
             this.props.onFetch(this.props.origin.commentid || this.props.origin.replyid);
-        }
+        }*/
     }
     _setSelected = (replyid, ownerid, item) => {
         if (checkData(replyid) && checkData(ownerid) && checkData(item.profile)) {
@@ -85,10 +85,10 @@ export default class PostCommentReplyList extends Component {
             this.currentreplyownerid = ownerid;
             this.currentreplyownerprofile = item.profile;
         }
-        this._setOthersModalList(item);
         if (ownerid == this.props.userprofile.profile_id) {
             this._openUserBottomModal();
         } else {
+            this._setOthersModalList(item);
             this._openOthersBottomModal();
         }
     };
@@ -142,7 +142,7 @@ export default class PostCommentReplyList extends Component {
             adjustedlist = this.state.othersbottommodallist.map(item => {
                 return item.id == "hidec" ? {
                     ...item,
-                    listtext: 'Unhide comment',
+                    listtext: 'Unhide Reply',
                     icon: {
                         name: 'eye',
                         type: 'feather'
@@ -157,7 +157,7 @@ export default class PostCommentReplyList extends Component {
             adjustedlist = this.state.othersbottommodallist.map(item => {
                 return item.id == "hidec" ? {
                     ...item,
-                    listtext: 'Hide comment',
+                    listtext: 'Hide Reply',
                     icon: {
                         name: 'eye-off',
                         type: 'feather'
@@ -166,7 +166,7 @@ export default class PostCommentReplyList extends Component {
             });
             this.setState({
                 othersbottommodallist: adjustedlist,
-                commenthidden: item.hidden
+                replyhidden: item.hidden
             });
         }
     };
@@ -176,7 +176,7 @@ export default class PostCommentReplyList extends Component {
             null,
             () => {
                 this.props.updateReply({
-                    commentid: this.currentreplyid,
+                    replyid: this.currentreplyid,
                     muted: !this.state.profilemuted,
                     profile: { ...this.currentreplyownerprofile, profilemuted: !this.state.profilemuted }
                 });
@@ -186,6 +186,10 @@ export default class PostCommentReplyList extends Component {
                 });
             }
         );
+    };
+    _onDeletePress = () => {
+        this.setState({ confirmdeletevisible: false });
+        this.props.onDelete(this.currentreplyid, this.currentreplyownerid);
     };
     _onItemLiked = (replyid, likestatus, numlikes) => {
         if (checkData(replyid) != true ||
@@ -352,6 +356,7 @@ export default class PostCommentReplyList extends Component {
         }
     };
     _renderItem = ({ item }) => {
+        //console.warn(item.hidden);
         if (item.profile.profilemuted == true && item.muted != false) {
             return (
                 <PanelMsg
@@ -390,12 +395,13 @@ export default class PostCommentReplyList extends Component {
                 likebtn
                 likePress={() => this._onItemLiked(item.replyid, item.replyliked, item.num_likes)}
                 liked={item.replyliked}
-            //replies={item.num_replies}
-            //replyPress={() => this._navShowReplies(item)}
             />)
     }
 
     render() {
+        let onRefresh = this.props.data < 1 ? null : () => {
+            this.props.onRefresh(this.props.origin.replyid || this.props.origin.commentid);
+        }
         return (
             <>
             <FlatList
@@ -407,8 +413,8 @@ export default class PostCommentReplyList extends Component {
                 refreshing={this.props.refreshing}
                 maxToRenderPerBatch={1}
                 updateCellsBatchingPeriod={1}
-                windowSize={2}
-                //onRefresh={onRefresh}
+                //windowSize={50}
+                onRefresh={onRefresh}
                 keyboardShouldPersistTaps='always'
                 initialNumRender={5}
                 keyboardDismissMode={'on-drag'}

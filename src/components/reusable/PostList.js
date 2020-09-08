@@ -108,7 +108,7 @@ class PostImageViewPager extends Component {
 
 
 
-class PostItem extends Component {
+export class PostItem extends Component {
     constructor(prop) {
         super(prop);
         this.store = store.getState();
@@ -300,6 +300,26 @@ export default class PostList extends React.Component {
         this.currentselectedpostownerid = '';
         this.bottomodallistowneroptions = [
             {
+                listtext: 'View',
+                icon: {
+                    name: 'eye',
+                    type: 'feather'
+                },
+                onPress: () => {
+                    this.setState({ userpostvisible: false });
+                    Navigation.showModal({
+                        component: {
+                            name: "PostShow",
+                            passProps: {
+                                navparent: true,
+                                postid: this.currentselectedpostid
+                            }
+                        }
+                    })
+                }
+            },
+
+            {
                 listtext: 'Archive Post',
                 onPress: () => {
                     this.setState({ userpostvisible: false });
@@ -321,8 +341,28 @@ export default class PostList extends React.Component {
                     type: 'entypo'
                 }
             },
+
         ]
         this.bottomodallistoptions = [
+            {
+                listtext: 'View',
+                icon: {
+                    name: 'eye',
+                    type: 'feather'
+                },
+                onPress: () => {
+                    this.setState({ otherspostvisible: false });
+                    Navigation.showModal({
+                        component: {
+                            name: "PostShow",
+                            passProps: {
+                                navparent: true,
+                                postid: this.currentselectedpostid
+                            }
+                        }
+                    })
+                }
+            },
             {
                 listtext: 'Not interested in this post',
                 onPress: () => {
@@ -359,6 +399,7 @@ export default class PostList extends React.Component {
         }
         this.headertext = "Posts";
         this.reswidth = responsiveWidth(100);
+        this.resheight = postheight;
         this.leftIcon = <Icon
             type="antdesign"
             name="plus"
@@ -374,7 +415,11 @@ export default class PostList extends React.Component {
         />;
     }
     componentDidMount() {
-        this.props.onRefresh();
+        /* this.props.onRefresh(() => {
+             this.setState({ initrefresh: true });
+         }, () => {
+             this.setState({ initrefresh: true });
+         });*/
     }
     _setSelected = (postid, postprofileid) => {
         if (checkData(postid) == true && checkData(postprofileid) == true) {
@@ -456,7 +501,6 @@ export default class PostList extends React.Component {
 
     _handleUserPostOptions = () => {
         this.setState({ userpostvisible: true })
-
     };
 
     _openComments = (post) => {
@@ -541,9 +585,55 @@ export default class PostList extends React.Component {
     _keyExtractor = (item, index) => item.postid;
 
     _getItemLayout = (data, index) => (
-        { length: this.reswidth, offset: this.reswidth * index, index }
+        { length: this.resheight, offset: this.resheight * index, index }
     );
-
+    _setFooterComponent = () => {
+        if (this.props.loadingmore == true) {
+            return (<View style={{
+                flex: 1,
+                justifyContent: "center",
+                margin: 6,
+                alignItems: "center"
+            }}>
+                <ActivityIndicator
+                    size={30}
+                    color={colors.border} />
+            </View>);
+        } else if (this.props.loadingmore == 'retry') {
+            return (<View style={{
+                flex: 1,
+                justifyContent: "center",
+                margin: 6,
+                alignItems: "center"
+            }}>
+                <Icon
+                    color={colors.text}
+                    size={responsiveFontSize(4)}
+                    onPress={this.props.onLoadMorePress}
+                    name="sync"
+                    type="antdesign"
+                />
+                <Text style={{ color: colors.border, fontSize: responsiveFontSize(1.5) }}>Tap to retry</Text>
+            </View>);
+        } else if (this.props.loadingmore == false) {
+            return (<View style={{
+                flex: 1,
+                justifyContent: "center",
+                margin: 10,
+                alignItems: "center"
+            }}>
+                <Icon
+                    color={colors.text}
+                    size={responsiveFontSize(7)}
+                    onPress={this.props.onLoadMorePress}
+                    name="plus"
+                    type="evilicon"
+                />
+            </View>);
+        } else {
+            return null;
+        }
+    };
     _setEmptyPlaceholder = () => {
         if (this.props.refreshing == true) {
             return <View style={{
@@ -569,56 +659,9 @@ export default class PostList extends React.Component {
         return null;
     };
     render() {
-        //console.warn('messi');
-        let emptyplaceholder = this._setEmptyPlaceholder();
         let refreshing = this.props.refreshing == 'failed' ? false : this.props.refreshing;
         //to hide pull to refresh functionality  when data is empty
         let onRefresh = this.props.data < 1 ? null : this.props.onRefresh;
-        let flatlistfooter = null;
-        if (this.props.loadingmore == true) {
-            flatlistfooter = <View style={{
-                flex: 1,
-                justifyContent: "center",
-                margin: 6,
-                alignItems: "center"
-            }}>
-                <ActivityIndicator
-                    size={30}
-                    color={colors.border} />
-            </View>;
-        } else if (this.props.loadingmore == 'retry') {
-            flatlistfooter = <View style={{
-                flex: 1,
-                justifyContent: "center",
-                margin: 6,
-                alignItems: "center"
-            }}>
-                <Icon
-                    color={colors.text}
-                    size={responsiveFontSize(4)}
-                    onPress={this.props.onLoadMorePress}
-                    name="sync"
-                    type="antdesign"
-                />
-                <Text style={{ color: colors.border }}>Tap to retry</Text>
-            </View>;
-        } else if (this.props.loadingmore == false) {
-            flatlistfooter = <View style={{
-                flex: 1,
-                justifyContent: "center",
-                margin: 6,
-                alignItems: "center"
-            }}>
-                <Icon
-                    color={colors.text}
-                    size={responsiveFontSize(7)}
-                    onPress={this.props.onLoadMorePress}
-                    name="plus"
-                    type="evilicon"
-                />
-            </View>;
-        }
-
         return (
             <View style={styles.containerStyle} >
                 <Header
@@ -653,16 +696,18 @@ export default class PostList extends React.Component {
                     showsVerticalScrollIndicator={false}
                     updateCellsBatchingPeriod={1}
                     refreshing={refreshing}
-                    initialNumRender={5}
-                    windowSize={1}
+                    initialNumRender={1}
+                    windowSize={50}
                     onRefresh={onRefresh}
                     data={this.props.data}
                     //extraData={this.props.extraData}
                     getItemLayout={this._getItemLayout}
                     renderItem={this._renderItem}
                     keyExtractor={this._keyExtractor}
-                    ListEmptyComponent={emptyplaceholder}
-                    ListFooterComponent={this.props.data.length > 0 && flatlistfooter}
+                    ListEmptyComponent={this._setEmptyPlaceholder()}
+                    ListFooterComponent={
+                        this.props.data.length > 0 ?
+                            this._setFooterComponent() : null}
                 />
                 <ConfirmModal
                     isVisible={this.state.confirmdeletevisible}

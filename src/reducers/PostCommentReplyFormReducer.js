@@ -78,9 +78,9 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
             break;
         case UPDATE_POST_COMMENT_REPLY_FORM:
             let updatedstate = state.postcommentreplies.map(item => {
-                return item.commentid == action.payload.commentid ? { ...item, ...action.payload } : item;
+                return item.replyid == action.payload.replyid ? { ...item, ...action.payload } : item;
             });
-            updatedstate.find(item => item.commentid == action.payload.commentid) == undefined ?
+            updatedstate.find(item => item.replyid == action.payload.replyid) == undefined ?
                 updatedstate.push({ ...action.payload }) : null;
             return { ...state, postcommentreplies: updatedstate };
             break;

@@ -23,6 +23,7 @@ import ProfileScreen from './src/screens/main/ProfileScreen';
 import ExploreScreen from './src/screens/main/ExploreScreen';
 import PostCommentScreen from './src/screens/main/PostCommentScreen';
 import PostCommentReplyScreen from './src/screens/main/PostCommentReplyScreen';
+import PostShowScreen from './src/screens/main/PostShowScreen';
 import LikesListScreen from './src/screens/main/LikesListScreen';
 import SharesListScreen from './src/screens/main/SharesListScreen';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
@@ -43,6 +44,11 @@ const setTheDefault = () => {
         },
         topBar: {
             visible: false,
+        },
+        content: {
+            background: {
+                color: colors.theme
+            }
         },
         bottomTab: {
             fontSize: 14,
@@ -122,6 +128,7 @@ Navigation.events().registerAppLaunchedListener(async () => {
         Navigation.registerComponentWithRedux('PhotoViewer', () => PhotoViewerScreen, Provider, store);
         Navigation.registerComponentWithRedux('PostComment', () => PostCommentScreen, Provider, store);
         Navigation.registerComponentWithRedux('PostCommentReply', () => PostCommentReplyScreen, Provider, store);
+        Navigation.registerComponentWithRedux('PostShow', () => PostShowScreen, Provider, store);
         Navigation.registerComponentWithRedux('LikesList', () => LikesListScreen, Provider, store);
         Navigation.registerComponentWithRedux('SharesList', () => SharesListScreen, Provider, store);
         //Navigation.setRoot(AUTHROUTE);

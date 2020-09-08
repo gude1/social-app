@@ -7,7 +7,7 @@ import {
     responsiveFontSize, responsiveHeight, responsiveWidth
 } from 'react-native-responsive-dimensions';
 import { LoaderScreen } from '../../components/reusable/ResuableWidgets';
-import { Icon, Avatar, Text } from 'react-native-elements';
+import { Icon, Text } from 'react-native-elements';
 import { Header } from '../../components/reusable/ResuableWidgets';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
@@ -15,9 +15,9 @@ import OnlineList from '../../components/reusable/OnlineList';
 import * as Animatable from 'react-native-animatable';
 import PostList from '../../components/reusable/PostList';
 const { colors } = useTheme();
-const postwidth = responsiveWidth(90) > 1080 ? 1080 : responsiveWidth(95);
-const postheight = responsiveWidth(90) > 1080 ? 1080 : responsiveWidth(95);
-
+/*const getConstants = async () => {
+    return { statusBarHeight, topBarHeight, bottomTabsHeight } = await Navigation.constants();
+}*/
 const HomeScreen = ({ componentId,
     timelineposts,
     blackListTimelinePost,
@@ -30,6 +30,7 @@ const HomeScreen = ({ componentId,
     shareTimelinePostAction,
     refreshTimelinePost,
     setTimelinepostRefresh,
+    setTimelinePostFormProfileChanges,
     fetchTimelinePost,
     timelinepostform,
     addTimelinePostForm,
@@ -50,6 +51,10 @@ const HomeScreen = ({ componentId,
     const [loaded, setLoaded] = useState(false);
     /**compoent function goes here */
     useEffect(() => {
+        refreshTimelinePost(() => {
+        }, () => {
+            start();
+        });
         Entypo.getImageSource('home', 100).then(e =>
             Navigation.mergeOptions('POST_HOME_SCREEN', {
                 bottomTab: {
@@ -63,12 +68,14 @@ const HomeScreen = ({ componentId,
                         visible: true
                     }
                 });
+                if (!loaded) {
+                    setLoaded(true);
+                }
             },
             componentDidDisappear: () => {
             }
 
         };
-        start();
         // Register the listener to all events related to our component
         const unsubscribe = Navigation.events().bindComponent(listener, componentId);
         return () => {
@@ -81,13 +88,14 @@ const HomeScreen = ({ componentId,
         if (timelineposts.timelineposts.length > 0 && timelinepostform.timelineposts.length < 1) {
             addTimelinePostForm(timelineposts.timelineposts);
             setTimelinePostFormLinks(timelineposts.links);
+            setTimelinePostFormProfileChanges(timelineposts.profileschanges);
         }
         Navigation.mergeOptions('POST_HOME_SCREEN', {
             bottomTabs: {
                 visible: true
             }
         });
-        setLoaded(true);
+        //setLoaded(true);
     };
     const updatePostItemLiked = (postid) => {
         alert('liked');
