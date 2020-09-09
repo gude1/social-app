@@ -777,7 +777,14 @@ export default class PostList extends React.Component {
                             }
                         });
                     }}
-                    rightIconPress={null}
+                    rightIconPress={() => Navigation.showModal({
+                        component: {
+                            name: "PostSetting",
+                            passProps: {
+                                navparent: true,
+                            }
+                        }
+                    })}
                     righticon={this.rightIcon}
                 />
 

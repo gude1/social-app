@@ -26,6 +26,7 @@ import PostCommentReplyScreen from './src/screens/main/PostCommentReplyScreen';
 import PostShowScreen from './src/screens/main/PostShowScreen';
 import LikesListScreen from './src/screens/main/LikesListScreen';
 import SharesListScreen from './src/screens/main/SharesListScreen';
+import PostSettingScreen from './src/screens/main/PostSettingScreen';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
@@ -131,6 +132,7 @@ Navigation.events().registerAppLaunchedListener(async () => {
         Navigation.registerComponentWithRedux('PostShow', () => PostShowScreen, Provider, store);
         Navigation.registerComponentWithRedux('LikesList', () => LikesListScreen, Provider, store);
         Navigation.registerComponentWithRedux('SharesList', () => SharesListScreen, Provider, store);
+        Navigation.registerComponentWithRedux('PostSetting', () => PostSettingScreen, Provider, store);
         //Navigation.setRoot(AUTHROUTE);
         store.dispatch(getGalleryPhotos());
         setTheDefault();
