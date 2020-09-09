@@ -1258,13 +1258,15 @@ export const removeProfileTimeLinePostForm = (profileid) => {
     }
 };
 
-export const fetchParticularPost = (postid) => {
+export const fetchParticularPost = (postid, initAction, okAction, endAction) => {
     return async (dispatch) => {
         if (!checkData(postid)) {
             ToastAndroid.show('Post not found', ToastAndroid.LONG);
             dispatch(setProcessing(false, 'processfetchtimelinepostform'));
             return;
         }
+        const { user, } = store.getState();
+        initAction && initAction();
         dispatch(setProcessing(true, 'processfetchtimelinepostform'));
         try {
             const options = {
@@ -1272,11 +1274,13 @@ export const fetchParticularPost = (postid) => {
             };
             const response = await session.post('postshow', { postid }, options);
             const { status, message, errmsg, blockmsg, postdetails } = response.data;
+            endAction && endAction();
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'processfetchtimelinepostform'));
                     dispatch(updateTimelinePostForm(postdetails));
                     blockmsg && ToastAndroid.show(blockmsg, ToastAndroid.LONG);
+                    okAction && okAction();
                     break;
                 case 400:
                     dispatch(setProcessing('retry', 'processfetchtimelinepostform'));
@@ -1296,9 +1300,10 @@ export const fetchParticularPost = (postid) => {
                     break;
             }
         } catch (err) {
-            console.warn(err.toString());
+            endAction && endAction();
+            //console.warn(err.toString());
             dispatch(setProcessing('retry', 'processfetchtimelinepostform'));
-            if (err.toString().indexOf('Failed to connect') > - 1) {
+            if (err.toString().indexOf('Network Error') > - 1) {
                 ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
                 ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
@@ -1306,6 +1311,9 @@ export const fetchParticularPost = (postid) => {
         }
     };
 };
+
+
+
 
 
 export const refreshTimelinePost = (okAction, failedAction) => {
@@ -1377,7 +1385,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
             //console.warn(e.toString())
             failedAction && failedAction();
             dispatch(setTimelinepostRefresh('failed'));
-            if (e.toString().indexOf('Failed to connect') > - 1) {
+            if (e.toString().indexOf('Network Error') > - 1) {
                 ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
                 ToastAndroid.show('could not refresh feed', ToastAndroid.LONG);
@@ -1571,7 +1579,7 @@ export const archiveTimelinePost = (postid, postprofileid) => {
             }
         } catch (err) {
             dispatch(setProcessing(false, 'processarchivetimelinepostform'));
-            if (e.toString().search('Failed to connect')) {
+            if (e.toString().indexOf('Network Error') > -1) {
                 ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
                 ToastAndroid.show(`Post not archived`, ToastAndroid.LONG);;

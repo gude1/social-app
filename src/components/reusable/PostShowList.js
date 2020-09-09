@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-elements';
+import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
+import { Text, Icon } from 'react-native-elements';
 import { PostItem } from './PostList';
 import { useTheme } from '../../assets/themes/index';
 import { ConfirmModal, ActivityOverlay, BottomListModal, PanelMsg, } from './ResuableWidgets';
-import { responsiveHeight, responsiveWidth } from 'react-native-responsive-dimensions';
+import {
+    responsiveFontSize, responsiveHeight, responsiveWidth
+} from 'react-native-responsive-dimensions';
 import { checkData } from '../../utilities/index';
 import { Navigation } from 'react-native-navigation';
 
@@ -85,6 +87,12 @@ export default class PostShowList extends Component {
         this.setState({
             bottomodallistothersoptions: this.bottomodallistothersoptions
         });
+    }
+    componentWillUnmount() {
+        if (this.props.removebeforeunmount) {
+            this.props.handleUnmount();
+        }
+
     }
 
     _setSelected = (postid, postprofileid, postitem) => {
@@ -181,7 +189,9 @@ export default class PostShowList extends Component {
                     profileid: this.currentselectedpostownerid,
                     profilemuted: !this.state.profilemuted
                 });
-                this.props.removeProfilePosts(this.currentselectedpostownerid);
+                if (!this.state.profilemuted) {
+                    this.props.removeProfilePosts(this.currentselectedpostownerid);
+                }
             }
         );
     };
@@ -193,7 +203,7 @@ export default class PostShowList extends Component {
             return postimages;
         }
     };
-    _keyExtractor = (item, index) => item.postid.toString();
+    _keyExtractor = (item, index) => item.postid;
     _getItemLayout = (data, index) => {
         if (index == -1) return { index, length: 0, height: 0 };
         return { length: this.resheight, offset: this.resheight * index, index }
@@ -298,6 +308,36 @@ export default class PostShowList extends Component {
     };
 
     renderItem = ({ item }) => {
+        if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
+            return (
+                <PanelMsg
+                    message={'This post is from someone you have muted'}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updatePostItem({
+                        postid: item.postid,
+                        showpost: true
+                    })}
+                />
+            );
+        } else if (item.profile.ublockedprofile == true && checkData(item.showpost) == false) {
+            return (
+                <PanelMsg
+                    message={'postowner is blocked by you'}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updatePostItem({
+                        postid: item.postid,
+                        showpost: true
+                    })}
+                />
+            )
+        } else if (item.profile.profileblockedu == true && checkData(item.showpost) == false) {
+            return (
+                <PanelMsg
+                    message={'You are blocked by postowner'}
+                />
+            )
+        }
+
         return (<PostItem
             posterusername={item.profile.user.username}
             posteravatar={item.profile.avatar[1]}
@@ -327,12 +367,17 @@ export default class PostShowList extends Component {
         />)
     }
     render() {
+        let refreshing = this.props.refreshing == 'failed' ? false : this.props.refreshing;
+        //to hide pull to refresh functionality  when data is empty
+        let onRefresh = this.props.data < 1 ? null : this.props.onRefresh;
         return (
             <>
             <FlatList
                 data={this.props.data}
-                keyExtractor={this.keyExtractor}
+                //keyExtractor={this.keyExtractor}
                 getItemLayout={this._getItemLayout}
+                onRefresh={onRefresh}
+                refreshing={refreshing}
                 showsVerticalScrollIndicator={false}
                 renderItem={this.renderItem}
                 ListEmptyComponent={this._setEmptyPlaceholder()}

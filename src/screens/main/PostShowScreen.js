@@ -23,7 +23,10 @@ const PostShowScreen = ({
     removeProfileTimeLinePost,
     archiveTimelinePost,
     deleteTimelinePost,
+    updateTimelinePostForm,
+    deleteTimelinePostForm,/*offline*/
     updateTimelinePostProfileChanges,
+    setTimelinepostRefresh,
     updateTimelinePostFormProfileChanges,
     likeTimelinePostAction,
     muteProfileAction,
@@ -36,6 +39,7 @@ const PostShowScreen = ({
     }) => {
     const [loaded, setLoaded] = useState(false);
     let toshowpost = timelinepostform.timelineposts.find(item => item.postid == postid);
+    let removeafterclose = !checkData(toshowpost);
     toshowpost = checkData(toshowpost) ? [toshowpost] : [];
     let lefticon = navparent == true ? <Icon
         type="evilicon"
@@ -47,9 +51,9 @@ const PostShowScreen = ({
     let righticon = '';
     let righticonpress = '';
     useEffect(() => {
-        if (toshowpost.length < 1 || !checkData(toshowpost)) {
-            fetchParticularPost(postid);
-        }
+        // if (toshowpost.length < 1 || !checkData(toshowpost)) {
+        fetchParticularPost(postid);
+        //}
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
@@ -95,6 +99,16 @@ const PostShowScreen = ({
                         onPostItemLiked={likeTimelinePostAction}
                         onPostItemShared={shareTimelinePostAction}
                         onBlackListPress={blackListTimelinePost}
+                        updatePostItem={updateTimelinePostForm}
+                        removebeforeunmount={removeafterclose}
+                        handleUnmount={() => {
+                            deleteTimelinePostForm(postid);
+                        }}
+                        onRefresh={() => {
+                            let onrefresh = () => setTimelinepostRefresh(true);
+                            let offrefresh = () => setTimelinepostRefresh(false);
+                            fetchParticularPost(postid, onrefresh, null, offrefresh);
+                        }}
                         onDeletePress={deleteTimelinePost}
                         removeProfilePosts={(id) => {
                             removeProfileTimeLinePost(id);
@@ -108,6 +122,7 @@ const PostShowScreen = ({
                             updateTimelinePostFormProfileChanges(dataobj);
                         }}
                         onBlackListPress={blackListTimelinePost}
+                        refreshing={timelinepostform.refreshing}
                         onMuteProfilePress={muteProfileAction}
                         onitemblacklisting={timelinepostform.blacklisting}
                         onitemdeleting={timelinepostform.deleting}

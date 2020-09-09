@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, TouchableHighlight } from 'react-native';
-import { Header, ImageViewPager, BottomListModal, ConfirmModal } from './ResuableWidgets';
+import { Header, ImageViewPager, BottomListModal, ConfirmModal, PanelMsg, ActivityOverlay } from './ResuableWidgets';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveWidth, responsiveFontSize, responsiveHeight } from 'react-native-responsive-dimensions';
 import { Icon, Avatar, Image, Overlay, Button } from 'react-native-elements';
@@ -10,7 +10,6 @@ import * as  Animatable from 'react-native-animatable';
 import { checkData, toHumanReadableTime } from '../../utilities/index';
 import { Navigation } from 'react-native-navigation';
 import { store } from '../../store/index';
-import { taggedTemplateExpression } from '@babel/types';
 import TouchableScale from 'react-native-touchable-scale';
 
 
@@ -293,11 +292,13 @@ export default class PostList extends React.Component {
             confirmarchivevisible: false,
             confirmblacklistvisible: false,
             confirmmutevisible: false,
-            processingdelete: false
+            bottomodallistothersoptions: null,
+            profilemuted: false
         };
         this.onEndReachedCalledDuringMomentum = true;
         this.currentselectedpostid = '';
         this.currentselectedpostownerid = '';
+        this.currentselectedpostownerprofile = null;
         this.bottomodallistowneroptions = [
             {
                 listtext: 'View',
@@ -343,7 +344,7 @@ export default class PostList extends React.Component {
             },
 
         ]
-        this.bottomodallistoptions = [
+        this.bottomodallistothersoptions = [
             {
                 listtext: 'View',
                 icon: {
@@ -382,7 +383,8 @@ export default class PostList extends React.Component {
                 }
             },
             {
-                listtext: 'Mute post from this profile',
+                listtext: 'Mute profile',
+                id: 'muteprofile',
                 onPress: () => {
                     this.setState({ otherspostvisible: false });
                     this.setState({ confirmmutevisible: true });
@@ -415,19 +417,72 @@ export default class PostList extends React.Component {
         />;
     }
     componentDidMount() {
+        this.setState({
+            bottomodallistothersoptions: this.bottomodallistothersoptions
+        });
         /* this.props.onRefresh(() => {
              this.setState({ initrefresh: true });
          }, () => {
              this.setState({ initrefresh: true });
          });*/
     }
-    _setSelected = (postid, postprofileid) => {
+    _setSelected = (postid, postprofileid, postitem) => {
         if (checkData(postid) == true && checkData(postprofileid) == true) {
             this.currentselectedpostid = postid;
             this.currentselectedpostownerid = postprofileid;
         }
+        if (this.props.userprofile.profile_id == this.currentselectedpostownerid) {
+            this._handleUserPostOptions();
+        } else {
+            this._setOthersModalList(postitem);
+            this._handleOthersPostOptions();
+        }
     };
+    _setOthersModalList = (postitem) => {
+        if (!checkData(postitem)) {
+            return;
+        }
+        let adjustedlist = null;
+        //console.warn(this.props.profileschanges);
+        let profilechanges = this.props.profileschanges.find(
+            item => item.profileid == this.currentselectedpostownerid
+        );
+        //console.warn(postitem);
+        let profilechangesmuted = checkData(profilechanges) ? profilechanges.profilemuted : postitem.profile.profilemuted;
+        /*** for  profile muted */
+        if (profilechangesmuted == true) {
+            adjustedlist = this.state.bottomodallistothersoptions.map(item => {
+                return item.id == "muteprofile" ? {
+                    ...item,
+                    listtext: 'Unmute profile',
+                    icon: {
+                        name: 'volume',
+                        type: 'feather'
+                    },
+                } : item
+            });
+            this.setState({
+                bottomodallistothersoptions: adjustedlist,
+                profilemuted: profilechangesmuted
+            });
+        } else {
+            adjustedlist = this.state.bottomodallistothersoptions.map(item => {
+                return item.id == "muteprofile" ? {
+                    ...item,
+                    listtext: 'Mute profile',
+                    icon: {
+                        name: 'volume-x',
+                        type: 'feather'
+                    },
+                } : item
+            });
+            this.setState({
+                bottomodallistothersoptions: adjustedlist,
+                profilemuted: profilechangesmuted
+            });
+        }
 
+    };
     _onDeletePress = () => {
         this.setState({ confirmdeletevisible: false });
         this.props.onDeletePress(
@@ -452,10 +507,19 @@ export default class PostList extends React.Component {
     _onMuteProfilePress = () => {
         this.setState({ confirmmutevisible: false });
         this.props.onMuteProfilePress(
-            this.currentselectedpostownerid
+            this.currentselectedpostownerid,
+            null,
+            () => {
+                this.props.updateProfileChanges({
+                    profileid: this.currentselectedpostownerid,
+                    profilemuted: !this.state.profilemuted
+                });
+                if (!this.state.profilemuted) {
+                    this.props.removeProfilePosts(this.currentselectedpostownerid);
+                }
+            }
         );
     };
-
     _likePostItem = (postid, likestatus, numpostlikes) => {
         if (checkData(postid) != true) {
             return false;
@@ -551,7 +615,37 @@ export default class PostList extends React.Component {
     };
 
     _renderItem = ({ item }) => {
-        return <PostItem
+        if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
+            return (
+                <PanelMsg
+                    message={'This post is from someone you have muted'}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updatePostItem({
+                        postid: item.postid,
+                        showpost: true
+                    })}
+                />
+            );
+        } else if (item.profile.ublockedprofile == true && checkData(item.showpost) == false) {
+            return (
+                <PanelMsg
+                    message={'postowner is blocked by you'}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updatePostItem({
+                        postid: item.postid,
+                        showpost: true
+                    })}
+                />
+            )
+        } else if (item.profile.profileblockedu == true && checkData(item.showpost) == false) {
+            return (
+                <PanelMsg
+                    message={'You are blocked by postowner'}
+                />
+            )
+        }
+
+        return (<PostItem
             posterusername={item.profile.user.username}
             posteravatar={item.profile.avatar[1]}
             postimages={this._arrangePostImage(item.post_image)}
@@ -560,12 +654,10 @@ export default class PostList extends React.Component {
             created_at={item.created_at}
             postid={item.postid}
             onOthersPostOption={() => {
-                this._handleOthersPostOptions();
-                this._setSelected(item.postid, item.profile.profile_id);
+                this._setSelected(item.postid, item.profile.profile_id, item);
             }}
             onUserPostOption={() => {
-                this._handleUserPostOptions();
-                this._setSelected(item.postid, item.profile.profile_id);
+                this._setSelected(item.postid, item.profile.profile_id, item);
             }}
             postshared={item.postshared}
             posttext={item.post_text}
@@ -579,7 +671,7 @@ export default class PostList extends React.Component {
             onCommentPress={() => {
                 this._openComments(item);
             }}
-        />
+        />);
     };
 
     _keyExtractor = (item, index) => item.postid;
@@ -712,37 +804,54 @@ export default class PostList extends React.Component {
                 <ConfirmModal
                     isVisible={this.state.confirmdeletevisible}
                     confirmMsg="Delete Post?"
-                    acceptText="Yes"
+                    acceptText="Yeah"
                     acceptAction={this._onDeletePress}
                     rejectAction={() => this.setState({ confirmdeletevisible: false })}
-                    rejectText="No"
+                    rejectText="Nah"
+                />
+                <ActivityOverlay
+                    text={'Deleting'}
+                    isVisible={this.props.onitemdeleting}
                 />
                 <ConfirmModal
                     isVisible={this.state.confirmarchivevisible}
                     confirmMsg="Archive Post?"
-                    acceptText="Yes"
+                    acceptText="Yeah"
                     acceptAction={this._onArchivePress}
                     rejectAction={() => this.setState({ confirmarchivevisible: false })}
-                    rejectText="No"
+                    rejectText="Nah"
+                />
+                <ActivityOverlay
+                    text={'Archiving'}
+                    isVisible={this.props.onitemarchiving}
                 />
                 <ConfirmModal
                     isVisible={this.state.confirmblacklistvisible}
                     confirmMsg="Blacklist post?"
-                    acceptText="Yes"
+                    acceptText="Yeah"
                     acceptAction={this._onBlackListPress}
                     rejectAction={() => this.setState({ confirmblacklistvisible: false })}
-                    rejectText="No"
+                    rejectText="Nah"
+                />
+                <ActivityOverlay
+                    text={'Blacklisting'}
+                    isVisible={this.props.onitemblacklisting}
                 />
                 <ConfirmModal
                     isVisible={this.state.confirmmutevisible}
-                    confirmMsg="Mute posts from this profile?"
-                    acceptText="Yes"
+                    confirmMsg={this.state.profilemuted == true ? "Unmute profile?" : "Mute Profile"}
+                    acceptText="Yeah"
                     acceptAction={this._onMuteProfilePress}
                     rejectAction={() => this.setState({ confirmmutevisible: false })}
-                    rejectText="No"
+                    rejectText="Nah"
                 />
+                <ActivityOverlay
+                    text={this.state.profilemuted == true ? 'Unmuting' : 'Muting'}
+                    isVisible={this.props.onitemmuting}
+                />
+
                 <BottomListModal
-                    listData={this.bottomodallistoptions}
+                    listData={this.state.bottomodallistothersoptions}
                     visible={this.state.otherspostvisible}
                     onRequestClose={() => {
                         this.setState({ otherspostvisible: false });
@@ -755,56 +864,6 @@ export default class PostList extends React.Component {
                         this.setState({ userpostvisible: false });
                     }}
                 />
-                <Overlay
-                    isVisible={this.props.onitemdeleting}
-                    animationType="fade"
-                    overlayStyle={styles.progressOverlay}
-                >
-                    <View style={styles.progressOverlay}>
-                        <Text style={{ color: colors.text }}>Deleting</Text>
-                        <ActivityIndicator
-                            size={'small'}
-                            color={colors.border} />
-                    </View>
-                </Overlay>
-                <Overlay
-                    isVisible={this.props.onitemarchiving}
-                    animationType="fade"
-                    overlayStyle={styles.progressOverlay}
-                >
-                    <View style={styles.progressOverlay}>
-                        <Text style={{ color: colors.text }}>Archiving</Text>
-                        <ActivityIndicator
-                            size={'small'}
-                            color={colors.border} />
-                    </View>
-                </Overlay>
-
-                <Overlay
-                    isVisible={this.props.onitemblacklisting}
-                    animationType="fade"
-                    overlayStyle={styles.progressOverlay}
-                >
-                    <View style={styles.progressOverlay}>
-                        <Text style={{ color: colors.text }}>Blacklisting</Text>
-                        <ActivityIndicator
-                            size={'small'}
-                            color={colors.border} />
-                    </View>
-                </Overlay>
-                <Overlay
-                    isVisible={this.props.onitemmuting}
-                    animationType="fade"
-                    overlayStyle={styles.progressOverlay}
-                >
-                    <View style={styles.progressOverlay}>
-                        <Text style={{ color: colors.text }}>Muting</Text>
-                        <ActivityIndicator
-                            size={'small'}
-                            color={colors.border} />
-                    </View>
-                </Overlay>
-
             </View >
         );
     }

@@ -452,7 +452,7 @@ export default class PostCommentReplyList extends Component {
                 rejectText="Nah"
             />
             <ActivityOverlay
-                text={this.state.profilemuted == true ? 'unmuting' : 'muting'}
+                text={'processing'}
                 isVisible={this.props.muting}
             />
 

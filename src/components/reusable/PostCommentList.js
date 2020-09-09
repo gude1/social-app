@@ -462,7 +462,7 @@ export default class PostCommentList extends React.Component {
                 rejectText="Nah"
             />
             <ActivityOverlay
-                text={this.state.profilemuted == true ? 'unmuting' : 'muting'}
+                text={'processing'}
                 isVisible={this.props.muting}
             />
             <BottomListModal

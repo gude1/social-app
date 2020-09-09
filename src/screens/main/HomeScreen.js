@@ -23,14 +23,18 @@ const HomeScreen = ({ componentId,
     blackListTimelinePost,
     fetchMoreTimelinePost,
     setTimelinePostFormLinks,
-    muteProfileTimelinePost,
+    muteProfileAction,
     archiveTimelinePost,
     deleteTimelinePost,
     likeTimelinePostAction,
     shareTimelinePostAction,
     refreshTimelinePost,
+    profile,
+    profileactionform,
     setTimelinepostRefresh,
     setTimelinePostFormProfileChanges,
+    updateTimelinePostProfileChanges,
+    updateTimelinePostFormProfileChanges,
     fetchTimelinePost,
     timelinepostform,
     addTimelinePostForm,
@@ -147,8 +151,15 @@ const HomeScreen = ({ componentId,
                                 onDeletePress={deleteTimelinePost}
                                 onArchivePress={archiveTimelinePost}
                                 onBlackListPress={blackListTimelinePost}
-                                onMuteProfilePress={muteProfileTimelinePost}
+                                onMuteProfilePress={muteProfileAction}
                                 onLoadMorePress={fetchMoreTimelinePost}
+                                userprofile={profile}
+                                profileschanges={timelinepostform.profileschanges}
+                                updatePostItem={updateTimelinePostForm}
+                                updateProfileChanges={(dataobj) => {
+                                    updateTimelinePostProfileChanges(dataobj);
+                                    updateTimelinePostFormProfileChanges(dataobj);
+                                }}
                                 //onReload={refreshTimelinePost}
                                 refreshing={timelinepostform.refreshing}
                                 onPostItemShared={shareTimelinePostAction}
@@ -156,7 +167,7 @@ const HomeScreen = ({ componentId,
                                 onitemdeleting={timelinepostform.deleting}
                                 onitemarchiving={timelinepostform.archiving}
                                 onitemblacklisting={timelinepostform.blacklisting}
-                                onitemmuting={timelinepostform.muting}
+                                onitemmuting={profileactionform.mutingprofile}
                                 loadingmore={timelinepostform.loadingmore}
                                 //loading={timelinepostform.processing}
                                 extraData={timelinepostform.timelineposts}
@@ -182,6 +193,8 @@ HomeScreen.options = {
 const mapStateToProps = (state) => ({
     timelineposts: state.timelineposts,
     timelinepostform: state.timelinepostform,
+    profileactionform: state.profileactionform,
+    profile: state.profile
 });
 
 const styles = StyleSheet.create({
