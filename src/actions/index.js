@@ -70,6 +70,7 @@ import {
     BOOKMARK,
     SET_TIMELINE_POST_FORM_PROFILE_CHANGES,
     SET_TIMELINE_POST_PROFILE_CHANGES,
+    UPDATE_POST_SETTINGS,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -1335,7 +1336,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                 withincampusposts,
                 withincampuspostsnexturl
             } = response.data;
-
+            //console.warn(response.data);
             switch (postlistrange) {
                 case 'all':
                     dispatch(setReset('timelinepostform'));
@@ -1931,6 +1932,107 @@ export const bookMarkTimelinePost = (postid) => {
 
     }
 }
+/**
+ * ACTION CREATORS FOR POSTSETTING REDUCER
+ */
+export const updatePostSetting = (data: Object) => {
+    return {
+        type: UPDATE_POST_SETTINGS,
+        payload: data
+    };
+};
+
+export const postSettingUpdate = (toupdatedata) => {
+    return async (dispatch) => {
+        if (!checkData(toupdatedata)) {
+            return;
+        }
+        const { user } = store.getState();
+        let prevpostsetting = store.getState().postsetting;
+        dispatch(updatePostSetting(toupdatedata));
+        dispatch(setProcessing(true, 'postsettingprocess'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('updatepostsetting', toupdatedata, options);
+            const { errmsg, status, message, postsetting } = response.data;
+            //console.warn(response.data);
+            switch (status) {
+                case 200:
+                    dispatch(updatePostSetting(postsetting));
+                    dispatch(setProcessing(false, 'postsettingprocess'));
+                    ToastAndroid.show(message, ToastAndroid.LONG)
+                    break;
+                case 401:
+                    break;
+                default:
+                    dispatch(updatePostSetting(prevpostsetting));
+                    dispatch(setProcessing(false, 'postsettingprocess'));
+                    errmsg && ToastAndroid.show(errmsg, ToastAndroid.LONG) ||
+                        ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG)
+                    break;
+            }
+        } catch (e) {
+            // console.warn(e.toString());
+            dispatch(updatePostSetting(prevpostsetting));
+            dispatch(setProcessing(false, 'postsettingprocess'));
+            if (e.toString().indexOf('Network Error') != -1) {
+                ToastAndroid.show(
+                    'Network Error!',
+                    ToastAndroid.LONG
+                );
+            } else {
+                ToastAndroid.show(`something went wrong please try again`, ToastAndroid.LONG);
+            }
+        }
+
+    };
+};
+
+
+export const getPostSetting = () => {
+    return async (dispatch) => {
+        const { user, } = store.getState();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('getpostsetting', null, options);
+            const { errmsg, status, message, postsetting } = response.data;
+            //console.warn(response.data);
+            switch (status) {
+                case 200:
+                    dispatch(updatePostSetting(postsetting));
+                    ///ToastAndroid.show(message, ToastAndroid.LONG)
+                    break;
+                case 401:
+                    break;
+                case 404:
+                    dispatch(updatePostSetting({
+                        timeline_post_range: 'all'
+                    }));
+                    break;
+                default:
+                    errmsg && ToastAndroid.show(errmsg, ToastAndroid.LONG)
+                    break;
+            }
+        } catch (e) {
+            //console.warn(e.toString());
+            if (e.toString().indexOf('Network Error') != -1) {
+                ToastAndroid.show(
+                    'Network Error!',
+                    ToastAndroid.LONG
+                );
+            } else {
+                ToastAndroid.show(`something went wrong please try again`, ToastAndroid.LONG);
+            }
+        }
+
+    };
+};
+
+
 
 /**
  * ACTION CREATORS FOR POSTCOMMENTFORM REDUCER

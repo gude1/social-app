@@ -2,7 +2,7 @@ import React, { Component, useEffect, useState } from 'react';
 import { SafeAreaView, StyleSheet, View, ScrollView } from 'react-native';
 import { useTheme } from '../../assets/themes'
 import { Navigation, } from 'react-native-navigation';
-import { LoaderScreen } from '../../components/reusable/ResuableWidgets';
+import { LoaderScreen, ActivityOverlay } from '../../components/reusable/ResuableWidgets';
 import {
     responsiveFontSize, responsiveHeight, responsiveWidth
 } from 'react-native-responsive-dimensions';
@@ -18,8 +18,15 @@ const { colors } = useTheme();
 const PostSettingScreen = ({
     componentId,
     navparent,
+    postsetting,
+    getPostSetting,
+    postSettingUpdate,
+    updatePostSetting
 }) => {
     const [loaded, setLoaded] = useState(false);
+    let followedcheck = postsetting.timeline_post_range == 'followedpost' ? true : false;
+    let campuscheck = postsetting.timeline_post_range == 'campus' ? true : false;
+    let allcheck = postsetting.timeline_post_range == 'all' || !checkData(postsetting.timeline_post_range) ? true : false;
     let lefticon = navparent == true ? <Icon
         type="evilicon"
         name="arrow-left"
@@ -31,6 +38,8 @@ const PostSettingScreen = ({
     let righticonpress = '';
     /**compoent function goes here */
     useEffect(() => {
+        updatePostSetting({ ...postsetting, processing: false });
+        getPostSetting();
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
@@ -87,15 +96,26 @@ const PostSettingScreen = ({
                                     </Text>
                                 <CheckBox
                                     title="All posts"
-                                    //checked={true}
+                                    checked={allcheck}
                                     containerStyle={styles.checkBoxCtn}
+                                    onPress={() => {
+                                        postSettingUpdate({ timeline_post_range: "all" });
+                                    }}
                                 />
                                 <CheckBox
                                     title="Posts from my campus only"
+                                    checked={campuscheck}
+                                    onPress={() => {
+                                        postSettingUpdate({ timeline_post_range: "campus" });
+                                    }}
                                     containerStyle={styles.checkBoxCtn}
                                 />
                                 <CheckBox
                                     title="Posts from people am following only"
+                                    checked={followedcheck}
+                                    onPress={() => {
+                                        postSettingUpdate({ timeline_post_range: "followedpost" });
+                                    }}
                                     containerStyle={styles.checkBoxCtn}
                                 />
                             </View>
@@ -119,7 +139,10 @@ const PostSettingScreen = ({
                                     }}
                                 />
                             </View>
-
+                            <ActivityOverlay
+                                text="Processing"
+                                isVisible={postsetting.processing}
+                            />
                         </View>
                     </ScrollView>
             }
@@ -127,6 +150,7 @@ const PostSettingScreen = ({
 };
 
 const mapStateToProps = (state) => ({
+    postsetting: state.postsetting
 });
 
 PostSettingScreen.options = {

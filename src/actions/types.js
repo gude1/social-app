@@ -118,6 +118,10 @@ export const UPDATE_SHARES_LIST_FORM = 'update_shares_list_form';
 export const SET_SHARES_LIST_FORM_LINK = 'set_shares_list_form_link';
 
 /**
+ * TYPE CONSTANT FOR POSTSETTING REDUCER
+ */
+export const UPDATE_POST_SETTINGS = 'update_post_settings';
+/**
  * TYPE CONSTANT FOR BOOKMARKS REDUCER
  */
 export const BOOKMARK = 'bookmark';
