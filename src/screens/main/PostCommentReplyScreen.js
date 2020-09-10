@@ -25,6 +25,7 @@ const PostCommentReplyScreen = ({
     postcommentreplyform,
     postcommentform,
     fetchPostCommentReply,
+    setProcessing,
     updatePostCommentReplyForm,
     updatePostCommentReplyFormProfileChanges,
     makePostCommentReply,
@@ -110,7 +111,8 @@ const PostCommentReplyScreen = ({
                         onLoadMore={loadMorePostCommentReply}
                         loadingmore={postcommentreplyform.loadmore}
                         onMute={muteProfileAction}
-                        muting={profileactionform.mutingprofile}
+                        setProcessing={setProcessing}
+                        muting={postcommentreplyform.muting}
                         onRefresh={refreshPostCommentReply}
                         refreshing={postcommentreplyform.refreshing}
                         onHide={hidePostCommentReply}

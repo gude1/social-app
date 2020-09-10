@@ -23,6 +23,9 @@ const HomeScreen = ({ componentId,
     blackListTimelinePost,
     fetchMoreTimelinePost,
     setTimelinePostFormLinks,
+    removeProfileTimeLinePost,
+    removeProfileTimeLinePostForm,
+    setProcessing,
     muteProfileAction,
     archiveTimelinePost,
     deleteTimelinePost,
@@ -89,16 +92,17 @@ const HomeScreen = ({ componentId,
     }, []);
 
     const start = () => {
+        //console.warn(timelineposts);
         if (timelineposts.timelineposts.length > 0 && timelinepostform.timelineposts.length < 1) {
             addTimelinePostForm(timelineposts.timelineposts);
             setTimelinePostFormLinks(timelineposts.links);
             setTimelinePostFormProfileChanges(timelineposts.profileschanges);
         }
-        Navigation.mergeOptions('POST_HOME_SCREEN', {
+        /*Navigation.mergeOptions('POST_HOME_SCREEN', {
             bottomTabs: {
                 visible: true
             }
-        });
+        });*/
         //setLoaded(true);
     };
     const updatePostItemLiked = (postid) => {
@@ -149,6 +153,7 @@ const HomeScreen = ({ componentId,
                                 onPostItemLiked={likeTimelinePostAction}
                                 onRefresh={refreshTimelinePost}
                                 onDeletePress={deleteTimelinePost}
+                                setProcessing={setProcessing}
                                 onArchivePress={archiveTimelinePost}
                                 onBlackListPress={blackListTimelinePost}
                                 onMuteProfilePress={muteProfileAction}
@@ -160,6 +165,10 @@ const HomeScreen = ({ componentId,
                                     updateTimelinePostProfileChanges(dataobj);
                                     updateTimelinePostFormProfileChanges(dataobj);
                                 }}
+                                removeProfilePosts={(id) => {
+                                    removeProfileTimeLinePost(id);
+                                    removeProfileTimeLinePostForm(id);
+                                }}
                                 //onReload={refreshTimelinePost}
                                 refreshing={timelinepostform.refreshing}
                                 onPostItemShared={shareTimelinePostAction}
@@ -167,7 +176,7 @@ const HomeScreen = ({ componentId,
                                 onitemdeleting={timelinepostform.deleting}
                                 onitemarchiving={timelinepostform.archiving}
                                 onitemblacklisting={timelinepostform.blacklisting}
-                                onitemmuting={profileactionform.mutingprofile}
+                                onitemmuting={timelinepostform.muting}
                                 loadingmore={timelinepostform.loadingmore}
                                 //loading={timelinepostform.processing}
                                 extraData={timelinepostform.timelineposts}

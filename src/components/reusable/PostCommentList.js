@@ -194,20 +194,25 @@ export default class PostCommentList extends React.Component {
         }
     };
     _muteProfile = () => {
+        let initaction = () => this.props.setProcessing(true, 'postcommentformmuting');
+        let failedaction = () => this.props.setProcessing(false, 'postcommentformmuting');
+        let okaction = () => {
+            this.props.updateComment({
+                commentid: this.currentcommentid,
+                muted: !this.state.profilemuted,
+                profile: { ...this.currentcommentownerprofile, profilemuted: !this.state.profilemuted }
+            });
+            this.props.updatePostCommentProfile({
+                profileid: this.currentcommentownerid,
+                profilemuted: !this.state.profilemuted
+            });
+            this.props.setProcessing(false, 'postcommentformmuting');
+        };
         this.props.onMute(
             this.currentcommentownerid,
-            null,
-            () => {
-                this.props.updateComment({
-                    commentid: this.currentcommentid,
-                    muted: !this.state.profilemuted,
-                    profile: { ...this.currentcommentownerprofile, profilemuted: !this.state.profilemuted }
-                });
-                this.props.updatePostCommentProfile({
-                    profileid: this.currentcommentownerid,
-                    profilemuted: !this.state.profilemuted
-                });
-            }
+            initaction,
+            okaction,
+            failedaction,
         );
     };
     _openOthersBottomModal = () => {

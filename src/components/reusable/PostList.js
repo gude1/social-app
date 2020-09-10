@@ -505,19 +505,24 @@ export default class PostList extends React.Component {
         );
     };
     _onMuteProfilePress = () => {
+        let initaction = () => this.props.setProcessing(true, 'processmutetimelinepostform');
+        let failedaction = () => this.props.setProcessing(false, 'processmutetimelinepostform');
+        let okaction = () => {
+            this.props.updateProfileChanges({
+                profileid: this.currentselectedpostownerid,
+                profilemuted: !this.state.profilemuted
+            });
+            if (!this.state.profilemuted) {
+                this.props.removeProfilePosts(this.currentselectedpostownerid);
+            }
+            this.props.setProcessing(false, 'processmutetimelinepostform');
+        };
         this.setState({ confirmmutevisible: false });
         this.props.onMuteProfilePress(
             this.currentselectedpostownerid,
-            null,
-            () => {
-                this.props.updateProfileChanges({
-                    profileid: this.currentselectedpostownerid,
-                    profilemuted: !this.state.profilemuted
-                });
-                if (!this.state.profilemuted) {
-                    this.props.removeProfilePosts(this.currentselectedpostownerid);
-                }
-            }
+            initaction,
+            okaction,
+            failedaction
         );
     };
     _likePostItem = (postid, likestatus, numpostlikes) => {

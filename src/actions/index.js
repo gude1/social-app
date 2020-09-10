@@ -1355,6 +1355,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                     dispatch(setReset('timelinepostform'));
                     dispatch(setReset('timelinepost'));
                     dispatch(addTimelinePostForm([...followedposts, ...withincampusposts]));
+                    dispatch(addTimelinePost([...followedposts, ...withincampusposts]));
                     dispatch(setTimelinePostFormLinks(
                         [followedpostnexturl, withincampuspostsnexturl].filter(url => checkData(url))
                     ));
@@ -1367,6 +1368,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                     dispatch(setReset('timelinepostform'));
                     dispatch(setReset('timelinepost'));
                     dispatch(addTimelinePostForm([...followedposts]));
+                    dispatch(addTimelinePost([...followedposts]));
                     dispatch(setTimelinePostFormLinks(
                         [followedpostnexturl].filter(url => checkData(url))
                     ));
@@ -1383,7 +1385,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                     break;
             }
         } catch (e) {
-            //console.warn(e.toString())
+            // console.warn(e.toString())
             failedAction && failedAction();
             dispatch(setTimelinepostRefresh('failed'));
             if (e.toString().indexOf('Network Error') > - 1) {
@@ -1834,6 +1836,7 @@ export const fetchMoreTimelinePost = () => {
                         case 'campus':
                             dispatch(setProcessing(false, 'processloadmoretimelinepostform'));
                             dispatch(addTimelinePostForm([...followedposts, ...withincampusposts]));
+                            dispatch(addTimelinePost([...followedposts, ...withincampusposts]));
                             dispatch(setTimelinePostFormLinks(
                                 [followedpostnexturl, withincampuspostsnexturl].filter(url => checkData(url))
                             ));
@@ -1844,6 +1847,7 @@ export const fetchMoreTimelinePost = () => {
                         case 'followedpost':
                             dispatch(setProcessing(false, 'processloadmoretimelinepostform'));
                             dispatch(addTimelinePostForm([...followedposts]));
+                            dispatch(addTimelinePost([...followedposts]));
                             dispatch(setTimelinePostFormLinks(
                                 [followedpostnexturl].filter(url => checkData(url))
                             ));

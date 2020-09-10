@@ -171,20 +171,25 @@ export default class PostCommentReplyList extends Component {
         }
     };
     _muteProfile = () => {
+        let initaction = () => this.props.setProcessing(true, 'postcommentreplyformmuting');
+        let failedaction = () => this.props.setProcessing(false, 'postcommentreplyformmuting');
+        let okaction = () => {
+            this.props.updateReply({
+                replyid: this.currentreplyid,
+                muted: !this.state.profilemuted,
+                profile: { ...this.currentreplyownerprofile, profilemuted: !this.state.profilemuted }
+            });
+            this.props.updatePostCommentReplyProfile({
+                profileid: this.currentreplyownerid,
+                profilemuted: !this.state.profilemuted
+            });
+            this.props.setProcessing(false, 'postcommentreplyformmuting');
+        };
         this.props.onMute(
             this.currentreplyownerid,
-            null,
-            () => {
-                this.props.updateReply({
-                    replyid: this.currentreplyid,
-                    muted: !this.state.profilemuted,
-                    profile: { ...this.currentreplyownerprofile, profilemuted: !this.state.profilemuted }
-                });
-                this.props.updatePostCommentReplyProfile({
-                    profileid: this.currentreplyownerid,
-                    profilemuted: !this.state.profilemuted
-                });
-            }
+            initaction,
+            okaction,
+            failedaction
         );
     };
     _onDeletePress = () => {

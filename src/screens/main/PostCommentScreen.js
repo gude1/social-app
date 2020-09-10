@@ -19,6 +19,7 @@ const PostCommentScreen = ({ navparent,
     ownerpostid,
     timelineposts,
     profileimage,
+    setProcessing,
     setReset,
     postcommentform,
     profileactionform,
@@ -108,7 +109,8 @@ const PostCommentScreen = ({ navparent,
                         updatePostCommentProfile={updatePostCommentFormProfileChanges}
                         onRefresh={refreshPostComment}
                         onMute={muteProfileAction}
-                        muting={profileactionform.mutingprofile}
+                        muting={postcommentform.muting}
+                        setProcessing={setProcessing}
                         refreshing={postcommentform.refreshing}
                         onHide={hidePostCommentAction}
                         hiding={postcommentform.hiding}
