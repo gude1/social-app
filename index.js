@@ -19,7 +19,7 @@ import RouterScreen from './src/screens/RouterScreen';
 import HomeScreen from './src/screens/main/HomeScreen';
 import GistScreen from './src/screens/main/GistScreen';
 import ChatScreen from './src/screens/main/ChatScreen';
-import ProfileScreen from './src/screens/main/ProfileScreen';
+import ViewProfileScreen from './src/screens/main/ViewProfileScreen';
 import ExploreScreen from './src/screens/main/ExploreScreen';
 import PostCommentScreen from './src/screens/main/PostCommentScreen';
 import PostCommentReplyScreen from './src/screens/main/PostCommentReplyScreen';
@@ -110,14 +110,13 @@ const setTheDefault = () => {
         }
     });
 }
-
 Navigation.events().registerAppLaunchedListener(async () => {
     persistStore(store, null, () => {
         Navigation.registerComponent('Login', () => LoginScreen);
         Navigation.registerComponentWithRedux('Home', () => HomeScreen, Provider, store);
         Navigation.registerComponentWithRedux('Gist', () => GistScreen, Provider, store);
         Navigation.registerComponentWithRedux('Chat', () => ChatScreen, Provider, store);
-        Navigation.registerComponentWithRedux('Profile', () => ProfileScreen, Provider, store);
+        Navigation.registerComponentWithRedux('ViewProfile', () => ViewProfileScreen, Provider, store);
         Navigation.registerComponentWithRedux('Explore', () => ExploreScreen, Provider, store);
         Navigation.registerComponent('Settings', () => SettingsScreen);
         Navigation.registerComponentWithRedux('Yo', () => RouterScreen, Provider, store);

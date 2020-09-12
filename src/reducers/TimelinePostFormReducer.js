@@ -76,6 +76,12 @@ const handleProcessing = (key, value, state) => {
 
 
 };
+const timeSort = (data) => {
+    if (!Array.isArray(data)) {
+        return data;
+    }
+    return data.sort((item1, item2) => item2.id - item1.id);
+};
 
 const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {

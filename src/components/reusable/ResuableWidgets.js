@@ -247,7 +247,7 @@ export const LoaderScreen = ({ animationType, loaderIcon, animationOff, showLoad
             <Animatable.View
                 animation={animationType}
                 useNativeDriver={true}
-                iterationCount={animationOff ? 0 : 'infinite'}
+                iterationCount={animationOff ? 1 : 'infinite'}
             >
                 {loaderIcon}
             </Animatable.View>

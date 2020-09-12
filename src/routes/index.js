@@ -86,8 +86,8 @@ export const MAINTABSROUTE = {
 
                             {
                                 component: {
-                                    id: 'PROFILE_SCREEN',
-                                    name: 'Profile'
+                                    id: 'VIEW_PROFILE_SCREEN',
+                                    name: 'ViewProfile'
                                 }
                             }
                         ]

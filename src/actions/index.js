@@ -1329,11 +1329,9 @@ export const refreshTimelinePost = (okAction, failedAction) => {
             const {
                 message,
                 postlistrange,
-                generalposts,
                 generalpostnexturl,
-                followedposts,
+                timelineposts,
                 followedpostnexturl,
-                withincampusposts,
                 withincampuspostsnexturl
             } = response.data;
             //console.warn(response.data);
@@ -1341,8 +1339,8 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                 case 'all':
                     dispatch(setReset('timelinepostform'));
                     dispatch(setReset('timelinepost'));
-                    dispatch(addTimelinePostForm([...followedposts, ...generalposts]));
-                    dispatch(addTimelinePost([...followedposts, ...generalposts]));
+                    dispatch(addTimelinePostForm(timelineposts));
+                    dispatch(addTimelinePost(timelineposts));
                     dispatch(setTimelinePostFormLinks(
                         [followedpostnexturl, generalpostnexturl].filter(url => checkData(url))
                     ));
@@ -1354,8 +1352,8 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                 case 'campus':
                     dispatch(setReset('timelinepostform'));
                     dispatch(setReset('timelinepost'));
-                    dispatch(addTimelinePostForm([...followedposts, ...withincampusposts]));
-                    dispatch(addTimelinePost([...followedposts, ...withincampusposts]));
+                    dispatch(addTimelinePostForm(timelineposts));
+                    dispatch(addTimelinePost(timelineposts));
                     dispatch(setTimelinePostFormLinks(
                         [followedpostnexturl, withincampuspostsnexturl].filter(url => checkData(url))
                     ));
@@ -1367,8 +1365,8 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                 case 'followedpost':
                     dispatch(setReset('timelinepostform'));
                     dispatch(setReset('timelinepost'));
-                    dispatch(addTimelinePostForm([...followedposts]));
-                    dispatch(addTimelinePost([...followedposts]));
+                    dispatch(addTimelinePostForm(timelineposts));
+                    dispatch(addTimelinePost(timelineposts));
                     dispatch(setTimelinePostFormLinks(
                         [followedpostnexturl].filter(url => checkData(url))
                     ));
@@ -1808,63 +1806,39 @@ export const fetchMoreTimelinePost = () => {
             );
         });
         axios.all(reqArr)
-            .then(resultarr => {
-                resultarr.forEach(result => {
-                    const {
-                        message,
-                        postlistrange,
-                        generalposts,
-                        generalpostnexturl,
-                        followedposts,
-                        followedpostnexturl,
-                        withincampusposts,
-                        withincampuspostsnexturl
-                    } = result.data;
-                    let arr = [];
-                    switch (postlistrange) {
-                        case 'all':
-                            dispatch(setProcessing(false, 'processloadmoretimelinepostform'));
-                            dispatch(addTimelinePostForm([...followedposts, ...generalposts]));
-                            dispatch(addTimelinePost([...followedposts, ...generalposts]));
-                            dispatch(setTimelinePostFormLinks(
-                                [followedpostnexturl, generalpostnexturl].filter(url => checkData(url))
-                            ));
-                            dispatch(setTimelinePostLinks(
-                                [followedpostnexturl, generalpostnexturl].filter(url => checkData(url))
-                            ));
-                            break;
-                        case 'campus':
-                            dispatch(setProcessing(false, 'processloadmoretimelinepostform'));
-                            dispatch(addTimelinePostForm([...followedposts, ...withincampusposts]));
-                            dispatch(addTimelinePost([...followedposts, ...withincampusposts]));
-                            dispatch(setTimelinePostFormLinks(
-                                [followedpostnexturl, withincampuspostsnexturl].filter(url => checkData(url))
-                            ));
-                            dispatch(setTimelinePostLinks(
-                                [followedpostnexturl, withincampuspostsnexturl].filter(url => checkData(url))
-                            ));
-                            break;
-                        case 'followedpost':
-                            dispatch(setProcessing(false, 'processloadmoretimelinepostform'));
-                            dispatch(addTimelinePostForm([...followedposts]));
-                            dispatch(addTimelinePost([...followedposts]));
-                            dispatch(setTimelinePostFormLinks(
-                                [followedpostnexturl].filter(url => checkData(url))
-                            ));
-                            dispatch(setTimelinePostLinks(
-                                [followedpostnexturl].filter(url => checkData(url))
-                            ));
-                            break;
-                        default:
-                            dispatch(setProcessing('retry', 'processloadmoretimelinepostform'));
-                            ToastAndroid.show('something went wrong please try again',
-                                ToastAndroid.LONG);
-                            break;
-                    }
+            .then(axios.spread((result1, result2) => {
+                let postarr = [];
+                let postlinksarr = [];
+                if (checkData(result1)) {
+                    result1 = structurePost(result1);
+                    postarr = [...postarr, ...result1[0]];
+                    postlinksarr = [...postlinksarr, ...result1[1]];
+                }
+                if (checkData(result2)) {
+                    result2 = structurePost(result2);
+                    postarr = [...postarr, ...result2[0]];
+                    postlinksarr = [...postlinksarr, ...result2[1]];
+                }
 
-                });//foreach loop
-            })
+                if (postarr.length < 1) {
+                    dispatch(setProcessing('retry', 'processloadmoretimelinepostform'));
+                    ToastAndroid.show(
+                        'something went wrong try again',
+                        ToastAndroid.LONG
+                    );
+                } else {
+                    postarr.sort((item1, item2) => item2.id - item1.id);
+                    dispatch(setProcessing(false, 'processloadmoretimelinepostform'));
+                    dispatch(addTimelinePostForm(postarr));
+                    dispatch(addTimelinePost(postarr));
+                    dispatch(setTimelinePostFormLinks(postlinksarr));
+                    dispatch(setTimelinePostLinks(postlinksarr));
+
+                }
+
+            }))
             .catch(e => {
+                alert(e.toString());
                 dispatch(setProcessing('retry', 'processloadmoretimelinepostform'));
                 if (e.toString().indexOf('Network Error') != -1) {
                     ToastAndroid.show(
@@ -1875,10 +1849,47 @@ export const fetchMoreTimelinePost = () => {
                     ToastAndroid.show(`could not load more posts please try again`, ToastAndroid.LONG);
                 }
 
+
             });
 
     };
 };
+
+const structurePost = (result: Array) => {
+    let {
+            message,
+        postlistrange,
+        generalpostnexturl,
+        timelineposts,
+        followedpostnexturl,
+        withincampuspostsnexturl
+        } = result.data;
+    switch (postlistrange) {
+        case 'all':
+            return [
+                timelineposts,
+                [followedpostnexturl, generalpostnexturl].filter(url => checkData(url))
+            ]
+            break;
+        case 'campus':
+            return [
+                timelineposts,
+                [followedpostnexturl, withincampuspostsnexturl].filter(url => checkData(url))
+            ]
+            break;
+        case 'followedpost':
+            return [
+                timelineposts,
+                [followedpostnexturl].filter(url => checkData(url))
+            ];
+            break;
+        default:
+            return [];
+            break;
+    }
+};
+/**/
+
 
 export const fetchTimelinePost = () => {
     return async (dispatch) => {
