@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
-import { Text, Avatar, Icon } from 'react-native-elements';
+import { StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, View } from 'react-native';
+import { Text, Avatar, Icon, Button } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import { LoaderScreen, Header, InputBox, } from '../../components/reusable/ResuableWidgets';
@@ -10,6 +10,7 @@ import TouchableScale from 'react-native-touchable-scale';
 import { checkData } from '../../utilities/index';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { Navigation } from 'react-native-navigation';
+import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 
 const { colors } = useTheme();
 
@@ -22,6 +23,7 @@ const ViewProfileScreen = ({
     reqprofileid,
     screentype
 }) => {
+    // navparent = true;
     const [loaded, setLoaded] = useState(false);
     let lefticon = navparent == true ? <Icon
         type="evilicon"
@@ -56,9 +58,6 @@ const ViewProfileScreen = ({
             <Header
                 headercolor={colors.card}
                 headertext={authuser.username}
-                headerStyle={{
-                    elevation: 0.8
-                }}
                 headertextcolor={colors.text}
                 headertextsize={responsiveFontSize(2.5)}
                 lefticon={lefticon}
@@ -66,7 +65,98 @@ const ViewProfileScreen = ({
             />
             {loaded == false ?
                 <ActivityIndicator size="large" color="#2196F3" /> :
-                <></>}
+
+                <ScrollView showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps='always'
+                    keyboardDismissMode={'on-drag'}
+                >
+                    <View style={styles.containerStyle}>
+                        <View style={styles.topSection}>
+                            <View style={styles.avatarIconCtn}>
+                                <Icon
+                                    type="antdesign"
+                                    name="arrowleft"
+                                    iconStyle={{}}
+                                    color={colors.text}
+                                    size={responsiveFontSize(4)}
+                                />
+
+                                <Avatar
+                                    source={require('../../assets/images/Penguins.jpg')}
+                                    resizeMode='contain'
+                                    //renderPlaceholderContent={loadingplaceholder}
+                                    size={100} rounded
+                                    icon={{ name: 'user', type: 'antdesign', size: 50, color: 'white' }}
+                                    onAccessoryPress={() => {
+                                    }}
+                                    accessory={{
+                                        type: 'evilicon',
+                                        name: 'camera',
+                                        size: 50,
+                                        color: 'white',
+                                    }}
+                                    //showAccessory
+                                    placeholderStyle={{ backgroundColor: colors.border }}
+                                    containerStyle={{ backgroundColor: colors.border, borderWidth: 5, elevation: 3, borderColor: colors.card, }}
+                                    overlayContainerStyle={styles.avatarContainerStyle}
+                                    titleStyle={{ fontSize: 20 }}
+                                />
+                                <Icon
+                                    type="antdesign"
+                                    name="book"
+                                    iconStyle={{}}
+                                    color={colors.text}
+                                    size={responsiveFontSize(4)}
+                                />
+                            </View>
+                            <View style={styles.modalCard}>
+                                <View style={{ alignItems: "center" }}>
+                                    <Text style={{
+                                        color: colors.text,
+                                        fontWeight: "bold",
+                                        fontSize: responsiveFontSize(2.3),
+                                    }}>1</Text>
+                                    <Text style={{
+                                        color: colors.iconcolor,
+                                        fontWeight: "bold",
+                                        fontSize: responsiveFontSize(1),
+                                    }}>Followers</Text>
+                                </View>
+
+                                <View style={{ alignItems: "center" }}>
+                                    <Text style={{
+                                        color: colors.text,
+                                        fontWeight: "bold",
+                                        fontSize: responsiveFontSize(2.3),
+                                    }}>10</Text>
+                                    <Text style={{
+                                        color: colors.iconcolor,
+                                        fontWeight: "bold",
+                                        fontSize: responsiveFontSize(1),
+                                    }}>Following</Text>
+                                </View>
+
+                                <View style={{ alignItems: "center" }}>
+                                    <Text style={{
+                                        color: colors.text,
+                                        fontWeight: "bold",
+                                        fontSize: responsiveFontSize(2.3),
+                                    }}>7.8k</Text>
+                                    <Text style={{
+                                        color: colors.iconcolor,
+                                        fontWeight: "bold",
+                                        fontSize: responsiveFontSize(1),
+                                    }}>Posts</Text>
+                                </View>
+
+                            </View>
+
+                        </View>
+
+                    </View>
+                </ScrollView>
+
+            }
         </SafeAreaView >
 
     );
@@ -95,6 +185,29 @@ const styles = StyleSheet.create({
     containerStyle: {
         flex: 1,
         backgroundColor: colors.background
+    },
+    topSection: {
+        //borderBottomWidth: 0.5,
+        paddingBottom: 4,
+        borderColor: colors.border
+    },
+    avatarIconCtn: {
+        padding: 10,
+        paddingTop: 20,
+        flexDirection: 'row',
+        justifyContent: "space-around",
+        alignItems: 'center'
+    },
+    avatarContainerStyle: {
+        backgroundColor: colors.border
+    },
+    modalCard: {
+        backgroundColor: colors.card,
+        //borderWidth: 1,
+        padding: 0,
+        justifyContent: "space-around",
+        flexDirection: "row",
+        alignItems: "center",
     }
 });
 

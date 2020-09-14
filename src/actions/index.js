@@ -1838,7 +1838,7 @@ export const fetchMoreTimelinePost = () => {
 
             }))
             .catch(e => {
-                alert(e.toString());
+                //alert(e.toString());
                 dispatch(setProcessing('retry', 'processloadmoretimelinepostform'));
                 if (e.toString().indexOf('Network Error') != -1) {
                     ToastAndroid.show(
