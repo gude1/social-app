@@ -25,7 +25,7 @@ import {
     KeyboardAvoidingView,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import ViewPager from '@react-native-community/viewpager';
+import { ViewPager } from '@shankarmorwal/rn-viewpager';
 import ToolTip from 'react-native-tooltip';
 import { Navigation } from 'react-native-navigation';
 

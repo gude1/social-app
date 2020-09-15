@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
 import {
-    Placeholder,
-    PlaceholderMedia,
-    PlaceholderLine,
-    Progressive,
-    Fade,
-    Loader,
-    Shine,
-    ShineOverlay,
-} from 'rn-placeholder';
-import {
     responsiveHeight,
     responsiveWidth,
 } from 'react-native-responsive-dimensions';

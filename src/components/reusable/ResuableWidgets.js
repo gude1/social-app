@@ -1,6 +1,6 @@
 import React, { Component, useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Modal } from 'react-native';
-import ViewPager from '@react-native-community/viewpager';
+import { ViewPager } from '@shankarmorwal/rn-viewpager';
 import * as Animatable from 'react-native-animatable';
 import { useTheme } from '../../assets/themes';
 import { Icon, Avatar, Overlay, Image, Input } from 'react-native-elements';

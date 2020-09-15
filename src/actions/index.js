@@ -285,8 +285,9 @@ export const logIn = ({ email, password, Navigation, componentId }) => {
                     break;
             }
         } catch (e) {
+            alert(err.toString());
             //console.warn(e.toString())
-            if (e.toString().search('Failed to connect') > -1) {
+            if (e.toString().indexOf('Failed to connect') > -1) {
                 ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
                 ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
@@ -1335,6 +1336,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                 withincampuspostsnexturl
             } = response.data;
             //console.warn(response.data);
+            //alert(JSON.stringify(response.data));
             switch (postlistrange) {
                 case 'all':
                     dispatch(setReset('timelinepostform'));
@@ -1383,6 +1385,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                     break;
             }
         } catch (e) {
+            //alert(JSON.stringify(e));
             // console.warn(e.toString())
             failedAction && failedAction();
             dispatch(setTimelinepostRefresh('failed'));

@@ -10,13 +10,6 @@ import {
     Dimensions,
     ScrollView
 } from 'react-native';
-import {
-    Placeholder,
-    PlaceholderMedia,
-    PlaceholderLine,
-    Progressive,
-    ShineOverlay,
-} from 'rn-placeholder';
 import { Input, Text, Image, Avatar, Card, Icon, Overlay, Divider } from 'react-native-elements';
 import * as actions from '../../actions';
 import { connect } from 'react-redux';

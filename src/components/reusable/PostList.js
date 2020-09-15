@@ -5,7 +5,7 @@ import { useTheme } from '../../assets/themes/index';
 import { responsiveWidth, responsiveFontSize, responsiveHeight } from 'react-native-responsive-dimensions';
 import { Icon, Avatar, Image, Overlay, Button } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
-import ViewPager from '@react-native-community/viewpager';
+import { ViewPager, IndicatorViewPager, PagerDotIndicator } from '@shankarmorwal/rn-viewpager';
 import * as  Animatable from 'react-native-animatable';
 import { checkData, toHumanReadableTime } from '../../utilities/index';
 import { Navigation } from 'react-native-navigation';
@@ -25,10 +25,17 @@ class PostImageViewPager extends Component {
                 size="large"
                 color={'#B0B0B0'} />
         );
+        this.viewpager = null;
     }
     shouldComponentUpdate() {
         return false;
     }
+    _renderTitleIndicator = () => <PagerDotIndicator
+        pageCount={this.props.images.length}
+        dotStyle={{ width: 10, height: 10, borderRadius: 50 }}
+        selectedDotStyle={{ backgroundColor: colors.blue, width: 15, height: 15, borderRadius: 50 }}
+        hideSingle
+    />
     _viewImage = (data) => {
         Navigation.showModal({
             component: {
@@ -88,19 +95,21 @@ class PostImageViewPager extends Component {
     render() {
 
         return (
-            <ViewPager
+            <IndicatorViewPager
+                ref={viewpager => this.viewpager = viewpager}
+                indicator={this._renderTitleIndicator()}
                 orientation='horizontal'
                 style={{
                     width: postwidth + 1,
                     height: postheight,
                     backgroundColor: colors.background,
                 }}
-                showPageIndicator={true}
+                //showPageIndicator={true}
                 initialPage={0}
                 keyboardDismissMode='none'
             >
                 {this.pagerItems}
-            </ViewPager>
+            </IndicatorViewPager>
         );
     }
 }
@@ -913,8 +922,9 @@ const styles = StyleSheet.create({
         opacity: 0.9,
         //padding: 20,
         marginVertical: 10,
-        borderRadius: 10,
-        fontSize: responsiveFontSize(2),
+        width: 35,
+        borderRadius: 20,
+        fontSize: responsiveFontSize(1.8),
         padding: 2,
         color: 'white',
         textAlign: "center",

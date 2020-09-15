@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, SafeAreaView, View, ToastAndroid } from 'react-native';
 import { Text, Image, Icon } from 'react-native-elements';
-import ViewPager from '@react-native-community/viewpager';
+import { ViewPager } from '@shankarmorwal/rn-viewpager';
 import { checkData } from '../../../utilities';
 import { Header } from '../../reusable/ResuableWidgets';
 import {
