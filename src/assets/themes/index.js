@@ -1,4 +1,4 @@
-const THEME = 'black';
+const THEME = 'white';
 export const BlackTheme = {
     colors: {
         theme: 'rgb(1, 1, 1)',
@@ -23,14 +23,14 @@ export const BlackTheme = {
 export const WhiteTheme = {
     colors: {
         theme: 'white',
-        statusbar: '#F8F8F8',
+        statusbar: '#E8E8E8',
         statusbartext: 'dark',
         lightgray: '#F8F8F8',
-        background: 'white',
+        background: 'rgb(245, 245, 245)',
         border: "rgb(199, 199, 204)",
         blue: "#2196F3",
         placeholder: '#606060',
-        card: "rgb(255, 255, 255)",
+        card: "rgb(245, 245, 245)",
         primary: "rgb(0, 122, 255)",
         statusbartext: "dark",
         text: "rgb(28, 28, 30)",

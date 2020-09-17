@@ -71,6 +71,10 @@ import {
     SET_TIMELINE_POST_FORM_PROFILE_CHANGES,
     SET_TIMELINE_POST_PROFILE_CHANGES,
     UPDATE_POST_SETTINGS,
+    ADD_VIEWPROFILEFORM_POSTS,
+    PREPEND_VIEWPROFILEFORM_POSTS,
+    UPDATE_VIEWPROFILEFORM_POSTS,
+    SET_VIEWPROFILEFORM,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -394,7 +398,7 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
         } catch (err) {
             //console.warn(err.toString());
             dispatch(setProcessing(false, 'profileactionmuting'));
-            if (err.toString().indexOf('Failed to connect') > -1) {
+            if (err.toString().indexOf('Network Error') > -1) {
                 ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
             } else {
                 ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
@@ -405,36 +409,45 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
 };
 
 export const fetchAProfile = (profileid, initAction, okAction, failedAction) => {
-    if (!checkData(profileid)) {
-        ToastAndroid.show('Missing terms to continue', ToastAndroid.SHORT);
-        failedAction && failedAction();
-    }
-    const { user, } = store.getState();
-    try {
-        const options = {
-            headers: { 'Authorization': `Bearer ${user.token}` }
-        };
-        initAction && initAction();
-        const response = await session.post('findprofile', { profileid }, options);
-        const { errmsg, status, profile } = response.data;
-        switch (status) {
-            case 200:
-                okAction && okAction(profile);
-                break;
-            case 404:
-                ToastAndroid.show('profile not found', ToastAndroid.SHORT);
-                failedAction && failedAction();
-                break;
-            default:
-                failedAction && failedAction();
-                break;
+    return async () => {
+        if (!checkData(profileid)) {
+            ToastAndroid.show('Missing terms to continue', ToastAndroid.SHORT);
+            failedAction && failedAction();
         }
-    } catch (err) {
-        if (err.toString().indexOf('Failed to connect') > -1) {
-            ToastAndroid.show('Network error', ToastAndroid.LONG);
+        const { user, } = store.getState();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            initAction && initAction();
+            const response = await session.post('profileshow', { profileid }, options);
+            const { errmsg, status, profile } = response.data;
+            switch (status) {
+                case 302:
+                    okAction && okAction(profile);
+                    break;
+                case 404:
+                    ToastAndroid.show('profile not found', ToastAndroid.SHORT);
+                    failedAction && failedAction('cancel');
+                    break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.SHORT);
+                    failedAction && failedAction('cancel');
+                    break;
+                default:
+                    ToastAndroid.show(errmsg, ToastAndroid.SHORT);
+                    failedAction && failedAction();
+                    break;
+            }
+        } catch (err) {
+            if (err.toString().indexOf('Network Error') > -1) {
+                ToastAndroid.show('Network error could not fetch profile', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show('something went wrong profile not fetched', ToastAndroid.LONG);
+            }
+            failedAction && failedAction();
         }
-        failedAction && failedAction();
-    }
+    };
 };
 
 
@@ -696,63 +709,75 @@ export const fetchMoreShares = (reqdata) => {
  * ACTION CREATORS FOR CERTAIN POST ACTIONS
  */
 export const fetchProfilePosts = (profileid, initAction, okAction, failedAction) => {
-    if (!checkData(profileid)) {
-        ToastAndroid.show('Missing terms to continue', ToastAndroid.SHORT);
-        failedAction && failedAction();
-    }
-    const { user, } = store.getState();
-    try {
-        const options = {
-            headers: { 'Authorization': `Bearer ${user.token}` }
-        };
-        initAction && initAction();
-        const response = await session.post('profileposts', { profileid }, options);
-        const { errmsg, status, profile_posts, nextpageurl } = response.data;
-        switch (status) {
-            case 200:
-                okAction && okAction(profile_posts, nextpageurl)
-                break;
-            case 404:
-                ToastAndroid.show('profile has no post', ToastAndroid.SHORT);
-                failedAction && failedAction();
-                break;
-            default:
-                failedAction && failedAction();
-                break;
+    return async () => {
+        if (!checkData(profileid)) {
+            ToastAndroid.show('Missing terms to continue', ToastAndroid.SHORT);
+            failedAction && failedAction();
         }
-    } catch (err) {
-        failedAction && failedAction();
-    }
+        const { user, } = store.getState();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            initAction && initAction();
+            const response = await session.post('profileposts', { profileid }, options);
+            const { errmsg, status, profile_posts, nextpageurl } = response.data;
+            switch (status) {
+                case 200:
+                    okAction && okAction(profile_posts, nextpageurl)
+                    break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.SHORT);
+                    failedAction && failedAction('cancel');
+                    break;
+                case 404:
+                    ToastAndroid.show('profile has no post', ToastAndroid.SHORT);
+                    failedAction && failedAction();
+                    break;
+                default:
+                    failedAction && failedAction();
+                    break;
+            }
+        } catch (err) {
+            failedAction && failedAction();
+        }
+    };
 };
 
 export const fetchMoreProfilePosts = (url, initAction, okAction, failedAction) => {
-    if (!checkData(profileid)) {
-        ToastAndroid.show('Missing terms to continue', ToastAndroid.SHORT);
-        failedAction && failedAction();
-    }
-    const { user, } = store.getState();
-    try {
-        const options = {
-            headers: { 'Authorization': `Bearer ${user.token}` }
-        };
-        initAction && initAction();
-        const response = await session.post(url, { profileid }, options);
-        const { errmsg, status, profile_posts, nextpageurl } = response.data;
-        switch (status) {
-            case 200:
-                okAction && okAction(profile_posts, nextpageurl)
-                break;
-            case 404:
-                ToastAndroid.show('profile has no post', ToastAndroid.SHORT);
-                failedAction && failedAction();
-                break;
-            default:
-                failedAction && failedAction();
-                break;
+    return async () => {
+        if (!checkData(profileid)) {
+            ToastAndroid.show('Missing terms to continue', ToastAndroid.SHORT);
+            failedAction && failedAction();
         }
-    } catch (err) {
-        failedAction && failedAction();
-    }
+        const { user, } = store.getState();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            initAction && initAction();
+            const response = await session.post(url, { profileid }, options);
+            const { errmsg, status, profile_posts, nextpageurl } = response.data;
+            switch (status) {
+                case 200:
+                    okAction && okAction(profile_posts, nextpageurl)
+                    break;
+                case 404:
+                    ToastAndroid.show('profile has no post', ToastAndroid.SHORT);
+                    failedAction && failedAction();
+                    break;
+                case 412:
+                    ToastAndroid.show(errmsg, ToastAndroid.SHORT);
+                    failedAction && failedAction('cancel');
+                    break;
+                default:
+                    failedAction && failedAction();
+                    break;
+            }
+        } catch (err) {
+            failedAction && failedAction();
+        }
+    };
 };
 
 
@@ -3168,6 +3193,38 @@ export const hidePostCommentReply = (replyid, ownerid) => {
                 ToastAndroid.show('something went wrong could not hide reply please try again', ToastAndroid.LONG)
             }
         }
+    };
+};
+
+/**
+ * ACTION CREATOR FOR VIEWPROFILE REDUCER
+ * 
+ */
+export const addViewProfileFormPost = (data: Array) => {
+    return {
+        type: ADD_VIEWPROFILEFORM_POSTS,
+        payload: data
+    };
+};
+
+export const prependViewProfileFormPost = (data: Array) => {
+    return {
+        type: PREPEND_VIEWPROFILEFORM_POSTS,
+        payload: data
+    };
+};
+
+export const updateViewProfileFormPost = (data: Object) => {
+    return {
+        type: UPDATE_VIEWPROFILEFORM_POSTS,
+        payload: data
+    };
+};
+
+export const setViewProfileForm = (data: Object) => {
+    return {
+        type: SET_VIEWPROFILEFORM,
+        payload: data
     };
 };
 

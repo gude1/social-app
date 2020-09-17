@@ -255,21 +255,27 @@ const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts,
                             <Avatar
                                 rounded
                                 source={avatarprofile}
-                                onPress={() => Navigation.push(componentId, {
-                                    component: {
-                                        name: "EditProfile",
-                                        passProps: {
-                                            navparent: true
-                                        },
-                                        options: {
-                                            animations: {
-                                                push: {
-                                                    waitForRender: true,
-                                                }
+                                onPress={() => {
+                                    Navigation.showModal({
+                                        component: {
+                                            name: "ViewProfile",
+                                            passProps: {
+                                                navparent: true,
+                                                useowner: true,
+                                                screentype: 'modal'
                                             }
                                         }
-                                    }
-                                })}
+                                    });
+                                    /*Navigation.updateProps('VIEW_PROFILE_SCREEN', {
+                                        navparent: true,
+                                        screentype: 'modal'
+                                    });
+                                    Navigation.mergeOptions(componentId, {
+                                        bottomTabs: {
+                                            currentTabId: 'VIEW_PROFILE_SCREEN'
+                                        }
+                                    })*/
+                                }}
                                 resizeMode='contain'
                                 placeholderStyle={styles.imageContainerStyle}
                                 containerStyle={styles.imageContainerStyle}

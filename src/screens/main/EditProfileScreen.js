@@ -51,6 +51,7 @@ const EditProfileScreen = ({ navigation,
     setProfileData,
     setUpdateCampus,
     uploadProfilePic,
+    screentype,
 }) => {
     const placeholderColor = '#606060';
     let lefticon = navparent == true ? <Icon
@@ -59,7 +60,7 @@ const EditProfileScreen = ({ navigation,
         color={colors.text}
         size={responsiveFontSize(6)}
     /> : null;
-    let lefticonpress = navparent == true ? () => Navigation.pop(componentId) : null;
+    let lefticonpress = navparent == true ? setDimissNav() : null;
     const [modalstate, setModalState] = useState({
         chooseimagestate: false,
         screeninfomodal: false,
@@ -99,6 +100,13 @@ const EditProfileScreen = ({ navigation,
         };
     }, []);
 
+    //function to determine dismiss of navigation based on screentype
+    function setDimissNav() {
+        if (screentype == "modal")
+            return () => Navigation.dismissModal(componentId)
+        else
+            return () => Navigation.pop(componentId);
+    }
 
     Navigation.mergeOptions(componentId, {
         statusBar: {

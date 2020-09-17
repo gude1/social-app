@@ -87,7 +87,10 @@ export const MAINTABSROUTE = {
                             {
                                 component: {
                                     id: 'VIEW_PROFILE_SCREEN',
-                                    name: 'ViewProfile'
+                                    name: 'ViewProfile',
+                                    passProps: {
+                                        useowner: true
+                                    },
                                 }
                             }
                         ]

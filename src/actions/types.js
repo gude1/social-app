@@ -109,6 +109,7 @@ export const ADD_LIKES_LIST_FORM = 'add_likes_list_form';
 export const PREPEND_LIKES_LIST_FORM = 'prepend_likes_list_form';
 export const UPDATE_LIKES_LIST_FORM = 'update_likes_list_form';
 export const SET_LIKES_LIST_FORM_LINK = 'set_likes_list_form_link';
+
 /**
  * TYPE CONSTANT FOR SharesListReducer
  */
@@ -121,6 +122,16 @@ export const SET_SHARES_LIST_FORM_LINK = 'set_shares_list_form_link';
  * TYPE CONSTANT FOR POSTSETTING REDUCER
  */
 export const UPDATE_POST_SETTINGS = 'update_post_settings';
+
+
+/**
+ * TYPE CONSTANT FOR VIEWPROFILEFORM REDUCER
+ */
+export const ADD_VIEWPROFILEFORM_POSTS = 'add_viewprofileform_posts';
+export const PREPEND_VIEWPROFILEFORM_POSTS = 'prepend_viewprofileform_posts';
+export const UPDATE_VIEWPROFILEFORM_POSTS = 'update_viewprofileform_posts';
+export const SET_VIEWPROFILEFORM = 'set_viewprofileform';
+
 /**
  * TYPE CONSTANT FOR BOOKMARKS REDUCER
  */

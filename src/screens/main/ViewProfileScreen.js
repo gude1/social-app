@@ -3,7 +3,7 @@ import { StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, View, FlatList
 import { Text, Avatar, Icon, Button, Image } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
-import { LoaderScreen, Header, InputBox, } from '../../components/reusable/ResuableWidgets';
+import { LoaderScreen, Header, InputBox, PanelMsg, } from '../../components/reusable/ResuableWidgets';
 import ParallaxScrollView from 'react-native-parallax-scroll-view';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes/index';
@@ -14,23 +14,51 @@ import { Navigation } from 'react-native-navigation';
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import { TouchablePreview } from 'react-native-navigation/lib/dist/adapters/TouchablePreview';
 import { IndicatorViewPager, PagerTabIndicator, PagerTitleIndicator } from '@shankarmorwal/rn-viewpager';
+import { ToastAndroid } from 'react-native';
 
 
 const { colors } = useTheme();
 
-const TopSection = ({ profile }) => {
+/**top section */
+const TopSection = ({ profile, isprofileowner }) => {
+    const showButton = () => {
+        let btn = null;
+        if (isprofileowner) {
+            btn = <Button
+                title="EditProfile"
+                TouchableComponent={TouchableScale}
+                onPress={() => Navigation.showModal({
+                    component: {
+                        name: "EditProfile",
+                        passProps: {
+                            navparent: true,
+                            screentype: "modal"
+                        }
+                    }
+                })}
+                type="outline"
+                titleStyle={styles.buttonTitleStyle}
+                buttonStyle={styles.buttonStyle}
+            />
+        } else {
+
+        }
+        return btn;
+    }
     return (
         <View style={styles.topSection}>
             <View style={styles.avatarIconCtn}>
-                <Icon
+                {isprofileowner == false ? <Icon
                     type="evilicon"
                     name="comment"
                     color={colors.text}
-                    disabledStyle={{
-                        backgroundColor: colors.background
-                    }}
                     size={responsiveFontSize(4.5)}
-                />
+                /> : <Icon
+                        type="antdesign"
+                        name="smileo"
+                        color={colors.text}
+                        size={responsiveFontSize(4)}
+                    />}
                 <Avatar
                     source={{ uri: profile.avatarlocal }}
                     //source={null}
@@ -51,30 +79,31 @@ const TopSection = ({ profile }) => {
                     overlayContainerStyle={styles.avatarContainerStyle}
                     titleStyle={{ fontSize: 20 }}
                 />
-                <Icon
+                {isprofileowner == true ? <Icon
                     type="antdesign"
+                    onPress={() => Navigation.showModal({
+                        component: {
+                            name: "EditProfile",
+                            passProps: {
+                                navparent: true,
+                                screentype: "modal"
+                            }
+                        }
+                    })}
                     name="adduser"
                     color={colors.text}
                     size={responsiveFontSize(4)}
-                />
+                /> : <Icon
+                        type="antdesign"
+                        name="smileo"
+                        color={colors.text}
+                        size={responsiveFontSize(4)}
+                    />}
             </View>
             <View style={styles.profileInfoCtn}>
                 <Text style={styles.profileInfoItemText}>{profile.user.username}</Text>
                 <Text style={styles.profileInfoItemText}>{profile.bio}</Text>
-                <Button
-                    title="Follow"
-                    TouchableComponent={TouchableScale}
-                    onPress={() => console.warn('dd')}
-                    type="outline"
-                    titleStyle={{ fontSize: responsiveFontSize(1.8) }}
-                    buttonStyle={{
-                        width: 80,
-                        padding: 3,
-                        borderRadius: 20,
-                        marginVertical: 5,
-                        alignSelf: "center"
-                    }}
-                />
+                {showButton()}
             </View>
 
             <View style={styles.modalCard}>
@@ -112,7 +141,7 @@ const TopSection = ({ profile }) => {
                         color: colors.text,
                         fontWeight: "bold",
                         fontSize: responsiveFontSize(2.3),
-                    }}>1</Text>
+                    }}>{profile.num_followers}</Text>
                     <Text style={{
                         color: colors.iconcolor,
                         fontWeight: "bold",
@@ -125,7 +154,7 @@ const TopSection = ({ profile }) => {
                         color: colors.text,
                         fontWeight: "bold",
                         fontSize: responsiveFontSize(2.3),
-                    }}>10</Text>
+                    }}>{profile.num_following}</Text>
                     <Text style={{
                         color: colors.iconcolor,
                         fontWeight: "bold",
@@ -138,7 +167,7 @@ const TopSection = ({ profile }) => {
                         color: colors.text,
                         fontWeight: "bold",
                         fontSize: responsiveFontSize(2.3),
-                    }}>7.k8</Text>
+                    }}>{profile.num_posts}</Text>
                     <Text style={{
                         color: colors.iconcolor,
                         fontWeight: "bold",
@@ -151,7 +180,7 @@ const TopSection = ({ profile }) => {
                         color: colors.text,
                         fontWeight: "bold",
                         fontSize: responsiveFontSize(2.3),
-                    }}>100</Text>
+                    }}>{profile.num_gists}</Text>
                     <Text style={{
                         color: colors.iconcolor,
                         fontWeight: "bold",
@@ -163,9 +192,10 @@ const TopSection = ({ profile }) => {
     );
 };
 
+/**bottom  section */
 const BottomSection = ({ profileposts, profilegists, tabs, tabVerticalScroll }) => {
     let data = [];
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i <= 10; i++) {
         data.push(String(i));
     }
     /**
@@ -224,17 +254,31 @@ const BottomSection = ({ profileposts, profilegists, tabs, tabVerticalScroll }) 
     );
 };
 
+
 const ViewProfileScreen = ({
     componentId,
     state,
     authprofile,
-    fetchProfilePosts,
+    useowner,
     navparent,
-    reqprofileid,
-    screentype
+    reqprofile,
+    screentype,
+    setReset,
+    setProfileData,
+    viewprofile,
+    viewprofileposts,
+    fetchProfilePosts,
+    setViewProfileForm,
+    addViewProfileFormPost,
+    prependViewProfileFormPost,
+    updateViewProfileFormPost,
+    fetchAProfile,
 }) => {
+    //useowner = false;
     const [loaded, setLoaded] = useState(false);
     const [hideparallax, setHideParallax] = useState(false);
+    const [youblockedpass, setYouBlockedPass] = useState(false);
+    const [appeared, setAppeared] = useState('no');
     const TABS = [
         {
             iconSource: 'pencil-square-o',
@@ -245,6 +289,8 @@ const ViewProfileScreen = ({
             iconType: 'feather'
         }
     ];
+    let toshowprofile = setViewProfile();
+    //toshowprofile.ublockedprofile = true;
     let lefticon = navparent == true ? <Icon
         type="evilicon"
         name="arrow-left"
@@ -253,31 +299,29 @@ const ViewProfileScreen = ({
     /> : null;
 
     let lefticonpress = navparent == true ?
-        () => Navigation.dismissModal(componentId)
+        setDimissNav()
         : null;
-
-    let righticon = <Icon
-        type="entypo"
-        onPress={() => { }}
-        name="dots-three-vertical"
-        color={colors.text}
-        size={responsiveFontSize(2.5)}
-    />;
-
+    let righticon = hideparallax == true ?
+        <Text
+            onPress={() => setHideParallax(false)}
+            style={{ color: colors.blue }}
+        >Restore</Text> : <Icon
+            type="entypo"
+            onPress={() => { }}
+            name="dots-three-vertical"
+            color={colors.text}
+            size={responsiveFontSize(2.5)}
+        />;
     let righticonpress = null;
 
-    /**compoent function goes here */
+
+    /**component function goes here */
     Navigation.mergeOptions(componentId, {
         bottomTabs: {
             //visible: false
         },
     });
 
-    const onTabsVerticalScroll = () => {
-        if (!hideparallax) {
-            setHideParallax(true);
-        }
-    };
 
     useEffect(() => {
         EntypoIcon.getImageSource('user', 100).then(e =>
@@ -286,66 +330,163 @@ const ViewProfileScreen = ({
                     icon: e,
                 }
             }));
-
+        handleFecthViewProfile();
+        setReset('viewprofileform')// set the comments to empty
         const listener = {
             componentDidAppear: () => {
-                Navigation.mergeOptions(componentId, {
-                    bottomTabs: {
-                        visible: true
-                    }
-                });
-                if (!loaded) {
-                    setLoaded(true);
-                }
             },
             componentDidDisappear: () => {
                 setHideParallax(false);
             }
-
         };
         // Register the listener to all events related to our component
         const unsubscribe = Navigation.events().bindComponent(listener, componentId);
+
         return () => {
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
         };
+
     }, []);
 
-    /**compoent function ends here */
+    //handles fetching of profiles data 
+    function handleFecthViewProfile() {
+        if (!checkData(toshowprofile)) {
+            setLoaded('failed');
+            ToastAndroid.show('profile not found', ToastAndroid.LONG);
+        }
+        if (!toshowprofile.profileblockedu) {
+            fetchAProfile(toshowprofile.profile_id, null, (profile) => {
+                if (useowner) {
+                    setProfileData({ ...profile, avatarremote: profile.avatar[1] })
+                } else {
+                    setViewProfileForm(profile);
+                }
+                setLoaded(true);
+            }, (action) => {
+                action == "cancel" ? setLoaded('failed') : setLoaded(true);
+            });
+        }
+    }
 
-    return (
+    //function to determine dismiss of navigation based on screentype
+    function setDimissNav() {
+        if (screentype == "modal")
+            return () => Navigation.dismissModal(componentId)
+        else
+            return () => Navigation.pop(componentId);
+    }
 
-        <SafeAreaView style={styles.containerStyle}>
-            <Header
-                headercolor={colors.card}
-                headertext={authprofile.user.username}
-                headertextcolor={colors.text}
-                headertextsize={responsiveFontSize(2.5)}
-                headerStyle={{
-                    elevation: 0,
-                }}
-                lefticon={lefticon}
-                righticon={righticon}
-            />
-            {loaded == false ?
-                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <ActivityIndicator size="large" color={'silver'} />
-                </View> :
+    //returns the profile to show
+    function setViewProfile() {
+        if (useowner) {
+            return authprofile;
+        } else if (!checkData(reqprofile) || !checkData(reqprofile.user)) {
+            return null;
+        } else {
+            if (checkData(viewprofile) && viewprofile.profile_id == reqprofile.profile_id)
+                return viewprofile;
+            else
+                return reqprofile;
+        }
+
+    };
+
+    //handle hiding of topsection onces tabs flatlist scroll starts
+    const onTabsVerticalScroll = () => {
+        if (!hideparallax) {
+            setHideParallax(true);
+        }
+    };
+
+    //renders viewprofile view
+    const renderView = () => {
+        let torenderview = null;
+        /**check if loaded is true to determine return */
+        if (loaded == true) {
+            torenderview =
+                <>
+                <Header
+                    headercolor={colors.card}
+                    headertext={toshowprofile.user.username}
+                    headertextcolor={colors.text}
+                    headertextsize={responsiveFontSize(2.5)}
+                    headerStyle={{
+                        elevation: 1.7,
+
+                    }}
+                    lefticon={lefticon}
+                    leftIconPress={lefticonpress}
+                    righticon={righticon}
+                />
 
                 <View style={styles.contentContainerStyle}>
                     {hideparallax ? null : <TopSection
-                        profile={authprofile}
+                        profile={toshowprofile}
+                        isprofileowner={useowner}
                     />}
                     <BottomSection
                         tabs={TABS}
                         tabVerticalScroll={onTabsVerticalScroll}
                     />
                 </View>
-            }
+                </>;
+        } else if (loaded == 'retry') {
+            torenderview = <View
+                style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
+                <Icon
+                    //onPress={}
+                    color={colors.text}
+                    size={responsiveFontSize(4)}
+                    name="sync"
+                    type="antdesign"
+                />
+                <Text style={{ color: colors.text }}>Tap to retry </Text>
+            </View>;
+        } else if (loaded == false) {
+            torenderview = <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                <ActivityIndicator size="large" color={'silver'} />
+            </View>;
+        } else {
+            torenderview =
+                <View style={{ flex: 1, alignItems: "center" }}>
+                    <PanelMsg
+                        message="Profile not found or cannot be shown"
+                    />
+                </View>
+                ;
+        }
+        /**also check to confirm block status */
+        if (checkData(toshowprofile)) {
+            if (toshowprofile.profileblockedu == true)
+                torenderview = <View style={{ flex: 1, alignItems: 'center' }}>
+                    <PanelMsg
+                        message="Can't view profile, profile owner has blocked you "
+                    />
+                </View>;
+            else if (toshowprofile.ublockedprofile == true && youblockedpass == false)
+                torenderview = <View style={{ flex: 1, alignItems: 'center' }}>
+                    <PanelMsg
+                        message="Profile is blocked by you "
+                        buttonTitle={'View Profile'}
+                        buttonPress={() => {
+                            if (!youblockedpass)
+                                setYouBlockedPass(true);
+                        }}
+                    />
+                </View>;
+
+        }
 
 
+        return torenderview;
+    };
+    /**compoent function ends here */
+
+    return (
+        <SafeAreaView style={styles.containerStyle}>
+            {renderView()}
         </SafeAreaView >
-
     );
 };
 
@@ -383,6 +524,18 @@ const styles = StyleSheet.create({
         marginTop: 0,
         paddingBottom: 4,
         borderColor: colors.border
+    },
+    buttonStyle: {
+        width: 80,
+        padding: 3,
+        borderColor: "dimgray",
+        borderRadius: 20,
+        marginVertical: 5,
+        alignSelf: "center"
+    },
+    buttonTitleStyle: {
+        fontSize: responsiveFontSize(1.8),
+        color: "dimgray"
     },
     avatarIconCtn: {
         //borderWidth: 1,
