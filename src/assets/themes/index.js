@@ -9,6 +9,7 @@ export const BlackTheme = {
         card: "rgb(18, 18, 18)",
         primary: "rgb(10, 132, 255)",
         blue: "#2196F3",
+        lightgray: '#F8F8F8',
         placeholder: '#606060',
         statusbar: "#000",
         statusbartext: "light",
@@ -22,8 +23,9 @@ export const BlackTheme = {
 export const WhiteTheme = {
     colors: {
         theme: 'white',
-        statusbar: '#f1f1f1',
+        statusbar: '#F8F8F8',
         statusbartext: 'dark',
+        lightgray: '#F8F8F8',
         background: 'white',
         border: "rgb(199, 199, 204)",
         blue: "#2196F3",

@@ -15,6 +15,7 @@ import LikesListFormReducer from './LikesListFormReducer';
 import SharesListFormReducer from './SharesListFormReducer';
 import ProfileActionFormReducer from './ProfileActionFormReducer';
 import PostSettingReducer from './PostSettingReducer';
+import { ViewProfileReducer } from './ViewProfileReducer';
 
 export default combineReducers({
     user: userReducer,
@@ -28,6 +29,7 @@ export default combineReducers({
     timelinepostform: TimelinePostFormReducer,
     postcommentform: PostCommentFormReducer,
     postcommentreplyform: PostCommentReplyFormReducer,
+    viewprofileform: ViewProfileReducer,
     likeslistform: LikesListFormReducer,
     shareslistform: SharesListFormReducer,
     profileactionform: ProfileActionFormReducer,

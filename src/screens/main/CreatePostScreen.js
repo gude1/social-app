@@ -243,6 +243,7 @@ const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts,
                 animationType={'zoomIn'}
             /> :
                 <ScrollView showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ flex: 1 }}
                     keyboardShouldPersistTaps='always'
                     keyboardDismissMode={'on-drag'}
                 >

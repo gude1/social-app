@@ -6,48 +6,158 @@ places where api that are used are not cross platform and must be changed
 width < 320 || width > 1080
 height < 566 || height > 1350
 
-
-  <View style={styles.postTextContainer}>
-                            <View style={styles.commentStyle}>
-                                <Avatar
-                                    size={'small'}
-                                    containerStyle={{ marginTop: 2 }}
-                                    icon={{ name: 'user', type: 'antdesign', color: 'white' }}
-                                    rounded
-                                    overlayContainerStyle={styles.commentAvatar}
-                                />
-                                <View style={styles.commentTextCtn}>
-                                    <Text>
-                                        <Text style={{ color: colors.text, fontWeight: "bold" }}>Chris Brown </Text>
-                                        <Text style={{ color: colors.text, }}>Who plays a game like it aint cool but its really nice. Yo Thinking about how to break that shit its vexing message1 what you say jarvis? :)
-                                        </Text>
-                                    </Text>
-                                    <Text style={{ color: 'silver' }}>3d</Text>
-                                </View>
-                            </View>
-                        </View>
-
- <View style={styles.commentStyle}>
-                            <Avatar
-                                size={'small'}
-                                containerStyle={{ marginTop: 2 }}
-                                source={require('../../assets/images/Penguins.jpg')}
-                                icon={{ name: 'user', type: 'antdesign', color: 'white' }}
-                                rounded
-                                overlayContainerStyle={styles.commentAvatar}
+<View style={styles.topSection}>
+                        <View style={styles.avatarIconCtn}>
+                            <Icon
+                                type="evilicon"
+                                name="comment"
+                                color={colors.text}
+                                disabledStyle={{
+                                    backgroundColor: colors.background
+                                }}
+                                size={responsiveFontSize(4.5)}
                             />
-                            <View style={styles.commentTextCtn}>
-
-                                <Text>
-                                    <Text style={styles.title}>heart </Text>
-                                    <Text style={styles.subtitle}>
-                                        Everyone is looking for that something, something that makes the world revolve round us
-                                    </Text>
-                                </Text>
-                                <View style={styles.listItemBottomCtnStyle}>
-                                    <Text style={styles.bottomCtnLeftText}>2hrs</Text>
-                                    <Text style={styles.bottomCtnRightText}>Reply</Text>
-                                </View>
-                            </View>
+                            <Avatar
+                                source={{ uri: authprofile.avatarlocal }}
+                                //source={null}
+                                resizeMode='contain'
+                                size={80} rounded
+                                icon={{ name: 'user', type: 'antdesign', size: 40, color: 'white' }}
+                                onAccessoryPress={() => {
+                                }}
+                                accessory={{
+                                    type: 'evilicon',
+                                    name: 'camera',
+                                    size: 50,
+                                    color: 'white',
+                                }}
+                                //showAccessory
+                                placeholderStyle={{ backgroundColor: colors.border }}
+                                containerStyle={{ backgroundColor: colors.border, elevation: 2, borderWidth: 1, borderColor: colors.card, }}
+                                overlayContainerStyle={styles.avatarContainerStyle}
+                                titleStyle={{ fontSize: 20 }}
+                            />
+                            <Icon
+                                type="antdesign"
+                                name="adduser"
+                                color={colors.text}
+                                size={responsiveFontSize(4)}
+                            />
+                        </View>
+                        <View style={styles.profileInfoCtn}>
+                            <Text style={styles.profileInfoItemText}>{authuser.username}</Text>
+                            <Text style={styles.profileInfoItemText}>{authprofile.bio}</Text>
+                            <Button
+                                title="Follow"
+                                TouchableComponent={TouchableScale}
+                                onPress={() => console.warn('dd')}
+                                type="outline"
+                                titleStyle={{ fontSize: responsiveFontSize(1.8) }}
+                                buttonStyle={{
+                                    width: 80,
+                                    padding: 3,
+                                    borderRadius: 20,
+                                    marginVertical: 5,
+                                    alignSelf: "center"
+                                }}
+                            />
                         </View>
 
+                        <View style={styles.modalCard}>
+                            <View style={{ alignItems: "center" }}>
+                                <Icon
+                                    type="antdesign"
+                                    name="book"
+                                    color={colors.text}
+                                    size={responsiveFontSize(4)}
+                                />
+                                <Text style={{
+                                    color: colors.iconcolor,
+                                    fontWeight: "bold",
+                                    fontSize: responsiveFontSize(1.2),
+                                }}>{authprofile.campus}</Text>
+                            </View>
+                            <View style={{ alignItems: "center" }}>
+                                <Icon
+                                    type="font-awesome"
+                                    name={authuser.gender}
+                                    color={colors.text}
+                                    size={responsiveFontSize(4)}
+                                />
+                                <Text style={{
+                                    color: colors.iconcolor,
+                                    fontWeight: "bold",
+                                    fontSize: responsiveFontSize(1.2),
+                                }}>{authuser.gender}</Text>
+                            </View>
+
+                        </View>
+                        <View style={styles.profileActivityCtn}>
+                            <View style={{ alignItems: "center" }}>
+                                <Text style={{
+                                    color: colors.text,
+                                    fontWeight: "bold",
+                                    fontSize: responsiveFontSize(2.3),
+                                }}>1</Text>
+                                <Text style={{
+                                    color: colors.iconcolor,
+                                    fontWeight: "bold",
+                                    fontSize: responsiveFontSize(1),
+                                }}>Followers</Text>
+                            </View>
+
+                            <View style={{ alignItems: "center" }}>
+                                <Text style={{
+                                    color: colors.text,
+                                    fontWeight: "bold",
+                                    fontSize: responsiveFontSize(2.3),
+                                }}>10</Text>
+                                <Text style={{
+                                    color: colors.iconcolor,
+                                    fontWeight: "bold",
+                                    fontSize: responsiveFontSize(1),
+                                }}>Following</Text>
+                            </View>
+
+                            <View style={{ alignItems: "center" }}>
+                                <Text style={{
+                                    color: colors.text,
+                                    fontWeight: "bold",
+                                    fontSize: responsiveFontSize(2.3),
+                                }}>7.k8</Text>
+                                <Text style={{
+                                    color: colors.iconcolor,
+                                    fontWeight: "bold",
+                                    fontSize: responsiveFontSize(1),
+                                }}>Posts</Text>
+                            </View>
+
+                            <View style={{ alignItems: "center" }}>
+                                <Text style={{
+                                    color: colors.text,
+                                    fontWeight: "bold",
+                                    fontSize: responsiveFontSize(2.3),
+                                }}>100</Text>
+                                <Text style={{
+                                    color: colors.iconcolor,
+                                    fontWeight: "bold",
+                                    fontSize: responsiveFontSize(1),
+                                }}>Gists</Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    <View style={styles.bottomSection}>
+                        <IndicatorViewPager
+                            indicatorposition={'top'}
+                            style={{ flex: 1 }}
+                            indicator={renderTabIndicator()}
+                        >
+                            <View key={1}>
+                            <Text style={{color:colors.text,alignSelf:'center'}}>Screen One</Text>
+                            </View>
+                            <View key={2}>
+                             <Text style={{color:colors.text,alignSelf:'center'}}>Screen Two</Text>
+                            </View>
+                        </IndicatorViewPager>
+                    </View>

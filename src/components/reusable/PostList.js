@@ -27,15 +27,18 @@ class PostImageViewPager extends Component {
         );
         this.viewpager = null;
     }
+
     shouldComponentUpdate() {
         return false;
     }
+
     _renderTitleIndicator = () => <PagerDotIndicator
         pageCount={this.props.images.length}
-        dotStyle={{ width: 10, height: 10, borderRadius: 50 }}
-        selectedDotStyle={{ backgroundColor: colors.blue, width: 15, height: 15, borderRadius: 50 }}
+        dotStyle={{ width: 5, height: 5, borderRadius: 50 }}
+        selectedDotStyle={{ backgroundColor: colors.blue, width: 10, height: 10, borderRadius: 50 }}
         hideSingle
-    />
+    />;
+
     _viewImage = (data) => {
         Navigation.showModal({
             component: {
@@ -425,6 +428,7 @@ export default class PostList extends React.Component {
             size={responsiveFontSize(4)}
         />;
     }
+
     componentDidMount() {
         this.setState({
             bottomodallistothersoptions: this.bottomodallistothersoptions
@@ -435,6 +439,7 @@ export default class PostList extends React.Component {
              this.setState({ initrefresh: true });
          });*/
     }
+
     _setSelected = (postid, postprofileid, postitem) => {
         if (checkData(postid) == true && checkData(postprofileid) == true) {
             this.currentselectedpostid = postid;
@@ -447,6 +452,7 @@ export default class PostList extends React.Component {
             this._handleOthersPostOptions();
         }
     };
+
     _setOthersModalList = (postitem) => {
         if (!checkData(postitem)) {
             return;
@@ -490,8 +496,9 @@ export default class PostList extends React.Component {
                 profilemuted: profilechangesmuted
             });
         }
-
     };
+
+
     _onDeletePress = () => {
         this.setState({ confirmdeletevisible: false });
         this.props.onDeletePress(
@@ -499,6 +506,7 @@ export default class PostList extends React.Component {
             this.currentselectedpostownerid
         );
     };
+
     _onArchivePress = () => {
         this.setState({ confirmarchivevisible: false });
         this.props.onArchivePress(
@@ -506,6 +514,8 @@ export default class PostList extends React.Component {
             this.currentselectedpostownerid
         );
     };
+
+
     _onBlackListPress = () => {
         this.setState({ confirmblacklistvisible: false });
         this.props.onBlackListPress(
@@ -513,6 +523,7 @@ export default class PostList extends React.Component {
             this.currentselectedpostownerid
         );
     };
+
     _onMuteProfilePress = () => {
         let initaction = () => this.props.setProcessing(true, 'processmutetimelinepostform');
         let failedaction = () => this.props.setProcessing(false, 'processmutetimelinepostform');
@@ -534,6 +545,7 @@ export default class PostList extends React.Component {
             failedaction
         );
     };
+
     _likePostItem = (postid, likestatus, numpostlikes) => {
         if (checkData(postid) != true) {
             return false;
@@ -693,6 +705,7 @@ export default class PostList extends React.Component {
     _getItemLayout = (data, index) => (
         { length: this.resheight, offset: this.resheight * index, index }
     );
+
     _setFooterComponent = () => {
         if (this.props.loadingmore == true) {
             return (<View style={{
@@ -740,6 +753,7 @@ export default class PostList extends React.Component {
             return null;
         }
     };
+
     _setEmptyPlaceholder = () => {
         if (this.props.refreshing == true) {
             return <View style={{
@@ -764,6 +778,8 @@ export default class PostList extends React.Component {
         }
         return null;
     };
+
+
     render() {
         let refreshing = this.props.refreshing == 'failed' ? false : this.props.refreshing;
         //to hide pull to refresh functionality  when data is empty
@@ -858,6 +874,7 @@ export default class PostList extends React.Component {
                     text={'Blacklisting'}
                     isVisible={this.props.onitemblacklisting}
                 />
+
                 <ConfirmModal
                     isVisible={this.state.confirmmutevisible}
                     confirmMsg={this.state.profilemuted == true ? "Unmute profile?" : "Mute Profile"}
