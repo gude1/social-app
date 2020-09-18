@@ -15,10 +15,9 @@ import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import { TouchablePreview } from 'react-native-navigation/lib/dist/adapters/TouchablePreview';
 import { IndicatorViewPager, PagerTabIndicator, PagerTitleIndicator } from '@shankarmorwal/rn-viewpager';
 import { ToastAndroid } from 'react-native';
-
+import PostImageGallery from '../../components/reusable/PostImageGallery';
 
 const { colors } = useTheme();
-
 /**top section */
 const TopSection = ({ profile, isprofileowner }) => {
     const showButton = () => {
@@ -193,7 +192,7 @@ const TopSection = ({ profile, isprofileowner }) => {
 };
 
 /**bottom  section */
-const BottomSection = ({ profileposts, profilegists, tabs, tabVerticalScroll }) => {
+const BottomSection = ({ viewprofileform, fetchPost, tabs, tabVerticalScroll }) => {
     let data = [];
     for (var i = 0; i <= 10; i++) {
         data.push(String(i));
@@ -236,14 +235,11 @@ const BottomSection = ({ profileposts, profilegists, tabs, tabVerticalScroll }) 
                 indicator={renderTabIndicator()}
             >
                 <View key={1}>
-                    <FlatList
-                        data={data}
-                        overScrollMode={'always'}
-                        onScrollBeginDrag={() => {
-                            tabVerticalScroll();
-                        }}
-                        keyExtractor={(item, index) => item}
-                        renderItem={({ item }) => <Text style={{ color: colors.text }}>{item}</Text>}
+                    <PostImageGallery
+                        data={viewprofileform.viewprofileposts}
+                        onScrollBeginDrag={() => tabVerticalScroll()}
+                        loading={viewprofileform.viewpostloading}
+                        fetchPost={fetchPost}
                     />
                 </View>
                 <View key={2}>
@@ -264,8 +260,10 @@ const ViewProfileScreen = ({
     reqprofile,
     screentype,
     setReset,
+    setProcessing,
     setProfileData,
     viewprofile,
+    viewprofileform,
     viewprofileposts,
     fetchProfilePosts,
     setViewProfileForm,
@@ -278,7 +276,6 @@ const ViewProfileScreen = ({
     const [loaded, setLoaded] = useState(false);
     const [hideparallax, setHideParallax] = useState(false);
     const [youblockedpass, setYouBlockedPass] = useState(false);
-    const [appeared, setAppeared] = useState('no');
     const TABS = [
         {
             iconSource: 'pencil-square-o',
@@ -316,7 +313,7 @@ const ViewProfileScreen = ({
 
 
     /**component function goes here */
-    Navigation.mergeOptions(componentId, {
+    Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
         bottomTabs: {
             //visible: false
         },
@@ -325,18 +322,19 @@ const ViewProfileScreen = ({
 
     useEffect(() => {
         EntypoIcon.getImageSource('user', 100).then(e =>
-            Navigation.mergeOptions(componentId, {
+            Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
                 bottomTab: {
                     icon: e,
                 }
             }));
-        handleFecthViewProfile();
         setReset('viewprofileform')// set the comments to empty
+        handleFecthViewProfile();
         const listener = {
             componentDidAppear: () => {
+                setLoaded(true);
             },
             componentDidDisappear: () => {
-                setHideParallax(false);
+                //setHideParallax(false);
             }
         };
         // Register the listener to all events related to our component
@@ -346,7 +344,6 @@ const ViewProfileScreen = ({
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
         };
-
     }, []);
 
     //handles fetching of profiles data 
@@ -356,15 +353,34 @@ const ViewProfileScreen = ({
             ToastAndroid.show('profile not found', ToastAndroid.LONG);
         }
         if (!toshowprofile.profileblockedu) {
+            setLoaded('pending');
             fetchAProfile(toshowprofile.profile_id, null, (profile) => {
                 if (useowner) {
                     setProfileData({ ...profile, avatarremote: profile.avatar[1] })
                 } else {
                     setViewProfileForm(profile);
                 }
-                setLoaded(true);
             }, (action) => {
-                action == "cancel" ? setLoaded('failed') : setLoaded(true);
+                action == "cancel" && setLoaded('failed');
+            });
+        }
+    }
+
+
+    //handles fetching of profiles post
+    function handleProfilePostsFetch() {
+        if (checkData(toshowprofile) && toshowprofile.profileblockedu == false) {
+            fetchProfilePosts(toshowprofile.profile_id, () => {
+                setProcessing(true, 'viewprofileformpostloading');
+            }, (post, profile, nexturl) => {
+                addViewProfileFormPost(post);
+                setViewProfile(profile);
+                setProcessing(nexturl, 'viewprofileformpostnexturl');
+                setProcessing(false, 'viewprofileformpostloading');
+            }, (action) => {
+                action == "cancel" ?
+                    setProcessing('failed', 'viewprofileformpostloading') :
+                    setProcessing('retry', 'viewprofileformpostloading');
             });
         }
     }
@@ -397,6 +413,7 @@ const ViewProfileScreen = ({
         if (!hideparallax) {
             setHideParallax(true);
         }
+        //console.warn('jj');
     };
 
     //renders viewprofile view
@@ -406,20 +423,6 @@ const ViewProfileScreen = ({
         if (loaded == true) {
             torenderview =
                 <>
-                <Header
-                    headercolor={colors.card}
-                    headertext={toshowprofile.user.username}
-                    headertextcolor={colors.text}
-                    headertextsize={responsiveFontSize(2.5)}
-                    headerStyle={{
-                        elevation: 1.7,
-
-                    }}
-                    lefticon={lefticon}
-                    leftIconPress={lefticonpress}
-                    righticon={righticon}
-                />
-
                 <View style={styles.contentContainerStyle}>
                     {hideparallax ? null : <TopSection
                         profile={toshowprofile}
@@ -427,6 +430,8 @@ const ViewProfileScreen = ({
                     />}
                     <BottomSection
                         tabs={TABS}
+                        viewprofileform={viewprofileform}
+                        fetchPost={handleProfilePostsFetch}
                         tabVerticalScroll={onTabsVerticalScroll}
                     />
                 </View>
@@ -435,7 +440,7 @@ const ViewProfileScreen = ({
             torenderview = <View
                 style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
                 <Icon
-                    //onPress={}
+                    onPress={handleFecthViewProfile}
                     color={colors.text}
                     size={responsiveFontSize(4)}
                     name="sync"
@@ -443,7 +448,7 @@ const ViewProfileScreen = ({
                 />
                 <Text style={{ color: colors.text }}>Tap to retry </Text>
             </View>;
-        } else if (loaded == false) {
+        } else if (loaded == false || loaded == 'pending') {
             torenderview = <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
                 <ActivityIndicator size="large" color={'silver'} />
             </View>;
@@ -485,6 +490,19 @@ const ViewProfileScreen = ({
 
     return (
         <SafeAreaView style={styles.containerStyle}>
+            <Header
+                headercolor={colors.card}
+                headertext={toshowprofile.user.username}
+                headertextcolor={colors.text}
+                headertextsize={responsiveFontSize(2.5)}
+                headerStyle={{
+                    elevation: 1.7,
+
+                }}
+                lefticon={lefticon}
+                leftIconPress={lefticonpress}
+                righticon={righticon}
+            />
             {renderView()}
         </SafeAreaView >
     );
@@ -493,6 +511,7 @@ const ViewProfileScreen = ({
 const mapStateToProps = (state) => ({
     authprofile: { ...state.profile, user: state.user },
     viewprofileposts: state.viewprofileform.viewprofileposts,
+    viewprofileform: state.viewprofileform,
     viewprofile: state.viewprofileform.viewprofile,
 });
 

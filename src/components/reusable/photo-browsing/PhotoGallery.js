@@ -9,7 +9,6 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-//import { TouchableOpacity, FlatList } from 'react-native-gesture-handler';
 import {
     Image, Icon, Text
 } from 'react-native-elements';

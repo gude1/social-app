@@ -73,9 +73,8 @@ const handleProcessing = (key, value, state) => {
             return state;
             break;
     }
-
-
 };
+
 const timeSort = (data) => {
     if (!Array.isArray(data)) {
         return data;

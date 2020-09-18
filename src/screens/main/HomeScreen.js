@@ -75,9 +75,6 @@ const HomeScreen = ({ componentId,
                         visible: true
                     }
                 });
-                if (!loaded) {
-                    setLoaded(true);
-                }
             },
             componentDidDisappear: () => {
             }
@@ -91,6 +88,13 @@ const HomeScreen = ({ componentId,
         };
     }, []);
 
+    /**determines whether to open screen or not */
+    if (!loaded) {
+        //console.warn('ye');
+        setLoaded(true);
+    }
+
+
     const start = () => {
         //console.warn(timelineposts);
         if (timelineposts.timelineposts.length > 0 && timelinepostform.timelineposts.length < 1) {
@@ -98,13 +102,8 @@ const HomeScreen = ({ componentId,
             setTimelinePostFormLinks(timelineposts.links);
             setTimelinePostFormProfileChanges(timelineposts.profileschanges);
         }
-        /*Navigation.mergeOptions('POST_HOME_SCREEN', {
-            bottomTabs: {
-                visible: true
-            }
-        });*/
-        //setLoaded(true);
     };
+
     const updatePostItemLiked = (postid) => {
         alert('liked');
         //updateTimelinePostForm({ postid, likedstatus: "pending" });

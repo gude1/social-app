@@ -721,10 +721,10 @@ export const fetchProfilePosts = (profileid, initAction, okAction, failedAction)
             };
             initAction && initAction();
             const response = await session.post('profileposts', { profileid }, options);
-            const { errmsg, status, profile_posts, nextpageurl } = response.data;
+            const { errmsg, status, profile_posts, reqprofile, nextpageurl } = response.data;
             switch (status) {
                 case 200:
-                    okAction && okAction(profile_posts, nextpageurl)
+                    okAction && okAction(profile_posts, reqprofile, nextpageurl)
                     break;
                 case 412:
                     ToastAndroid.show(errmsg, ToastAndroid.SHORT);

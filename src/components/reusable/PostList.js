@@ -328,7 +328,7 @@ export default class PostList extends React.Component {
                                 postid: this.currentselectedpostid
                             }
                         }
-                    })
+                    });
                 }
             },
 

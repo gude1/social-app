@@ -52,7 +52,7 @@ const PostShowScreen = ({
     let righticonpress = '';
     useEffect(() => {
         // if (toshowpost.length < 1 || !checkData(toshowpost)) {
-        fetchParticularPost(postid);
+        fetchParticularPost(toshowpost.postid);
         //}
         const listener = {
             componentDidAppear: () => {
