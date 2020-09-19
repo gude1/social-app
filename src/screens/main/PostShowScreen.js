@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import * as Animatable from 'react-native-animatable';
 import { checkData } from '../../utilities/index';
+import { ToastAndroid } from 'react-native';
 
 const { colors } = useTheme();
 const PostShowScreen = ({
@@ -31,15 +32,15 @@ const PostShowScreen = ({
     likeTimelinePostAction,
     muteProfileAction,
     shareTimelinePostAction,
-    postid,
+    toshowpost,
     profile,
     navparent,
     timelinepostform,
     fetchParticularPost,
     }) => {
     const [loaded, setLoaded] = useState(false);
-    let toshowpost = timelinepostform.timelineposts.find(item => item.postid == postid);
-    let removeafterclose = !checkData(toshowpost);
+    let foreign = false;
+    toshowpost = setShowPost();
     toshowpost = checkData(toshowpost) ? [toshowpost] : [];
     let lefticon = navparent == true ? <Icon
         type="evilicon"
@@ -51,9 +52,19 @@ const PostShowScreen = ({
     let righticon = '';
     let righticonpress = '';
     useEffect(() => {
-        // if (toshowpost.length < 1 || !checkData(toshowpost)) {
-        fetchParticularPost(toshowpost.postid);
-        //}
+        if (toshowpost.length == 1) {
+            fetchParticularPost(toshowpost[0].postid);
+            /*() => {
+                let check = timelinepostform.timelineposts.find(item => item.postid == toshowpost[0].postid);
+                if (check == undefined) {
+                    foreign = true;
+                    updateTimelinePostForm(toshowpost[0]);
+                }
+            }*/
+        } else {
+            ToastAndroid.show('Missing values to continue', ToastAndroid.SHORT);
+        }
+
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
@@ -69,9 +80,24 @@ const PostShowScreen = ({
         return () => {
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
+            if (foreign && toshowpost.length == 1) {
+                deleteTimelinePostForm(toshowpost[0].postid)
+            }
         };
     }, []);
     /**component functions starts here */
+    function setShowPost() {
+        if (!checkData(toshowpost)) {
+            return null;
+        }
+        let check = timelinepostform.timelineposts.find(item => item.postid == toshowpost.postid);
+        if (!checkData(check)) {
+            foreign = true;
+            updateTimelinePostForm(toshowpost);
+            return toshowpost;
+        }
+        return check;
+    }
     /**component functions ends here */
     return (
         <SafeAreaView style={styles.containerStyle}>
@@ -100,10 +126,6 @@ const PostShowScreen = ({
                         onPostItemShared={shareTimelinePostAction}
                         onBlackListPress={blackListTimelinePost}
                         updatePostItem={updateTimelinePostForm}
-                        removebeforeunmount={removeafterclose}
-                        handleUnmount={() => {
-                            deleteTimelinePostForm(postid);
-                        }}
                         onRefresh={() => {
                             let onrefresh = () => setTimelinepostRefresh(true);
                             let offrefresh = () => setTimelinepostRefresh(false);

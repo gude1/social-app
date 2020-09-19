@@ -1543,6 +1543,7 @@ export const likeTimelinePostAction = (postid, likestatus, numpostlikes) => {
                 postid: postid,
             }, options);
             const { message, errmsg, postdetails, status } = response.data;
+            //console.warn(response.data)
             switch (status) {
                 case 200:
                     dispatch(updateTimelinePost({ ...postdetails }));
@@ -1580,6 +1581,7 @@ export const likeTimelinePostAction = (postid, likestatus, numpostlikes) => {
                     break;
             }
         } catch (error) {
+            console.warn(error);
             //ToastAndroid.show('could not like post posibbly a network error', ToastAndroid.LONG);
         }
         //dispatch(addTimelinePostForm([{ profile: { user: {}, avatar: [null] } }]));

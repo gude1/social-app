@@ -14,9 +14,25 @@ class PostImageItem extends Component {
         super(props);
         this.reswidth = responsiveWidth(50);
         this.resheight = responsiveWidth(50) - 2;
-        this.child = this.props.item.post_image.length > 1 ?
+        this.leftchild = <Icon
+            iconStyle={{ margin: 5, }}
+            type="feather"
+            onPress={() => Navigation.showModal({
+                component: {
+                    name: "PostShow",
+                    passProps: {
+                        navparent: true,
+                        toshowpost: this.props.item
+                    }
+                }
+            })}
+            name="eye"
+            color="white"
+            size={responsiveFontSize(3)}
+        />;
+        this.rightchild = this.props.item.post_image.length > 1 ?
             <Icon
-                iconStyle={{ alignSelf: 'flex-end', margin: 5 }}
+                iconStyle={{ margin: 5 }}
                 type="feather"
                 name="copy"
                 color="white"
@@ -31,35 +47,23 @@ class PostImageItem extends Component {
     render() {
         let { item } = this.props;
         return (
-            <TouchableOpacity
-                activeOpacity={1}
-                style={{ height: this.reswidth, width: this.reswidth }}
-                onPress={() => Navigation.showModal({
-                    component: {
-                        name: "PostShow",
-                        passProps: {
-                            navparent: true,
-                            postid: item.postid,
-                            post: item
-                        }
-                    }
-                })}
+            <Image
+                source={{
+                    uri: item.post_image[0].postimage,
+                    //priority: FastImage.priority.high
+                }}
+                //ImageComponent={FastImage}
+                placeholderStyle={{ backgroundColor: colors.border }}
+                containerStyle={{
+                    margin: 0.5,
+                }}
+                style={{ height: this.resheight, width: this.reswidth }}
             >
-                <Image
-                    source={{
-                        uri: item.post_image[0].postimage,
-                        //priority: FastImage.priority.high
-                    }}
-                    //ImageComponent={FastImage}
-                    placeholderStyle={{ backgroundColor: colors.border }}
-                    containerStyle={{
-                        margin: 0.5,
-                    }}
-                    style={{ height: this.resheight, width: this.reswidth }}
-                >
-                    {this.child}
-                </Image>
-            </TouchableOpacity>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    {this.leftchild}
+                    {this.rightchild}
+                </View>
+            </Image>
         )
     }
 };

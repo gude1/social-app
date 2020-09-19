@@ -309,6 +309,7 @@ export default class PostList extends React.Component {
         };
         this.onEndReachedCalledDuringMomentum = true;
         this.currentselectedpostid = '';
+        this.currentselectedpost = null;
         this.currentselectedpostownerid = '';
         this.currentselectedpostownerprofile = null;
         this.bottomodallistowneroptions = [
@@ -325,7 +326,7 @@ export default class PostList extends React.Component {
                             name: "PostShow",
                             passProps: {
                                 navparent: true,
-                                postid: this.currentselectedpostid
+                                toshowpost: this.currentselectedpost
                             }
                         }
                     });
@@ -370,10 +371,10 @@ export default class PostList extends React.Component {
                             name: "PostShow",
                             passProps: {
                                 navparent: true,
-                                postid: this.currentselectedpostid
+                                toshowpost: this.currentselectedpost
                             }
                         }
-                    })
+                    });
                 }
             },
             {
@@ -444,7 +445,9 @@ export default class PostList extends React.Component {
         if (checkData(postid) == true && checkData(postprofileid) == true) {
             this.currentselectedpostid = postid;
             this.currentselectedpostownerid = postprofileid;
+            this.currentselectedpost = postitem;
         }
+
         if (this.props.userprofile.profile_id == this.currentselectedpostownerid) {
             this._handleUserPostOptions();
         } else {

@@ -274,6 +274,7 @@ const ViewProfileScreen = ({
 }) => {
     //useowner = false;
     const [loaded, setLoaded] = useState(false);
+    let screenshown = false;
     const [hideparallax, setHideParallax] = useState(false);
     const [youblockedpass, setYouBlockedPass] = useState(false);
     const TABS = [
@@ -328,10 +329,15 @@ const ViewProfileScreen = ({
                 }
             }));
         setReset('viewprofileform')// set the comments to empty
-        handleFecthViewProfile();
+
         const listener = {
             componentDidAppear: () => {
-                setLoaded(true);
+                if (!screenshown) {
+                    screenshown = true;
+                    setLoaded(true);
+                    handleFecthViewProfile();
+                }
+
             },
             componentDidDisappear: () => {
                 //setHideParallax(false);
@@ -360,8 +366,9 @@ const ViewProfileScreen = ({
                 } else {
                     setViewProfileForm(profile);
                 }
+                setLoaded(true);
             }, (action) => {
-                action == "cancel" && setLoaded('failed');
+                action == "cancel" ? setLoaded('failed') : setLoaded(true);
             });
         }
     }

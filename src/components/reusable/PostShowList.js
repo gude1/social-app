@@ -88,12 +88,6 @@ export default class PostShowList extends Component {
             bottomodallistothersoptions: this.bottomodallistothersoptions
         });
     }
-    componentWillUnmount() {
-        if (this.props.removebeforeunmount) {
-            this.props.handleUnmount();
-        }
-
-    }
 
     _setSelected = (postid, postprofileid, postitem) => {
         if (checkData(postid) == true && checkData(postprofileid) == true) {
