@@ -195,7 +195,7 @@ export default class SharesList extends React.PureComponent {
                 username={item.profile.user.username}
                 processfollow={item.profile.followprogress || false}
                 onPress={() => this._followProfileAction(item)}
-                bio={item.profile.bio && item.profile.bio.length > 22 ? item.profile.bio.substring(0, 22) + "..." : bio}
+                bio={item.profile.bio && item.profile.bio.length > 22 ? item.profile.bio.substring(0, 22) + "..." : item.profile.bio}
                 textStyle={{ color: colors.text }}
                 containerStyle={{ backgroundColor: colors.background }}
                 loading={false}

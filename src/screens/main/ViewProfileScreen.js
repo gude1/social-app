@@ -299,18 +299,18 @@ const ViewProfileScreen = ({
     let lefticonpress = navparent == true ?
         setDimissNav()
         : null;
+    let righticonpress = hideparallax == true ? () => setHideParallax(false) : () => { };
     let righticon = hideparallax == true ?
         <Text
-            onPress={() => setHideParallax(false)}
+            onPress={righticonpress}
             style={{ color: colors.blue }}
         >Restore</Text> : <Icon
             type="entypo"
-            onPress={() => { }}
+            onPress={righticonpress}
             name="dots-three-vertical"
             color={colors.text}
             size={responsiveFontSize(2.5)}
         />;
-    let righticonpress = null;
 
 
     /**component function goes here */
@@ -509,6 +509,7 @@ const ViewProfileScreen = ({
                 lefticon={lefticon}
                 leftIconPress={lefticonpress}
                 righticon={righticon}
+                righticonpress={righticonpress}
             />
             {renderView()}
         </SafeAreaView >

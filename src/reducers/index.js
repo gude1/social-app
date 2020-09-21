@@ -15,7 +15,7 @@ import LikesListFormReducer from './LikesListFormReducer';
 import SharesListFormReducer from './SharesListFormReducer';
 import ProfileActionFormReducer from './ProfileActionFormReducer';
 import PostSettingReducer from './PostSettingReducer';
-import { ViewProfileReducer } from './ViewProfileReducer';
+import ViewProfileReducer from './ViewProfileReducer';
 
 export default combineReducers({
     user: userReducer,

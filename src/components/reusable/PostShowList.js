@@ -368,7 +368,7 @@ export default class PostShowList extends Component {
             <>
             <FlatList
                 data={this.props.data}
-                //keyExtractor={this.keyExtractor}
+                keyExtractor={this.keyExtractor}
                 getItemLayout={this._getItemLayout}
                 onRefresh={onRefresh}
                 refreshing={refreshing}

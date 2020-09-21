@@ -7,6 +7,22 @@ import {
 } from '../actions/types';
 import { checkData } from '../utilities/index';
 
+const USER_VIEW_PROFILE = {
+    viewprofile: {},
+    viewprofileposts: [],
+    viewprofilepostsnexturl: null,
+    viewpostloading: false,
+    viewpostloadingmore: false,
+};
+
+const OTHERS_VIEW_PROFILE = {
+    viewprofile: {},
+    viewprofileposts: [],
+    viewprofilepostsnexturl: null,
+    viewpostloading: false,
+    viewpostloadingmore: false,
+};
+
 const INITIAL_STATE = {
     viewprofile: {},
     viewprofileposts: [],
@@ -34,7 +50,7 @@ const handleProcessing = (key, value, state) => {
 };
 
 
-export const ViewProfileReducer = (state = INITIAL_STATE, action) => {
+const ViewProfileReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case ADD_VIEWPROFILEFORM_POSTS:
             return { ...state, viewprofileposts: [...state.viewprofileposts, ...action.payload] };
