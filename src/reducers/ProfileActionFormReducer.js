@@ -4,6 +4,7 @@ import { checkData } from '../utilities/index';
 const INITIAL_STATE = {
     followingprofile: false,
     mutingprofile: false,
+    blockingprofile: false,
 };
 
 const handleProcessing = (key, value, state) => {
@@ -15,6 +16,9 @@ const handleProcessing = (key, value, state) => {
             return { ...state, followingprofile: value };
             break;
         case 'profileactionmuting':
+            return { ...state, mutingprofile: value };
+            break;
+            case 'profileactioblocking':
             return { ...state, mutingprofile: value };
             break;
         default:

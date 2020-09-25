@@ -125,12 +125,24 @@ export const UPDATE_POST_SETTINGS = 'update_post_settings';
 
 
 /**
- * TYPE CONSTANT FOR VIEWPROFILEFORM REDUCER
+ * TYPE CONSTANT FOR USERVIEWPROFILEFORM REDUCER
  */
-export const ADD_VIEWPROFILEFORM_POSTS = 'add_viewprofileform_posts';
-export const PREPEND_VIEWPROFILEFORM_POSTS = 'prepend_viewprofileform_posts';
-export const UPDATE_VIEWPROFILEFORM_POSTS = 'update_viewprofileform_posts';
-export const SET_VIEWPROFILEFORM = 'set_viewprofileform';
+export const ADD_USER_VIEWPROFILEFORM_POSTS = 'add_user_viewprofileform_posts';
+export const PREPEND_USER_VIEWPROFILEFORM_POSTS = 'prepend_user_viewprofileform_posts';
+export const UPDATE_USER_VIEWPROFILEFORM_POSTS = 'update_user_viewprofileform_posts';
+export const SET_USER_VIEWPROFILEFORM = 'set_user_viewprofileform';
+export const SET_USER_VIEWPROFILEFORM_PROFILE_STATUS = 'set_user_viewprofileform_profile_status';
+
+/**
+ * TYPE CONSTANT FOR OTHERSVIEWPROFILEFORM REDUCER
+ */
+export const ADD_OTHERS_VIEWPROFILEFORM_POSTS = 'add_others_viewprofileform_posts';
+export const PREPEND_OTHERS_VIEWPROFILEFORM_POSTS = 'prepend_others_viewprofileform_posts';
+export const UPDATE_OTHERS_VIEWPROFILEFORM_POSTS = 'update_others_viewprofileform_posts';
+export const SET_OTHERS_VIEWPROFILEFORM = 'set_others_viewprofileform';
+export const SET_OTHERS_VIEWPROFILEFORM_PROFILE_STATUS = 'set_others_viewprofileform_profile_status';
+
+
 
 /**
  * TYPE CONSTANT FOR BOOKMARKS REDUCER

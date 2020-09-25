@@ -71,10 +71,14 @@ import {
     SET_TIMELINE_POST_FORM_PROFILE_CHANGES,
     SET_TIMELINE_POST_PROFILE_CHANGES,
     UPDATE_POST_SETTINGS,
-    ADD_VIEWPROFILEFORM_POSTS,
-    PREPEND_VIEWPROFILEFORM_POSTS,
-    UPDATE_VIEWPROFILEFORM_POSTS,
-    SET_VIEWPROFILEFORM,
+    ADD_USER_VIEWPROFILEFORM_POSTS,
+    PREPEND_USER_VIEWPROFILEFORM_POSTS,
+    UPDATE_USER_VIEWPROFILEFORM_POSTS,
+    SET_USER_VIEWPROFILEFORM,
+    ADD_OTHERS_VIEWPROFILEFORM_POSTS,
+    PREPEND_OTHERS_VIEWPROFILEFORM_POSTS,
+    UPDATE_OTHERS_VIEWPROFILEFORM_POSTS,
+    SET_OTHERS_VIEWPROFILEFORM,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -398,6 +402,56 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
         } catch (err) {
             //console.warn(err.toString());
             dispatch(setProcessing(false, 'profileactionmuting'));
+            if (err.toString().indexOf('Network Error') > -1) {
+                ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
+            } else {
+                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+            }
+            failedAction && failedAction();
+        }
+    };
+};
+
+export const blockProfileAction = (profileid, initAction, okAction, failedAction) => {
+    return async (dispatch) => {
+        const { user, profile } = store.getState();
+        if (checkData(profileid) != true) {
+            ToastAndroid.show('Request incomplete', ToastAndroid.LONG);
+            return;
+        } else if (profileid == profile.profile_id) {
+            ToastAndroid.show("You can't block yourself", ToastAndroid.LONG);
+            return;
+        }
+        dispatch(setProcessing(true, 'profileactionblocking'));
+        initAction && initAction();
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('profileblockaction', { profileid }, options);
+            const { errmsg, message, status } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'profileactionblocking'));
+                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    okAction && okAction();
+                    break;
+                case 400:
+                    dispatch(setProcessing(false, 'profileactionblocking'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    failedAction && failedAction();
+                    break;
+                case 412:
+                    dispatch(setProcessing(false, 'profileactionblocking'));
+                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    failedAction && failedAction();
+                default:
+                    ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
+                    failedAction && failedAction();
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'profileactionblocking'));
             if (err.toString().indexOf('Network Error') > -1) {
                 ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
             } else {
@@ -739,6 +793,7 @@ export const fetchProfilePosts = (profileid, initAction, okAction, failedAction)
                     break;
             }
         } catch (err) {
+            //console.warn(err.toString())
             failedAction && failedAction();
         }
     };
@@ -1510,7 +1565,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
             }
         } catch (e) {
             //alert(JSON.stringify(e));
-            // console.warn(e.toString())
+            //console.warn(e.toString())
             failedAction && failedAction();
             dispatch(setTimelinepostRefresh('failed'));
             if (e.toString().indexOf('Network Error') > - 1) {
@@ -3199,36 +3254,75 @@ export const hidePostCommentReply = (replyid, ownerid) => {
 };
 
 /**
- * ACTION CREATOR FOR VIEWPROFILE REDUCER
+ * ACTION CREATOR FOR USERVIEWPROFILE REDUCER
  * 
  */
-export const addViewProfileFormPost = (data: Array) => {
+export const addUserViewProfileFormPost = (data: Array) => {
     return {
-        type: ADD_VIEWPROFILEFORM_POSTS,
+        type: ADD_USER_VIEWPROFILEFORM_POSTS,
         payload: data
     };
 };
 
-export const prependViewProfileFormPost = (data: Array) => {
+export const prependUserViewProfileFormPost = (data: Array) => {
     return {
-        type: PREPEND_VIEWPROFILEFORM_POSTS,
+        type: PREPEND_USER_VIEWPROFILEFORM_POSTS,
         payload: data
     };
 };
 
-export const updateViewProfileFormPost = (data: Object) => {
+export const updateUserViewProfileFormPost = (data: Object) => {
     return {
-        type: UPDATE_VIEWPROFILEFORM_POSTS,
+        type: UPDATE_USER_VIEWPROFILEFORM_POSTS,
         payload: data
     };
 };
 
-export const setViewProfileForm = (data: Object) => {
+export const setUserViewProfileForm = (data: Object) => {
     return {
-        type: SET_VIEWPROFILEFORM,
+        type: SET_USER_VIEWPROFILEFORM,
         payload: data
     };
 };
+
+
+/**
+ * ACTION CREATOR FOR OTHERSVIEWPROFILE REDUCER
+ * 
+ */
+export const addOthersViewProfileFormPost = (data: Array) => {
+    return {
+        type: ADD_OTHERS_VIEWPROFILEFORM_POSTS,
+        payload: data
+    };
+};
+
+export const prependOthersViewProfileFormPost = (data: Array) => {
+    return {
+        type: PREPEND_OTHERS_VIEWPROFILEFORM_POSTS,
+        payload: data
+    };
+};
+
+export const updateOthersViewProfileFormPost = (data: Object) => {
+    return {
+        type: UPDATE_OTHERS_VIEWPROFILEFORM_POSTS,
+        payload: data
+    };
+};
+
+export const setOthersViewProfileForm = (data: Object) => {
+    return {
+        type: SET_OTHERS_VIEWPROFILEFORM,
+        payload: data
+    };
+};
+
+
+
+
+
+
 
 
 

@@ -26,7 +26,8 @@ const persistConfig = {
         'likeslistform',
         'shareslistform',
         'profileactionform',
-        'viewprofileform'
+        'userviewprofileform',
+        'othersviewprofileform'
     ]
 };
 

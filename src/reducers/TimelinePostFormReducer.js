@@ -45,7 +45,7 @@ const handleDelete = (state, data) => {
 //to determine the type of processing request
 const handleProcessing = (key, value, state) => {
     if (checkData(key) != true || checkData(state) != true || checkData(value) != true) {
-        return;
+        return state;
     }
     switch (key) {
         case 'timelinepostform':

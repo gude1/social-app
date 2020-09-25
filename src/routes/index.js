@@ -89,7 +89,7 @@ export const MAINTABSROUTE = {
                                     id: 'VIEW_PROFILE_SCREEN',
                                     name: 'ViewProfile',
                                     passProps: {
-                                        useowner: true
+                                        tabcalled: true
                                     },
                                 }
                             }

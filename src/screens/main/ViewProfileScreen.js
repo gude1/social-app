@@ -19,7 +19,8 @@ import PostImageGallery from '../../components/reusable/PostImageGallery';
 
 const { colors } = useTheme();
 /**top section */
-const TopSection = ({ profile, isprofileowner }) => {
+const TopSection = ({ profile, isprofileowner, profileActions }) => {
+    let avatar = isprofileowner ? { uri: profile.avatarlocal } : { uri: profile.avatar[1] }
     const showButton = () => {
         let btn = null;
         if (isprofileowner) {
@@ -40,14 +41,39 @@ const TopSection = ({ profile, isprofileowner }) => {
                 buttonStyle={styles.buttonStyle}
             />
         } else {
-
+            if (profile.ublockedprofile)
+                btn = <Button
+                    title="Blocked"
+                    //TouchableComponent={TouchableScale}
+                    onPress={() => { }}
+                    type="outline"
+                    titleStyle={[styles.buttonTitleStyle, { color: 'red' }]}
+                    buttonStyle={[styles.buttonStyle, { color: 'red' }]}
+                />;
+            else if (profile.profilemuted)
+                btn = <Button
+                    title="Muted"
+                    //TouchableComponent={TouchableScale}
+                    onPress={() => { }}
+                    type="outline"
+                    titleStyle={[styles.buttonTitleStyle, { color: 'red' }]}
+                    buttonStyle={[styles.buttonStyle, { color: 'red' }]}
+                />;
+            else if (profile.following == true)
+                btn = <Button
+                    title="Following"
+                    //TouchableComponent={TouchableScale}
+                    type="outline"
+                    titleStyle={styles.buttonTitleStyle}
+                    buttonStyle={styles.buttonStyle}
+                />
         }
         return btn;
     }
     return (
         <View style={styles.topSection}>
             <View style={styles.avatarIconCtn}>
-                {isprofileowner == false ? <Icon
+                {isprofileowner != true ? <Icon
                     type="evilicon"
                     name="comment"
                     color={colors.text}
@@ -59,10 +85,10 @@ const TopSection = ({ profile, isprofileowner }) => {
                         size={responsiveFontSize(4)}
                     />}
                 <Avatar
-                    source={{ uri: profile.avatarlocal }}
-                    //source={null}
+                    source={avatar}
                     resizeMode='contain'
-                    size={80} rounded
+                    size={80}
+                    rounded
                     icon={{ name: 'user', type: 'antdesign', size: 40, color: 'white' }}
                     onAccessoryPress={() => {
                     }}
@@ -255,26 +281,30 @@ const ViewProfileScreen = ({
     componentId,
     state,
     authprofile,
-    useowner,
     navparent,
     reqprofile,
     screentype,
     setReset,
     setProcessing,
     setProfileData,
-    viewprofile,
-    viewprofileform,
-    viewprofileposts,
+    userviewprofileform,
+    othersviewprofileform,
+    tabcalled,
     fetchProfilePosts,
-    setViewProfileForm,
-    addViewProfileFormPost,
-    prependViewProfileFormPost,
-    updateViewProfileFormPost,
+    setUserViewProfileForm,
+    addUserViewProfileFormPost,
+    prependUserViewProfileFormPost,
+    updateUserViewProfileFormPost,
+    setOthersViewProfileForm,
+    addOthersViewProfileFormPost,
+    prependOthersViewProfileFormPost,
+    updateOthersViewProfileFormPost,
+    muteProfileAction,
+    blockProfileAction,
+    followProfileAction,
     fetchAProfile,
 }) => {
-    //useowner = false;
     const [loaded, setLoaded] = useState(false);
-    let screenshown = false;
     const [hideparallax, setHideParallax] = useState(false);
     const [youblockedpass, setYouBlockedPass] = useState(false);
     const TABS = [
@@ -287,7 +317,10 @@ const ViewProfileScreen = ({
             iconType: 'feather'
         }
     ];
-    let toshowprofile = setViewProfile();
+    let screenshown = false;
+    let useowner = !checkData(reqprofile) ? true : reqprofile.profile_id == authprofile.profile_id;
+    let viewprofileform = useowner ? userviewprofileform : othersviewprofileform;
+    let toshowprofile = returnViewProfile();
     //toshowprofile.ublockedprofile = true;
     let lefticon = navparent == true ? <Icon
         type="evilicon"
@@ -312,14 +345,12 @@ const ViewProfileScreen = ({
             size={responsiveFontSize(2.5)}
         />;
 
-
     /**component function goes here */
     Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
         bottomTabs: {
             //visible: false
         },
     });
-
 
     useEffect(() => {
         EntypoIcon.getImageSource('user', 100).then(e =>
@@ -328,7 +359,11 @@ const ViewProfileScreen = ({
                     icon: e,
                 }
             }));
-        setReset('viewprofileform')// set the comments to empty
+        if (useowner) {
+            setReset('userviewprofileform');
+        } else {
+            setReset('othersviewprofileform');
+        }
 
         const listener = {
             componentDidAppear: () => {
@@ -349,6 +384,11 @@ const ViewProfileScreen = ({
         return () => {
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
+            if (useowner) {
+                setReset('userviewprofileform');
+            } else {
+                setReset('othersviewprofileform');
+            }
         };
     }, []);
 
@@ -364,7 +404,7 @@ const ViewProfileScreen = ({
                 if (useowner) {
                     setProfileData({ ...profile, avatarremote: profile.avatar[1] })
                 } else {
-                    setViewProfileForm(profile);
+                    setViewProfile(profile);
                 }
                 setLoaded(true);
             }, (action) => {
@@ -373,21 +413,118 @@ const ViewProfileScreen = ({
         }
     }
 
+    //funnction to set view profile
+    function setViewProfile(data) {
+        if (!checkData(data)) {
+            return;
+        }
+        //console.warn(useowner)
+        useowner == false && setOthersViewProfileForm(data);
+    }
+    //returns the profile to show
+    function returnViewProfile() {
+        if (useowner) {
+            return authprofile;
+        } else if (!checkData(reqprofile) || !checkData(reqprofile.user)) {
+            return null;
+        } else {
+            if (checkData(viewprofileform.viewprofile) && viewprofileform.viewprofile.profile_id == reqprofile.profile_id)
+                return viewprofileform.viewprofile;
+            else
+                return reqprofile;
+        }
+
+    };
+
+    //function to add profile posts starts here
+    function addProfilePost(data) {
+        if (!checkData(data)) {
+            return;
+        }
+        useowner ? addUserViewProfileFormPost(data) : addOthersViewProfileFormPost(data);
+    }
+
+
+    //function to followprofile starts here
+    function followProfile() {
+        let following = !viewprofileform.viewprofile.following;
+        let num_followers = viewprofileform.viewprofile.num_followers;
+        if (following)
+            num_followers = num_followers + 1 < 1 ? 1 : num_followers + 1;
+        else
+            num_followers = num_followers - 1 < 0 ? 0 : num_followers - 1;
+
+
+        followProfileAction(toshowprofile.profile_id,
+            () => {
+                setProcessing(true, 'othersviewprofileformfollowing');
+            }, () => {
+                setViewProfile({
+                    ...viewprofileform.viewprofile,
+                    following,
+                    num_followers,
+                });
+                setProcessing(false, 'othersviewprofileformfollowing');
+            }, () => {
+                setProcessing(false, 'othersviewprofileformfollowingS');
+            });
+    }
+
+    //function muteProfile
+    function muteProfile() {
+        muteProfileAction(toshowprofile.profile_id,
+            () => {
+                setProcessing(true, 'othersviewprofileformmuting');
+            }, () => {
+                setViewProfile({
+                    ...viewprofileform.viewprofile,
+                    profilemuted: !viewprofileform.viewprofile.profilemuted,
+                });
+                setProcessing(false, 'othersviewprofileformmuting');
+            }, () => {
+                setProcessing(false, 'othersviewprofileformmuting');
+            });
+    }
+
+    //function to handle profileblocking
+    function blockProfile() {
+        blockProfileAction(toshowprofile.profile_id,
+            () => {
+                setProcessing(true, 'othersviewprofileformblocking');
+            }, (blockedprofile) => {
+                setViewProfile({
+                    ...viewprofileform.viewprofile,
+                    ublockedprofile: !viewprofileform.viewprofile.ublockedprofile,
+                });
+                setProcessing(false, 'othersviewprofileformblocking');
+            }, () => {
+                setProcessing(false, 'othersviewprofileformblocking');
+            })
+    }
+
 
     //handles fetching of profiles post
     function handleProfilePostsFetch() {
         if (checkData(toshowprofile) && toshowprofile.profileblockedu == false) {
             fetchProfilePosts(toshowprofile.profile_id, () => {
-                setProcessing(true, 'viewprofileformpostloading');
+                useowner ? setProcessing(true, 'userviewprofileformpostloading')
+                    : setProcessing(true, 'othersviewprofileformpostloading');
             }, (post, profile, nexturl) => {
-                addViewProfileFormPost(post);
+                addProfilePost(post);
                 setViewProfile(profile);
-                setProcessing(nexturl, 'viewprofileformpostnexturl');
-                setProcessing(false, 'viewprofileformpostloading');
+                useowner ? setProcessing(nexturl, 'userviewprofileformpostnexturl') :
+                    setProcessing(nexturl, 'othersviewprofileformpostnexturl');
+                useowner ? setProcessing(false, 'userviewprofileformpostloading')
+                    : setProcessing(false, 'othersviewprofileformpostloading');
             }, (action) => {
-                action == "cancel" ?
-                    setProcessing('failed', 'viewprofileformpostloading') :
-                    setProcessing('retry', 'viewprofileformpostloading');
+                if (action == "cancel") {
+                    useowner ? setProcessing('failed', 'userviewprofileformpostloading') :
+                        setProcessing('failed', 'othersviewprofileformpostloading');
+
+                } else {
+                    useowner ? setProcessing('retry', 'userviewprofileformpostloading') :
+                        setProcessing('retry', 'othersviewprofileformpostloading');
+                }
             });
         }
     }
@@ -400,27 +537,11 @@ const ViewProfileScreen = ({
             return () => Navigation.pop(componentId);
     }
 
-    //returns the profile to show
-    function setViewProfile() {
-        if (useowner) {
-            return authprofile;
-        } else if (!checkData(reqprofile) || !checkData(reqprofile.user)) {
-            return null;
-        } else {
-            if (checkData(viewprofile) && viewprofile.profile_id == reqprofile.profile_id)
-                return viewprofile;
-            else
-                return reqprofile;
-        }
-
-    };
-
     //handle hiding of topsection onces tabs flatlist scroll starts
     const onTabsVerticalScroll = () => {
         if (!hideparallax) {
             setHideParallax(true);
         }
-        //console.warn('jj');
     };
 
     //renders viewprofile view
@@ -430,10 +551,11 @@ const ViewProfileScreen = ({
         if (loaded == true) {
             torenderview =
                 <>
-                <View style={styles.contentContainerStyle}>
+                <View style={[styles.contentContainerStyle, tabcalled && { marginBottom: 55 }]}>
                     {hideparallax ? null : <TopSection
                         profile={toshowprofile}
                         isprofileowner={useowner}
+                        profileActions={{ followProfile, muteProfile, blockedprofile }}
                     />}
                     <BottomSection
                         tabs={TABS}
@@ -518,9 +640,8 @@ const ViewProfileScreen = ({
 
 const mapStateToProps = (state) => ({
     authprofile: { ...state.profile, user: state.user },
-    viewprofileposts: state.viewprofileform.viewprofileposts,
-    viewprofileform: state.viewprofileform,
-    viewprofile: state.viewprofileform.viewprofile,
+    userviewprofileform: state.userviewprofileform,
+    othersviewprofileform: state.othersviewprofileform,
 });
 
 ViewProfileScreen.options = {
@@ -544,7 +665,7 @@ const styles = StyleSheet.create({
     },
     contentContainerStyle: {
         flex: 1,
-        marginBottom: 55,
+        margin: 0,
         backgroundColor: colors.background,
     },
     topSection: {

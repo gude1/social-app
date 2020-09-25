@@ -51,6 +51,7 @@ class PostImageViewPager extends Component {
         });
     }
 
+
     _createPagers = (data, placeholder) => {
         if (checkData(data) != true || data.length < 1 || !Array.isArray(data)) {
             return null;
@@ -156,6 +157,20 @@ export class PostItem extends Component {
             />;
     };
 
+    //temporoary function for testing would be removed
+    _onProfileNav = () => {
+        Navigation.showModal({
+            component: {
+                name: 'ViewProfile',
+                passProps: {
+                    navparent: true,
+                    reqprofile: this.props.profile,
+                    screentype: 'modal'
+                },
+            }
+        });
+    };
+
     _setShareIcon = () => {
         return this.props.postshared == 'postshared' ? <Icon
             type="entypo"
@@ -180,6 +195,7 @@ export class PostItem extends Component {
                 <View style={styles.postListItemTopBar}>
                     <View style={styles.postListItemTopBarItem}>
                         <Avatar size={35} rounded
+                            onPress={this._onProfileNav}
                             ImageComponent={FastImage}
                             source={{ uri: this.props.posteravatar }}
                             containerStyle={styles.postListItemTopBarItemAvatar} />
@@ -441,6 +457,7 @@ export default class PostList extends React.Component {
          });*/
     }
 
+
     _setSelected = (postid, postprofileid, postitem) => {
         if (checkData(postid) == true && checkData(postprofileid) == true) {
             this.currentselectedpostid = postid;
@@ -689,6 +706,7 @@ export default class PostList extends React.Component {
                 this._setSelected(item.postid, item.profile.profile_id, item);
             }}
             postshared={item.postshared}
+            profile={item.profile}
             posttext={item.post_text}
             numlikes={item.num_post_likes}
             numcomments={item.num_post_comments}

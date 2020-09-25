@@ -1,47 +1,47 @@
 import {
     RESET,
     PROCESSING,
-    ADD_VIEWPROFILEFORM_POSTS,
-    UPDATE_VIEWPROFILEFORM_POSTS,
-    SET_VIEWPROFILEFORM
+    ADD_OTHERS_VIEWPROFILEFORM_POSTS,
+    UPDATE_OTHERS_VIEWPROFILEFORM_POSTS,
+    SET_OTHERS_VIEWPROFILEFORM_PROFILE_STATUS,
+    SET_OTHERS_VIEWPROFILEFORM
 } from '../actions/types';
 import { checkData } from '../utilities/index';
 
-const USER_VIEW_PROFILE = {
-    viewprofile: {},
-    viewprofileposts: [],
-    viewprofilepostsnexturl: null,
-    viewpostloading: false,
-    viewpostloadingmore: false,
-};
-
-const OTHERS_VIEW_PROFILE = {
-    viewprofile: {},
-    viewprofileposts: [],
-    viewprofilepostsnexturl: null,
-    viewpostloading: false,
-    viewpostloadingmore: false,
-};
 
 const INITIAL_STATE = {
     viewprofile: {},
     viewprofileposts: [],
     viewprofilepostsnexturl: null,
+    following: false,
+    blocking: false,
+    muting: false,
     viewpostloading: false,
     viewpostloadingmore: false,
 };
 
-//to determine the type of processing request
+
+
+//to determine the type of processing request if user profile
 const handleProcessing = (key, value, state) => {
     if (checkData(key) != true || checkData(state) != true || checkData(value) != true) {
-        return;
+        return state;
     }
     switch (key) {
-        case 'viewprofileformpostloading':
+        case 'othersviewprofileformpostloading':
             return { ...state, viewpostloading: value };
             break;
-        case 'viewprofileformpostnexturl':
+        case 'othersviewprofileformpostnexturl':
             return { ...state, viewprofilepostsnexturl: value };
+            break;
+        case 'othersviewprofileformblocking':
+            return { ...state, blocking: value };
+            break;
+        case 'othersviewprofileformmuting':
+            return { ...state, muting: value };
+            break;
+        case 'othersviewprofileformfollowing':
+            return { ...state, following: value };
             break;
         default:
             return state;
@@ -50,17 +50,22 @@ const handleProcessing = (key, value, state) => {
 };
 
 
-const ViewProfileReducer = (state = INITIAL_STATE, action) => {
+
+//original reducer
+const OthersViewProfileReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
-        case ADD_VIEWPROFILEFORM_POSTS:
+        case ADD_OTHERS_VIEWPROFILEFORM_POSTS:
             return { ...state, viewprofileposts: [...state.viewprofileposts, ...action.payload] };
             break;
         case PROCESSING:
             return handleProcessing(action.payload.key,
                 action.payload.value, state);
             break;
+        case SET_OTHERS_VIEWPROFILEFORM:
+            return { ...state, viewprofile: { ...state.viewprofile, ...action.payload } };
+            break;
         case RESET:
-            if (action.payload.key == 'viewprofileform') {
+            if (action.payload.key == 'othersviewprofileform') {
                 return INITIAL_STATE;
             }
             return state;
@@ -68,7 +73,7 @@ const ViewProfileReducer = (state = INITIAL_STATE, action) => {
         default:
             return state;
             break;
-    }
+    };
 };
 
-export default ViewProfileReducer;
+export default OthersViewProfileReducer;
