@@ -141,6 +141,54 @@ export default class PostImageGallery extends Component {
         </View>;
     };
 
+    _setFooterComponent = () => {
+        if (this.props.loadingmore == true) {
+            return (<View style={{
+                flex: 1,
+                justifyContent: "center",
+                margin: 6,
+                alignItems: "center"
+            }}>
+                <ActivityIndicator
+                    size={30}
+                    color={colors.border} />
+            </View>);
+        } else if (this.props.loadingmore == 'retry') {
+            return (<View style={{
+                flex: 1,
+                justifyContent: "center",
+                margin: 6,
+                alignItems: "center"
+            }}>
+                <Icon
+                    color={colors.text}
+                    size={responsiveFontSize(4)}
+                    onPress={() => this.props.fetchMorePost()}
+                    name="sync"
+                    type="antdesign"
+                />
+                <Text style={{ color: colors.border, fontSize: responsiveFontSize(1.5) }}>Tap to retry</Text>
+            </View>);
+        } else if (this.props.loadingmore == false) {
+            return (<View style={{
+                flex: 1,
+                justifyContent: "center",
+                margin: 10,
+                alignItems: "center"
+            }}>
+                <Icon
+                    color={colors.text}
+                    size={responsiveFontSize(7)}
+                    onPress={this.props.fetchMorePost}
+                    name="plus"
+                    type="evilicon"
+                />
+            </View>);
+        } else {
+            return null;
+        }
+    };
+
     _renderItem = ({ item }) => {
         return <PostImageItem item={item} />
     };
@@ -157,6 +205,7 @@ export default class PostImageGallery extends Component {
                 initialNumRender={5}
                 getItemLayout={this._getItemLayout}
                 ListEmptyComponent={this._setEmptyPlaceholder()}
+                ListFooterComponent={this.props.data.length > 0 ? this._setFooterComponent() : null}
                 data={this.props.data}
                 keyExtractor={this._keyExtractor}
                 renderItem={this._renderItem}

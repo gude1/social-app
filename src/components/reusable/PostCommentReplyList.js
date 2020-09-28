@@ -365,7 +365,7 @@ export default class PostCommentReplyList extends Component {
         if (item.profile.profilemuted == true && item.muted != false) {
             return (
                 <PanelMsg
-                    message={'This reply is from someone you have muted'}
+                    message={'This reply is from someone you have muted '}
                     buttonTitle={'View'}
                     buttonPress={() => this.props.updateReply({
                         replyid: item.replyid,
@@ -373,10 +373,22 @@ export default class PostCommentReplyList extends Component {
                     })}
                 />
             );
-        } else if (item.profile.ublockedprofile == true || item.profile.profileblockedu == true) {
+        } else if (item.profile.ublockedprofile == true) {
             return (
                 <PanelMsg
-                    message={'This comment is unavailable'}
+                    message={'This reply is from someone you blocked '}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updateReply({
+                        replyid: item.replyid,
+                        allowblockpass: true
+                    })}
+                />
+            );
+        } else if (item.profile.profileblockedu == true) {
+            return (
+                <PanelMsg
+                    message={'This reply is from someone you blocked '}
+                    buttonTitle={'Learn More'}
                 />
             )
         }

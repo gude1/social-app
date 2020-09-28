@@ -4,6 +4,7 @@ import {
     ADD_USER_VIEWPROFILEFORM_POSTS,
     UPDATE_USER_VIEWPROFILEFORM_POSTS,
     SET_USER_VIEWPROFILEFORM_PROFILE_STATUS,
+    SET_USER_VIEWPROFILEFORM_LINK,
     SET_USER_VIEWPROFILEFORM
 } from '../actions/types';
 import { checkData } from '../utilities/index';
@@ -28,8 +29,8 @@ const handleProcessing = (key, value, state) => {
         case 'userviewprofileformpostloading':
             return { ...state, viewpostloading: value };
             break;
-        case 'userviewprofileformpostnexturl':
-            return { ...state, viewprofilepostsnexturl: value };
+        case 'userviewprofileformpostloadingmore':
+            return { ...state, viewpostloadingmore: value };
             break;
         default:
             return state;
@@ -48,6 +49,9 @@ const UserViewProfileReducer = (state = INITIAL_STATE, action) => {
         case PROCESSING:
             return handleProcessing(action.payload.key,
                 action.payload.value, state);
+            break;
+        case SET_USER_VIEWPROFILEFORM_LINK:
+            return { ...state, viewprofilepostsnexturl: action.payload };
             break;
         case RESET:
             if (action.payload.key == 'userviewprofileform') {

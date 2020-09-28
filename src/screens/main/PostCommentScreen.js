@@ -47,7 +47,6 @@ const PostCommentScreen = ({ navparent,
     let righticon = '';
     let righticonpress = '';
     useEffect(() => {
-        setReset('postcommentform')// set the comments to empty
         fetchPostComment(ownerpostid);
         const listener = {
             componentDidAppear: () => {
@@ -65,6 +64,7 @@ const PostCommentScreen = ({ navparent,
         return () => {
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
+            setReset('postcommentform');// set the comments to empty
         };
     }, []);
     /**component functions starts here */

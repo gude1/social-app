@@ -79,6 +79,8 @@ import {
     PREPEND_OTHERS_VIEWPROFILEFORM_POSTS,
     UPDATE_OTHERS_VIEWPROFILEFORM_POSTS,
     SET_OTHERS_VIEWPROFILEFORM,
+    SET_USER_VIEWPROFILEFORM_LINK,
+    SET_OTHERS_VIEWPROFILEFORM_LINK,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -778,7 +780,7 @@ export const fetchProfilePosts = (profileid, initAction, okAction, failedAction)
             const { errmsg, status, profile_posts, reqprofile, nextpageurl } = response.data;
             switch (status) {
                 case 200:
-                    okAction && okAction(profile_posts, reqprofile, nextpageurl)
+                    okAction && okAction(profile_posts, reqprofile, nextpageurl);
                     break;
                 case 412:
                     ToastAndroid.show(errmsg, ToastAndroid.SHORT);
@@ -799,7 +801,7 @@ export const fetchProfilePosts = (profileid, initAction, okAction, failedAction)
     };
 };
 
-export const fetchMoreProfilePosts = (url, initAction, okAction, failedAction) => {
+export const fetchMoreProfilePosts = (url, profileid, initAction, okAction, failedAction) => {
     return async () => {
         if (!checkData(profileid)) {
             ToastAndroid.show('Missing terms to continue', ToastAndroid.SHORT);
@@ -812,10 +814,10 @@ export const fetchMoreProfilePosts = (url, initAction, okAction, failedAction) =
             };
             initAction && initAction();
             const response = await session.post(url, { profileid }, options);
-            const { errmsg, status, profile_posts, nextpageurl } = response.data;
+            const { errmsg, status, profile_posts, reqprofile, nextpageurl } = response.data;
             switch (status) {
                 case 200:
-                    okAction && okAction(profile_posts, nextpageurl)
+                    okAction && okAction(profile_posts, reqprofile, nextpageurl);
                     break;
                 case 404:
                     ToastAndroid.show('profile has no post', ToastAndroid.SHORT);
@@ -830,6 +832,7 @@ export const fetchMoreProfilePosts = (url, initAction, okAction, failedAction) =
                     break;
             }
         } catch (err) {
+            alert(err.toString())
             failedAction && failedAction();
         }
     };
@@ -3285,6 +3288,13 @@ export const setUserViewProfileForm = (data: Object) => {
     };
 };
 
+export const setUserViewProfileFormLink = (data) => {
+    return {
+        type: SET_USER_VIEWPROFILEFORM_LINK,
+        payload: data
+    };
+};
+
 
 /**
  * ACTION CREATOR FOR OTHERSVIEWPROFILE REDUCER
@@ -3318,13 +3328,12 @@ export const setOthersViewProfileForm = (data: Object) => {
     };
 };
 
-
-
-
-
-
-
-
+export const setOthersViewProfileFormLink = (data) => {
+    return {
+        type: SET_OTHERS_VIEWPROFILEFORM_LINK,
+        payload: data
+    };
+};
 
 /**
  * ACTION CREATOR FOR BOOKMARKS REDUCER

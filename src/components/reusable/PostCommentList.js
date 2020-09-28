@@ -363,7 +363,7 @@ export default class PostCommentList extends React.Component {
         if (item.profile.profilemuted == true && item.muted != false) {
             return (
                 <PanelMsg
-                    message={'This comment is from someone you have muted'}
+                    message={'This comment is from someone you have muted '}
                     buttonTitle={'View'}
                     buttonPress={() => this.props.updateComment({
                         commentid: item.commentid,
@@ -371,10 +371,22 @@ export default class PostCommentList extends React.Component {
                     })}
                 />
             );
-        } else if (item.profile.ublockedprofile == true || item.profile.profileblockedu == true) {
+        } else if (item.profile.ublockedprofile == true && item.allowblockpass != true) {
             return (
                 <PanelMsg
-                    message={'This comment is unavailable'}
+                    message={'This comment is from someone you have blocked '}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updateComment({
+                        commentid: item.commentid,
+                        allowblockpass: true
+                    })}
+                />
+            );
+        } else if (item.profile.profileblockedu == true) {
+            return (
+                <PanelMsg
+                    message={'This comment is unavailable '}
+                    buttonTitle={'Learn More'}
                 />
             )
         }
@@ -389,6 +401,16 @@ export default class PostCommentList extends React.Component {
                 )}
                 //replyPress={}
                 leftAvatar={{ uri: item.profile.avatar[1] }}
+                onAvatarPress={() => Navigation.showModal({
+                    component: {
+                        name: 'ViewProfile',
+                        passProps: {
+                            navparent: true,
+                            reqprofile: item.profile,
+                            screentype: 'modal'
+                        },
+                    }
+                })}
                 title={item.profile.user.username}
                 subtitle={item.comment_text}
                 profilemuted={item.profile.profilemuted}

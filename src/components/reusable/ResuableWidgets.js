@@ -3,12 +3,14 @@ import { View, StyleSheet, Text, TouchableOpacity, Modal } from 'react-native';
 import { ViewPager } from '@shankarmorwal/rn-viewpager';
 import * as Animatable from 'react-native-animatable';
 import { useTheme } from '../../assets/themes';
-import { Icon, Avatar, Overlay, Image, Input } from 'react-native-elements';
+import { Icon, Avatar, Overlay, Image, Input, Button } from 'react-native-elements';
 import { checkData } from '../../utilities';
 import { responsiveFontSize, responsiveWidth, responsiveScreenWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import Toast, { DURATION } from 'react-native-easy-toast';
 import { ActivityIndicator } from 'react-native';
 import TouchableScale from 'react-native-touchable-scale';
+import { Navigation } from 'react-native-navigation';
+
 const { colors } = useTheme();
 export class Header extends React.PureComponent {
     render() {
@@ -363,6 +365,55 @@ export const ConfirmModal = ({ isVisible, acceptText, acceptAction, rejectAction
     );
 };
 
+export const ModalList = ({ optionsArr, isVisible, onBackdropPress }) => {
+    /**
+     * component functions
+     */
+    function renderModalList() {
+        if (Array.isArray(optionsArr) && optionsArr.length > 0) {
+            let list = [];
+            list = optionsArr.map(item => {
+                return (<Button
+                    type={'clear'}
+                    key={item.title}
+                    title={item.title}
+                    loading={item.loading}
+                    icon={item.icon}
+                    onPress={item.onPress}
+                    buttonStyle={{ backgroundColor: colors.card, paddingVertical: 10 }}
+                    containerStyle={{ backgroundColor: colors.card }}
+                    titleStyle={{ color: colors.text }}
+                    iconStyle={{ color: colors.iconcolor }}
+                />);
+            });
+            return list;
+        }
+        return null;
+    }
+
+
+    return (
+        <Overlay
+            fullScreen={false}
+            onBackdropPress={onBackdropPress}
+            animationType="slide"
+            isVisible={isVisible}
+            overlayStyle={{
+                padding: 0,
+                margin: 0, backgroundColor: colors.card, justifyContent: 'center'
+            }}
+        >
+            <View style={{
+                backgroundColor: colors.card,
+                borderRadius: 20,
+                width: 250, minHeight: 200
+            }}>
+                {renderModalList()}
+            </View>
+        </Overlay>
+    );
+};
+
 export const InputBox = ({ avatar, placeholder, inputvalue, onChangeText, autoFocus, maxLength, placeholdercolor, onSubmit }) => {
     return (
         <View style={styles.inputBoxCtn}>
@@ -450,7 +501,7 @@ export class ListItem extends Component {
 
     //onTimePress time liked
     render() {
-        const { title, time, likebtn, onLongPress, liked, likeButtonComponent, onRetryPress, numLikesPress, likePress, timeTextStyle, likes,
+        const { title, time, likebtn, onLongPress, onAvatarPress, liked, likeButtonComponent, onRetryPress, numLikesPress, likePress, timeTextStyle, likes,
             replies, subtitle, BottomContainerItem,
             replyPress, rightIcon, leftAvatar } = this.props;
         //onRetrypress has precedence
@@ -473,6 +524,7 @@ export class ListItem extends Component {
                 <View style={styles.listItemStyle}>
                     <Avatar
                         source={leftAvatar}
+                        onPress={onAvatarPress}
                         size={'small'}
                         containerStyle={{ marginTop: 2 }}
                         icon={{ name: 'user', type: 'antdesign', color: 'white' }}

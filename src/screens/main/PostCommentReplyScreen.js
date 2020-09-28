@@ -53,7 +53,6 @@ const PostCommentReplyScreen = ({
     let righticon = '';
     let righticonpress = '';
     useEffect(() => {
-        setReset('postcommentreplyform')// set the replies to empty
         fetchPostCommentReply(ownercommentid || ownerreplyid);
         const listener = {
             componentDidAppear: () => {
@@ -70,6 +69,7 @@ const PostCommentReplyScreen = ({
         return () => {
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
+            setReset('postcommentreplyform');// set the replies to empty
         };
     }, []);
     /**component functions starts here */

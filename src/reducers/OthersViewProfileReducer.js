@@ -4,7 +4,9 @@ import {
     ADD_OTHERS_VIEWPROFILEFORM_POSTS,
     UPDATE_OTHERS_VIEWPROFILEFORM_POSTS,
     SET_OTHERS_VIEWPROFILEFORM_PROFILE_STATUS,
-    SET_OTHERS_VIEWPROFILEFORM
+    SET_OTHERS_VIEWPROFILEFORM,
+    SET_OTHERS_VIEWPROFILEFORM_LINK,
+
 } from '../actions/types';
 import { checkData } from '../utilities/index';
 
@@ -31,8 +33,8 @@ const handleProcessing = (key, value, state) => {
         case 'othersviewprofileformpostloading':
             return { ...state, viewpostloading: value };
             break;
-        case 'othersviewprofileformpostnexturl':
-            return { ...state, viewprofilepostsnexturl: value };
+        case 'othersviewprofileformpostloadingmore':
+            return { ...state, viewpostloadingmore: value };
             break;
         case 'othersviewprofileformblocking':
             return { ...state, blocking: value };
@@ -63,6 +65,9 @@ const OthersViewProfileReducer = (state = INITIAL_STATE, action) => {
             break;
         case SET_OTHERS_VIEWPROFILEFORM:
             return { ...state, viewprofile: { ...state.viewprofile, ...action.payload } };
+            break;
+        case SET_OTHERS_VIEWPROFILEFORM_LINK:
+            return { ...state, viewprofilepostsnexturl: action.payload };
             break;
         case RESET:
             if (action.payload.key == 'othersviewprofileform') {

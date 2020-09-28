@@ -3,7 +3,7 @@ import { StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, View, FlatList
 import { Text, Avatar, Icon, Button, Image } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
-import { LoaderScreen, Header, InputBox, PanelMsg, } from '../../components/reusable/ResuableWidgets';
+import { LoaderScreen, Header, InputBox, PanelMsg, ModalList, ConfirmModal, ActivityOverlay, } from '../../components/reusable/ResuableWidgets';
 import ParallaxScrollView from 'react-native-parallax-scroll-view';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes/index';
@@ -18,6 +18,7 @@ import { ToastAndroid } from 'react-native';
 import PostImageGallery from '../../components/reusable/PostImageGallery';
 
 const { colors } = useTheme();
+
 /**top section */
 const TopSection = ({ profile, isprofileowner, profileActions }) => {
     let avatar = isprofileowner ? { uri: profile.avatarlocal } : { uri: profile.avatar[1] }
@@ -48,7 +49,7 @@ const TopSection = ({ profile, isprofileowner, profileActions }) => {
                     onPress={() => { }}
                     type="outline"
                     titleStyle={[styles.buttonTitleStyle, { color: 'red' }]}
-                    buttonStyle={[styles.buttonStyle, { color: 'red' }]}
+                    buttonStyle={[styles.buttonStyle, { borderColor: 'red' }]}
                 />;
             else if (profile.profilemuted)
                 btn = <Button
@@ -57,7 +58,7 @@ const TopSection = ({ profile, isprofileowner, profileActions }) => {
                     onPress={() => { }}
                     type="outline"
                     titleStyle={[styles.buttonTitleStyle, { color: 'red' }]}
-                    buttonStyle={[styles.buttonStyle, { color: 'red' }]}
+                    buttonStyle={[styles.buttonStyle, { borderColor: 'red' }]}
                 />;
             else if (profile.following == true)
                 btn = <Button
@@ -218,7 +219,17 @@ const TopSection = ({ profile, isprofileowner, profileActions }) => {
 };
 
 /**bottom  section */
-const BottomSection = ({ viewprofileform, fetchPost, tabs, tabVerticalScroll }) => {
+const BottomSection = ({ viewprofileform, fetchPost, fetchMorePost, tabVerticalScroll }) => {
+    const TABS = [
+        {
+            iconSource: 'pencil-square-o',
+            iconType: 'font-awesome'
+        },
+        {
+            iconSource: 'maximize',
+            iconType: 'feather'
+        }
+    ];
     let data = [];
     for (var i = 0; i <= 10; i++) {
         data.push(String(i));
@@ -227,7 +238,7 @@ const BottomSection = ({ viewprofileform, fetchPost, tabs, tabVerticalScroll }) 
      * component functions 
      */
     const renderTabIndicator = () => {
-        if (!Array.isArray(tabs)) {
+        if (!Array.isArray(TABS)) {
             return null;
         }
         return (
@@ -248,7 +259,7 @@ const BottomSection = ({ viewprofileform, fetchPost, tabs, tabVerticalScroll }) 
                     //borderBottomWidth: 1,
                     borderColor: colors.text,
                 }}
-                tabs={tabs}
+                tabs={TABS}
             />
         );
     };
@@ -265,7 +276,9 @@ const BottomSection = ({ viewprofileform, fetchPost, tabs, tabVerticalScroll }) 
                         data={viewprofileform.viewprofileposts}
                         onScrollBeginDrag={() => tabVerticalScroll()}
                         loading={viewprofileform.viewpostloading}
+                        loadingmore={viewprofileform.viewpostloadingmore}
                         fetchPost={fetchPost}
+                        fetchMorePost={fetchMorePost}
                     />
                 </View>
                 <View key={2}>
@@ -291,6 +304,7 @@ const ViewProfileScreen = ({
     othersviewprofileform,
     tabcalled,
     fetchProfilePosts,
+    fetchMoreProfilePosts,
     setUserViewProfileForm,
     addUserViewProfileFormPost,
     prependUserViewProfileFormPost,
@@ -299,6 +313,8 @@ const ViewProfileScreen = ({
     addOthersViewProfileFormPost,
     prependOthersViewProfileFormPost,
     updateOthersViewProfileFormPost,
+    setUserViewProfileFormLink,
+    setOthersViewProfileFormLink,
     muteProfileAction,
     blockProfileAction,
     followProfileAction,
@@ -307,21 +323,23 @@ const ViewProfileScreen = ({
     const [loaded, setLoaded] = useState(false);
     const [hideparallax, setHideParallax] = useState(false);
     const [youblockedpass, setYouBlockedPass] = useState(false);
-    const TABS = [
-        {
-            iconSource: 'pencil-square-o',
-            iconType: 'font-awesome'
-        },
-        {
-            iconSource: 'maximize',
-            iconType: 'feather'
-        }
-    ];
+    const [listModalVisible, setListModalVisible] = useState(false);
+    const [confrimModal, setConfirmModalProps] = useState({
+        visible: false,
+        msg: null,
+        acceptAction: null,
+    });
+    let listModalOptions = [{
+        title: 'Copy Profile Link'
+    }, {
+        title: 'Share Profile Link'
+    }];
     let screenshown = false;
     let useowner = !checkData(reqprofile) ? true : reqprofile.profile_id == authprofile.profile_id;
     let viewprofileform = useowner ? userviewprofileform : othersviewprofileform;
     let toshowprofile = returnViewProfile();
     //toshowprofile.ublockedprofile = true;
+    listModalOptions = [...listModalOptions, ...setListModalOptions()];
     let lefticon = navparent == true ? <Icon
         type="evilicon"
         name="arrow-left"
@@ -332,7 +350,7 @@ const ViewProfileScreen = ({
     let lefticonpress = navparent == true ?
         setDimissNav()
         : null;
-    let righticonpress = hideparallax == true ? () => setHideParallax(false) : () => { };
+    let righticonpress = hideparallax == true ? () => setHideParallax(false) : () => setListModalVisible(true);
     let righticon = hideparallax == true ?
         <Text
             onPress={righticonpress}
@@ -444,7 +462,6 @@ const ViewProfileScreen = ({
         useowner ? addUserViewProfileFormPost(data) : addOthersViewProfileFormPost(data);
     }
 
-
     //function to followprofile starts here
     function followProfile() {
         let following = !viewprofileform.viewprofile.following;
@@ -512,10 +529,9 @@ const ViewProfileScreen = ({
             }, (post, profile, nexturl) => {
                 addProfilePost(post);
                 setViewProfile(profile);
-                useowner ? setProcessing(nexturl, 'userviewprofileformpostnexturl') :
-                    setProcessing(nexturl, 'othersviewprofileformpostnexturl');
-                useowner ? setProcessing(false, 'userviewprofileformpostloading')
-                    : setProcessing(false, 'othersviewprofileformpostloading');
+                useowner ? setUserViewProfileFormLink(nexturl) : setOthersViewProfileFormLink(nexturl);
+                useowner ? setProcessing(true, 'userviewprofileformpostloadingmore')
+                    : setProcessing(true, 'othersviewprofileformpostloadingmore');
             }, (action) => {
                 if (action == "cancel") {
                     useowner ? setProcessing('failed', 'userviewprofileformpostloading') :
@@ -529,12 +545,137 @@ const ViewProfileScreen = ({
         }
     }
 
+    //handles fetching of more profiles post
+    function handleMoreProfilePostsFetch() {
+        if (!checkData(viewprofileform.viewprofilepostsnexturl)) {
+            useowner ? setProcessing('done', 'userviewprofileformpostloadingmore') :
+                setProcessing('done', 'othersviewprofileformpostloadingmore');
+            return;
+        }
+        fetchMoreProfilePosts(viewprofileform.viewprofilepostsnexturl, toshowprofile.profile_id, () => {
+            useowner ? setProcessing(true, 'userviewprofileformpostloadingmore')
+                : setProcessing(true, 'othersviewprofileformpostloadingmore');
+        }, (post, profile, nexturl) => {
+            addProfilePost(post);
+            setViewProfile(profile);
+            useowner ? setUserViewProfileFormLink(nexturl) : setOthersViewProfileFormLink(nexturl);
+            useowner ? setProcessing(false, 'userviewprofileformpostloadingmore') :
+                setProcessing(false, 'othersviewprofileformpostloadingmore');
+        }, (action) => {
+            if (action == "cancel") {
+                useowner ? setProcessing('failed', 'userviewprofileformpostloadingmore') :
+                    setProcessing('failed', 'othersviewprofileformpostloadingmore');
+
+            } else {
+                useowner ? setProcessing('retry', 'userviewprofileformpostloadingmore') :
+                    setProcessing('retry', 'othersviewprofileformpostloadingmore');
+            }
+        });
+
+    }
+
     //function to determine dismiss of navigation based on screentype
     function setDimissNav() {
         if (screentype == "modal")
             return () => Navigation.dismissModal(componentId)
         else
             return () => Navigation.pop(componentId);
+    }
+
+    //function to setListModalOptions
+    function setListModalOptions() {
+        let list = [];
+        //console.warn(toshowprofile);
+        if (!checkData(toshowprofile) || useowner == true) {
+            return list;
+        }
+        //check follow status 
+        if (toshowprofile.following == true) {
+            list.push({
+                title: "Unfollow ",
+                onPress: () => {
+                    setConfirmModalProps({
+                        ...confrimModal,
+                        visible: true,
+                        acceptAction: followProfile,
+                        msg: "Unfollow Profile?"
+                    });
+                    setListModalVisible(false);
+                }
+            });
+        } else {
+            list.push({
+                title: "Follow",
+                onPress: () => {
+                    setConfirmModalProps({
+                        ...confrimModal,
+                        visible: true,
+                        acceptAction: followProfile,
+                        msg: "Follow Profile?"
+                    });
+                    setListModalVisible(false);
+                }
+            });
+        }
+
+        //check mute status
+        if (toshowprofile.profilemuted == true) {
+            list.push({
+                title: "Unmute",
+                onPress: () => {
+                    setConfirmModalProps({
+                        ...confrimModal,
+                        visible: true,
+                        acceptAction: muteProfile,
+                        msg: "Unmute Profile?"
+                    });
+                    setListModalVisible(false);
+                }
+            });
+        } else {
+            list.push({
+                title: "Mute",
+                onPress: () => {
+                    setConfirmModalProps({
+                        ...confrimModal,
+                        visible: true,
+                        acceptAction: muteProfile,
+                        msg: "Mute Profile?"
+                    });
+                    setListModalVisible(false);
+                }
+            });
+        }
+
+        //check block status
+        if (toshowprofile.ublockedprofile == true) {
+            list.push({
+                title: "Unblock",
+                onPress: () => {
+                    setConfirmModalProps({
+                        ...confrimModal,
+                        visible: true,
+                        acceptAction: blockProfile,
+                        msg: "Unblock Profile?"
+                    });
+                    setListModalVisible(false);
+                }
+            });
+        } else {
+            list.push({
+                title: "Block",
+                onPress: () => {
+                    setConfirmModalProps({
+                        ...confrimModal,
+                        visible: true,
+                        acceptAction: blockProfile,
+                        msg: "Block Profile?"
+                    });
+                    setListModalVisible(false);
+                }
+            });
+        }
+        return list;
     }
 
     //handle hiding of topsection onces tabs flatlist scroll starts
@@ -550,21 +691,41 @@ const ViewProfileScreen = ({
         /**check if loaded is true to determine return */
         if (loaded == true) {
             torenderview =
-                <>
                 <View style={[styles.contentContainerStyle, tabcalled && { marginBottom: 55 }]}>
                     {hideparallax ? null : <TopSection
                         profile={toshowprofile}
                         isprofileowner={useowner}
-                        profileActions={{ followProfile, muteProfile, blockedprofile }}
+                        profileActions={{ followProfile, muteProfile, blockProfile }}
                     />}
                     <BottomSection
-                        tabs={TABS}
                         viewprofileform={viewprofileform}
                         fetchPost={handleProfilePostsFetch}
+                        fetchMorePost={handleMoreProfilePostsFetch}
                         tabVerticalScroll={onTabsVerticalScroll}
                     />
-                </View>
-                </>;
+                    <ModalList
+                        isVisible={listModalVisible}
+                        onBackdropPress={() => setListModalVisible(false)}
+                        optionsArr={listModalOptions}
+                    />
+                    <ConfirmModal
+                        isVisible={confrimModal.visible}
+                        confirmMsg={confrimModal.msg}
+                        acceptText="Yeah"
+                        acceptAction={() => {
+                            setConfirmModalProps({
+                                ...confrimModal,
+                                visible: false
+                            });
+                            confrimModal.acceptAction
+                        }}
+                        rejectAction={() => setConfirmModalProps({
+                            ...confrimModal,
+                            visible: false
+                        })}
+                        rejectText="Nah"
+                    />
+                </View>;
         } else if (loaded == 'retry') {
             torenderview = <View
                 style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
@@ -619,6 +780,7 @@ const ViewProfileScreen = ({
 
     return (
         <SafeAreaView style={styles.containerStyle}>
+            <>
             <Header
                 headercolor={colors.card}
                 headertext={toshowprofile.user.username}
@@ -634,6 +796,7 @@ const ViewProfileScreen = ({
                 righticonpress={righticonpress}
             />
             {renderView()}
+            </>
         </SafeAreaView >
     );
 };

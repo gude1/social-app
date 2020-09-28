@@ -132,6 +132,7 @@ export const PREPEND_USER_VIEWPROFILEFORM_POSTS = 'prepend_user_viewprofileform_
 export const UPDATE_USER_VIEWPROFILEFORM_POSTS = 'update_user_viewprofileform_posts';
 export const SET_USER_VIEWPROFILEFORM = 'set_user_viewprofileform';
 export const SET_USER_VIEWPROFILEFORM_PROFILE_STATUS = 'set_user_viewprofileform_profile_status';
+export const SET_USER_VIEWPROFILEFORM_LINK = 'set_user_viewprofileform_link';
 
 /**
  * TYPE CONSTANT FOR OTHERSVIEWPROFILEFORM REDUCER
@@ -141,6 +142,7 @@ export const PREPEND_OTHERS_VIEWPROFILEFORM_POSTS = 'prepend_others_viewprofilef
 export const UPDATE_OTHERS_VIEWPROFILEFORM_POSTS = 'update_others_viewprofileform_posts';
 export const SET_OTHERS_VIEWPROFILEFORM = 'set_others_viewprofileform';
 export const SET_OTHERS_VIEWPROFILEFORM_PROFILE_STATUS = 'set_others_viewprofileform_profile_status';
+export const SET_OTHERS_VIEWPROFILEFORM_LINK = 'set_others_viewprofileform_link';
 
 
 
