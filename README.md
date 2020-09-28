@@ -1,2 +1,3 @@
-# Social app
-social app is a social media app with cool features like posting,chatting built using react-native for front-end and laravel at the backend
+#Social app
+
+A react-native social media app with features like chatting,posting.backend writing in laravel
