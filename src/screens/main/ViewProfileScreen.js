@@ -357,11 +357,9 @@ const ViewProfileScreen = ({
     let righticonpress = hideparallax == true ? () => setHideParallax(false) : () => setListModalVisible(true);
     let righticon = hideparallax == true ?
         <Text
-            onPress={righticonpress}
             style={{ color: colors.blue }}
         >Restore</Text> : <Icon
             type="entypo"
-            onPress={righticonpress}
             name="dots-three-vertical"
             color={colors.text}
             size={responsiveFontSize(2.5)}
@@ -381,17 +379,10 @@ const ViewProfileScreen = ({
                     icon: e,
                 }
             }));
-        if (useowner) {
-            setReset('userviewprofileform');
-        } else {
-            setReset('othersviewprofileform');
-        }
-
         const listener = {
             componentDidAppear: () => {
                 if (!screenshown) {
                     screenshown = true;
-                    setLoaded(true);
                     handleFecthViewProfile();
                 }
 
@@ -420,8 +411,7 @@ const ViewProfileScreen = ({
             setLoaded('failed');
             ToastAndroid.show('profile not found', ToastAndroid.LONG);
         }
-        if (!toshowprofile.profileblockedu) {
-            setLoaded('pending');
+        if (toshowprofile.profileblockedu == false) {
             fetchAProfile(toshowprofile.profile_id, null, (profile) => {
                 if (useowner) {
                     setProfileData({ ...profile, avatarremote: profile.avatar[1] })
@@ -584,8 +574,8 @@ const ViewProfileScreen = ({
                 addProfilePost(post);
                 setViewProfile(profile);
                 useowner ? setUserViewProfileFormLink(nexturl) : setOthersViewProfileFormLink(nexturl);
-                useowner ? setProcessing(true, 'userviewprofileformpostloadingmore')
-                    : setProcessing(true, 'othersviewprofileformpostloadingmore');
+                useowner ? setProcessing(false, 'userviewprofileformpostloading')
+                    : setProcessing(false, 'othersviewprofileformpostloading');
             }, (action) => {
                 if (action == "cancel") {
                     useowner ? setProcessing('failed', 'userviewprofileformpostloading') :
@@ -733,15 +723,38 @@ const ViewProfileScreen = ({
     }
 
     //handle hiding of topsection onces tabs flatlist scroll starts
-    const onTabsVerticalScroll = () => {
-        if (!hideparallax) {
-            setHideParallax(true);
-        }
+    function onTabsVerticalScroll() {
+        //if (!hideparallax) {
+        setHideParallax(true);
+        //}
     };
 
     //renders viewprofile view
     const renderView = () => {
         let torenderview = null;
+        /**also check to confirm block status */
+        if (checkData(toshowprofile)) {
+            if (toshowprofile.profileblockedu == true) {
+                torenderview = <View style={{ flex: 1, alignItems: 'center' }}>
+                    <PanelMsg
+                        message="Can't view profile, profile owner has blocked you "
+                    />
+                </View>;
+                return torenderview;
+            } else if (toshowprofile.ublockedprofile == true && youblockedpass == false) {
+                torenderview = <View style={{ flex: 1, alignItems: 'center' }}>
+                    <PanelMsg
+                        message="Profile is blocked by you "
+                        buttonTitle={'View Profile'}
+                        buttonPress={() => {
+                            if (!youblockedpass)
+                                setYouBlockedPass(true);
+                        }}
+                    />
+                </View>;
+                return torenderview;
+            }
+        }
         /**check if loaded is true to determine return */
         if (loaded == true) {
             torenderview =
@@ -806,31 +819,8 @@ const ViewProfileScreen = ({
                     <PanelMsg
                         message="Profile not found or cannot be shown"
                     />
-                </View>
-                ;
-        }
-        /**also check to confirm block status */
-        if (checkData(toshowprofile)) {
-            if (toshowprofile.profileblockedu == true)
-                torenderview = <View style={{ flex: 1, alignItems: 'center' }}>
-                    <PanelMsg
-                        message="Can't view profile, profile owner has blocked you "
-                    />
                 </View>;
-            else if (toshowprofile.ublockedprofile == true && youblockedpass == false)
-                torenderview = <View style={{ flex: 1, alignItems: 'center' }}>
-                    <PanelMsg
-                        message="Profile is blocked by you "
-                        buttonTitle={'View Profile'}
-                        buttonPress={() => {
-                            if (!youblockedpass)
-                                setYouBlockedPass(true);
-                        }}
-                    />
-                </View>;
-
         }
-
 
         return torenderview;
     };
@@ -851,7 +841,7 @@ const ViewProfileScreen = ({
                 lefticon={lefticon}
                 leftIconPress={lefticonpress}
                 righticon={righticon}
-                righticonpress={righticonpress}
+                rightIconPress={righticonpress}
             />
             {renderView()}
             </>

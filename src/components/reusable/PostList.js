@@ -842,9 +842,9 @@ export default class PostList extends React.Component {
                 <FlatList
                     viewabilityConfig={this.viewabilityConfig}
                     //removeClippedSubviews={true}
-                    maxToRenderPerBatch={1}
+                    //maxToRenderPerBatch={1}
                     showsVerticalScrollIndicator={false}
-                    updateCellsBatchingPeriod={1}
+                    //updateCellsBatchingPeriod={1}
                     refreshing={refreshing}
                     initialNumRender={1}
                     windowSize={50}
