@@ -329,6 +329,10 @@ const ViewProfileScreen = ({
         msg: null,
         acceptAction: null,
     });
+    const [activityModal, setActivityModal] = useState({
+        visible: false,
+        msg: null
+    });
     let listModalOptions = [{
         title: 'Copy Profile Link'
     }, {
@@ -465,6 +469,7 @@ const ViewProfileScreen = ({
     //function to followprofile starts here
     function followProfile() {
         let following = !viewprofileform.viewprofile.following;
+        let actiontxt = following ? 'following' : 'unfollowing';
         let num_followers = viewprofileform.viewprofile.num_followers;
         if (following)
             num_followers = num_followers + 1 < 1 ? 1 : num_followers + 1;
@@ -474,48 +479,97 @@ const ViewProfileScreen = ({
 
         followProfileAction(toshowprofile.profile_id,
             () => {
-                setProcessing(true, 'othersviewprofileformfollowing');
+                //setProcessing(true, 'othersviewprofileformfollowing');
+                setActivityModal({
+                    ...activityModal,
+                    visible: true,
+                    msg: actiontxt
+                });
             }, () => {
                 setViewProfile({
                     ...viewprofileform.viewprofile,
                     following,
                     num_followers,
                 });
-                setProcessing(false, 'othersviewprofileformfollowing');
+                setActivityModal({
+                    ...activityModal,
+                    visible: false,
+                    msg: null,
+                });
+                //setProcessing(false, 'othersviewprofileformfollowing');
             }, () => {
-                setProcessing(false, 'othersviewprofileformfollowingS');
+                setActivityModal({
+                    ...activityModal,
+                    visible: false,
+                    msg: null,
+                });
+                //setProcessing(false, 'othersviewprofileformfollowingS');
             });
     }
 
     //function muteProfile
     function muteProfile() {
+        let mutestatus = !viewprofileform.viewprofile.profilemuted;
+        let mutemsg = mutestatus ? 'muting' : 'unmuting';
         muteProfileAction(toshowprofile.profile_id,
             () => {
-                setProcessing(true, 'othersviewprofileformmuting');
+                setActivityModal({
+                    ...activityModal,
+                    visible: true,
+                    msg: mutemsg
+                });
+                //setProcessing(true, 'othersviewprofileformmuting');
             }, () => {
                 setViewProfile({
                     ...viewprofileform.viewprofile,
-                    profilemuted: !viewprofileform.viewprofile.profilemuted,
+                    profilemuted: mutestatus,
                 });
-                setProcessing(false, 'othersviewprofileformmuting');
+                setActivityModal({
+                    ...activityModal,
+                    visible: false,
+                    msg: null
+                });
+                //setProcessing(false, 'othersviewprofileformmuting');
             }, () => {
-                setProcessing(false, 'othersviewprofileformmuting');
+                setActivityModal({
+                    ...activityModal,
+                    visible: false,
+                    msg: null
+                });
+                //setProcessing(false, 'othersviewprofileformmuting');
             });
     }
 
     //function to handle profileblocking
     function blockProfile() {
+        let blockstatus = !viewprofileform.viewprofile.ublockedprofile;
+        let blockmsg = blockstatus ? 'blocking' : 'unblocking';
         blockProfileAction(toshowprofile.profile_id,
             () => {
-                setProcessing(true, 'othersviewprofileformblocking');
-            }, (blockedprofile) => {
+                setActivityModal({
+                    ...activityModal,
+                    visible: true,
+                    msg: blockmsg
+                });
+                //setProcessing(true, 'othersviewprofileformblocking');
+            }, () => {
                 setViewProfile({
                     ...viewprofileform.viewprofile,
-                    ublockedprofile: !viewprofileform.viewprofile.ublockedprofile,
+                    ublockedprofile: blockstatus,
                 });
-                setProcessing(false, 'othersviewprofileformblocking');
+                setActivityModal({
+                    ...activityModal,
+                    visible: false,
+                    msg: null
+                });
+                //setProcessing(false, 'othersviewprofileformblocking');
             }, () => {
-                setProcessing(false, 'othersviewprofileformblocking');
+                setActivityModal({
+                    ...activityModal,
+                    visible: false,
+                    msg: null
+                });
+                //setProcessing(false, 'othersviewprofileformblocking');
             })
     }
 
@@ -717,13 +771,17 @@ const ViewProfileScreen = ({
                                 ...confrimModal,
                                 visible: false
                             });
-                            confrimModal.acceptAction
+                            confrimModal.acceptAction();
                         }}
                         rejectAction={() => setConfirmModalProps({
                             ...confrimModal,
                             visible: false
                         })}
                         rejectText="Nah"
+                    />
+                    <ActivityOverlay
+                        text={activityModal.msg}
+                        isVisible={activityModal.visible}
                     />
                 </View>;
         } else if (loaded == 'retry') {

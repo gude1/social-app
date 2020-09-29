@@ -333,6 +333,7 @@ export const followProfileAction = (profileid, initAction, okAction, failedActio
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'profileactionfollowing'));
+                    ToastAndroid.show(message, ToastAndroid.LONG);
                     okAction && okAction();
                     break;
                 case 400:
@@ -344,6 +345,7 @@ export const followProfileAction = (profileid, initAction, okAction, failedActio
                     dispatch(setProcessing(false, 'profileactionfollowing'));
                     ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     failedAction && failedAction();
+                    break;
                 default:
                     dispatch(setProcessing(false, 'profileactionfollowing'));
                     ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
@@ -396,6 +398,7 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
                     dispatch(setProcessing(false, 'profileactionmuting'));
                     ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     failedAction && failedAction();
+                    break;
                 default:
                     ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
                     failedAction && failedAction();
@@ -447,6 +450,7 @@ export const blockProfileAction = (profileid, initAction, okAction, failedAction
                     dispatch(setProcessing(false, 'profileactionblocking'));
                     ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     failedAction && failedAction();
+                    break;
                 default:
                     ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
                     failedAction && failedAction();
