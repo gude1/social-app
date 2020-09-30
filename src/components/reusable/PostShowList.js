@@ -23,8 +23,51 @@ export default class PostShowList extends Component {
             confirmblacklistvisible: false,
             confirmmutevisible: false,
             bottomodallistothersoptions: null,
-            profilemuted: false
+            profilemuted: false,
+            avatarnavmodal: {
+                visible: false,
+                avatar: null,
+                profile: null,
+                headername: '',
+            }
         };
+        this.navmodallistitem = [{
+            icon: {
+                name: "user",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+                Navigation.showModal({
+                    component: {
+                        name: 'ViewProfile',
+                        passProps: {
+                            navparent: true,
+                            reqprofile: this.state.avatarnavmodal.profile,
+                            screentype: 'modal'
+                        },
+                    }
+                });
+            }
+        }, {
+            icon: {
+                name: "comment",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+            }
+        }];
         this.bottomodallistowneroptions = [
             {
                 listtext: 'Archive Post',
@@ -48,7 +91,7 @@ export default class PostShowList extends Component {
                     type: 'entypo'
                 }
             },
-        ]
+        ];
         this.bottomodallistothersoptions = [
             {
                 listtext: 'Not interested in this post',
@@ -339,6 +382,17 @@ export default class PostShowList extends Component {
             postliked={item.postliked}
             profileid={item.profile.profile_id}
             created_at={item.created_at}
+            onAvatarPress={() => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        headername: item.profile.user.username,
+                        profile: item.profile,
+                        avatar: item.profile.avatar[1],
+                        visible: true
+                    }
+                });
+            }}
             postid={item.postid}
             onOthersPostOption={() => {
                 this._setSelected(item.postid, item.profile.profile_id, item);
@@ -438,6 +492,35 @@ export default class PostShowList extends Component {
                 onRequestClose={() => {
                     this.setState({ userpostvisible: false });
                 }}
+            />
+            <AvatarNavModal
+                avatar={this.state.avatarnavmodal.avatar}
+                isVisible={this.state.avatarnavmodal.visible}
+                onBackdropPress={() => this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                })}
+                onAvatarPress={() => {
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            visible: false,
+                        }
+                    });
+                    Navigation.showModal({
+                        component: {
+                            name: 'PhotoViewer',
+                            passProps: {
+                                navparent: true,
+                                photos: [this.state.avatarnavmodal.avatar]
+                            },
+                        }
+                    })
+                }}
+                headername={this.state.avatarnavmodal.headername}
+                navBarItemArr={this.navmodallistitem}
             />
             </>
         );

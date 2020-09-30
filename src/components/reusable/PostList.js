@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, TouchableHighlight } from 'react-native';
-import { Header, ImageViewPager, BottomListModal, ConfirmModal, PanelMsg, ActivityOverlay } from './ResuableWidgets';
+import { Header, ImageViewPager, BottomListModal, ConfirmModal, PanelMsg, ActivityOverlay, AvatarNavModal } from './ResuableWidgets';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveWidth, responsiveFontSize, responsiveHeight } from 'react-native-responsive-dimensions';
 import { Icon, Avatar, Image, Overlay, Button } from 'react-native-elements';
@@ -157,20 +157,6 @@ export class PostItem extends Component {
             />;
     };
 
-    //temporoary function for testing would be removed
-    _onProfileNav = () => {
-        Navigation.showModal({
-            component: {
-                name: 'ViewProfile',
-                passProps: {
-                    navparent: true,
-                    reqprofile: this.props.profile,
-                    screentype: 'modal'
-                },
-            }
-        });
-    };
-
     _setShareIcon = () => {
         return this.props.postshared == 'postshared' ? <Icon
             type="entypo"
@@ -195,7 +181,7 @@ export class PostItem extends Component {
                 <View style={styles.postListItemTopBar}>
                     <View style={styles.postListItemTopBarItem}>
                         <Avatar size={35} rounded
-                            onPress={this._onProfileNav}
+                            onPress={this.props.onAvatarPress}
                             ImageComponent={FastImage}
                             source={{ uri: this.props.posteravatar }}
                             containerStyle={styles.postListItemTopBarItemAvatar} />
@@ -321,13 +307,57 @@ export default class PostList extends React.Component {
             confirmblacklistvisible: false,
             confirmmutevisible: false,
             bottomodallistothersoptions: null,
-            profilemuted: false
+            profilemuted: false,
+            avatarnavmodal: {
+                visible: false,
+                avatar: null,
+                profile: null,
+                headername: '',
+            }
         };
         this.onEndReachedCalledDuringMomentum = true;
         this.currentselectedpostid = '';
         this.currentselectedpost = null;
         this.currentselectedpostownerid = '';
         this.currentselectedpostownerprofile = null;
+        this.navmodallistitem = [{
+            icon: {
+                name: "user",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+                Navigation.showModal({
+                    component: {
+                        name: 'ViewProfile',
+                        passProps: {
+                            navparent: true,
+                            reqprofile: this.state.avatarnavmodal.profile,
+                            screentype: 'modal'
+                        },
+                    }
+                });
+            }
+        }, {
+            icon: {
+                name: "comment",
+                type: "evilicon"
+            },
+                onPress: () => { 
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            visible: false,
+                        }
+                    });
+            }
+        }];
+
         this.bottomodallistowneroptions = [
             {
                 listtext: 'View',
@@ -706,6 +736,17 @@ export default class PostList extends React.Component {
                 this._setSelected(item.postid, item.profile.profile_id, item);
             }}
             postshared={item.postshared}
+            onAvatarPress={() => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        headername: item.profile.user.username,
+                        profile: item.profile,
+                        avatar: item.profile.avatar[1],
+                        visible: true
+                    }
+                });
+            }}
             profile={item.profile}
             posttext={item.post_text}
             numlikes={item.num_post_likes}
@@ -922,6 +963,35 @@ export default class PostList extends React.Component {
                     onRequestClose={() => {
                         this.setState({ userpostvisible: false });
                     }}
+                />
+                <AvatarNavModal
+                    avatar={this.state.avatarnavmodal.avatar}
+                    isVisible={this.state.avatarnavmodal.visible}
+                    onBackdropPress={() => this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            visible: false,
+                        }
+                    })}
+                    onAvatarPress={() => {
+                        this.setState({
+                            avatarnavmodal: {
+                                ...this.state.avatarnavmodal,
+                                visible: false,
+                            }
+                        });
+                        Navigation.showModal({
+                            component: {
+                                name: 'PhotoViewer',
+                                passProps: {
+                                    navparent: true,
+                                    photos: [this.state.avatarnavmodal.avatar]
+                                },
+                            }
+                        })
+                    }}
+                    headername={this.state.avatarnavmodal.headername}
+                    navBarItemArr={this.navmodallistitem}
                 />
             </View >
         );

@@ -365,6 +365,71 @@ export const ConfirmModal = ({ isVisible, acceptText, acceptAction, rejectAction
     );
 };
 
+export const AvatarNavModal = ({
+    navBarItemArr,
+    avatar,
+    onAvatarPress,
+    isVisible,
+    onBackdropPress,
+    headername
+}) => {
+    avatar = checkData(avatar) ? { uri: avatar } : require('../../assets/images/placeholder.png');
+    const renderNavItems = () => {
+        if (!Array.isArray(navBarItemArr) && navBarItemArr.length < 1) {
+            return null;
+        }
+        let navitem = navBarItemArr.map((item, index) => {
+            return (
+                <Button
+                    key={index.toString()}
+                    onPress={item.onPress}
+                    icon={{
+                        ...item.icon,
+                        color: colors.text,
+                        size: responsiveFontSize(5)
+                    }}
+                    type={'clear'}
+                    titleStyle={{ color: colors.text }}
+                    buttonStyle={{ borderRadius: 0, flex: 1 }}
+                    containerStyle={{ flex: 1, borderRadius: 0, }}
+                />
+            );
+        });
+        return navitem;
+    };
+
+    return (
+        <Overlay
+            fullScreen={false}
+            isVisible={isVisible}
+            onBackdropPress={onBackdropPress}
+            animationType="fade"
+            overlayStyle={{
+                padding: 0,
+                margin: 0,
+                backgroundColor: colors.background
+            }}
+        >
+            <View style={styles.avatarNavModal}>
+                <TouchableScale activeScale={1} onPress={onAvatarPress}>
+                    <Image style={{ width: 250, height: 250, }}
+                        source={avatar}
+                    >
+                        <View style={styles.avatarNavModalImageHeader}>
+                            <Text style={{ color: 'white', fontSize: responsiveFontSize(2.5) }}>
+                                {headername}
+                            </Text>
+                        </View>
+                    </Image>
+                </TouchableScale>
+                <View style={styles.avatarNavModalNavCtn}>
+                    {renderNavItems()}
+                </View>
+            </View>
+        </Overlay>
+    )
+};
+
 export const ModalList = ({ optionsArr, isVisible, onBackdropPress }) => {
     /**
      * component functions
@@ -707,7 +772,23 @@ const styles = StyleSheet.create({
         backgroundColor: colors.border,
     },
 
-
+    avatarNavModal: {
+        width: 250,
+        height: 300,
+        backgroundColor: colors.background
+    },
+    avatarNavModalImageHeader: {
+        height: 40,
+        backgroundColor: "rgba(0,0,0,0.2)",
+        padding: 10,
+        justifyContent: "center",
+    },
+    avatarNavModalNavCtn: {
+        flex: 1,
+        flexDirection: "row",
+        justifyContent: "space-around",
+        backgroundColor: colors.card
+    },
     listItemStyle: {
         flexDirection: 'row',
         marginHorizontal: 10,

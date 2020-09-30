@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
-import { ListItem, ConfirmModal, BottomListModal, PanelMsg, ActivityOverlay } from './ResuableWidgets';
+import { ListItem, ConfirmModal, BottomListModal, PanelMsg, ActivityOverlay, AvatarNavModal } from './ResuableWidgets';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes';
 import { checkData } from '../../utilities';
@@ -22,10 +22,54 @@ export default class PostCommentReplyList extends Component {
             confirmmutevisible: false,
             userreplymodal: false,
             othersreplymodal: false,
+            avatarnavmodal: {
+                visible: false,
+                avatar: null,
+                profile: null,
+                headername: '',
+            }
         };
         this.currentreplyid = null;
         this.currentreplyownerprofile = null;
         this.currentreplyownerid = null;
+        this.navmodallistitem = [{
+            icon: {
+                name: "user",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+                Navigation.showModal({
+                    component: {
+                        name: 'ViewProfile',
+                        passProps: {
+                            navparent: true,
+                            reqprofile: this.state.avatarnavmodal.profile,
+                            screentype: 'modal'
+                        },
+                    }
+                });
+            }
+        }, {
+            icon: {
+                name: "comment",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+            }
+        }];
+
         this.bottomodallistowneroptions = [
             {
                 listtext: 'Delete Reply',
@@ -296,6 +340,17 @@ export default class PostCommentReplyList extends Component {
                     })}
                     title={this.props.origin.profile.user.username}
                     leftAvatar={{ uri: this.props.origin.profile.avatar[1] }}
+                    onAvatarPress={() => {
+                        this.setState({
+                            avatarnavmodal: {
+                                ...this.state.avatarnavmodal,
+                                headername: this.props.origin.profile.user.username,
+                                profile: this.props.origin.profile,
+                                avatar: this.props.origin.profile.avatar[1],
+                                visible: true
+                            }
+                        });
+                    }}
                     subtitle={this.props.origin.reply_text || this.props.origin.comment_text}
                     timeTextStyle={{ fontSize: responsiveFontSize(1.6) }}
                     BottomContainerItem={
@@ -404,6 +459,17 @@ export default class PostCommentReplyList extends Component {
                 //replyPress={}
                 leftAvatar={{ uri: item.profile.avatar[1] }}
                 title={item.profile.user.username}
+                onAvatarPress={() => {
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            headername: item.profile.user.username,
+                            profile: item.profile,
+                            avatar: item.profile.avatar[1],
+                            visible: true
+                        }
+                    });
+                }}
                 subtitle={item.reply_text}
                 profilemuted={item.profile.profilemuted}
                 likes={item.num_likes}
@@ -498,6 +564,35 @@ export default class PostCommentReplyList extends Component {
                 onRequestClose={() => {
                     this.setState({ othersreplymodal: false });
                 }}
+            />
+            <AvatarNavModal
+                avatar={this.state.avatarnavmodal.avatar}
+                isVisible={this.state.avatarnavmodal.visible}
+                onBackdropPress={() => this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                })}
+                onAvatarPress={() => {
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            visible: false,
+                        }
+                    });
+                    Navigation.showModal({
+                        component: {
+                            name: 'PhotoViewer',
+                            passProps: {
+                                navparent: true,
+                                photos: [this.state.avatarnavmodal.avatar]
+                            },
+                        }
+                    })
+                }}
+                headername={this.state.avatarnavmodal.headername}
+                navBarItemArr={this.navmodallistitem}
             />
             </>
         );

@@ -1,6 +1,6 @@
 import React, { } from 'react';
 import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
-import { ListItem, ConfirmModal, BottomListModal, PanelMsg, ActivityOverlay } from './ResuableWidgets';
+import { ListItem, ConfirmModal, BottomListModal, PanelMsg, ActivityOverlay, AvatarNavModal } from './ResuableWidgets';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes';
 import { checkData } from '../../utilities';
@@ -22,10 +22,54 @@ export default class PostCommentList extends React.Component {
             confirmmutevisible: false,
             usercommentmodal: false,
             otherscommentmodal: false,
+            avatarnavmodal: {
+                visible: false,
+                avatar: null,
+                profile: null,
+                headername: '',
+            }
         };
         this.currentcommentid = null;
         this.currentcommentownerprofile = null;
         this.currentcommentownerid = null;
+        this.navmodallistitem = [{
+            icon: {
+                name: "user",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+                Navigation.showModal({
+                    component: {
+                        name: 'ViewProfile',
+                        passProps: {
+                            navparent: true,
+                            reqprofile: this.state.avatarnavmodal.profile,
+                            screentype: 'modal'
+                        },
+                    }
+                });
+            }
+        }, {
+            icon: {
+                name: "comment",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+            }
+        }];
+
         this.bottomodallistowneroptions = [
             {
                 listtext: 'Delete Comment',
@@ -295,6 +339,17 @@ export default class PostCommentList extends React.Component {
                     })}
                     title={this.props.parentpost.profile.user.username}
                     leftAvatar={{ uri: this.props.parentpost.profile.avatar[1] }}
+                    onAvatarPress={() => {
+                        this.setState({
+                            avatarnavmodal: {
+                                ...this.state.avatarnavmodal,
+                                headername: this.props.parentpost.profile.user.username,
+                                profile: this.props.parentpost.profile,
+                                avatar: this.props.parentpost.profile.avatar[1],
+                                visible: true
+                            }
+                        });
+                    }}
                     subtitle={this.props.parentpost.post_text}
                     timeTextStyle={{ fontSize: responsiveFontSize(1.6) }}
                     BottomContainerItem={
@@ -401,16 +456,17 @@ export default class PostCommentList extends React.Component {
                 )}
                 //replyPress={}
                 leftAvatar={{ uri: item.profile.avatar[1] }}
-                onAvatarPress={() => Navigation.showModal({
-                    component: {
-                        name: 'ViewProfile',
-                        passProps: {
-                            navparent: true,
-                            reqprofile: item.profile,
-                            screentype: 'modal'
-                        },
-                    }
-                })}
+                onAvatarPress={() => {
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            headername: item.profile.user.username,
+                            profile: item.profile,
+                            avatar: item.profile.avatar[1],
+                            visible: true
+                        }
+                    });
+                }}
                 title={item.profile.user.username}
                 subtitle={item.comment_text}
                 profilemuted={item.profile.profilemuted}
@@ -505,6 +561,35 @@ export default class PostCommentList extends React.Component {
                 onRequestClose={() => {
                     this.setState({ otherscommentmodal: false });
                 }}
+            />
+            <AvatarNavModal
+                avatar={this.state.avatarnavmodal.avatar}
+                isVisible={this.state.avatarnavmodal.visible}
+                onBackdropPress={() => this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                })}
+                onAvatarPress={() => {
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            visible: false,
+                        }
+                    });
+                    Navigation.showModal({
+                        component: {
+                            name: 'PhotoViewer',
+                            passProps: {
+                                navparent: true,
+                                photos: [this.state.avatarnavmodal.avatar]
+                            },
+                        }
+                    })
+                }}
+                headername={this.state.avatarnavmodal.headername}
+                navBarItemArr={this.navmodallistitem}
             />
             </>
         );
