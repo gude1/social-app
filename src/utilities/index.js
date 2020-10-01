@@ -1,5 +1,5 @@
 import RNFetchBlob from 'rn-fetch-blob';
-import { Platform, Image } from 'react-native';
+import { Platform, Image, ToastAndroid } from 'react-native';
 import { Navigation } from 'react-native-navigation';
 import { AUTHROUTE, SETUPPROFILEROUTE, SETUPPOSTROUTE, MAINTABSROUTE } from '../routes';
 import ImageResizer from 'react-native-image-resizer';
@@ -23,6 +23,44 @@ export const test = async () => {
     );
 
 }
+
+
+/**
+ * For showing toast message on android and alert on ios
+ * 
+ * @param String message
+ * @param Integer duration
+ * @param Integre gravity
+ *
+ */
+export const Toast = (message: String, duration: Number, gravity: Number) => {
+    if (!checkData(message)) {
+        return;
+    }
+    if (Platform.OS == "android") {
+        ToastAndroid.showWithGravity(message, duration || ToastAndroid.LONG, gravity || ToastAndroid.BOTTOM);
+    } else {
+        alert(message);
+    }
+};
+
+export const logOut = (after) => {
+    alert('Session expired! you are required to login');
+    Navigation.setRoot({
+        root: {
+            stack: {
+                children: [
+                    {
+                        component: {
+                            name: 'Signin'
+                        }
+                    }
+                ]
+            }
+        }
+    });
+    after();
+};
 
 
 export const rnPath = (data) => {

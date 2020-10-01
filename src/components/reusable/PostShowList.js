@@ -3,7 +3,7 @@ import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { Text, Icon } from 'react-native-elements';
 import { PostItem } from './PostList';
 import { useTheme } from '../../assets/themes/index';
-import { ConfirmModal, ActivityOverlay, BottomListModal, PanelMsg, } from './ResuableWidgets';
+import { ConfirmModal, ActivityOverlay, BottomListModal, PanelMsg, AvatarNavModal } from './ResuableWidgets';
 import {
     responsiveFontSize, responsiveHeight, responsiveWidth
 } from 'react-native-responsive-dimensions';

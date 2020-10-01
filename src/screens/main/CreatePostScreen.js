@@ -17,7 +17,7 @@ import {
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import { useTheme } from '../../assets/themes';
-import { checkData, getAppInfo } from '../../utilities';
+import { checkData, getAppInfo, Toast } from '../../utilities';
 import { Header, OverlayWithImage, ImageViewPager, LoaderScreen } from '../../components/reusable/ResuableWidgets';
 import {
     StyleSheet, SafeAreaView, View, StatusBar, TouchableOpacity,
@@ -68,7 +68,7 @@ const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts,
             componentDidAppear: () => {
                 //to show toast modal if profile is not here completed and pageinfo modal has already being shown
                 if (postinfo == true && getAppInfo(posts, 'post') == 'postfalse') {
-                    ToastAndroid.show('You need to have a post to continue into the app',
+                    Toast('You need to have a post to continue into the app',
                         ToastAndroid.LONG);
                 }
                 if (!loaded) {

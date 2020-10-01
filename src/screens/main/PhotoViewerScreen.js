@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import { useTheme } from '../../assets/themes';
 import { responsiveFontSize, responsiveHeight } from "react-native-responsive-dimensions";
-import { image_exists, checkData } from '../../utilities/index';
+import { image_exists, checkData, Toast } from '../../utilities/index';
 
 const { colors } = useTheme();
 
@@ -75,14 +75,14 @@ const PhotoViewerScreen = ({ componentId, navparent, photos, onSubmit }) => {
     //to check if images exists
     const checkImages = async () => {
         if (!Array.isArray(photos) || photos.length < 1) {
-            ToastAndroid.show('No photos to display', ToastAndroid.LONG);
+            Toast('No photos to display', ToastAndroid.LONG);
             return;
         }
         await Promise.all(
             photos.map(async (img, index) => {
                 let exists = await image_exists(img);
                 if (!exists) {
-                    ToastAndroid.showWithGravity(
+                    Toast(
                         `Image ${index + 1}/${photos.length} could not be displayed,image might have being deleted`,
                         ToastAndroid.SHORT,
                         ToastAndroid.CENTER

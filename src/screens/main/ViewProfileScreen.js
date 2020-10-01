@@ -459,7 +459,7 @@ const ViewProfileScreen = ({
     //function to followprofile starts here
     function followProfile() {
         let following = !viewprofileform.viewprofile.following;
-        let actiontxt = following ? 'following' : 'unfollowing';
+        let actiontxt = 'processing';
         let num_followers = viewprofileform.viewprofile.num_followers;
         if (following)
             num_followers = num_followers + 1 < 1 ? 1 : num_followers + 1;
@@ -500,7 +500,7 @@ const ViewProfileScreen = ({
     //function muteProfile
     function muteProfile() {
         let mutestatus = !viewprofileform.viewprofile.profilemuted;
-        let mutemsg = mutestatus ? 'muting' : 'unmuting';
+        let mutemsg = 'processing';
         muteProfileAction(toshowprofile.profile_id,
             () => {
                 setActivityModal({
@@ -533,7 +533,7 @@ const ViewProfileScreen = ({
     //function to handle profileblocking
     function blockProfile() {
         let blockstatus = !viewprofileform.viewprofile.ublockedprofile;
-        let blockmsg = blockstatus ? 'blocking' : 'unblocking';
+        let blockmsg = 'processing';
         blockProfileAction(toshowprofile.profile_id,
             () => {
                 setActivityModal({

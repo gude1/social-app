@@ -1,5 +1,5 @@
 import React, { Component, useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { SafeAreaView, StyleSheet, View, } from 'react-native';
 import { useTheme } from '../../assets/themes'
 import Entypo from 'react-native-vector-icons/Entypo';
 import { Navigation, } from 'react-native-navigation';
@@ -75,6 +75,7 @@ const HomeScreen = ({ componentId,
                         visible: true
                     }
                 });
+                // createTwoButtonAlert();
             },
             componentDidDisappear: () => {
             }

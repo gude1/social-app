@@ -88,7 +88,7 @@ import axios from 'axios';
 import { ToastAndroid, Image } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import RNFetchBlob from 'rn-fetch-blob';
-import { store } from '../store';
+import { store, persistor } from '../store';
 import {
     deleteFile,
     rnPath,
@@ -99,10 +99,11 @@ import {
     checkData,
     getImageSize,
     resizeImage,
-    image_exists
+    image_exists,
+    Toast,
+    logOut
 } from '../utilities';
 import CameraRoll from "@react-native-community/cameraroll";
-
 
 /**
  * GENERAL ACTION CREATORS
@@ -217,7 +218,7 @@ export const signUp = ({ email, username, name, phone, password, Navigation, com
                     //incomplete need to show modal that tells user to check mail
                     //dispatch(setMsgs(message, 'signup'));
                     alert('Signup Success! please check your email inbox for confirmation email');
-                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    Toast(message, ToastAndroid.LONG);
                     dispatch(setReset('signup'));
                     Navigation.push(componentId, {
                         component: {
@@ -225,8 +226,11 @@ export const signUp = ({ email, username, name, phone, password, Navigation, com
                         }
                     });
                     break;
+                case 401:
+                    Toast('Validation failed,Invalid request attempt');
+                    break;
                 case 500:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(setProcessing(false, 'signup'));
                     break;
                 default:
@@ -236,10 +240,10 @@ export const signUp = ({ email, username, name, phone, password, Navigation, com
                     break;
             }
         } catch (e) {
-            if (e.toString().search('Failed to connect')) {
-                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            if (e.toString().indexOf('Network Error') > -1) {
+                Toast('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+                Toast('Something went wrong please try again', ToastAndroid.LONG);
             }
             dispatch(setProcessing(false, 'signup'));
         }
@@ -279,7 +283,7 @@ export const logIn = ({ email, password, Navigation, componentId }) => {
                         dispatch(setAppInfo({ editprofileinformed: true })) : null;
                     getAppInfo(store.getState().posts, 'post') == 'posttrue' ?
                         dispatch(setAppInfo({ postinformed: true })) : null;
-                    ToastAndroid.show('Login successful', ToastAndroid.SHORT);
+                    Toast('Login successful', ToastAndroid.SHORT);
                     dispatch(setProcessing(false, 'login'));
                     dispatch(setReset('login'));
                     setRoute(store.getState());
@@ -288,19 +292,22 @@ export const logIn = ({ email, password, Navigation, componentId }) => {
                     dispatch(setProcessing(false, 'login'))
                     dispatch(setErrors({ generalerrmsg: errmsg }, 'login'));
                     break;
+                case 401:
+                    Toast('Validation failed,Invalid request attempt');
+                    break;
                 default:
                     dispatch(setProcessing(false, 'login'))
-                    ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+                    Toast('Something went wrong please try again', ToastAndroid.LONG);
                     dispatch(setErrors({ generalerrmsg: errmsg }, 'login'));
                     break;
             }
         } catch (e) {
-            alert(err.toString());
+            //alert(e.toString());
             //console.warn(e.toString())
-            if (e.toString().indexOf('Failed to connect') > -1) {
-                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            if (e.toString().indexOf('Network Error') > -1) {
+                Toast('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+                Toast('Something went wrong please try again', ToastAndroid.LONG);
             }
             dispatch(setProcessing(false, 'login'));
 
@@ -316,10 +323,10 @@ export const followProfileAction = (profileid, initAction, okAction, failedActio
     return async (dispatch) => {
         const { user, profile } = store.getState();
         if (checkData(profileid) != true) {
-            ToastAndroid.show('Request incomplete', ToastAndroid.LONG);
+            Toast('Request incomplete', ToastAndroid.LONG);
             return;
         } else if (profileid == profile.profile_id) {
-            ToastAndroid.show("You can't follow yourself", ToastAndroid.LONG);
+            Toast("You can't follow yourself", ToastAndroid.LONG);
             return;
         }
         dispatch(setProcessing(true, 'profileactionfollowing'));
@@ -333,32 +340,37 @@ export const followProfileAction = (profileid, initAction, okAction, failedActio
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'profileactionfollowing'));
-                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    Toast(message, ToastAndroid.LONG);
                     okAction && okAction();
                     break;
                 case 400:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(setProcessing(false, 'profileactionfollowing'));
                     failedAction && failedAction();
                     break;
+                case 401:
+                    dispatch(setProcessing(false, 'profileactionfollowing'));
+                    failedAction && failedAction();
+                    logOut(() => persistor.purge());
+                    break;
                 case 412:
                     dispatch(setProcessing(false, 'profileactionfollowing'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     failedAction && failedAction();
                     break;
                 default:
                     dispatch(setProcessing(false, 'profileactionfollowing'));
-                    ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
+                    Toast('action failed please try again', ToastAndroid.LONG);
                     failedAction && failedAction();
                     break;
             }
         } catch (err) {
             //console.warn(err.toString());
             dispatch(setProcessing(false, 'profileactionfollowing'));
-            if (err.toString().search('Failed to connect') > -1) {
-                ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
+            if (err.toString().indexOf('Network Error') > -1) {
+                Toast('action failed please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+                Toast('Something went wrong please try again', ToastAndroid.LONG);
             }
             failedAction && failedAction();
         }
@@ -369,10 +381,10 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
     return async (dispatch) => {
         const { user, profile } = store.getState();
         if (checkData(profileid) != true) {
-            ToastAndroid.show('Request incomplete', ToastAndroid.LONG);
+            Toast('Request incomplete', ToastAndroid.LONG);
             return;
         } else if (profileid == profile.profile_id) {
-            ToastAndroid.show("You can't mute yourself", ToastAndroid.LONG);
+            Toast("You can't mute yourself", ToastAndroid.LONG);
             return;
         }
         dispatch(setProcessing(true, 'profileactionmuting'));
@@ -386,21 +398,26 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'profileactionmuting'));
-                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    Toast(message, ToastAndroid.LONG);
                     okAction && okAction();
                     break;
                 case 400:
                     dispatch(setProcessing(false, 'profileactionmuting'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     failedAction && failedAction();
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'profileactionmuting'));
+                    failedAction && failedAction();
+                    logOut(() => persistor.purge());
                     break;
                 case 412:
                     dispatch(setProcessing(false, 'profileactionmuting'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     failedAction && failedAction();
                     break;
                 default:
-                    ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
+                    Toast('action failed please try again', ToastAndroid.LONG);
                     failedAction && failedAction();
                     break;
             }
@@ -408,9 +425,9 @@ export const muteProfileAction = (profileid, initAction, okAction, failedAction)
             //console.warn(err.toString());
             dispatch(setProcessing(false, 'profileactionmuting'));
             if (err.toString().indexOf('Network Error') > -1) {
-                ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
+                Toast('action failed please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+                Toast('Something went wrong please try again', ToastAndroid.LONG);
             }
             failedAction && failedAction();
         }
@@ -421,10 +438,10 @@ export const blockProfileAction = (profileid, initAction, okAction, failedAction
     return async (dispatch) => {
         const { user, profile } = store.getState();
         if (checkData(profileid) != true) {
-            ToastAndroid.show('Request incomplete', ToastAndroid.LONG);
+            Toast('Request incomplete', ToastAndroid.LONG);
             return;
         } else if (profileid == profile.profile_id) {
-            ToastAndroid.show("You can't block yourself", ToastAndroid.LONG);
+            Toast("You can't block yourself", ToastAndroid.LONG);
             return;
         }
         dispatch(setProcessing(true, 'profileactionblocking'));
@@ -438,30 +455,35 @@ export const blockProfileAction = (profileid, initAction, okAction, failedAction
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'profileactionblocking'));
-                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    Toast(message, ToastAndroid.LONG);
                     okAction && okAction();
                     break;
                 case 400:
                     dispatch(setProcessing(false, 'profileactionblocking'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     failedAction && failedAction();
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'profileactionblocking'));
+                    failedAction && failedAction();
+                    logOut(() => persistor.purge());
                     break;
                 case 412:
                     dispatch(setProcessing(false, 'profileactionblocking'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     failedAction && failedAction();
                     break;
                 default:
-                    ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
+                    Toast('action failed please try again', ToastAndroid.LONG);
                     failedAction && failedAction();
                     break;
             }
         } catch (err) {
             dispatch(setProcessing(false, 'profileactionblocking'));
             if (err.toString().indexOf('Network Error') > -1) {
-                ToastAndroid.show('action failed please check your internet connection', ToastAndroid.LONG);
+                Toast('action failed please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+                Toast('Something went wrong please try again', ToastAndroid.LONG);
             }
             failedAction && failedAction();
         }
@@ -471,7 +493,7 @@ export const blockProfileAction = (profileid, initAction, okAction, failedAction
 export const fetchAProfile = (profileid, initAction, okAction, failedAction) => {
     return async () => {
         if (!checkData(profileid)) {
-            ToastAndroid.show('Missing terms to continue', ToastAndroid.SHORT);
+            Toast('Missing terms to continue', ToastAndroid.SHORT);
             failedAction && failedAction();
         }
         const { user, } = store.getState();
@@ -487,23 +509,27 @@ export const fetchAProfile = (profileid, initAction, okAction, failedAction) => 
                     okAction && okAction(profile);
                     break;
                 case 404:
-                    ToastAndroid.show('profile not found', ToastAndroid.SHORT);
+                    Toast('profile not found', ToastAndroid.SHORT);
                     failedAction && failedAction('cancel');
                     break;
+                case 401:
+                    failedAction && failedAction('cancel');
+                    logOut(() => persistor.purge());
+                    break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.SHORT);
+                    Toast(errmsg, ToastAndroid.SHORT);
                     failedAction && failedAction('cancel');
                     break;
                 default:
-                    ToastAndroid.show(errmsg, ToastAndroid.SHORT);
+                    Toast(errmsg, ToastAndroid.SHORT);
                     failedAction && failedAction();
                     break;
             }
         } catch (err) {
             if (err.toString().indexOf('Network Error') > -1) {
-                ToastAndroid.show('Network error could not fetch profile', ToastAndroid.LONG);
+                Toast('Network error could not fetch profile', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('something went wrong profile not fetched', ToastAndroid.LONG);
+                Toast('something went wrong profile not fetched', ToastAndroid.LONG);
             }
             failedAction && failedAction();
         }
@@ -545,7 +571,7 @@ export const setLikesListFormLink = (data: String) => {
 export const fetchLikes = (requrl, reqdata) => {
     return async (dispatch) => {
         if (checkData(requrl) != true) {
-            ToastAndroid.show('request term not specified', ToastAndroid.LONG);
+            Toast('request term not specified', ToastAndroid.LONG);
             return;
         }
         dispatch(setProcessing(true, 'likeslistfetching'));
@@ -565,27 +591,28 @@ export const fetchLikes = (requrl, reqdata) => {
                     break;
                 case 401:
                     dispatch(setProcessing(false, 'likeslistfetching'));
+                    logOut(() => persistor.purge());
                     break;
                 case 400:
                     dispatch(setProcessing('retry', 'likeslistfetching'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 404:
                     dispatch(setProcessing('retry', 'likeslistfetching'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 default:
                     dispatch(setProcessing('retry', 'likeslistfetching'));
-                    ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    Toast('something went wrong please try again', ToastAndroid.LONG);
                     break;
             }
         } catch (err) {
             // console.warn(err.toString());
             dispatch(setProcessing('retry', 'likeslistfetching'));
-            if (err.toString().search('Failed to connect')) {
-                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            if (err.toString().indexOf('Network Error') > -1) {
+                Toast('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+                Toast('Something went wrong please try again', ToastAndroid.LONG);
             }
         }
     };
@@ -614,26 +641,27 @@ export const fetchMoreLikes = (reqdata) => {
                     break;
                 case 401:
                     dispatch(setProcessing(false, 'likeslistloadingmore'));
+                    logOut(() => persistor.purge());
                     break;
                 case 400:
                     dispatch(setProcessing('retry', 'likeslistloadingmore'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 404:
                     dispatch(setProcessing('retry', 'likeslistloadingmore'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 default:
                     dispatch(setProcessing('retry', 'likeslistloadingmore'));
-                    ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    Toast('something went wrong please try again', ToastAndroid.LONG);
                     break;
             }
         } catch (err) {
             dispatch(setProcessing('retry', 'likeslistloadingmore'));
-            if (err.toString().search('Failed to connect')) {
-                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            if (err.toString().indexOf('Network Error') > -1) {
+                Toast('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+                Toast('Something went wrong please try again', ToastAndroid.LONG);
             }
         }
     };
@@ -672,7 +700,7 @@ export const setSharesListFormLink = (data: String) => {
 export const fetchShares = (requrl, reqdata) => {
     return async (dispatch) => {
         if (checkData(requrl) != true) {
-            ToastAndroid.show('request term not specified', ToastAndroid.LONG);
+            Toast('request term not specified', ToastAndroid.LONG);
             return;
         }
         dispatch(setProcessing(true, 'shareslistfetching'));
@@ -691,26 +719,27 @@ export const fetchShares = (requrl, reqdata) => {
                     break;
                 case 401:
                     dispatch(setProcessing(false, 'shareslistfetching'));
+                    logOut(() => persistor.purge());
                     break;
                 case 400:
                     dispatch(setProcessing('retry', 'shareslistfetching'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 404:
                     dispatch(setProcessing('retry', 'shareslistfetching'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 default:
                     dispatch(setProcessing('retry', 'shareslistfetching'));
-                    ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    Toast('something went wrong please try again', ToastAndroid.LONG);
                     break;
             }
         } catch (err) {
             dispatch(setProcessing('retry', 'shareslistfetching'));
-            if (err.toString().search('Failed to connect')) {
-                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            if (err.toString().indexOf('Network Error') > -1) {
+                Toast('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+                Toast('Something went wrong please try again', ToastAndroid.LONG);
             }
         }
     };
@@ -739,26 +768,27 @@ export const fetchMoreShares = (reqdata) => {
                     break;
                 case 401:
                     dispatch(setProcessing(false, 'shareslistloadingmore'));
+                    logOut(() => persistor.purge());
                     break;
                 case 400:
                     dispatch(setProcessing('retry', 'shareslistloadingmore'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 404:
                     dispatch(setProcessing('retry', 'shareslistloadingmore'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 default:
                     dispatch(setProcessing('retry', 'shareslistloadingmore'));
-                    ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    Toast('something went wrong please try again', ToastAndroid.LONG);
                     break;
             }
         } catch (err) {
             dispatch(setProcessing('retry', 'shareslistloadingmore'));
-            if (err.toString().search('Failed to connect')) {
-                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            if (err.toString().indexOf('Network Error') > -1) {
+                Toast('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('Something went wrong please try again', ToastAndroid.LONG);
+                Toast('Something went wrong please try again', ToastAndroid.LONG);
             }
         }
     };
@@ -771,7 +801,7 @@ export const fetchMoreShares = (reqdata) => {
 export const fetchProfilePosts = (profileid, initAction, okAction, failedAction) => {
     return async () => {
         if (!checkData(profileid)) {
-            ToastAndroid.show('Missing terms to continue', ToastAndroid.SHORT);
+            Toast('Missing terms to continue', ToastAndroid.SHORT);
             failedAction && failedAction();
         }
         const { user, } = store.getState();
@@ -787,11 +817,15 @@ export const fetchProfilePosts = (profileid, initAction, okAction, failedAction)
                     okAction && okAction(profile_posts, reqprofile, nextpageurl);
                     break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.SHORT);
+                    Toast(errmsg, ToastAndroid.SHORT);
                     failedAction && failedAction('cancel');
                     break;
+                case 401:
+                    failedAction && failedAction('cancel');
+                    logOut(() => persistor.purge());
+                    break;
                 case 404:
-                    ToastAndroid.show('profile has no post', ToastAndroid.SHORT);
+                    Toast('profile has no post', ToastAndroid.SHORT);
                     failedAction && failedAction();
                     break;
                 default:
@@ -808,7 +842,7 @@ export const fetchProfilePosts = (profileid, initAction, okAction, failedAction)
 export const fetchMoreProfilePosts = (url, profileid, initAction, okAction, failedAction) => {
     return async () => {
         if (!checkData(profileid)) {
-            ToastAndroid.show('Missing terms to continue', ToastAndroid.SHORT);
+            Toast('Missing terms to continue', ToastAndroid.SHORT);
             failedAction && failedAction();
         }
         const { user, } = store.getState();
@@ -824,11 +858,15 @@ export const fetchMoreProfilePosts = (url, profileid, initAction, okAction, fail
                     okAction && okAction(profile_posts, reqprofile, nextpageurl);
                     break;
                 case 404:
-                    ToastAndroid.show('profile has no post', ToastAndroid.SHORT);
+                    Toast('profile has no post', ToastAndroid.SHORT);
                     failedAction && failedAction();
                     break;
+                case 401:
+                    failedAction && failedAction('cancel');
+                    logOut(() => persistor.purge());
+                    break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.SHORT);
+                    Toast(errmsg, ToastAndroid.SHORT);
                     failedAction && failedAction('cancel');
                     break;
                 default:
@@ -836,7 +874,7 @@ export const fetchMoreProfilePosts = (url, profileid, initAction, okAction, fail
                     break;
             }
         } catch (err) {
-            alert(err.toString())
+            //alert(err.toString())
             failedAction && failedAction();
         }
     };
@@ -957,13 +995,12 @@ export const uploadProfilePic = (image) => {
                     deleteFile(image.path);
                     ImagePicker.clean();
                     dispatch(setProcessing(false, 'updateProfileImage'));
-                    ToastAndroid.show('Your session has expired you are required to login',
-                        ToastAndroid.LONG);
+                    logOut(() => persistor.purge());
                     break;
                 case 400:
                     deleteFile(image.path);
                     ImagePicker.clean();
-                    ToastAndroid.show(errors.avatarerr, ToastAndroid.LONG);
+                    Toast(errors.avatarerr, ToastAndroid.LONG);
                     dispatch(setProcessing(false, 'updateProfileImage'));
                     break;
                 case 200:
@@ -983,7 +1020,7 @@ export const uploadProfilePic = (image) => {
                             deleteFile(image.path);
                             ImagePicker.clean();
                             dispatch(setProcessing(false, 'updateProfileImage'));
-                            ToastAndroid.show('profile photo updated', ToastAndroid.SHORT);
+                            Toast('profile photo updated', ToastAndroid.SHORT);
                             if (profilecompleted == 'profilefalse' &&
                                 getAppInfo(store.getState().profile, 'profile') == 'profiletrue' &&
                                 getAppInfo(store.getState().posts, 'post') == 'posttrue') {
@@ -999,7 +1036,7 @@ export const uploadProfilePic = (image) => {
                             deleteFile(image.path);
                             ImagePicker.clean();
                             dispatch(setProcessing(false, 'updateProfileImage'));
-                            ToastAndroid.show('profile photo updated', ToastAndroid.SHORT);
+                            Toast('profile photo updated', ToastAndroid.SHORT);
                         });
                     break;
                 default:
@@ -1015,7 +1052,7 @@ export const uploadProfilePic = (image) => {
             deleteFile(image.path);
             ImagePicker.clean().catch(e => alert(e));
             dispatch(setProcessing(false, 'updateProfileImage'));
-            ToastAndroid.show('could not update profile picture possible a network error please try again',
+            Toast('could not update profile picture possible a network error please try again',
                 ToastAndroid.LONG);
         }
     }
@@ -1032,27 +1069,27 @@ export const saveProfileUpdate = (updateusername, updatebio, updatecampus, updat
         if (checkData(updateusername) != true) {
             dispatch(setProcessing(false, 'updateProfile'));
             dispatch(setUpdateProfileErrors({ usernameerr: "The username field is required" }, 'updateProfile'));
-            ToastAndroid.show('profile update failed please check your inputs and try again',
+            Toast('profile update failed please check your inputs and try again',
                 ToastAndroid.LONG);
             return;
         } else if (checkData(updatebio) != true) {
             dispatch(setProcessing(false, 'updateProfile'));
             dispatch(setUpdateProfileErrors({ 'bioerr': "The bio field is required" }, 'updateProfile'));
-            ToastAndroid.show('profile update failed please check your inputs and try again',
+            Toast('profile update failed please check your inputs and try again',
                 ToastAndroid.LONG);
             return;
         } else if (checkData(updategender) != true || updategender == "none" || updategender == 'false') {
             dispatch(setProcessing(false, 'updateProfile'));
             //console.warn('updated gender');
             dispatch(setUpdateProfileErrors({ gendererr: "The gender field is required" }, 'updateProfile'));
-            ToastAndroid.show('profile update failed please check your inputs and try again',
+            Toast('profile update failed please check your inputs and try again',
                 ToastAndroid.LONG);
             return;
         } else if (checkData(updatecampus) != true || updatecampus == "none") {
             dispatch(setProcessing(false, 'updateProfile'));
             //console.warn('updated campus');
             dispatch(setUpdateProfileErrors({ "campuserr": "please input your campus" }, 'updateProfile'));
-            ToastAndroid.show('profile update failed please check your inputs and try again',
+            Toast('profile update failed please check your inputs and try again',
                 ToastAndroid.LONG);
             return;
         }
@@ -1079,7 +1116,7 @@ export const saveProfileUpdate = (updateusername, updatebio, updatecampus, updat
                     }));
                     dispatch(setProcessing(false, 'updateProfile'));
                     dispatch(setImageTry(false));
-                    ToastAndroid.show('profile saved!', ToastAndroid.LONG);
+                    Toast('profile saved!', ToastAndroid.LONG);
                     if (profilecompleted == 'profilefalse' &&
                         getAppInfo(store.getState().profile, 'profile') == 'profiletrue' &&
                         getAppInfo(store.getState().posts, 'post') == 'posttrue') {
@@ -1091,7 +1128,7 @@ export const saveProfileUpdate = (updateusername, updatebio, updatecampus, updat
                     dispatch(setReset('updateprofileerrors'));
                     dispatch(setProcessing(false, 'updateProfile'));
                     dispatch(setUpdateProfileErrors(errors, 'updateProfile'));
-                    ToastAndroid.show('profile update failed please check your inputs and try again',
+                    Toast('profile update failed please check your inputs and try again',
                         ToastAndroid.LONG);
                     break;
 
@@ -1099,29 +1136,28 @@ export const saveProfileUpdate = (updateusername, updatebio, updatecampus, updat
                     dispatch(setReset('updateprofileerrors'));
                     dispatch(setProcessing(false, 'updateProfile'));
                     dispatch(setUpdateProfileErrors(errors, 'updateprofile'));
-                    ToastAndroid.show(errmsg,
+                    Toast(errmsg,
                         ToastAndroid.LONG);
                     break;
                 case 401:
                     dispatch(setReset('updateprofileerrors'));
                     dispatch(setProcessing(false, 'updateProfile'));
-                    ToastAndroid.show('Your session has expired you are required to login',
-                        ToastAndroid.LONG);
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing(false, 'updateProfile'));
-                    ToastAndroid.show('could not communicate with server please try again',
+                    Toast('could not communicate with server please try again',
                         ToastAndroid.LONG);
                     break;
             }
         } catch (e) {
             dispatch(setProcessing(false, 'updateProfile'));
             if (e.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show('could not connect to server please check your internet connection',
+                Toast('could not connect to server please check your internet connection',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show('something went wrong could not update profile please try again',
+                Toast('something went wrong could not update profile please try again',
                     ToastAndroid.LONG
                 );
             }
@@ -1156,11 +1192,11 @@ export const makePost = (postimages, posttext) => {
         let postcompleted = getAppInfo(posts, 'post');
         if (checkData(postimages) != true || postimages.length < 1) {
             dispatch(setProcessing(false, 'POSTFORM'));
-            ToastAndroid.showWithGravity('Post Images not found', ToastAndroid.LONG, ToastAndroid.CENTER);
+            Toast('Post Images not found', ToastAndroid.LONG, ToastAndroid.CENTER);
             return;
         } else if (checkData(posttext) != true && checkData(postimages) != true) {
             dispatch(setProcessing(false, 'POSTFORM'));
-            ToastAndroid.showWithGravity('Post is empty', ToastAndroid.LONG, ToastAndroid.CENTER);
+            Toast('Post is empty', ToastAndroid.LONG, ToastAndroid.CENTER);
             return;
         }
         var formData = new FormData();
@@ -1174,7 +1210,7 @@ export const makePost = (postimages, posttext) => {
         /*return;*/
         if (resizedimgcaches.length != postimages.length) {
             dispatch(setProcessing(false, 'POSTFORM'));
-            ToastAndroid.showWithGravity('Error occured while processing image please try again',
+            Toast('Error occured while processing image please try again',
                 ToastAndroid.LONG,
                 ToastAndroid.CENTER
             );
@@ -1202,9 +1238,9 @@ export const makePost = (postimages, posttext) => {
                 case 200:
                     dispatch(prependTimelinePostForm([post]));
                     dispatch(prependTimelinePost([post]));
-                    ToastAndroid.show('Posted!', ToastAndroid.LONG);
+                    Toast('Posted!', ToastAndroid.LONG);
                     if (checkData(perror)) {
-                        ToastAndroid.show(perror, ToastAndroid.LONG);
+                        Toast(perror, ToastAndroid.LONG);
                         //perror from backend means not all images were succefull uploaded to backend
                     }
                     if (checkData(post)) {
@@ -1221,24 +1257,23 @@ export const makePost = (postimages, posttext) => {
                     break;
                 case 400:
                     if (errmsg) {
-                        ToastAndroid.show(errmsg,
+                        Toast(errmsg,
                             ToastAndroid.LONG
                         );
                     } else if (errors) {
-                        errors.errorposttext && ToastAndroid.show(errors.errorposttext, ToastAndroid.LONG);
-                        errors.errthumbpostimage && ToastAndroid.show(errors.errthumbpostimage, ToastAndroid.LONG);
-                        errors.errpostimage && ToastAndroid.show(errors.errpostimage, ToastAndroid.LONG);
-                        errors.errthumbpostimages && ToastAndroid.show(errors.errthumbpostimages, ToastAndroid.LONG);
-                        errors.errpostimages && ToastAndroid.show(errors.errpostimages, ToastAndroid.LONG);
+                        errors.errorposttext && Toast(errors.errorposttext, ToastAndroid.LONG);
+                        errors.errthumbpostimage && Toast(errors.errthumbpostimage, ToastAndroid.LONG);
+                        errors.errpostimage && Toast(errors.errpostimage, ToastAndroid.LONG);
+                        errors.errthumbpostimages && Toast(errors.errthumbpostimages, ToastAndroid.LONG);
+                        errors.errpostimages && Toast(errors.errpostimages, ToastAndroid.LONG);
                     } else {
-                        ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                        Toast('something went wrong please try again', ToastAndroid.LONG);
                     }
-
                     deleteMultiImage(resizedimgcaches);
                     dispatch(setProcessing(false, 'POSTFORM'));
                     break;
                 case 500:
-                    ToastAndroid.show(errmsg,
+                    Toast(errmsg,
                         ToastAndroid.LONG
                     );
                     deleteMultiImage(resizedimgcaches);
@@ -1247,11 +1282,12 @@ export const makePost = (postimages, posttext) => {
                 case 401:
                     deleteMultiImage(resizedimgcaches);
                     dispatch(setProcessing(false, 'POSTFORM'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     deleteMultiImage(resizedimgcaches);
                     dispatch(setProcessing(false, 'POSTFORM'));
-                    ToastAndroid.show('something went wrong please try again',
+                    Toast('something went wrong please try again',
                         ToastAndroid.LONG
                     );
                     break;
@@ -1261,11 +1297,11 @@ export const makePost = (postimages, posttext) => {
             deleteMultiImage(resizedimgcaches);
             dispatch(setProcessing(false, 'POSTFORM'));
             if (e.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show('could not connect to server please check your internet connection',
+                Toast('could not connect to server please check your internet connection',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show('something went wrong please try again',
+                Toast('something went wrong please try again',
                     ToastAndroid.LONG
                 );
             }
@@ -1449,7 +1485,7 @@ export const removeProfileTimeLinePostForm = (profileid) => {
 export const fetchParticularPost = (postid, initAction, okAction, endAction) => {
     return async (dispatch) => {
         if (!checkData(postid)) {
-            ToastAndroid.show('Post not found', ToastAndroid.LONG);
+            Toast('Post not found', ToastAndroid.LONG);
             dispatch(setProcessing(false, 'processfetchtimelinepostform'));
             return;
         }
@@ -1472,19 +1508,23 @@ export const fetchParticularPost = (postid, initAction, okAction, endAction) => 
                     break;
                 case 400:
                     dispatch(setProcessing('retry', 'processfetchtimelinepostform'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'processfetchtimelinepostform'));
+                    logOut(() => persistor.purge());
                     break;
                 case 500:
                     dispatch(setProcessing('retry', 'processfetchtimelinepostform'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 412:
                     dispatch(setProcessing(false, 'processfetchtimelinepostform'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 default:
                     dispatch(setProcessing('retry', 'processfetchtimelinepostform'));
-                    ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                    Toast('something went wrong please try again', ToastAndroid.LONG);
                     break;
             }
         } catch (err) {
@@ -1492,9 +1532,9 @@ export const fetchParticularPost = (postid, initAction, okAction, endAction) => 
             //console.warn(err.toString());
             dispatch(setProcessing('retry', 'processfetchtimelinepostform'));
             if (err.toString().indexOf('Network Error') > - 1) {
-                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+                Toast('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+                Toast('something went wrong please try again', ToastAndroid.LONG);
             }
         }
     };
@@ -1518,6 +1558,8 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                 postlistrange,
                 generalpostnexturl,
                 timelineposts,
+                errmsg,
+                status,
                 followedpostnexturl,
                 withincampuspostsnexturl
             } = response.data;
@@ -1565,8 +1607,12 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                     break;
                 default:
                     failedAction && failedAction();
+                    if (status == 401) {
+                        logOut(() => persistor.purge());
+                        return;
+                    }
                     dispatch(setTimelinepostRefresh('failed'));
-                    ToastAndroid.showWithGravity('could not refresh feed',
+                    Toast('could not refresh feed',
                         ToastAndroid.LONG, ToastAndroid.CENTER);
                     break;
             }
@@ -1576,9 +1622,9 @@ export const refreshTimelinePost = (okAction, failedAction) => {
             failedAction && failedAction();
             dispatch(setTimelinepostRefresh('failed'));
             if (e.toString().indexOf('Network Error') > - 1) {
-                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+                Toast('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show('could not refresh feed', ToastAndroid.LONG);
+                Toast('could not refresh feed', ToastAndroid.LONG);
             }
         }
     };
@@ -1611,31 +1657,36 @@ export const likeTimelinePostAction = (postid, likestatus, numpostlikes) => {
                     dispatch(updateTimelinePost({ ...postdetails }));
                     dispatch(updateTimelinePostForm({ ...postdetails }));
                     break;
-                case 401:
-                    break;
                 case 500:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(updateTimelinePostForm({
                         postid, postliked: likestatus == "postliked" ? 'notliked' : 'postliked',
                         num_post_likes: likestatus == "postliked" ? numpostlikes - 1 : numpostlikes + 1,
                     }));
                     break;
                 case 400:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(updateTimelinePostForm({
                         postid, postliked: likestatus == "postliked" ? 'notliked' : 'postliked',
                         num_post_likes: likestatus == "postliked" ? numpostlikes - 1 : numpostlikes + 1,
                     }));
                     break;
+                case 401:
+                    dispatch(updateTimelinePostForm({
+                        postid, postliked: likestatus == "postliked" ? 'notliked' : 'postliked',
+                        num_post_likes: likestatus == "postliked" ? numpostlikes - 1 : numpostlikes + 1,
+                    }));
+                    logOut(() => persistor.purge());
+                    break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(updateTimelinePostForm({
                         postid, postliked: likestatus == "postliked" ? 'notliked' : 'postliked',
                         num_post_likes: likestatus == "postliked" ? numpostlikes - 1 : numpostlikes + 1,
                     }));
                     break;
                 default:
-                    ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
+                    Toast('action failed please try again', ToastAndroid.LONG);
                     dispatch(updateTimelinePostForm({
                         postid, postliked: likestatus == "postliked" ? 'notliked' : 'postliked',
                         num_post_likes: likestatus == "postliked" ? numpostlikes - 1 : numpostlikes + 1,
@@ -1678,30 +1729,35 @@ export const shareTimelinePostAction = (postid, sharestatus, numpostshares) => {
                     dispatch(updateTimelinePostForm({ ...postdetails }));
                     break;
                 case 401:
+                    dispatch(updateTimelinePostForm({
+                        postid, postshared: sharestatus == "postshared" ? "notshared" : "postshared",
+                        num_post_shares: sharestatus == "postshared" ? numpostshares - 1 : numpostshares + 1
+                    }));
+                    logOut(() => persistor.purge());
                     break;
                 case 500:
-                    ToastAndroid.show('could not share post please try again', ToastAndroid.LONG);
+                    Toast('could not share post please try again', ToastAndroid.LONG);
                     dispatch(updateTimelinePostForm({
                         postid, postshared: sharestatus == "postshared" ? "notshared" : "postshared",
                         num_post_shares: sharestatus == "postshared" ? numpostshares - 1 : numpostshares + 1
                     }));
                     break;
                 case 400:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(updateTimelinePostForm({
                         postid, postshared: sharestatus == "postshared" ? "notshared" : "postshared",
                         num_post_shares: sharestatus == "postshared" ? numpostshares - 1 : numpostshares + 1
                     }));
                     break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(updateTimelinePostForm({
                         postid, postshared: sharestatus == "postshared" ? "notshared" : "postshared",
                         num_post_shares: sharestatus == "postshared" ? numpostshares - 1 : numpostshares + 1
                     }));
                     break;
                 default:
-                    ToastAndroid.show('action failed please try again', ToastAndroid.LONG);
+                    Toast('action failed please try again', ToastAndroid.LONG);
                     dispatch(updateTimelinePostForm({
                         postid, postshared: sharestatus == "postshared" ? "notshared" : "postshared",
                         num_post_shares: sharestatus == "postshared" ? numpostshares - 1 : numpostshares + 1
@@ -1721,10 +1777,10 @@ export const archiveTimelinePost = (postid, postprofileid) => {
         dispatch(setProcessing(true, 'processarchivetimelinepostform'));
         const { user, profile } = store.getState();
         if (profile.profile_id != postprofileid) {
-            ToastAndroid.show('You cant archive this post', ToastAndroid.LONG);
+            Toast('You cant archive this post', ToastAndroid.LONG);
             return;
         } else if (checkData(postid) != true || checkData(postprofileid) != true) {
-            ToastAndroid.show('Post not archived', ToastAndroid.LONG);
+            Toast('Post not archived', ToastAndroid.LONG);
             return;
         }
         try {
@@ -1745,36 +1801,38 @@ export const archiveTimelinePost = (postid, postprofileid) => {
                     if (checkData(resetpost)) {
                         dispatch(savePost(resetpost));
                     }
-                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    Toast(message, ToastAndroid.LONG);
                     break;
                 case 400:
                     dispatch(setProcessing(false, 'processarchivetimelinepostform'));
-                    ToastAndroid.show(`${errmsg}`, ToastAndroid.LONG);
+                    Toast(`${errmsg}`, ToastAndroid.LONG);
                     break;
                 case 404:
                     dispatch(setProcessing(false, 'processarchivetimelinepostform'));
-                    ToastAndroid.show(`${errmsg}`, ToastAndroid.LONG);
+                    Toast(`${errmsg}`, ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'processarchivetimelinepostform'));
+                    logOut(() => persistor.purge());
                     break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 500:
                     dispatch(setProcessing(false, 'processarchivetimelinepostform'));
-                    ToastAndroid.show(`${errmsg}`, ToastAndroid.LONG);
+                    Toast(`${errmsg}`, ToastAndroid.LONG);
                     break;
                 default:
                     dispatch(setProcessing(false, 'processarchivetimelinepostform'));
-                    ToastAndroid.show(`${errmsg}`, ToastAndroid.LONG);
+                    Toast(`${errmsg}`, ToastAndroid.LONG);
                     break;
             }
         } catch (err) {
             dispatch(setProcessing(false, 'processarchivetimelinepostform'));
-            if (e.toString().indexOf('Network Error') > -1) {
-                ToastAndroid.show('Network error please check your internet connection', ToastAndroid.LONG);
+            if (err.toString().indexOf('Network Error') > -1) {
+                Toast('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
-                ToastAndroid.show(`Post not archived`, ToastAndroid.LONG);;
+                Toast(`Post not archived`, ToastAndroid.LONG);;
             }
 
             //console.warn(String(err));
@@ -1788,11 +1846,11 @@ export const blackListTimelinePost = (postid, postprofileid) => {
         const { user, profile } = store.getState();
         if (profile.profile_id == postprofileid) {
             dispatch(setProcessing(false, 'processblacklisttimelinepostform'));
-            ToastAndroid.show('You cant blacklist your own post', ToastAndroid.LONG);
+            Toast('You cant blacklist your own post', ToastAndroid.LONG);
             return;
         } else if (checkData(postid) != true || checkData(postprofileid) != true) {
             dispatch(setProcessing(false, 'processblacklisttimelinepostform'));
-            ToastAndroid.show('action failed please retry', ToastAndroid.LONG);
+            Toast('action failed please retry', ToastAndroid.LONG);
             return;
         }
         try {
@@ -1808,36 +1866,37 @@ export const blackListTimelinePost = (postid, postprofileid) => {
                     dispatch(setProcessing(false, 'processblacklisttimelinepostform'));
                     dispatch(deleteTimeLinePost(postid));
                     dispatch(deleteTimelinePostForm(postid));
-                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    Toast(message, ToastAndroid.LONG);
                     break;
                 case 400:
                     dispatch(setProcessing(false, 'processblacklisttimelinepostform'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 500:
                     dispatch(setProcessing(false, 'processblacklisttimelinepostform'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
-
+                    dispatch(setProcessing(false, 'processblacklisttimelinepostform'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing(false, 'processblacklisttimelinepostform'));
-                    ToastAndroid.show('action failed please retry', ToastAndroid.LONG);
+                    Toast('action failed please retry', ToastAndroid.LONG);
                     break;
             }
         } catch (e) {
             dispatch(setProcessing(false, 'processblacklisttimelinepostform'));
             if (e.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show(
+                Toast(
                     'action failed please check your internet connection and try again',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show('action failed please retry', ToastAndroid.LONG);
+                Toast('action failed please retry', ToastAndroid.LONG);
             }
         }
     }
@@ -1849,11 +1908,11 @@ export const muteProfileTimelinePost = (profileid) => {
         const { user, profile } = store.getState();
         if (profile.profile_id == profileid) {
             dispatch(setProcessing(false, 'processmutetimelinepostform'));
-            ToastAndroid.show('You cant mute your own profile posts', ToastAndroid.LONG);
+            Toast('You cant mute your own profile posts', ToastAndroid.LONG);
             return;
         } else if (checkData(profileid) != true) {
             dispatch(setProcessing(false, 'processmutetimelinepostform'));
-            ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG);
+            Toast('something went wrong please try again', ToastAndroid.LONG);
             return;
         }
         try {
@@ -1869,40 +1928,41 @@ export const muteProfileTimelinePost = (profileid) => {
                     dispatch(setProcessing(false, 'processmutetimelinepostform'));
                     dispatch(removeProfileTimeLinePostForm(profileid));
                     dispatch(removeProfileTimeLinePost(profileid));
-                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    Toast(message, ToastAndroid.LONG);
                     break;
                 case 400:
                     dispatch(setProcessing(false, 'processmutetimelinepostform'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 404:
                     dispatch(setProcessing(false, 'processmutetimelinepostform'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 500:
                     dispatch(setProcessing(false, 'processmutetimelinepostform'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
-
+                    dispatch(setProcessing(false, 'processmutetimelinepostform'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing(false, 'processmutetimelinepostform'));
-                    ToastAndroid.show('action failed please retry', ToastAndroid.LONG);
+                    Toast('action failed please retry', ToastAndroid.LONG);
                     break;
             }
         } catch (e) {
             dispatch(setProcessing(false, 'processmutetimelinepostform'));
             if (e.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show(
+                Toast(
                     'action failed please check your internet connection and try again',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show('action failed please retry', ToastAndroid.LONG);
+                Toast('action failed please retry', ToastAndroid.LONG);
             }
         }
     };
@@ -1913,10 +1973,10 @@ export const deleteTimelinePost = (postid, postprofileid) => {
         dispatch(setProcessing(true, 'processdeletetimelinepostform'));
         const { user, profile } = store.getState();
         if (profile.profile_id != postprofileid) {
-            ToastAndroid.show('You cant delete this post', ToastAndroid.LONG);
+            Toast('You cant delete this post', ToastAndroid.LONG);
             return;
         } else if (checkData(postid) != true || checkData(postprofileid) != true) {
-            ToastAndroid.show('Post not deleted', ToastAndroid.LONG);
+            Toast('Post not deleted', ToastAndroid.LONG);
             return;
         }
         try {
@@ -1936,35 +1996,37 @@ export const deleteTimelinePost = (postid, postprofileid) => {
                     if (checkData(resetpost)) {
                         dispatch(savePost(resetpost));
                     }
-                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    Toast(message, ToastAndroid.LONG);
                     break;
                 case 400:
                     dispatch(setProcessing(false, 'processdeletetimelinepostform'));
-                    ToastAndroid.show('post not deleted please try again', ToastAndroid.LONG)
+                    Toast('post not deleted please try again', ToastAndroid.LONG)
                     break;
                 case 500:
                     dispatch(setProcessing(false, 'processdeletetimelinepostform'));
-                    ToastAndroid.show('post not deleted please try again', ToastAndroid.LONG)
+                    Toast('post not deleted please try again', ToastAndroid.LONG)
                     break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'processdeletetimelinepostform'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing(false, 'processdeletetimelinepostform'));
-                    ToastAndroid.show('post not deleted please try again', ToastAndroid.LONG)
+                    Toast('post not deleted please try again', ToastAndroid.LONG)
                     break;
             }
         } catch (err) {
             dispatch(setProcessing(false, 'processdeletetimelinepostform'));
             if (err.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show(
+                Toast(
                     'action failed please check your internet connection and try again',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show(`Post not deleted please try again`, ToastAndroid.LONG);
+                Toast(`Post not deleted please try again`, ToastAndroid.LONG);
             }
 
             //console.warn(String(err))
@@ -1993,7 +2055,7 @@ export const fetchMoreTimelinePost = () => {
         let reqArr = [];
         data.forEach(url => {
             reqArr.push(
-                axios.post(url, null, options)
+                session.post(url, null, options)
             );
         });
         axios.all(reqArr)
@@ -2013,7 +2075,7 @@ export const fetchMoreTimelinePost = () => {
 
                 if (postarr.length < 1) {
                     dispatch(setProcessing('retry', 'processloadmoretimelinepostform'));
-                    ToastAndroid.show(
+                    Toast(
                         'something went wrong try again',
                         ToastAndroid.LONG
                     );
@@ -2032,12 +2094,12 @@ export const fetchMoreTimelinePost = () => {
                 //alert(e.toString());
                 dispatch(setProcessing('retry', 'processloadmoretimelinepostform'));
                 if (e.toString().indexOf('Network Error') != -1) {
-                    ToastAndroid.show(
+                    Toast(
                         'action failed please check your internet connection and try again',
                         ToastAndroid.LONG
                     );
                 } else {
-                    ToastAndroid.show(`could not load more posts please try again`, ToastAndroid.LONG);
+                    Toast(`could not load more posts please try again`, ToastAndroid.LONG);
                 }
 
 
@@ -2050,6 +2112,7 @@ const structurePost = (result: Array) => {
     let {
             message,
         postlistrange,
+        status,
         generalpostnexturl,
         timelineposts,
         followedpostnexturl,
@@ -2075,6 +2138,9 @@ const structurePost = (result: Array) => {
             ];
             break;
         default:
+            if (status == 401) {
+                logOut(() => persistor.purge());
+            }
             return [];
             break;
     }
@@ -2094,6 +2160,7 @@ export const fetchTimelinePost = () => {
             const {
                 message,
                 postlistrange,
+                status,
                 generalposts,
                 generalpostnexturl,
                 followedposts,
@@ -2122,13 +2189,17 @@ export const fetchTimelinePost = () => {
                     break;
                 default:
                     dispatch(setProcessing('failed', 'timelinepostform'));
-                    ToastAndroid.showWithGravity('could not refresh feed',
+                    if (status == 401) {
+                        logOut(() => persistor.purge());
+                        return;
+                    }
+                    Toast('could not refresh feed',
                         ToastAndroid.LONG, ToastAndroid.CENTER);
                     break;
             }
         } catch (e) {
             dispatch(setProcessing('failed', 'timelinepostform'));
-            ToastAndroid.showWithGravity('could not refresh feed',
+            Toast('could not refresh feed',
                 ToastAndroid.LONG, ToastAndroid.CENTER);
         }
     }
@@ -2168,15 +2239,17 @@ export const postSettingUpdate = (toupdatedata) => {
                 case 200:
                     dispatch(updatePostSetting(postsetting));
                     dispatch(setProcessing(false, 'postsettingprocess'));
-                    ToastAndroid.show(message, ToastAndroid.LONG)
+                    Toast(message, ToastAndroid.LONG)
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'postsettingprocess'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(updatePostSetting(prevpostsetting));
                     dispatch(setProcessing(false, 'postsettingprocess'));
-                    errmsg && ToastAndroid.show(errmsg, ToastAndroid.LONG) ||
-                        ToastAndroid.show('something went wrong please try again', ToastAndroid.LONG)
+                    errmsg && Toast(errmsg, ToastAndroid.LONG) ||
+                        Toast('something went wrong please try again', ToastAndroid.LONG)
                     break;
             }
         } catch (e) {
@@ -2184,12 +2257,12 @@ export const postSettingUpdate = (toupdatedata) => {
             dispatch(updatePostSetting(prevpostsetting));
             dispatch(setProcessing(false, 'postsettingprocess'));
             if (e.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show(
+                Toast(
                     'Network Error!',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show(`something went wrong please try again`, ToastAndroid.LONG);
+                Toast(`something went wrong please try again`, ToastAndroid.LONG);
             }
         }
 
@@ -2213,6 +2286,8 @@ export const getPostSetting = () => {
                     ///ToastAndroid.show(message, ToastAndroid.LONG)
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'postsettingprocess'));
+                    logOut(() => persistor.purge());
                     break;
                 case 404:
                     dispatch(updatePostSetting({
@@ -2220,18 +2295,18 @@ export const getPostSetting = () => {
                     }));
                     break;
                 default:
-                    errmsg && ToastAndroid.show(errmsg, ToastAndroid.LONG)
+                    errmsg && Toast(errmsg, ToastAndroid.LONG)
                     break;
             }
         } catch (e) {
             //console.warn(e.toString());
             if (e.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show(
+                Toast(
                     'Network Error!',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show(`something went wrong please try again`, ToastAndroid.LONG);
+                Toast(`something went wrong please try again`, ToastAndroid.LONG);
             }
         }
 
@@ -2296,7 +2371,7 @@ export const updatePostCommentFormProfileChanges = (data: Object) => {
 export const fetchPostComment = (postid) => {
     return async (dispatch) => {
         if (checkData(postid) != true) {
-            ToastAndroid.show('Could not fetch comments please try again', ToastAndroid.LONG);
+            Toast('Could not fetch comments please try again', ToastAndroid.LONG);
             dispatch(setProcessing('retry', 'postcommentformfetching'));
             return;
         }
@@ -2317,7 +2392,7 @@ export const fetchPostComment = (postid) => {
                     dispatch(setPostCommentFormLink(nextpageurl));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
-                    hiddens == true && ToastAndroid.showWithGravity(
+                    hiddens == true && Toast(
                         'some comments are hidden by author',
                         ToastAndroid.LONG,
                         ToastAndroid.CENTER
@@ -2332,10 +2407,12 @@ export const fetchPostComment = (postid) => {
                     //ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(setProcessing(false, 'postcommentformfetching'));
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'postcommentformfetching'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing('retry', 'postcommentformfetching'));
@@ -2397,9 +2474,11 @@ export const retryPostComment = (postid, commentid, comment_text) => {
                     break;
                 case 412:
                     dispatch(removePostCommentForm(tempid));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(removePostCommentForm(tempid));
+                    logOut(() => persistor.purge());
                     break;
                 case 500:
                     dispatch(updatePostCommentForm(onretryschema));
@@ -2469,9 +2548,11 @@ export const makePostComment = (postid, comment_text) => {
                     break;
                 case 412:
                     dispatch(removePostCommentForm(tempid));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(removePostCommentForm(tempid));
+                    logOut(() => persistor.purge());
                     break;
                 case 500:
                     dispatch(updatePostCommentForm(onretryschema));
@@ -2517,9 +2598,17 @@ export const likePostComment = (commentid, likestatus, numlikes) => {
                     dispatch(updatePostCommentForm(comment));
                     break;
                 case 401:
+                    dispatch(
+                        updatePostCommentForm({
+                            commentid: commentid,
+                            commentliked: likestatus ? false : true,
+                            num_likes: likestatus ? numlikes - 1 : numlikes + 1
+                        })
+                    );
+                    logOut(() => persistor.purge());
                     break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(
                         updatePostCommentForm({
                             commentid: commentid,
@@ -2529,7 +2618,7 @@ export const likePostComment = (commentid, likestatus, numlikes) => {
                     );
                     break;
                 default:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG)
+                    Toast(errmsg, ToastAndroid.LONG)
                     dispatch(
                         updatePostCommentForm({
                             commentid: commentid,
@@ -2549,7 +2638,7 @@ export const refreshPostComment = (postid) => {
         dispatch(setPostCommentFormRefresh(true));
         if (checkData(postid) != true) {
             dispatch(setPostCommentFormRefresh(false));
-            ToastAndroid.show('Failed to refresh', ToastAndroid.LONG);
+            Toast('Failed to refresh', ToastAndroid.LONG);
             return;
         }
         const { user } = store.getState();
@@ -2570,7 +2659,7 @@ export const refreshPostComment = (postid) => {
                     dispatch(setPostCommentFormLink(nextpageurl));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
-                    hiddens == true && ToastAndroid.showWithGravity(
+                    hiddens == true && Toast(
                         'some comments are hidden by author',
                         ToastAndroid.LONG,
                         ToastAndroid.CENTER
@@ -2578,28 +2667,30 @@ export const refreshPostComment = (postid) => {
                     break;
                 case 400:
                     dispatch(setPostCommentFormRefresh(false));
-                    ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
+                    Toast('failed to refresh', ToastAndroid.LONG);
                     break;
                 case 404:
                     dispatch(setPostCommentFormRefresh(false));
-                    ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
+                    Toast('failed to refresh', ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(setPostCommentFormRefresh(false));
+                    logOut(() => persistor.purge());
                     break;
                 case 412:
                     dispatch(setPostCommentFormRefresh(false));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 default:
                     dispatch(setPostCommentFormRefresh(false));
-                    ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
+                    Toast('failed to refresh', ToastAndroid.LONG);
                     break;
             }
 
         } catch (err) {
             // console.warn(err.toString());
             dispatch(setPostCommentFormRefresh(false));
-            ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
+            Toast('failed to refresh', ToastAndroid.LONG);
         }
     }
 };
@@ -2626,7 +2717,7 @@ export const loadMorePostComment = (postid) => {
                     dispatch(setPostCommentFormLink(nextpageurl));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
-                    hiddens == true && ToastAndroid.showWithGravity(
+                    hiddens == true && Toast(
                         'some comments are hidden by author',
                         ToastAndroid.LONG,
                         ToastAndroid.CENTER
@@ -2636,14 +2727,16 @@ export const loadMorePostComment = (postid) => {
                     // console.warn(errmsg);
                     dispatch(setProcessing('retry', 'postcommentformloadmore'));
                     break;
+                case 401:
+                    dispatch(setProcessing(false, 'postcommentformloadmore'));
+                    logOut(() => persistor.purge());
+                    break;
                 case 404:
                     dispatch(setProcessing(false, 'postcommentformloadmore'));
                     break;
                 case 412:
                     dispatch(setProcessing(false, 'postcommentformloadmore'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
-                    break;
-                case 401:
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 default:
                     dispatch(setProcessing('retry', 'postcommentformloadmore'));
@@ -2660,7 +2753,7 @@ export const deletePostComment = (postcommentid, ownerid) => {
     return async (dispatch) => {
         const { user, profile } = store.getState();
         if (checkData(postcommentid) != true || checkData(ownerid) != true || ownerid != profile.profile_id) {
-            ToastAndroid.show('Could not delete comment', ToastAndroid.LONG);
+            Toast('Could not delete comment', ToastAndroid.LONG);
             return;
         }
         dispatch(setProcessing(true, 'postcommentformdeleting'));
@@ -2678,17 +2771,19 @@ export const deletePostComment = (postcommentid, ownerid) => {
                     dispatch(removePostCommentForm(postcommentid));
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'postcommentformdeleting'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing(false, 'postcommentformdeleting'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
             }
         } catch (err) {
             dispatch(setProcessing(false, 'postcommentformdeleting'));
             //alert(err.toString())
             //alert(JSON.stringify(err));
-            ToastAndroid.show('could not delete comment please try gain', ToastAndroid.LONG);
+            Toast('could not delete comment please try gain', ToastAndroid.LONG);
         }
     }
 };
@@ -2699,7 +2794,7 @@ export const hidePostCommentAction = (commentid, ownerid) => {
         if (checkData(commentid) != true ||
             checkData(ownerid) != true ||
             ownerid != profile.profile_id) {
-            ToastAndroid.show('Could not hide comment', ToastAndroid.LONG);
+            Toast('Could not hide comment', ToastAndroid.LONG);
             return;
         }
         dispatch(setProcessing(true, 'postcommentformhiding'));
@@ -2716,19 +2811,21 @@ export const hidePostCommentAction = (commentid, ownerid) => {
                         commentid,
                         hidden: hidden
                     }));
-                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    Toast(message, ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'postcommentformhiding'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing(false, 'postcommentformhiding'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
             }
         } catch (err) {
             dispatch(setProcessing(false, 'postcommentformhiding'));
             //alert(err.toString());
-            ToastAndroid.show('something went wrong could not hide comment please try again', ToastAndroid.LONG)
+            Toast('something went wrong could not hide comment please try again', ToastAndroid.LONG)
         }
     };
 };
@@ -2789,7 +2886,7 @@ export const updatePostCommentReplyFormProfileChanges = (data: Object) => {
 export const fetchPostCommentReply = (originid) => {
     return async (dispatch) => {
         if (checkData(originid) != true) {
-            ToastAndroid.show('Could not fetch replies please try again', ToastAndroid.LONG);
+            Toast('Could not fetch replies please try again', ToastAndroid.LONG);
             dispatch(setProcessing('retry', 'postcommentreplyformfetching'));
             return;
         }
@@ -2810,7 +2907,7 @@ export const fetchPostCommentReply = (originid) => {
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
-                    hiddens == true && ToastAndroid.showWithGravity(
+                    hiddens == true && Toast(
                         'some replies are hidden by author',
                         ToastAndroid.LONG,
                         ToastAndroid.CENTER
@@ -2825,10 +2922,12 @@ export const fetchPostCommentReply = (originid) => {
                     //ToastAndroid.show(errmsg, ToastAndroid.LONG);
                     break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(setProcessing(false, 'postcommentreplyformfetching'));
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'postcommentreplyformfetching'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing('retry', 'postcommentreplyformfetching'));
@@ -2837,15 +2936,15 @@ export const fetchPostCommentReply = (originid) => {
             }
 
         } catch (err) {
-            console.warn(err.toString());
+            //console.warn(err.toString());
             dispatch(setProcessing('retry', 'postcommentreplyformfetching'));
             if (err.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show(
+                Toast(
                     'action failed please check your internet connection and try again',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show(`could not fetch replies please try again`, ToastAndroid.LONG);
+                Toast(`could not fetch replies please try again`, ToastAndroid.LONG);
             }
         }
     };
@@ -2873,7 +2972,7 @@ export const loadMorePostCommentReply = (originid) => {
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
-                    hiddens == true && ToastAndroid.showWithGravity(
+                    hiddens == true && Toast(
                         'some replies are hidden by author',
                         ToastAndroid.LONG,
                         ToastAndroid.CENTER
@@ -2888,9 +2987,11 @@ export const loadMorePostCommentReply = (originid) => {
                     break;
                 case 412:
                     dispatch(setProcessing(false, 'postcommentreplyformloadmore'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'postcommentreplyformloadmore'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing('retry', 'postcommentreplyformloadmore'));
@@ -2933,9 +3034,17 @@ export const likePostCommentReply = (replyid, likestatus, numlikes) => {
                     dispatch(updatePostCommentReplyForm(reply));
                     break;
                 case 401:
+                    dispatch(
+                        updatePostCommentReplyForm({
+                            replyid,
+                            replyliked: likestatus ? false : true,
+                            num_likes: likestatus ? numlikes - 1 : numlikes + 1
+                        })
+                    );
+                    logOut(() => persistor.purge());
                     break;
                 case 412:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     dispatch(
                         updatePostCommentReplyForm({
                             replyid,
@@ -2945,7 +3054,7 @@ export const likePostCommentReply = (replyid, likestatus, numlikes) => {
                     );
                     break;
                 default:
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG)
+                    Toast(errmsg, ToastAndroid.LONG)
                     dispatch(
                         updatePostCommentReplyForm({
                             replyid,
@@ -2967,7 +3076,7 @@ export const refreshPostCommentReply = (originid) => {
         dispatch(setPostCommentReplyFormRefresh(true));
         if (checkData(originid) != true) {
             dispatch(setPostCommentReplyFormRefresh(false));
-            ToastAndroid.show('Failed to refresh', ToastAndroid.LONG);
+            Toast('Failed to refresh', ToastAndroid.LONG);
             return;
         }
         const { user } = store.getState();
@@ -2987,7 +3096,7 @@ export const refreshPostCommentReply = (originid) => {
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
-                    hiddens == true && ToastAndroid.showWithGravity(
+                    hiddens == true && Toast(
                         'some replies are hidden by author',
                         ToastAndroid.LONG,
                         ToastAndroid.CENTER
@@ -2995,33 +3104,35 @@ export const refreshPostCommentReply = (originid) => {
                     break;
                 case 400:
                     dispatch(setPostCommentReplyFormRefresh(false));
-                    ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
+                    Toast('failed to refresh', ToastAndroid.LONG);
                     break;
                 case 404:
                     dispatch(setPostCommentReplyFormRefresh(false));
-                    ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
+                    Toast('failed to refresh', ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(setPostCommentReplyFormRefresh(false));
+                    logOut(() => persistor.purge());
                     break;
                 case 412:
                     dispatch(setPostCommentReplyFormRefresh(false));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 default:
                     dispatch(setPostCommentReplyFormRefresh(false));
-                    ToastAndroid.show('failed to refresh', ToastAndroid.LONG);
+                    Toast('failed to refresh', ToastAndroid.LONG);
                     break;
             }
 
         } catch (err) {
             dispatch(setPostCommentReplyFormRefresh(false));
             if (err.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show(
+                Toast(
                     'action failed please check your internet connection and try again',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show(`failed to refresh`, ToastAndroid.LONG);
+                Toast(`failed to refresh`, ToastAndroid.LONG);
             }
         }
     }
@@ -3082,9 +3193,11 @@ export const makePostCommentReply = (originid, reply_text) => {
                     break;
                 case 412:
                     dispatch(removePostCommentReplyForm(tempid));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(removePostCommentReplyForm(tempid));
+                    logOut(() => persistor.purge());
                     break;
                 case 500:
                     dispatch(updatePostCommentReplyForm(onretryschema));
@@ -3094,15 +3207,15 @@ export const makePostCommentReply = (originid, reply_text) => {
                     break;
             }
         } catch (err) {
-            console.warn(err.toString());
+            //console.warn(err.toString());
             dispatch(updatePostCommentReplyForm(onretryschema));
             if (err.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show(
+                Toast(
                     'action failed please check your internet connection and try again',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show(`could not post reply please try again`, ToastAndroid.LONG);
+                Toast(`could not post reply please try again`, ToastAndroid.LONG);
             }
         }
 
@@ -3153,9 +3266,11 @@ export const retryPostCommentReply = (originid, replyid, reply_text) => {
                     break;
                 case 412:
                     dispatch(removePostCommentReplyForm(tempid));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(removePostCommentReplyForm(tempid));
+                    logOut(() => persistor.purge());
                     break;
                 case 500:
                     dispatch(updatePostCommentReplyForm(onretryschema));
@@ -3176,7 +3291,7 @@ export const deletePostCommentReply = (replyid, ownerid) => {
     return async (dispatch) => {
         const { user, profile } = store.getState();
         if (checkData(replyid) != true || checkData(ownerid) != true || ownerid != profile.profile_id) {
-            ToastAndroid.show('Could not delete reply', ToastAndroid.LONG);
+            Toast('Could not delete reply', ToastAndroid.LONG);
             return;
         }
         dispatch(setProcessing(true, 'postcommentreplyformdeleting'));
@@ -3194,21 +3309,23 @@ export const deletePostCommentReply = (replyid, ownerid) => {
                         : dispatch(updatePostCommentForm(origin));
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'postcommentreplyformdeleting'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing(false, 'postcommentreplyformdeleting'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
             }
         } catch (err) {
             dispatch(setProcessing(false, 'postcommentreplyformdeleting'));
             if (err.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show(
+                Toast(
                     'action failed please check your internet connection and try again',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show(`could not delete replies please try again`, ToastAndroid.LONG);
+                Toast(`could not delete replies please try again`, ToastAndroid.LONG);
             }
         }
     }
@@ -3220,7 +3337,7 @@ export const hidePostCommentReply = (replyid, ownerid) => {
         if (checkData(replyid) != true ||
             checkData(ownerid) != true ||
             ownerid != profile.profile_id) {
-            ToastAndroid.show('Could not hide reply', ToastAndroid.LONG);
+            Toast('Could not hide reply', ToastAndroid.LONG);
             return;
         }
         dispatch(setProcessing(true, 'postcommentreplyformhiding'));
@@ -3237,24 +3354,26 @@ export const hidePostCommentReply = (replyid, ownerid) => {
                         replyid,
                         hidden: hidden
                     }));
-                    ToastAndroid.show(message, ToastAndroid.LONG);
+                    Toast(message, ToastAndroid.LONG);
                     break;
                 case 401:
+                    dispatch(setProcessing(false, 'postcommentreplyformhiding'));
+                    logOut(() => persistor.purge());
                     break;
                 default:
                     dispatch(setProcessing(false, 'postcommentreplyformhiding'));
-                    ToastAndroid.show(errmsg, ToastAndroid.LONG);
+                    Toast(errmsg, ToastAndroid.LONG);
                     break;
             }
         } catch (err) {
             dispatch(setProcessing(false, 'postcommentreplyformhiding'));
             if (err.toString().indexOf('Network Error') != -1) {
-                ToastAndroid.show(
+                Toast(
                     'action failed please check your internet connection and try again',
                     ToastAndroid.LONG
                 );
             } else {
-                ToastAndroid.show('something went wrong could not hide reply please try again', ToastAndroid.LONG)
+                Toast('something went wrong could not hide reply please try again', ToastAndroid.LONG)
             }
         }
     };

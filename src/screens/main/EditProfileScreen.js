@@ -20,7 +20,7 @@ import { Header, OverlayWithImage, LoaderScreen } from '../../components/reusabl
 import ImagePicker from 'react-native-image-crop-picker';
 import RNFetchBlob from 'rn-fetch-blob';
 import session from '../../api/session';
-import { rnPath, getAppInfo, checkData } from '../../utilities';
+import { rnPath, getAppInfo, checkData, Toast } from '../../utilities';
 import { Navigation } from 'react-native-navigation';
 import * as Animatable from 'react-native-animatable';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions'
@@ -77,7 +77,7 @@ const EditProfileScreen = ({ navigation,
             componentDidAppear: () => {
                 //to show toast modal if profile is not here completed and pageinfo modal has already being shown
                 if (editprofileinfo == true && getAppInfo(profile, 'profile') == 'profilefalse') {
-                    ToastAndroid.show('Make sure you upload your profile picture and complete your profile so as to continue into the app',
+                    Toast('Make sure you upload your profile picture and complete your profile so as to continue into the app',
                         ToastAndroid.LONG);
                 }
                 if (getimagetry) {
