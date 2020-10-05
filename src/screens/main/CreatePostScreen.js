@@ -35,9 +35,24 @@ let containerinputwidth = responsiveWidth(90);
 inputwidth = inputwidth > 450 ? 450 : inputwidth;
 containerinputwidth = containerinputwidth > 550 ? 550 : containerinputwidth;
 
-const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts, postform, makePost, postinfo, setUpdatedPostFormText, setUpdatedPostFormImage, profileimage }) => {
+const CreatePostScreen = ({
+    navparent,
+    componentId,
+    username,
+    setAppInfo,
+    posts,
+    postform,
+    makePost,
+    postinfo,
+    setUpdatedPostFormText,
+    setUpdatedPostFormImage,
+    profileimage,
+    screentype,
+    setProcessing,
+ }) => {
     const placeholderColor = '#606060';
     const [anonymous, setAnonymous] = useState(true);
+    const [postshowheader, setPostShowHeader] = useState(false);
     const [modalstate, setModalState] = useState({
         screeninfomodal: false,
     });
@@ -55,7 +70,7 @@ const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts,
         color={colors.text}
         size={responsiveFontSize(6)}
     /> : null;
-    let lefticonpress = navparent == true ? () => Navigation.pop(componentId) : null;
+    let lefticonpress = navparent == true ? setDimissNav() : null;
     let righticon = '';
     let righticonpress = '';
     let postimagecontainer = '';
@@ -64,16 +79,15 @@ const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts,
      * functions
      */
     useEffect(() => {
+        //to show toast modal if profile is not here completed and pageinfo modal has already being shown
+        if (postinfo == true && getAppInfo(posts, 'post') == 'postfalse') {
+            Toast('You need to have a post to continue into the app',
+                ToastAndroid.LONG);
+        }
         const listener = {
             componentDidAppear: () => {
-                //to show toast modal if profile is not here completed and pageinfo modal has already being shown
-                if (postinfo == true && getAppInfo(posts, 'post') == 'postfalse') {
-                    Toast('You need to have a post to continue into the app',
-                        ToastAndroid.LONG);
-                }
                 if (!loaded) {
                     setLoaded(true);
-                    return;
                 }
             },
             componentDidDisappear: () => {
@@ -95,7 +109,15 @@ const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts,
         topBar: {
             visible: false,
         }
-    })
+    });
+
+    //function to determine dismiss of navigation based on screentype
+    function setDimissNav() {
+        if (screentype == "modal")
+            return () => Navigation.dismissModal(componentId)
+        else
+            return () => Navigation.pop(componentId);
+    }
 
     const checkAnonymous = () => {
         anonymous == true ? setAnonymous(false) : setAnonymous(true);
@@ -138,7 +160,12 @@ const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts,
             }}
         >Post</Text>;
         righticonpress = () => {
-            makePost(topostimages, toposttext);
+            makePost(topostimages, toposttext, () => {
+                setProcessing(true, 'postformshow');
+                setTimeout(() => {
+                    setProcessing(false, 'postformshow');
+                }, 6000)
+            });
         }
     }
 
@@ -194,22 +221,44 @@ const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts,
         </View>
             ;
     }
-    //conditional function to determine whether to display postimages or pick image iconbutton ends
     /**
      * CONDITIONAL STATEMENTS ENDS HERE
      */
     return (
         <SafeAreaView style={[styles.containerStyle, { backgroundColor: colors.background }]}>
-            <Header
-                headercolor={colors.card}
-                headertext="CreatePost"
-                headertextcolor={colors.text}
-                headertextsize={responsiveFontSize(2.9)}
-                lefticon={lefticon}
-                righticon={righticon}
-                leftIconPress={lefticonpress}
-                rightIconPress={righticonpress}
-            />
+            {postform.postshow && checkData(posts[0]) ?
+                <Header
+                    headercolor={colors.card}
+                    headertext="View Post"
+                    headertextcolor={colors.text}
+                    headertextsize={responsiveFontSize(2.9)}
+                    righticon={<Text
+                        style={{
+                            fontSize: responsiveFontSize(2.8),
+                            color: "#2196F3"
+                        }}
+                    >View</Text>}
+                    rightIconPress={() => Navigation.showModal({
+                        component: {
+                            name: "PostShow",
+                            passProps: {
+                                navparent: true,
+                                screentype: "modal",
+                                toshowpost: posts[0],
+                            }
+                        }
+                    })}
+                /> :
+                <Header
+                    headercolor={colors.card}
+                    headertext="CreatePost"
+                    headertextcolor={colors.text}
+                    headertextsize={responsiveFontSize(2.9)}
+                    lefticon={lefticon}
+                    righticon={righticon}
+                    leftIconPress={lefticonpress}
+                    rightIconPress={righticonpress}
+                />}
             <OverlayWithImage
                 isVisible={modalstate.screeninfomodal}
                 theme={colors}
@@ -266,15 +315,6 @@ const CreatePostScreen = ({ navparent, componentId, username, setAppInfo, posts,
                                             }
                                         }
                                     });
-                                    /*Navigation.updateProps('VIEW_PROFILE_SCREEN', {
-                                        navparent: true,
-                                        screentype: 'modal'
-                                    });
-                                    Navigation.mergeOptions(componentId, {
-                                        bottomTabs: {
-                                            currentTabId: 'VIEW_PROFILE_SCREEN'
-                                        }
-                                    })*/
                                 }}
                                 resizeMode='contain'
                                 placeholderStyle={styles.imageContainerStyle}

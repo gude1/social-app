@@ -8,7 +8,7 @@ import ParallaxScrollView from 'react-native-parallax-scroll-view';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes/index';
 import TouchableScale from 'react-native-touchable-scale';
-import { checkData } from '../../utilities/index';
+import { checkData, Toast } from '../../utilities/index';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { Navigation } from 'react-native-navigation';
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
@@ -342,7 +342,6 @@ const ViewProfileScreen = ({
     let useowner = !checkData(reqprofile) ? true : reqprofile.profile_id == authprofile.profile_id;
     let viewprofileform = useowner ? userviewprofileform : othersviewprofileform;
     let toshowprofile = returnViewProfile();
-    //toshowprofile.ublockedprofile = true;
     listModalOptions = [...listModalOptions, ...setListModalOptions()];
     let lefticon = navparent == true ? <Icon
         type="evilicon"
@@ -350,9 +349,8 @@ const ViewProfileScreen = ({
         color={colors.text}
         size={responsiveFontSize(6)}
     /> : null;
-
     let lefticonpress = navparent == true ?
-        setDimissNav()
+        () => setDimissNav()
         : null;
     let righticonpress = hideparallax == true ? () => setHideParallax(false) : () => setListModalVisible(true);
     let righticon = hideparallax == true ?
@@ -364,8 +362,9 @@ const ViewProfileScreen = ({
             color={colors.text}
             size={responsiveFontSize(2.5)}
         />;
-
-    /**component function goes here */
+    /**
+     * component function starts here
+     */
     Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
         bottomTabs: {
             //visible: false
@@ -404,12 +403,12 @@ const ViewProfileScreen = ({
             }
         };
     }, []);
-
     //handles fetching of profiles data 
     function handleFecthViewProfile() {
         if (!checkData(toshowprofile)) {
             setLoaded('failed');
             ToastAndroid.show('profile not found', ToastAndroid.LONG);
+            return;
         }
         if (toshowprofile.profileblockedu == false) {
             fetchAProfile(toshowprofile.profile_id, null, (profile) => {
@@ -621,9 +620,9 @@ const ViewProfileScreen = ({
     //function to determine dismiss of navigation based on screentype
     function setDimissNav() {
         if (screentype == "modal")
-            return () => Navigation.dismissModal(componentId)
+            return Navigation.dismissModal(componentId)
         else
-            return () => Navigation.pop(componentId);
+            return Navigation.pop(componentId);
     }
 
     //function to setListModalOptions
@@ -831,7 +830,7 @@ const ViewProfileScreen = ({
             <>
             <Header
                 headercolor={colors.card}
-                headertext={toshowprofile.user.username}
+                headertext={toshowprofile && toshowprofile.user.username}
                 headertextcolor={colors.text}
                 headertextsize={responsiveFontSize(2.5)}
                 headerStyle={{
@@ -843,7 +842,7 @@ const ViewProfileScreen = ({
                 righticon={righticon}
                 rightIconPress={righticonpress}
             />
-            {renderView()}
+            {toshowprofile && renderView()}
             </>
         </SafeAreaView >
     );

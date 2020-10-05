@@ -43,7 +43,7 @@ const PostCommentScreen = ({ navparent,
         color={colors.text}
         size={responsiveFontSize(6)}
     /> : null;
-    let lefticonpress = navparent == true ? () => Navigation.dismissModal(componentId) : null;
+    let lefticonpress = navparent == true ? () => setDismissNav() : null;
     let righticon = '';
     let righticonpress = '';
     useEffect(() => {
@@ -58,7 +58,7 @@ const PostCommentScreen = ({ navparent,
             }
 
         };
-        //console.warn('bold')
+
         // Register the listener to all events related to our component
         const unsubscribe = Navigation.events().bindComponent(listener, componentId);
         return () => {
@@ -71,6 +71,13 @@ const PostCommentScreen = ({ navparent,
     const setFlatlistRef = (ref) => {
         flatlistref = ref;
     };
+    //function to determine dismiss of navigation based on screentype
+    function setDismissNav() {
+        if (screentype == "modal")
+            return Navigation.dismissModal(componentId)
+        else
+            return Navigation.pop(componentId);
+    }
     /**component functions ends here */
     return (
 

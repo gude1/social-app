@@ -8,8 +8,29 @@ import { checkData } from '../utilities'
 const INITIAL_STATE = {
     isprocessing: false,
     toposttext: '',
+    postshow: false,
     topostimages: [],
 };
+
+
+//to determine the type of processing request if user profile
+const handleProcessing = (key, value, state) => {
+    if (checkData(key) != true || checkData(state) != true || checkData(value) != true) {
+        return state;
+    }
+    switch (key) {
+        case 'POSTFORM':
+            return { ...state, isprocessing: value };
+            break;
+        case 'postformshow':
+            return { ...state, postshow: value };
+            break;
+        default:
+            return state;
+            break;
+    }
+};
+
 
 const PostFormReducer = (state = INITIAL_STATE, action) => {
     if (checkData(action.payload)) {
@@ -23,8 +44,8 @@ const PostFormReducer = (state = INITIAL_STATE, action) => {
             return { ...state, topostimages: [...action.payload] };
             break;
         case PROCESSING:
-            return key == 'POSTFORM' ? { ...state, isprocessing: value }
-                : state;
+            return handleProcessing(action.payload.key,
+                action.payload.value, state);
             break;
         case RESET:
             return key == 'POSTFORM' ? INITIAL_STATE : state;

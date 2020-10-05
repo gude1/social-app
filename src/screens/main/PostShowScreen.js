@@ -12,7 +12,7 @@ import PostShowList from '../../components/reusable/PostShowList';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import * as Animatable from 'react-native-animatable';
-import { checkData } from '../../utilities/index';
+import { checkData, Toast } from '../../utilities/index';
 import { ToastAndroid } from 'react-native';
 
 const { colors } = useTheme();
@@ -37,34 +37,26 @@ const PostShowScreen = ({
     navparent,
     timelinepostform,
     fetchParticularPost,
+    screentype
     }) => {
     const [loaded, setLoaded] = useState(false);
     let foreign = false;
     toshowpost = setShowPost();
-    toshowpost = checkData(toshowpost) ? [toshowpost] : [];
     let lefticon = navparent == true ? <Icon
         type="evilicon"
         name="arrow-left"
         color={colors.text}
         size={responsiveFontSize(6)}
     /> : null;
-    let lefticonpress = navparent == true ? () => Navigation.dismissModal(componentId) : null;
+    let lefticonpress = navparent == true ? () => setDismissNav() : null;
     let righticon = '';
     let righticonpress = '';
     useEffect(() => {
-        if (toshowpost.length == 1) {
-            fetchParticularPost(toshowpost[0].postid);
-            /*() => {
-                let check = timelinepostform.timelineposts.find(item => item.postid == toshowpost[0].postid);
-                if (check == undefined) {
-                    foreign = true;
-                    updateTimelinePostForm(toshowpost[0]);
-                }
-            }*/
+        if (checkData(toshowpost)) {
+            fetchParticularPost(toshowpost.postid);
         } else {
-            ToastAndroid.show('Missing values to continue', ToastAndroid.SHORT);
+            Toast('cannot show post', null, ToastAndroid.CENTER);
         }
-
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
@@ -80,14 +72,16 @@ const PostShowScreen = ({
         return () => {
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
-            if (foreign && toshowpost.length == 1) {
-                deleteTimelinePostForm(toshowpost[0].postid)
+            if (foreign && checkData(toshowpost)) {
+                deleteTimelinePostForm(toshowpost.postid)
             }
         };
     }, []);
     /**component functions starts here */
     function setShowPost() {
         if (!checkData(toshowpost)) {
+            return null;
+        } else if (!checkData(toshowpost.postid) || !checkData(toshowpost.profile)) {
             return null;
         }
         let check = timelinepostform.timelineposts.find(item => item.postid == toshowpost.postid);
@@ -97,6 +91,13 @@ const PostShowScreen = ({
             return toshowpost;
         }
         return check;
+    }
+    //function to determine dismiss of navigation based on screentype
+    function setDismissNav() {
+        if (screentype == "modal")
+            return Navigation.dismissModal(componentId)
+        else
+            return Navigation.pop(componentId);
     }
     /**component functions ends here */
     return (
@@ -110,50 +111,51 @@ const PostShowScreen = ({
                 headertextsize={responsiveFontSize(2.9)}
             />
             {
-                loaded == false ? <LoaderScreen
-                    loaderIcon={<Icon
-                        type="entypo"
-                        name="pencil"
-                        color={colors.text}
-                        size={responsiveFontSize(10)}
-                    />}
-                    animationType={'zoomIn'}
-                /> : <>
-                    <PostShowList
-                        data={toshowpost}
-                        fetching={timelinepostform.fetching}
-                        onPostItemLiked={likeTimelinePostAction}
-                        onPostItemShared={shareTimelinePostAction}
-                        onBlackListPress={blackListTimelinePost}
-                        updatePostItem={updateTimelinePostForm}
-                        onRefresh={() => {
-                            let onrefresh = () => setTimelinepostRefresh(true);
-                            let offrefresh = () => setTimelinepostRefresh(false);
-                            fetchParticularPost(postid, onrefresh, null, offrefresh);
-                        }}
-                        onDeletePress={deleteTimelinePost}
-                        removeProfilePosts={(id) => {
-                            removeProfileTimeLinePost(id);
-                            removeProfileTimeLinePostForm(id);
-                        }}
-                        onArchivePress={archiveTimelinePost}
-                        userprofile={profile}
-                        profileschanges={timelinepostform.profileschanges}
-                        updateProfileChanges={(dataobj) => {
-                            updateTimelinePostProfileChanges(dataobj);
-                            updateTimelinePostFormProfileChanges(dataobj);
-                        }}
-                        onBlackListPress={blackListTimelinePost}
-                        refreshing={timelinepostform.refreshing}
-                        onMuteProfilePress={muteProfileAction}
-                        onitemblacklisting={timelinepostform.blacklisting}
-                        onitemdeleting={timelinepostform.deleting}
-                        onitemarchiving={timelinepostform.archiving}
-                        onitemblacklisting={timelinepostform.blacklisting}
-                        onitemmuting={profileactionform.mutingprofile}
-                    />
+                loaded == false ?
+                    <LoaderScreen
+                        loaderIcon={<Icon
+                            type="entypo"
+                            name="pencil"
+                            color={colors.text}
+                            size={responsiveFontSize(10)}
+                        />}
+                        animationType={'zoomIn'}
+                    /> : <>
+                    {toshowpost &&
+                        <PostShowList
+                            data={[toshowpost]}
+                            fetching={timelinepostform.fetching}
+                            onPostItemLiked={likeTimelinePostAction}
+                            onPostItemShared={shareTimelinePostAction}
+                            onBlackListPress={blackListTimelinePost}
+                            updatePostItem={updateTimelinePostForm}
+                            onRefresh={() => {
+                                let onrefresh = () => setTimelinepostRefresh(true);
+                                let offrefresh = () => setTimelinepostRefresh(false);
+                                fetchParticularPost(postid, onrefresh, null, offrefresh);
+                            }}
+                            onDeletePress={deleteTimelinePost}
+                            removeProfilePosts={(id) => {
+                                removeProfileTimeLinePost(id);
+                                removeProfileTimeLinePostForm(id);
+                            }}
+                            onArchivePress={archiveTimelinePost}
+                            userprofile={profile}
+                            profileschanges={timelinepostform.profileschanges}
+                            updateProfileChanges={(dataobj) => {
+                                updateTimelinePostProfileChanges(dataobj);
+                                updateTimelinePostFormProfileChanges(dataobj);
+                            }}
+                            onBlackListPress={blackListTimelinePost}
+                            refreshing={timelinepostform.refreshing}
+                            onMuteProfilePress={muteProfileAction}
+                            onitemblacklisting={timelinepostform.blacklisting}
+                            onitemdeleting={timelinepostform.deleting}
+                            onitemarchiving={timelinepostform.archiving}
+                            onitemblacklisting={timelinepostform.blacklisting}
+                            onitemmuting={profileactionform.mutingprofile}
+                        />}
                     </>
-
             }
         </SafeAreaView>
     );

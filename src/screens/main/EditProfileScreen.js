@@ -85,7 +85,6 @@ const EditProfileScreen = ({ navigation,
                 }
                 if (!loaded) {
                     setLoaded(true);
-                    return;
                 }
             },
             componentDidDisappear: () => {

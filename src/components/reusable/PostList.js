@@ -348,13 +348,13 @@ export default class PostList extends React.Component {
                 name: "comment",
                 type: "evilicon"
             },
-                onPress: () => { 
-                    this.setState({
-                        avatarnavmodal: {
-                            ...this.state.avatarnavmodal,
-                            visible: false,
-                        }
-                    });
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
             }
         }];
 
@@ -372,6 +372,7 @@ export default class PostList extends React.Component {
                             name: "PostShow",
                             passProps: {
                                 navparent: true,
+                                screentype: "modal",
                                 toshowpost: this.currentselectedpost
                             }
                         }

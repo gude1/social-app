@@ -240,6 +240,7 @@ export const signUp = ({ email, username, name, phone, password, Navigation, com
                     break;
             }
         } catch (e) {
+            //alert(JSON.stringify(e));
             if (e.toString().indexOf('Network Error') > -1) {
                 Toast('Network error please check your internet connection', ToastAndroid.LONG);
             } else {
@@ -1185,7 +1186,7 @@ export const setUpdatedPostFormImage = (data) => {
 }
 
 //make post and upload to server starts here
-export const makePost = (postimages, posttext) => {
+export const makePost = (postimages, posttext, okAction, failedAction) => {
     return async (dispatch) => {
         dispatch(setProcessing(true, 'POSTFORM'));
         const { user, posts } = store.getState();
@@ -1249,10 +1250,10 @@ export const makePost = (postimages, posttext) => {
                     dispatch(setProcessing(false, 'POSTFORM'));
                     deleteMultiImage(resizedimgcaches);
                     dispatch(setReset('POSTFORM'));
+                    okAction && okAction();
+                    //if user didnt have any post before now probably the user is new to platform so navigate to homescreen
                     if (postcompleted == 'postfalse' && getAppInfo(store.getState().posts, 'post') == 'posttrue') {
                         setRoute(store.getState());
-                    } else {
-                        //console.warn('Navigate to postshow page');
                     }
                     break;
                 case 400:
@@ -1271,6 +1272,7 @@ export const makePost = (postimages, posttext) => {
                     }
                     deleteMultiImage(resizedimgcaches);
                     dispatch(setProcessing(false, 'POSTFORM'));
+                    failedAction && failedAction();
                     break;
                 case 500:
                     Toast(errmsg,
@@ -1278,11 +1280,13 @@ export const makePost = (postimages, posttext) => {
                     );
                     deleteMultiImage(resizedimgcaches);
                     dispatch(setProcessing(false, 'POSTFORM'));
+                    failedAction && failedAction();
                     break;
                 case 401:
                     deleteMultiImage(resizedimgcaches);
                     dispatch(setProcessing(false, 'POSTFORM'));
                     logOut(() => persistor.purge());
+                    failedAction && failedAction();
                     break;
                 default:
                     deleteMultiImage(resizedimgcaches);
@@ -1290,12 +1294,14 @@ export const makePost = (postimages, posttext) => {
                     Toast('something went wrong please try again',
                         ToastAndroid.LONG
                     );
+                    failedAction && failedAction();
                     break;
             }
         } catch (e) {
             //alert(e.toString());
             deleteMultiImage(resizedimgcaches);
             dispatch(setProcessing(false, 'POSTFORM'));
+            failedAction && failedAction();
             if (e.toString().indexOf('Network Error') != -1) {
                 Toast('could not connect to server please check your internet connection',
                     ToastAndroid.LONG
@@ -1606,6 +1612,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                     okAction && okAction();
                     break;
                 default:
+                    //alert(postlistrange);
                     failedAction && failedAction();
                     if (status == 401) {
                         logOut(() => persistor.purge());
