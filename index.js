@@ -18,7 +18,7 @@ import PhotoViewerScreen from './src/screens/main/PhotoViewerScreen';
 import RouterScreen from './src/screens/RouterScreen';
 import HomeScreen from './src/screens/main/HomeScreen';
 import GistScreen from './src/screens/main/GistScreen';
-import ChatScreen from './src/screens/main/ChatScreen';
+import PrivateChatScreen from './src/screens/main/PrivateChatScreen';
 import ViewProfileScreen from './src/screens/main/ViewProfileScreen';
 import ExploreScreen from './src/screens/main/ExploreScreen';
 import PostCommentScreen from './src/screens/main/PostCommentScreen';
@@ -126,9 +126,9 @@ Navigation.events().registerAppLaunchedListener(async () => {
         );
         Navigation.registerComponent('Chat', () => (props) =>
             <Provider store={store}>
-                <ChatScreen {...props} />
+                <PrivateChatScreen {...props} />
             </Provider>,
-            () => ChatScreen
+            () => PrivateChatScreen
         );
         Navigation.registerComponent('Signup', () => (props) =>
             <Provider store={store}>

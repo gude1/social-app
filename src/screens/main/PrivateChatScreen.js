@@ -7,7 +7,7 @@ import { Navigation } from 'react-native-navigation';
 
 const { colors } = useTheme();
 
-const ChatScreen = ({ componentId }) => {
+const PrivateChatScreen = ({ componentId }) => {
     const [loaded, setLoaded] = useState(false);
     /**compoent function goes here */
     useEffect(() => {
@@ -28,11 +28,9 @@ const ChatScreen = ({ componentId }) => {
 
     );
 };
-ChatScreen.options = {
+PrivateChatScreen.options = {
     topBar: {
-        title: {
-            text: 'Chat'
-        }
+        visible: false
     },
     bottomTabs: {
         visible: true
@@ -53,4 +51,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default ChatScreen;
+export default PrivateChatScreen;
