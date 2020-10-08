@@ -871,6 +871,7 @@ ViewProfileScreen.options = {
 const styles = StyleSheet.create({
     containerStyle: {
         flex: 1,
+        margin: 0,
         backgroundColor: colors.background,
     },
     contentContainerStyle: {
