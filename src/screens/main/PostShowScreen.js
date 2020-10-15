@@ -94,10 +94,11 @@ const PostShowScreen = ({
     }
     //function to determine dismiss of navigation based on screentype
     function setDismissNav() {
-        if (screentype == "modal")
-            return Navigation.dismissModal(componentId)
-        else
+        if (screentype != "modal")
             return Navigation.pop(componentId);
+        else
+            return Navigation.dismissModal(componentId)
+
     }
     /**component functions ends here */
     return (

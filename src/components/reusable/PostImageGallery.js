@@ -22,6 +22,7 @@ class PostImageItem extends Component {
                     name: "PostShow",
                     passProps: {
                         navparent: true,
+                        screentype: "modal",
                         toshowpost: this.props.item
                     }
                 }

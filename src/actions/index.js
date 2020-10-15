@@ -81,6 +81,10 @@ import {
     SET_OTHERS_VIEWPROFILEFORM,
     SET_USER_VIEWPROFILEFORM_LINK,
     SET_OTHERS_VIEWPROFILEFORM_LINK,
+    PREPEND_PRIVATECHATLIST,
+    ADD_PRIVATECHATLIST,
+    DELETE_PRIVATECHATLIST,
+    UPDATE_PRIVATECHATLIST,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -3462,6 +3466,86 @@ export const setOthersViewProfileFormLink = (data) => {
     return {
         type: SET_OTHERS_VIEWPROFILEFORM_LINK,
         payload: data
+    };
+};
+
+/**
+ * ACTION CREATOR FOR PRIVATECHATLIST REDUCER
+ * 
+ */
+export const prependPrivateChatList = (data: Array) => {
+    return {
+        type: PREPEND_PRIVATECHATLIST,
+        payload: data
+    };
+};
+
+export const addPrivateChatList = (data: Array) => {
+    return {
+        type: ADD_PRIVATECHATLIST,
+        payload: data
+    };
+};
+
+export const updatePrivateChatList = (data: Object) => {
+    return {
+        type: UPDATE_PRIVATECHATLIST,
+        payload: data
+    };
+};
+
+export const deletePrivateChatList = (data: String) => {
+    return {
+        type: DELETE_PRIVATECHATLIST,
+        payload: data
+    };
+};
+
+export const fetchPrivateChatList = () => {
+    return async (dispatch) => {
+        const { user } = store.getState();
+        dispatch(setProcessing(true, 'privatechatlistloading'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('privatechatlist', null, options);
+            const { status, next_url, chatlist, errmsg, each_related_chat_arr } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'privatechatlistloading'));
+                    chatlist.forEach(item => {
+                        setTimeout(() => {
+                            dispatch(updatePrivateChatList(item));
+                        }, 1500);
+                    });
+                    break;
+                case 404:
+                    dispatch(setProcessing(false, 'privatechatlistloading'));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'privatechatlistloading'));
+                    logOut(() => persistor.purge());
+                    break;
+                default:
+                    dispatch(setProcessing('failed', 'privatechatlistloading'));
+                    Toast('something went wrong chatlist could not be fetched', ToastAndroid.LONG, ToastAndroid.CENTER);
+                    break;
+            }
+
+        } catch (err) {
+            dispatch(setProcessing('retry', 'privatechatlistloading'));
+            console.warn(err.toString());
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast(
+                    'Nework error!',
+                    ToastAndroid.LONG,
+                    ToastAndroid.CENTER
+                );
+            } else {
+                Toast('something went wrong chatlist could not be fetched', ToastAndroid.LONG, ToastAndroid.CENTER);
+            }
+        }
     };
 };
 

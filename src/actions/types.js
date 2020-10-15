@@ -145,6 +145,15 @@ export const SET_OTHERS_VIEWPROFILEFORM_PROFILE_STATUS = 'set_others_viewprofile
 export const SET_OTHERS_VIEWPROFILEFORM_LINK = 'set_others_viewprofileform_link';
 
 
+/**
+ * TYPE CONSTANT FOR PRIVATECHATLIST REDUCER
+ */
+export const PREPEND_PRIVATECHATLIST = 'prepend_privatachatlist';
+export const ADD_PRIVATECHATLIST = 'add_privatechatlist';
+export const UPDATE_PRIVATECHATLIST = 'update_privatechatlist';
+export const UPDATE_ARRAY_PRIVATECHATLIST = 'update_array_privatechatlist';
+export const DELETE_PRIVATECHATLIST = 'delete_privatechatlist';
+
 
 /**
  * TYPE CONSTANT FOR BOOKMARKS REDUCER

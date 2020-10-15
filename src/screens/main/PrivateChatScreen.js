@@ -1,34 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, ActivityIndicator, View } from 'react-native';
-import { Text, ListItem, Button } from 'react-native-elements';
+import { Text, Icon } from 'react-native-elements';
 import { Header } from '../../components/reusable/ResuableWidgets';
-import { useTheme } from '../../assets/themes'
-import Icon from 'react-native-vector-icons/Entypo';
+import { useTheme } from '../../assets/themes';
+import { connect } from 'react-redux';
+import * as actions from '../../actions';
+import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { Navigation } from 'react-native-navigation';
 import { responsiveHeight, responsiveFontSize } from 'react-native-responsive-dimensions';
-import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
+import PrivateChatList from '../../components/reusable/PrivateChatList';
 
 const { colors } = useTheme();
 
-const PrivateChatScreen = ({ componentId }) => {
+const PrivateChatScreen = ({
+    componentId,
+    privatechatlist,
+    fetchPrivateChatList,
+    profile,
+}) => {
     const [loaded, setLoaded] = useState(false);
     let righticon = <Icon
         type="antdesign"
-        name="plus"
+        name="pluscircleo"
         color={colors.text}
-        size={responsiveFontSize(4)}
+        size={responsiveFontSize(3.5)}
     />;
     let righticonpress = null;
-
+    let righticon2 = <Icon
+        type="antdesign"
+        name="search1"
+        color={colors.text}
+        size={responsiveFontSize(3.5)}
+    />;
+    let righticon2press = null;
+    /*Navigation.mergeOptions(componentId, {
+        bottomTabs: {
+            visible: true,
+        }
+    });*/
     /**compoent function goes here */
     useEffect(() => {
-        Icon.getImageSource('chat', 100).then(e =>
+        EntypoIcon.getImageSource('chat', 100).then(e =>
             Navigation.mergeOptions(componentId, {
                 bottomTab: {
                     icon: e,
                 }
             }));
-        setLoaded(true);
+        const listener = {
+            componentDidAppear: () => {
+                setLoaded(true);
+            },
+            componentDidDisappear: () => {
+            }
+
+        };
+        // Register the listener to all events related to our component
+        const unsubscribe = Navigation.events().bindComponent(listener, componentId);
+        return () => {
+            // Make sure to unregister the listener during cleanup
+            unsubscribe.remove();
+        };
     }, []);
 
     //function to determine dismiss of navigation based on screentype
@@ -49,73 +80,17 @@ const PrivateChatScreen = ({ componentId }) => {
                     headertext="PrivateChat"
                     headercolor={colors.card}
                     headerTextStyle={{ color: colors.text }}
-                    headerStyle={{ elevation: 0.5 }}
+                    headerStyle={{ elevation: 1 }}
                     headertextsize={responsiveFontSize(2.9)}
                     righticon={righticon}
+                    rightIconPress={righticonpress}
+                    righticon2={righticon2}
                 />
                 <View style={styles.contentContainerStyle}>
-                    <ListItem
-                        Component={TouchableScale}
-                        onPress={() => { }}
-                        activeScale={0.8}
-                        friction={100}
-                        tension={100}
-                        containerStyle={{
-                            backgroundColor: colors.background,
-                            borderBottomWidth: 0.4,
-                            borderColor: colors.border,
-                            marginLeft: 30,
-                            height: 75,
-                            paddingVertical: 0,
-                            paddingLeft: 0,
-                        }}
-                        leftAvatar={{
-                            source: require('../../assets/images/Penguins.jpg'),
-                            size: 55,
-                            resizeMode: "contain"
-                        }}
-                        contentContainerStyle={{
-                            justifyContent: "center",
-                            marginLeft: 5,
-                            marginTop: 5,
-                        }}
-                        title={'Programmer'}
-                        subtitle={'growth'}
-                        subtitleStyle={{ color: colors.iconcolor }}
-                        titleStyle={{ fontWeight: "100", color: colors.text }}
-                    />
-                    <ListItem
-                        Component={TouchableScale}
-                        activeScale={0.8}
-                        friction={100}
-                        tension={100}
-                        badge={{
-                            value: 127,
-                            badgeStyle: { backgroundColor: "#4CAF50", height: 28, borderRadius: 12 },
-                        }}
-                        containerStyle={{
-                            backgroundColor: colors.background,
-                            borderBottomWidth: 0.4,
-                            borderColor: colors.border,
-                            marginLeft: 30,
-                            height: 75,
-                            paddingVertical: 0,
-                            paddingLeft: 0,
-                        }}
-                        leftAvatar={{
-                            source: require('../../assets/images/placeholder.png'),
-                            size: 55,
-                            resizeMode: "contain"
-                        }}
-                        contentContainerStyle={{
-                            justifyContent: "center",
-                            marginLeft: 5,
-                            marginTop: 5,
-                        }}
-                        title={'WuraGold:)'}
-                        subtitle={'growth'}
-                        subtitleStyle={{ color: colors.iconcolor }}
-                        titleStyle={{ fontWeight: "100", color: colors.text }}
+                    <PrivateChatList
+                        chatlistform={privatechatlist}
+                        fetchList={fetchPrivateChatList}
+                        userprofile={profile}
                     />
                 </View>
                 </>
@@ -144,7 +119,10 @@ PrivateChatScreen.options = {
 
 };
 
-
+const mapStateToProps = (state) => ({
+    profile: state.profile,
+    privatechatlist: state.privatechatlist,
+});
 const styles = StyleSheet.create({
     containerStyle: {
         flex: 1,
@@ -158,4 +136,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default PrivateChatScreen;
+export default connect(mapStateToProps, actions)(PrivateChatScreen);

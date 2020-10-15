@@ -1,4 +1,5 @@
 import { combineReducers } from 'redux';
+import { persistReducer } from 'redux-persist';
 import userReducer from './userReducer';
 import AuthReducer from './AuthReducer';
 import ProfileReducer from './ProfileReducer';
@@ -17,6 +18,8 @@ import ProfileActionFormReducer from './ProfileActionFormReducer';
 import PostSettingReducer from './PostSettingReducer';
 import UserViewProfileReducer from './UserViewProfileReducer';
 import OthersViewProfileReducer from './OthersViewProfileReducer';
+import PrivateChatListReducer, { PrivateChatListConfig } from './PrivateChatListReducer';
+
 
 export default combineReducers({
     user: userReducer,
@@ -35,6 +38,7 @@ export default combineReducers({
     likeslistform: LikesListFormReducer,
     shareslistform: SharesListFormReducer,
     profileactionform: ProfileActionFormReducer,
+    privatechatlist: persistReducer(PrivateChatListConfig, PrivateChatListReducer),
     appinfo: AppInfoReducer,
     photogalleryform: PhotoGalleryReducer,
 });
