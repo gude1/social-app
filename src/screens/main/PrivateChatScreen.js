@@ -72,20 +72,13 @@ const PrivateChatScreen = ({
 
     const renderView = () => {
         if (loaded == false) {
-            return <ActivityIndicator size="large" color="#2196F3" />;
+            return (
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <ActivityIndicator size="large" color="#2196F3" />
+                </View>
+            );
         } else if (loaded == true) {
             return (
-                <>
-                <Header
-                    headertext="PrivateChat"
-                    headercolor={colors.card}
-                    headerTextStyle={{ color: colors.text }}
-                    headerStyle={{ elevation: 1 }}
-                    headertextsize={responsiveFontSize(2.9)}
-                    righticon={righticon}
-                    rightIconPress={righticonpress}
-                    righticon2={righticon2}
-                />
                 <View style={styles.contentContainerStyle}>
                     <PrivateChatList
                         chatlistform={privatechatlist}
@@ -93,7 +86,6 @@ const PrivateChatScreen = ({
                         userprofile={profile}
                     />
                 </View>
-                </>
             );
         }
     }
@@ -101,6 +93,16 @@ const PrivateChatScreen = ({
     /**compoent function ends here */
     return (
         <SafeAreaView style={styles.containerStyle}>
+            <Header
+                headertext="PrivateChat"
+                headercolor={colors.card}
+                headerTextStyle={{ color: colors.text }}
+                headerStyle={{ elevation: 1 }}
+                headertextsize={responsiveFontSize(2.9)}
+                righticon={righticon}
+                rightIconPress={righticonpress}
+                righticon2={righticon2}
+            />
             {renderView()}
         </SafeAreaView>
 
