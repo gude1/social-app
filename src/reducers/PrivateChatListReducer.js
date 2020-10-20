@@ -12,9 +12,10 @@ import { checkData } from '../utilities/index';
 
 const INITIAL_STATE = {
     chatlist: [],
+    persistedchatlist: [],
     nexturl: null,
-    loading: null,
-    loadingmore: null,
+    loading: false,
+    loadingmore: false,
 };
 
 const makeList = (data: Array) => {
@@ -22,6 +23,19 @@ const makeList = (data: Array) => {
         return data;
     }
     return data.sort((item1, item2) => item2.id - item1.id);
+};
+
+const arrayReduce = (data) => {
+    if (!Array.isArray(data) || data.length < 1) {
+        return data;
+    };
+    if (data.length > 100) {
+        for (i = data.length; i > 100; i--) {
+            data.pop();
+        }
+        return data;
+    }
+    return data;
 };
 
 const handleProcessing = (key, value, state) => {
@@ -40,32 +54,38 @@ const handleProcessing = (key, value, state) => {
             break;
     }
 };
+
+let reducerdata = null;
 const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case PREPEND_PRIVATECHATLIST:
-            return { ...state, chatlist: [...makeList(action.payload), ...state.chatlist] };
+            reducerdata = [...makeList(action.payload), ...state.chatlist];
+            return { ...state, chatlist: reducerdata, persistedchatlist: arrayReduce(reducerdata) };
             break;
         case ADD_PRIVATECHATLIST:
-            return { ...state, chatlist: [...state.chatlist, ...makeList(action.payload)] };
+            reducerdata = [...state.chatlist, ...makeList(action.payload)];
+            return { ...state, chatlist: reducerdata, persistedchatlist: arrayReduce(reducerdata) };
             break;
         case UPDATE_PRIVATECHATLIST:
             let updatedstate = state.chatlist.map(item => {
-                item.create_chatid == action.payload.create_chatid ? { ...item, ...action.payload } : item
+                return item.create_chatid == action.payload.create_chatid ? { ...item, ...action.payload } : item
             });
             updatedstate.find(item => item.create_chatid == action.payload.create_chatid) == undefined ?
                 updatedstate.push({ ...action.payload }) : null;
-            return { ...state, chatlist: [...makeList(updatedstate), ...state.chatlist] };
+            reducerdata = [...makeList(updatedstate)];
+            return { ...state, chatlist: reducerdata, persistedchatlist: arrayReduce(reducerdata) };
             break;
         case UPDATE_ARRAY_PRIVATECHATLIST:
             let updatestate = state.chatlist.map(item => {
                 let value = action.payload.find(newitem => newitem.create_chatid == item.create_chatid);
                 return checkData(value) ? { ...item, ...value } : item;
             });
-            return { ...state, chatlist: [...makeList(updatestate), ...state.chatlist] };
+            reducerdata = [...makeList(updatestate)];
+            return { ...state, chatlist: reducerdata, persistedchatlist: arrayReduce(reducerdata) };
             break;
         case DELETE_PRIVATECHATLIST:
             let newstate = state.chatlist.filter(item => item.create_chatid != action.payload);
-            return { ...state, chatlist: newstate };
+            return { ...state, chatlist: newstate, persistedchatlist: arrayReduce(newstate) };
             break;
         case PROCESSING:
             return handleProcessing(action.payload.key,
@@ -74,7 +94,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
             );
             break;
         case RESET:
-            return INITIAL_STATE;
+            return action.payload.key == "privatechatlist" ? INITIAL_STATE : state;
             break;
         default:
             return state;
@@ -85,7 +105,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
 export const PrivateChatListConfig = {
     key: "privatechat",
     storage: AsyncStorage,
-    whitelist: ['chatlist']
+    whitelist: ['persistedchatlist']
 };
 
 export default PrivateChatListReducer;

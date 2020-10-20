@@ -9,7 +9,7 @@ import PostFormReducer from './PostFormReducer';
 import PhotoGalleryReducer from './PhotoGalleryReducer';
 import AppInfoReducer from './AppInfoReducer';
 import TimelinePostReducer from './TimelinePostReducer';
-import TimelinePostFormReducer from './TimelinePostFormReducer'
+import TimelinePostFormReducer from './TimelinePostFormReducer';
 import PostCommentFormReducer from './PostCommentFormReducer';
 import PostCommentReplyFormReducer from './PostCommentReplyFormReducer';
 import LikesListFormReducer from './LikesListFormReducer';
@@ -19,6 +19,7 @@ import PostSettingReducer from './PostSettingReducer';
 import UserViewProfileReducer from './UserViewProfileReducer';
 import OthersViewProfileReducer from './OthersViewProfileReducer';
 import PrivateChatListReducer, { PrivateChatListConfig } from './PrivateChatListReducer';
+import FollowInfoReducer from './FollowInfoReducer';
 
 
 export default combineReducers({
@@ -39,6 +40,7 @@ export default combineReducers({
     shareslistform: SharesListFormReducer,
     profileactionform: ProfileActionFormReducer,
     privatechatlist: persistReducer(PrivateChatListConfig, PrivateChatListReducer),
+    followinfo: FollowInfoReducer,
     appinfo: AppInfoReducer,
     photogalleryform: PhotoGalleryReducer,
 });

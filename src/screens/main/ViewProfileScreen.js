@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, View, FlatList } from 'react-native';
+import { StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, TouchableOpacity, View, FlatList } from 'react-native';
 import { Text, Avatar, Icon, Button, Image } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import { LoaderScreen, Header, InputBox, PanelMsg, ModalList, ConfirmModal, ActivityOverlay, } from '../../components/reusable/ResuableWidgets';
-import ParallaxScrollView from 'react-native-parallax-scroll-view';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes/index';
 import TouchableScale from 'react-native-touchable-scale';
@@ -162,31 +161,63 @@ const TopSection = ({ profile, isprofileowner, profileActions }) => {
 
             </View>
             <View style={styles.profileActivityCtn}>
-                <View style={{ alignItems: "center" }}>
-                    <Text style={{
-                        color: colors.text,
-                        fontWeight: "bold",
-                        fontSize: responsiveFontSize(2.3),
-                    }}>{profile.num_followers}</Text>
-                    <Text style={{
-                        color: colors.iconcolor,
-                        fontWeight: "bold",
-                        fontSize: responsiveFontSize(1),
-                    }}>Followers</Text>
-                </View>
+                <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => Navigation.showModal({
+                        component: {
+                            name: 'FollowInfo',
+                            passProps: {
+                                navparent: true,
+                                screenname: "Followers",
+                                runAction: () => profileActions.fetchProfileFollowers(profile.profile_id),
+                                loadMore: () => profileActions.fetchMoreProfileFollowers(profile.profile_id),
+                                screentype: 'modal'
+                            },
+                        }
+                    })}
+                >
+                    <View style={{ alignItems: "center" }}>
+                        <Text style={{
+                            color: colors.text,
+                            fontWeight: "bold",
+                            fontSize: responsiveFontSize(2.3),
+                        }}>{profile.num_followers}</Text>
+                        <Text style={{
+                            color: colors.iconcolor,
+                            fontWeight: "bold",
+                            fontSize: responsiveFontSize(1),
+                        }}>Followers</Text>
+                    </View>
+                </TouchableOpacity>
 
-                <View style={{ alignItems: "center" }}>
-                    <Text style={{
-                        color: colors.text,
-                        fontWeight: "bold",
-                        fontSize: responsiveFontSize(2.3),
-                    }}>{profile.num_following}</Text>
-                    <Text style={{
-                        color: colors.iconcolor,
-                        fontWeight: "bold",
-                        fontSize: responsiveFontSize(1),
-                    }}>Following</Text>
-                </View>
+                <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => Navigation.showModal({
+                        component: {
+                            name: 'FollowInfo',
+                            passProps: {
+                                navparent: true,
+                                screenname: "Following",
+                                runAction: () => profileActions.fetchProfilesFollowing(profile.profile_id),
+                                loadMore: () => profileActions.fetchMoreProfilesFollowing(profile.profile_id),
+                                screentype: 'modal'
+                            },
+                        }
+                    })}
+                >
+                    <View style={{ alignItems: "center" }}>
+                        <Text style={{
+                            color: colors.text,
+                            fontWeight: "bold",
+                            fontSize: responsiveFontSize(2.3),
+                        }}>{profile.num_following}</Text>
+                        <Text style={{
+                            color: colors.iconcolor,
+                            fontWeight: "bold",
+                            fontSize: responsiveFontSize(1),
+                        }}>Following</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={{ alignItems: "center" }}>
                     <Text style={{
@@ -201,7 +232,7 @@ const TopSection = ({ profile, isprofileowner, profileActions }) => {
                     }}>Posts</Text>
                 </View>
 
-                <View style={{ alignItems: "center" }}>
+                {/*<View style={{ alignItems: "center" }}>
                     <Text style={{
                         color: colors.text,
                         fontWeight: "bold",
@@ -212,8 +243,9 @@ const TopSection = ({ profile, isprofileowner, profileActions }) => {
                         fontWeight: "bold",
                         fontSize: responsiveFontSize(1),
                     }}>Gists</Text>
-                </View>
+                </View>*/}
             </View>
+            <Text style={{ color: colors.iconcolor, textAlign: "center" }}>Not followed by anyone you are following</Text>
         </View>
     );
 };
@@ -225,10 +257,10 @@ const BottomSection = ({ viewprofileform, fetchPost, fetchMorePost, tabVerticalS
             iconSource: 'pencil-square-o',
             iconType: 'font-awesome'
         },
-        {
+        /*{
             iconSource: 'maximize',
             iconType: 'feather'
-        }
+        }*/
     ];
     let data = [];
     for (var i = 0; i <= 10; i++) {
@@ -281,9 +313,6 @@ const BottomSection = ({ viewprofileform, fetchPost, fetchMorePost, tabVerticalS
                         fetchMorePost={fetchMorePost}
                     />
                 </View>
-                <View key={2}>
-                    <Text style={{ color: colors.text, alignSelf: 'center' }}>Screen Two</Text>
-                </View>
             </IndicatorViewPager>
         </View>
     );
@@ -318,6 +347,10 @@ const ViewProfileScreen = ({
     muteProfileAction,
     blockProfileAction,
     followProfileAction,
+    fetchProfileFollowers,
+    fetchProfilesFollowing,
+    fetchMoreProfileFollowers,
+    fetchMoreProfilesFollowing,
     fetchAProfile,
 }) => {
     const [loaded, setLoaded] = useState(false);
@@ -761,7 +794,15 @@ const ViewProfileScreen = ({
                     {hideparallax ? null : <TopSection
                         profile={toshowprofile}
                         isprofileowner={useowner}
-                        profileActions={{ followProfile, muteProfile, blockProfile }}
+                        profileActions={{
+                            followProfile,
+                            muteProfile,
+                            blockProfile,
+                            fetchProfileFollowers,
+                            fetchProfilesFollowing,
+                            fetchMoreProfileFollowers,
+                            fetchMoreProfilesFollowing
+                        }}
                     />}
                     <BottomSection
                         viewprofileform={viewprofileform}

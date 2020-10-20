@@ -85,6 +85,9 @@ import {
     ADD_PRIVATECHATLIST,
     DELETE_PRIVATECHATLIST,
     UPDATE_PRIVATECHATLIST,
+    ADD_FOLLOWINFO_LIST,
+    UPDATE_FOLLOWINFO_LIST,
+    ADD_FOLLOWINFO_URL,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -3511,11 +3514,14 @@ export const fetchPrivateChatList = () => {
             };
             const response = await session.post('privatechatlist', null, options);
             const { status, next_url, chatlist, errmsg, each_related_chat_arr } = response.data;
+            //console.warn(response.data.chatlist);
+            //console.warn(response.data.chatlist.length)
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'privatechatlistloading'));
                     chatlist.forEach(item => {
                         setTimeout(() => {
+                            //console.warn(dispatch);
                             dispatch(updatePrivateChatList(item));
                         }, 1500);
                     });
@@ -3535,7 +3541,7 @@ export const fetchPrivateChatList = () => {
 
         } catch (err) {
             dispatch(setProcessing('retry', 'privatechatlistloading'));
-            console.warn(err.toString());
+            //console.warn(err.toString());
             if (err.toString().indexOf('Network Error') != -1) {
                 Toast(
                     'Nework error!',
@@ -3548,6 +3554,245 @@ export const fetchPrivateChatList = () => {
         }
     };
 };
+
+/**
+ * ACTION CREATOR FOR FOLLOWINFO REDUCER
+ * 
+ */
+export const addFollowInfoList = (data: Array) => {
+    return {
+        type: ADD_FOLLOWINFO_LIST,
+        payload: data
+    };
+};
+
+export const updateFollowInfoList = (data: Object) => {
+    return {
+        type: UPDATE_FOLLOWINFO_LIST,
+        payload: data
+    };
+};
+
+export const addFollowInfoUrl = (data: String) => {
+    return {
+        type: ADD_FOLLOWINFO_URL,
+        payload: data
+    };
+};
+
+
+export const fetchProfileFollowers = (profileid, initAction, okAction, failedAction) => {
+    return async (dispatch) => {
+        if (!checkData(profileid)) {
+            Toast('Missing values to continue');
+        }
+        const { user } = store.getState();
+        dispatch(setProcessing(true, 'followinfoloading'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('profilefollowerslist', { profile_id: profileid }, options);
+            let { errmsg, profile, status, followers_list, next_url } = response.data;
+            switch (status) {
+                case 200:
+                    followers_list = followers_list.map(item => {
+                        return { profile: item }
+                    });
+                    dispatch(addFollowInfoList(followers_list));
+                    dispatch(addFollowInfoUrl(next_url));
+                    okAction && okAction();
+                    break;
+                case 400:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    Toast(errmsg);
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    logOut(() => persistor.purge());
+                    break;
+                case 404:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    Toast(errmsg);
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    Toast('something went wrong');
+                    break;
+            }
+        } catch (err) {
+            //console.warn(err.toString());
+            dispatch(setProcessing('retry', 'followinfoloading'));
+            if (err.toString().indexOf('Network Error') != -1) {
+            } else {
+                Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+        }
+    };
+};
+
+export const fetchMoreProfileFollowers = (profileid, initAction, okAction, failedAction) => {
+    return async (dispatch) => {
+        if (!checkData(profileid)) {
+            Toast('Missing values to continue');
+        }
+        const { user, followinfo } = store.getState();
+        if (!checkData(followinfo.nexturl)) {
+            dispatch(setProcessing('done', 'followinfoloadingmore'));
+            return;
+        }
+        dispatch(setProcessing(true, 'followinfoloadingmore'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post(followinfo.nexturl, { profile_id: profileid }, options);
+            let { errmsg, profile, status, followers_list, next_url } = response.data;
+            switch (status) {
+                case 200:
+                    followers_list = followers_list.map(item => {
+                        return { profile: item }
+                    });
+                    dispatch(addFollowInfoList(followers_list));
+                    dispatch(addFollowInfoUrl(next_url));
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    okAction && okAction();
+                    break;
+                case 400:
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    Toast(errmsg);
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    logOut(() => persistor.purge());
+                    break;
+                case 404:
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    Toast(errmsg);
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    Toast('something went wrong');
+                    break;
+            }
+        } catch (err) {
+            //console.warn(err.toString());
+            dispatch(setProcessing('retry', 'followinfoloadingmore'));
+            if (err.toString().indexOf('Network Error') != -1) {
+            } else {
+                Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+        }
+    };
+};
+
+export const fetchProfilesFollowing = (profileid, initAction, okAction, failedAction) => {
+    return async (dispatch) => {
+        if (!checkData(profileid)) {
+            Toast('Missing values to continue');
+        }
+        const { user } = store.getState();
+        dispatch(setProcessing(true, 'followinfoloading'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('profilesfollowinglist', { profile_id: profileid }, options);
+            let { errmsg, profile, status, followings_list, next_url } = response.data;
+            switch (status) {
+                case 200:
+                    followings_list = followings_list.map(item => {
+                        return { profile: item };
+                    });
+                    dispatch(addFollowInfoList(followings_list));
+                    dispatch(addFollowInfoUrl(next_url));
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    okAction && okAction();
+                    break;
+                case 400:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    Toast(errmsg);
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    logOut(() => persistor.purge());
+                    break;
+                case 404:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    Toast(errmsg);
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    Toast('something went wrong');
+                    break;
+            }
+        } catch (err) {
+            //console.warn(err.toString());
+            dispatch(setProcessing('retry', 'followinfoloading'));
+            if (err.toString().indexOf('Network Error') != -1) {
+            } else {
+                Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+        }
+    };
+};
+
+export const fetchMoreProfilesFollowing = (profileid, initAction, okAction, failedAction) => {
+    return async (dispatch) => {
+        if (!checkData(profileid)) {
+            Toast('Missing values to continue');
+        }
+        const { user, followinfo } = store.getState();
+        if (!checkData(followinfo.nexturl)) {
+            dispatch(setProcessing('done', 'followinfoloadingmore'));
+            return;
+        }
+        dispatch(setProcessing(true, 'followinfoloadingmore'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post(followinfo.nexturl, { profile_id: profileid }, options);
+            let { errmsg, profile, status, followings_list, next_url } = response.data;
+            switch (status) {
+                case 200:
+                    followings_list = followings_list.map(item => {
+                        return { profile: item };
+                    });
+                    dispatch(addFollowInfoList(followings_list));
+                    dispatch(addFollowInfoUrl(next_url));
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    okAction && okAction();
+                    break;
+                case 400:
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    Toast(errmsg);
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    logOut(() => persistor.purge());
+                    break;
+                case 404:
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    Toast(errmsg);
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    Toast('something went wrong');
+                    break;
+            }
+        } catch (err) {
+            //console.warn(err.toString());
+            dispatch(setProcessing('retry', 'followinfoloadingmore'));
+            if (err.toString().indexOf('Network Error') != -1) {
+            } else {
+                Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+        }
+    };
+};
+
+
 
 /**
  * ACTION CREATOR FOR BOOKMARKS REDUCER

@@ -4,9 +4,12 @@ import { ListItem, Button, Icon } from 'react-native-elements';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { checkData } from '../../utilities/index';
+import { AvatarNavModal } from './ResuableWidgets';
+import { Navigation } from 'react-native-navigation';
+
 const { colors } = useTheme();
 
-class LikesListItem extends Component {
+class ProfileListItem extends Component {
     constructor(props) {
         super(props);
     }
@@ -58,10 +61,10 @@ class LikesListItem extends Component {
         }
     };
     render() {
-        const { avatar, username, bio, containerStyle } = this.props;
+        const { avatar, username, bio, containerStyle, leftAvatarPress } = this.props;
         return (
             <ListItem
-                leftAvatar={{ source: { uri: avatar } }}
+                leftAvatar={{ source: { uri: avatar }, onPress: leftAvatarPress }}
                 title={username}
                 containerStyle={containerStyle}
                 titleStyle={{ color: colors.text }}
@@ -73,16 +76,61 @@ class LikesListItem extends Component {
     }
 };
 
-export default class LikesList extends React.PureComponent {
+export default class ProfileList extends React.PureComponent {
     constructor(props) {
         super(props);
         this.reswidth = responsiveWidth(100);
+        this.state = {
+            avatarnavmodal: {
+                visible: false,
+                avatar: null,
+                profile: null,
+                headername: '',
+            }
+        };
+        this.navmodallistitem = [{
+            icon: {
+                name: "user",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+                Navigation.showModal({
+                    component: {
+                        name: 'ViewProfile',
+                        passProps: {
+                            navparent: true,
+                            reqprofile: this.state.avatarnavmodal.profile,
+                            screentype: 'modal'
+                        },
+                    }
+                });
+            }
+        }, {
+            icon: {
+                name: "comment",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+            }
+        }];
     }
     componentDidMount() {
-        this.props.onFetch();
+        this.props.onFetch && this.props.onFetch();
     }
 
-    _keyExtractor = (item, index) => item.profile.profile_id;
+    _keyExtractor = (item, index) => index.toString();
     _getItemLayout = (data, index) => {
         if (index == -1) return { index, length: 0, height: 0 };
         return { length: 70, offset: 70 * index, index }
@@ -117,51 +165,80 @@ export default class LikesList extends React.PureComponent {
             failed,
         );
     };
+
+    _setAvatarNavModal = (item) => {
+        if (!checkData(item)) {
+            return;
+        }
+        this.setState({
+            avatarnavmodal: {
+                ...this.state.avatarnavmodal,
+                headername: item.profile.user.username,
+                profile: item.profile,
+                avatar: item.profile.avatar[1],
+                visible: true
+            }
+        });
+    };
+
     _setFlatlistFooter = () => {
         if (this.props.loadingmore == true) {
-            return (<View style={{
-                flex: 1,
-                justifyContent: "center",
-                margin: 6,
-                alignItems: "center"
-            }}>
-                <ActivityIndicator
-                    size={30}
-                    color={colors.border} />
-            </View>);
+            return (
+                <View style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    marginTop: 15,
+                    alignItems: "center"
+                }}>
+                    <ActivityIndicator size={30} color={'silver'} />
+                </View>
+            );
         } else if (this.props.loadingmore == 'retry') {
-            return (<View style={{
-                flex: 1,
-                justifyContent: "center",
-                margin: 6,
-                alignItems: "center"
-            }}>
-                <Icon
-                    color={colors.text}
-                    size={responsiveFontSize(4)}
+            return (
+                <Button
+                    type="clear"
                     onPress={() => this.props.onLoadMore()}
-                    name="sync"
-                    type="antdesign"
+                    icon={{
+                        name: 'sync',
+                        type: "antdesign",
+                        size: responsiveFontSize(2.7),
+                        color: colors.text
+                    }}
+                    title="Retry"
+                    titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                    buttonStyle={{
+                        alignSelf: 'center',
+                        marginTop: 10,
+                        borderColor: colors.iconcolor,
+                        borderRadius: 15,
+                        padding: 10
+                    }}
                 />
-                <Text style={{ color: colors.border, fontSize: responsiveFontSize(1.5) }}>Tap to retry</Text>
-            </View>);
+            );
         } else if (this.props.loadingmore == false) {
-            return (<View style={{
-                flex: 1,
-                justifyContent: "center",
-                margin: 10,
-                alignItems: "center"
-            }}>
-                <Icon
-                    color={colors.text}
-                    size={responsiveFontSize(5)}
+            return (
+                <Button
                     onPress={() => this.props.onLoadMore()}
-                    name="plus"
-                    type="evilicon"
+                    type="clear"
+                    icon={{
+                        name: 'plus',
+                        type: "evilicon",
+                        size: responsiveFontSize(6),
+                        color: colors.text
+                    }}
+                    titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                    buttonStyle={{
+                        alignSelf: 'center',
+                        marginTop: 10,
+                        borderColor: colors.iconcolor,
+                        borderRadius: 15,
+                        padding: 10
+                    }}
                 />
-            </View>);
+            );
         }
     };
+
     _setEmptyPlaceholder = () => {
         if (this.props.fetching == true) {
             return (<View style={{
@@ -189,10 +266,11 @@ export default class LikesList extends React.PureComponent {
 
     _renderItem = ({ item }) => {
         return (
-            <LikesListItem
+            <ProfileListItem
                 avatar={item.profile.avatar[1]}
                 username={item.profile.user.username}
                 processfollow={item.profile.followprogress || false}
+                leftAvatarPress={() => this._setAvatarNavModal(item)}
                 onPress={() => this._followProfileAction(item)}
                 bio={item.profile.bio && item.profile.bio.length > 22 ? item.profile.bio.substring(0, 22) + "..." : item.profile.bio}
                 textStyle={{ color: colors.text }}
@@ -204,6 +282,7 @@ export default class LikesList extends React.PureComponent {
     }
     render() {
         return (
+            <>
             <FlatList
                 data={this.props.data}
                 initialNumRender={5}
@@ -216,6 +295,37 @@ export default class LikesList extends React.PureComponent {
                 ListFooterComponent={this.props.data.length > 0 && this._setFlatlistFooter()}
                 renderItem={this._renderItem}
             />
+
+            <AvatarNavModal
+                avatar={this.state.avatarnavmodal.avatar}
+                isVisible={this.state.avatarnavmodal.visible}
+                onBackdropPress={() => this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                })}
+                onAvatarPress={() => {
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            visible: false,
+                        }
+                    });
+                    Navigation.showModal({
+                        component: {
+                            name: 'PhotoViewer',
+                            passProps: {
+                                navparent: true,
+                                photos: [this.state.avatarnavmodal.avatar]
+                            },
+                        }
+                    })
+                }}
+                headername={this.state.avatarnavmodal.headername}
+                navBarItemArr={this.navmodallistitem}
+            />
+            </>
         );
     }
 };

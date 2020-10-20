@@ -357,7 +357,6 @@ export default class PostList extends React.Component {
                 });
             }
         }];
-
         this.bottomodallistowneroptions = [
             {
                 listtext: 'View',
@@ -372,7 +371,7 @@ export default class PostList extends React.Component {
                             name: "PostShow",
                             passProps: {
                                 navparent: true,
-                                screentype: "modal",
+                                screentype: 'modal',
                                 toshowpost: this.currentselectedpost
                             }
                         }
@@ -418,6 +417,7 @@ export default class PostList extends React.Component {
                             name: "PostShow",
                             passProps: {
                                 navparent: true,
+                                screentype: 'modal',
                                 toshowpost: this.currentselectedpost
                             }
                         }
@@ -653,6 +653,7 @@ export default class PostList extends React.Component {
                 name: 'PostComment',
                 passProps: {
                     navparent: true,
+                    screentype: "modal",
                     ownerpostid: post.postid,
                 },
             }
@@ -668,6 +669,7 @@ export default class PostList extends React.Component {
                 name: 'LikesList',
                 passProps: {
                     navparent: true,
+                    screentype: 'modal',
                     requrl: 'postlikes',
                     reqdata: { postid }
                 },
@@ -684,6 +686,7 @@ export default class PostList extends React.Component {
                 name: 'SharesList',
                 passProps: {
                     navparent: true,
+                    screentype: 'modal',
                     requrl: 'postshares',
                     reqdata: { postid }
                 },
@@ -782,36 +785,48 @@ export default class PostList extends React.Component {
                     color={colors.border} />
             </View>);
         } else if (this.props.loadingmore == 'retry') {
-            return (<View style={{
-                flex: 1,
-                justifyContent: "center",
-                margin: 6,
-                alignItems: "center"
-            }}>
-                <Icon
-                    color={colors.text}
-                    size={responsiveFontSize(4)}
+            return (
+                <Button
+                    type="clear"
                     onPress={this.props.onLoadMorePress}
-                    name="sync"
-                    type="antdesign"
+                    icon={{
+                        name: 'sync',
+                        type: "antdesign",
+                        size: responsiveFontSize(2.7),
+                        color: colors.text
+                    }}
+                    title="Retry"
+                    titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                    buttonStyle={{
+                        alignSelf: 'center',
+                        marginTop: 10,
+                        borderColor: colors.iconcolor,
+                        borderRadius: 15,
+                        padding: 10
+                    }}
                 />
-                <Text style={{ color: colors.border, fontSize: responsiveFontSize(1.5) }}>Tap to retry</Text>
-            </View>);
+            );
         } else if (this.props.loadingmore == false) {
-            return (<View style={{
-                flex: 1,
-                justifyContent: "center",
-                margin: 10,
-                alignItems: "center"
-            }}>
-                <Icon
-                    color={colors.text}
-                    size={responsiveFontSize(7)}
+            return (
+                <Button
+                    type="clear"
                     onPress={this.props.onLoadMorePress}
-                    name="plus"
-                    type="evilicon"
+                    icon={{
+                        name: 'plus',
+                        type: "evilicon",
+                        size: responsiveFontSize(6),
+                        color: colors.text
+                    }}
+                    titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                    buttonStyle={{
+                        alignSelf: 'center',
+                        marginTop: 10,
+                        borderColor: colors.iconcolor,
+                        borderRadius: 15,
+                        padding: 10
+                    }}
                 />
-            </View>);
+            );
         } else {
             return null;
         }

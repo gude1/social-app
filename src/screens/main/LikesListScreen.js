@@ -7,9 +7,9 @@ import { LoaderScreen, Header } from '../../components/reusable/ResuableWidgets'
 import { Icon, Avatar, Input } from 'react-native-elements';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes/index';
-import TouchableScale from 'react-native-touchable-scale';
 import { checkData } from '../../utilities/index';
-import LikesList from '../../components/reusable/LikesList';
+import ProfileList from '../../components/reusable/ProfileList';
+
 const { colors } = useTheme();
 const LikesListScreen = ({
     screenname,
@@ -37,9 +37,9 @@ const LikesListScreen = ({
     let righticon = '';
     let righticonpress = '';
     useEffect(() => {
+        setReset('likeslistform');
         const listener = {
             componentDidAppear: () => {
-                setReset('likeslistform');
                 if (!loaded) {
                     setLoaded(true);
                 }
@@ -76,7 +76,7 @@ const LikesListScreen = ({
                 animationType={'zoomIn'}
             /> :
                 <View style={styles.parentStyle}>
-                    <LikesList
+                    <ProfileList
                         data={likeslistform.likeslist}
                         onFetch={() => fetchLikes(requrl, reqdata)}
                         fetching={likeslistform.fetching}

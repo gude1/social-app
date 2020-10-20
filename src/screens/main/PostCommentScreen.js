@@ -74,10 +74,10 @@ const PostCommentScreen = ({ navparent,
     };
     //function to determine dismiss of navigation based on screentype
     function setDismissNav() {
-        if (screentype == "modal")
-            return Navigation.dismissModal(componentId)
-        else
+        if (screentype == "screen")
             return Navigation.pop(componentId);
+        else
+            return Navigation.dismissModal(componentId)
     }
     /**component functions ends here */
     return (

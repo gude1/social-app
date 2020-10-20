@@ -7,23 +7,21 @@ import { LoaderScreen, Header } from '../../components/reusable/ResuableWidgets'
 import { Icon, Avatar, Input } from 'react-native-elements';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes/index';
-import ProfileList from '../../components/reusable/ProfileList';
 import { checkData } from '../../utilities/index';
+import ProfileList from '../../components/reusable/ProfileList';
 
 const { colors } = useTheme();
-
-const SharesListScreen = ({
+const FollowInfoScreen = ({
     screenname,
     componentId,
     setReset,
+    screentype,
+    runAction,
+    loadMore,
     navparent,
-    requrl,
-    reqdata,
-    fetchShares,
-    fetchMoreShares,
-    updateSharesListForm,
-    shareslistform,
+    followinfoform,
     followProfileAction,
+    updateFollowInfoList,
     profileactionform
 }) => {
     const [loaded, setLoaded] = useState(false);
@@ -33,11 +31,11 @@ const SharesListScreen = ({
         color={colors.text}
         size={responsiveFontSize(6)}
     /> : null;
-    let lefticonpress = navparent == true ? () => Navigation.dismissModal(componentId) : null;
+    let lefticonpress = navparent == true ? () => setDismissNav() : null;
     let righticon = '';
     let righticonpress = '';
     useEffect(() => {
-        setReset('shareslistform');
+        setReset('followinfo');
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
@@ -55,10 +53,24 @@ const SharesListScreen = ({
             unsubscribe.remove();
         };
     }, []);
+
+    /**
+     * component functions
+     */
+    function setDismissNav() {
+        if (screentype == "screen")
+            return Navigation.pop(componentId);
+        else
+            return Navigation.dismissModal(componentId)
+    }
+
+    /**component functions */
+
+
     return (
         <SafeAreaView style={styles.containerStyle}>
             <Header
-                headertext={screenname || 'Shares'}
+                headertext={screenname || 'Info'}
                 headercolor={colors.card}
                 lefticon={lefticon}
                 leftIconPress={lefticonpress}
@@ -66,41 +78,40 @@ const SharesListScreen = ({
                 headertextsize={responsiveFontSize(2.9)}
             />
             {loaded == false ? <LoaderScreen
-                loaderIcon={<Icon
-                    type="entypo"
-                    name="forward"
+                /*loaderIcon={<Icon
+                    type="antdesign"
+                    name="heart"
                     color={colors.text}
                     size={responsiveFontSize(10)}
-                />}
+                />}*/
                 animationType={'zoomIn'}
             /> :
                 <View style={styles.parentStyle}>
                     <ProfileList
-                        data={shareslistform.shareslist}
-                        onFetch={() => fetchShares(requrl, reqdata)}
-                        fetching={shareslistform.fetching}
+                        data={followinfoform.list}
+                        onFetch={() => runAction()}
+                        fetching={followinfoform.loading}
                         followProfileAction={followProfileAction}
                         processfollowing={profileactionform.followingprofile}
-                        updateItem={updateSharesListForm}
-                        onLoadMore={() => fetchMoreShares(reqdata)}
-                        loadingmore={shareslistform.loadingmore}
+                        updateItem={updateFollowInfoList}
+                        onLoadMore={() => loadMore()}
+                        loadingmore={followinfoform.loadingmore}
                     />
                 </View>
             }
         </SafeAreaView>
     );
 };
-
-const mapStateToProps = (state) => ({
-    shareslistform: state.shareslistform,
-    profileactionform: state.profileactionform
-});
-SharesListScreen.options = {
+FollowInfoScreen.options = {
     topBar: {
         visible: false
     },
 };
 
+const mapStateToProps = (state) => ({
+    profileactionform: state.profileactionform,
+    followinfoform: state.followinfo,
+});
 const styles = StyleSheet.create({
     containerStyle: {
         flex: 1,
@@ -111,4 +122,5 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
     },
 });
-export default connect(mapStateToProps, actions)(SharesListScreen);
+
+export default connect(mapStateToProps, actions)(FollowInfoScreen);

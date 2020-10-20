@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, ActivityIndicator, View } from 'react-native';
-import { Text, Icon } from 'react-native-elements';
+import { Icon } from 'react-native-elements';
 import { Header } from '../../components/reusable/ResuableWidgets';
 import { useTheme } from '../../assets/themes';
 import { connect } from 'react-redux';
@@ -16,14 +16,16 @@ const PrivateChatScreen = ({
     componentId,
     privatechatlist,
     fetchPrivateChatList,
+    addPrivateChatList,
     profile,
 }) => {
     const [loaded, setLoaded] = useState(false);
     let righticon = <Icon
         type="antdesign"
-        name="pluscircleo"
+        name="plus"
+        style={{ borderWidth: 2, padding: 2, borderRadius: 10, borderColor: colors.text }}
         color={colors.text}
-        size={responsiveFontSize(3.5)}
+        size={responsiveFontSize(2.5)}
     />;
     let righticonpress = null;
     let righticon2 = <Icon
@@ -46,6 +48,10 @@ const PrivateChatScreen = ({
                     icon: e,
                 }
             }));
+        if (privatechatlist.chatlist.length < 1 && privatechatlist.persistedchatlist.length > 0) {
+            addPrivateChatList(privatechatlist.persistedchatlist);
+        }
+        fetchPrivateChatList();
         const listener = {
             componentDidAppear: () => {
                 setLoaded(true);
@@ -61,7 +67,6 @@ const PrivateChatScreen = ({
             unsubscribe.remove();
         };
     }, []);
-
     //function to determine dismiss of navigation based on screentype
     function setDismissNav() {
         if (screentype == "modal")
@@ -74,7 +79,7 @@ const PrivateChatScreen = ({
         if (loaded == false) {
             return (
                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <ActivityIndicator size="large" color="#2196F3" />
+                    <ActivityIndicator size="large" color="silver" />
                 </View>
             );
         } else if (loaded == true) {

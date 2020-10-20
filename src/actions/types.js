@@ -154,6 +154,14 @@ export const UPDATE_PRIVATECHATLIST = 'update_privatechatlist';
 export const UPDATE_ARRAY_PRIVATECHATLIST = 'update_array_privatechatlist';
 export const DELETE_PRIVATECHATLIST = 'delete_privatechatlist';
 
+/**
+ * TYPE CONSTANT FOR FOLLOWINFO REDUCER
+ */
+export const ADD_FOLLOWINFO_LIST = 'add_followinfo_list';
+export const UPDATE_FOLLOWINFO_LIST = 'update_followinfo_list';
+export const ADD_FOLLOWINFO_URL = 'add_followinfo_url';
+
+
 
 /**
  * TYPE CONSTANT FOR BOOKMARKS REDUCER

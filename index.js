@@ -27,6 +27,7 @@ import PostShowScreen from './src/screens/main/PostShowScreen';
 import LikesListScreen from './src/screens/main/LikesListScreen';
 import SharesListScreen from './src/screens/main/SharesListScreen';
 import PostSettingScreen from './src/screens/main/PostSettingScreen';
+import FollowInfoScreen from './src/screens/main/FollowInfoScreen';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
@@ -282,6 +283,14 @@ Navigation.events().registerAppLaunchedListener(async () => {
                             <PostSettingScreen {...props} />
                         </Provider>,
                         () => PostSettingScreen
+                    );
+                    break;
+                case 'FollowInfo':
+                    Navigation.registerComponent('FollowInfo', () => (props) =>
+                        <Provider store={store}>
+                            <FollowInfoScreen {...props} />
+                        </Provider>,
+                        () => FollowInfoScreen
                     );
                     break;
                 default:

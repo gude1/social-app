@@ -23,6 +23,7 @@ const PostCommentReplyScreen = ({
     muteProfileAction,
     profileactionform,
     postcommentreplyform,
+    screentype,
     postcommentform,
     fetchPostCommentReply,
     setProcessing,
@@ -49,7 +50,7 @@ const PostCommentReplyScreen = ({
         color={colors.text}
         size={responsiveFontSize(6)}
     /> : null;
-    let lefticonpress = navparent == true ? () => Navigation.dismissModal(componentId) : null;
+    let lefticonpress = navparent == true ? () => setDismissNav() : null;
     let righticon = '';
     let righticonpress = '';
     useEffect(() => {
@@ -73,9 +74,19 @@ const PostCommentReplyScreen = ({
         };
     }, []);
     /**component functions starts here */
+
     const setFlatlistRef = (ref) => {
         flatlistref = ref;
     };
+
+    //function to determine dismiss of navigation based on screentype
+    function setDismissNav() {
+        if (screentype == "screen")
+            return Navigation.pop(componentId);
+        else
+            return Navigation.dismissModal(componentId)
+    }
+
     /**component functions ends here */
     return (
         <SafeAreaView style={styles.containerStyle}>
