@@ -129,6 +129,16 @@ const TopSection = ({ profile, isprofileowner, profileActions }) => {
                 <Text style={styles.profileInfoItemText}>{profile.user.username}</Text>
                 <Text style={styles.profileInfoItemText}>{profile.bio}</Text>
                 {showButton()}
+                {profile.followsu &&
+                    <Button
+                        title="Follows You"
+                        TouchableComponent={TouchableScale}
+                        disabled
+                        type="outline"
+                        titleStyle={styles.buttonTitleStyle}
+                        buttonStyle={[styles.buttonStyle]}
+                    />
+                }
             </View>
 
             <View style={styles.modalCard}>
@@ -245,7 +255,26 @@ const TopSection = ({ profile, isprofileowner, profileActions }) => {
                     }}>Gists</Text>
                 </View>*/}
             </View>
-            <Text style={{ color: colors.iconcolor, textAlign: "center" }}>Not followed by anyone you are following</Text>
+            {
+                checkData(profile.known_followers_info) &&
+                <Text style={{ color: colors.iconcolor, textAlign: "center" }}
+                    onPress={() => Navigation.showModal({
+                        component: {
+                            name: 'FollowInfo',
+                            passProps: {
+                                navparent: true,
+                                screenname: "Followers you know",
+                                runAction: () => profileActions.fetchKnownProfileFollowers(profile.profile_id),
+                                loadMore: () => profileActions.fetchMoreKnownProfileFollowers(profile.profile_id),
+                                screentype: 'modal'
+                            },
+                        }
+                    })}
+                >
+                    {profile.known_followers_info}
+                </Text>
+            }
+
         </View>
     );
 };
@@ -351,6 +380,8 @@ const ViewProfileScreen = ({
     fetchProfilesFollowing,
     fetchMoreProfileFollowers,
     fetchMoreProfilesFollowing,
+    fetchKnownProfileFollowers,
+    fetchMoreKnownProfileFollowers,
     fetchAProfile,
 }) => {
     const [loaded, setLoaded] = useState(false);
@@ -801,7 +832,9 @@ const ViewProfileScreen = ({
                             fetchProfileFollowers,
                             fetchProfilesFollowing,
                             fetchMoreProfileFollowers,
-                            fetchMoreProfilesFollowing
+                            fetchMoreProfilesFollowing,
+                            fetchKnownProfileFollowers,
+                            fetchMoreKnownProfileFollowers
                         }}
                     />}
                     <BottomSection
