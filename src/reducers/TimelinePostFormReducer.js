@@ -11,6 +11,7 @@ import {
     PREPEND_TIMELINE_POST_FORM,
     PROCESSING,
     RESET,
+    SET_TIMELINE_POST_FORM,
 } from '../actions/types';
 import { checkData } from '../utilities/index';
 
@@ -86,6 +87,9 @@ const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case ADD_TIMELINE_POST_FORM:
             return { ...state, timelineposts: [...state.timelineposts, ...action.payload] };
+            break;
+        case SET_TIMELINE_POST_FORM:
+            return { ...state, timelineposts: [...action.payload] };
             break;
         case PREPEND_TIMELINE_POST_FORM:
             return { ...state, timelineposts: [...action.payload, ...state.timelineposts] };

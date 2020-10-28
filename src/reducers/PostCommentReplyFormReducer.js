@@ -9,6 +9,7 @@ import {
     SET_POST_COMMENT_REPLY_FORM_LINK,
     PROCESSING,
     RESET,
+    SET_POST_COMMENT_REPLY_FORM,
 } from '../actions/types';
 import { checkData } from '../utilities/index';
 
@@ -76,6 +77,9 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
             break;
         case ADD_POST_COMMENT_REPLY_FORM:
             return { ...state, postcommentreplies: [...state.postcommentreplies, ...action.payload] };
+            break;
+        case SET_POST_COMMENT_REPLY_FORM:
+            return { ...state, postcommentreplies: action.payload };
             break;
         case PREPEND_POST_COMMENT_REPLY_FORM:
             return { ...state, postcommentreplies: [...action.payload, ...state.postcommentreplies] };

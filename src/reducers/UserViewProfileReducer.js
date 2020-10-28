@@ -5,7 +5,9 @@ import {
     UPDATE_USER_VIEWPROFILEFORM_POSTS,
     SET_USER_VIEWPROFILEFORM_PROFILE_STATUS,
     SET_USER_VIEWPROFILEFORM_LINK,
-    SET_USER_VIEWPROFILEFORM
+    SET_USER_VIEWPROFILEFORM,
+    UPDATE_USER_VIEWPROFILEFORM_POSTS_ARRAY,
+    SET_USER_VIEWPROFILEFORM_POSTS
 } from '../actions/types';
 import { checkData } from '../utilities/index';
 
@@ -16,9 +18,7 @@ const INITIAL_STATE = {
     viewprofilepostsnexturl: null,
     viewpostloading: false,
     viewpostloadingmore: false,
-}
-
-
+};
 
 //to determine the type of processing request if user profile
 const handleProcessing = (key, value, state) => {
@@ -39,6 +39,19 @@ const handleProcessing = (key, value, state) => {
 };
 
 
+const handleUpdatePostArray = (prevdata, newdata, type) => {
+    if (type == "reset" || (newdata.length > 1 && prevdata.length < 1)) {
+        return newdata;
+    } else if (prevdata.length > 1 && newdata.length < 1) {
+        return prevdata;
+    }
+    let updateddata = prevdata.viewprofileposts.map(item => {
+        let value = newdata.viewprofileposts.find(newitem => newitem.id == item.id);
+        return checkData(value) ? { ...item, ...value } : item;
+    });
+    return updateddata;
+};
+
 
 //original reducer
 const UserViewProfileReducer = (state = INITIAL_STATE, action) => {
@@ -46,9 +59,23 @@ const UserViewProfileReducer = (state = INITIAL_STATE, action) => {
         case ADD_USER_VIEWPROFILEFORM_POSTS:
             return { ...state, viewprofileposts: [...state.viewprofileposts, ...action.payload] };
             break;
+        case UPDATE_USER_VIEWPROFILEFORM_POSTS_ARRAY:
+            return {
+                ...state,
+                viewprofileposts:
+                    handleUpdatePostArray(
+                        state.viewprofileposts,
+                        action.payload.data,
+                        action.payload.type
+                    )
+            };
+            break;
         case PROCESSING:
             return handleProcessing(action.payload.key,
                 action.payload.value, state);
+            break;
+        case SET_USER_VIEWPROFILEFORM_POSTS:
+            return { ...state, viewprofileposts: action.payload };
             break;
         case SET_USER_VIEWPROFILEFORM_LINK:
             return { ...state, viewprofilepostsnexturl: action.payload };

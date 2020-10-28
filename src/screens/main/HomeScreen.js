@@ -22,6 +22,7 @@ const HomeScreen = ({ componentId,
     timelineposts,
     blackListTimelinePost,
     fetchMoreTimelinePost,
+    setTimelinePostForm,
     setTimelinePostFormLinks,
     removeProfileTimeLinePost,
     removeProfileTimeLinePostForm,
@@ -42,7 +43,7 @@ const HomeScreen = ({ componentId,
     timelinepostform,
     addTimelinePostForm,
     updateTimelinePostForm,
-    }) => {
+}) => {
     let righticon = <Icon
         type="antdesign"
         name="bells"
@@ -59,6 +60,7 @@ const HomeScreen = ({ componentId,
     /**compoent function goes here */
     useEffect(() => {
         refreshTimelinePost(() => {
+            // console.warn(timelinepostform.timelineposts);
         }, () => {
             start();
         });
@@ -99,7 +101,7 @@ const HomeScreen = ({ componentId,
     const start = () => {
         //console.warn(timelineposts);
         if (timelineposts.timelineposts.length > 0 && timelinepostform.timelineposts.length < 1) {
-            addTimelinePostForm(timelineposts.timelineposts);
+            setTimelinePostForm(timelineposts.timelineposts);
             setTimelinePostFormLinks(timelineposts.links);
             setTimelinePostFormProfileChanges(timelineposts.profileschanges);
         }
@@ -151,7 +153,7 @@ const HomeScreen = ({ componentId,
                         <View style={styles.middleContainer}>
                             <PostList
                                 onPostItemLiked={likeTimelinePostAction}
-                                onRefresh={refreshTimelinePost}
+                                onRefresh={() => refreshTimelinePost()}
                                 onDeletePress={deleteTimelinePost}
                                 setProcessing={setProcessing}
                                 onArchivePress={archiveTimelinePost}
@@ -173,6 +175,7 @@ const HomeScreen = ({ componentId,
                                 refreshing={timelinepostform.refreshing}
                                 onPostItemShared={shareTimelinePostAction}
                                 data={timelinepostform.timelineposts}
+                                //data={[]}
                                 onitemdeleting={timelinepostform.deleting}
                                 onitemarchiving={timelinepostform.archiving}
                                 onitemblacklisting={timelinepostform.blacklisting}

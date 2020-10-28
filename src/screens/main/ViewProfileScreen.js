@@ -15,7 +15,6 @@ import { TouchablePreview } from 'react-native-navigation/lib/dist/adapters/Touc
 import { IndicatorViewPager, PagerTabIndicator, PagerTitleIndicator } from '@shankarmorwal/rn-viewpager';
 import { ToastAndroid } from 'react-native';
 import PostImageGallery from '../../components/reusable/PostImageGallery';
-
 const { colors } = useTheme();
 
 /**top section */
@@ -365,6 +364,8 @@ const ViewProfileScreen = ({
     fetchMoreProfilePosts,
     setUserViewProfileForm,
     addUserViewProfileFormPost,
+    setUserViewProfileFormPost,
+    setOthersViewProfileFormPost,
     prependUserViewProfileFormPost,
     updateUserViewProfileFormPost,
     setOthersViewProfileForm,
@@ -426,9 +427,11 @@ const ViewProfileScreen = ({
             color={colors.text}
             size={responsiveFontSize(2.5)}
         />;
+
     /**
      * component function starts here
      */
+
     Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
         bottomTabs: {
             //visible: false
@@ -467,6 +470,7 @@ const ViewProfileScreen = ({
             }
         };
     }, []);
+
     //handles fetching of profiles data 
     function handleFecthViewProfile() {
         if (!checkData(toshowprofile)) {
@@ -496,6 +500,7 @@ const ViewProfileScreen = ({
         //console.warn(useowner)
         useowner == false && setOthersViewProfileForm(data);
     }
+
     //returns the profile to show
     function returnViewProfile() {
         if (useowner) {
@@ -519,6 +524,14 @@ const ViewProfileScreen = ({
         useowner ? addUserViewProfileFormPost(data) : addOthersViewProfileFormPost(data);
     }
 
+    //function to add profile posts starts here
+    function setProfilePost(data) {
+        if (!checkData(data)) {
+            return;
+        }
+        useowner ? setUserViewProfileFormPost(data) : setOthersViewProfileFormPost(data);
+    }
+
     //function to followprofile starts here
     function followProfile() {
         let following = !viewprofileform.viewprofile.following;
@@ -528,8 +541,6 @@ const ViewProfileScreen = ({
             num_followers = num_followers + 1 < 1 ? 1 : num_followers + 1;
         else
             num_followers = num_followers - 1 < 0 ? 0 : num_followers - 1;
-
-
         followProfileAction(toshowprofile.profile_id,
             () => {
                 //setProcessing(true, 'othersviewprofileformfollowing');
@@ -626,15 +637,15 @@ const ViewProfileScreen = ({
             })
     }
 
-
     //handles fetching of profiles post
     function handleProfilePostsFetch() {
         if (checkData(toshowprofile) && toshowprofile.profileblockedu == false) {
             fetchProfilePosts(toshowprofile.profile_id, () => {
                 useowner ? setProcessing(true, 'userviewprofileformpostloading')
                     : setProcessing(true, 'othersviewprofileformpostloading');
-            }, (post, profile, nexturl) => {
-                addProfilePost(post);
+            }, (posts, profile, nexturl) => {
+                //addProfilePost(posts);
+                setProfilePost(posts);
                 setViewProfile(profile);
                 useowner ? setUserViewProfileFormLink(nexturl) : setOthersViewProfileFormLink(nexturl);
                 useowner ? setProcessing(false, 'userviewprofileformpostloading')
@@ -662,7 +673,7 @@ const ViewProfileScreen = ({
         fetchMoreProfilePosts(viewprofileform.viewprofilepostsnexturl, toshowprofile.profile_id, () => {
             useowner ? setProcessing(true, 'userviewprofileformpostloadingmore')
                 : setProcessing(true, 'othersviewprofileformpostloadingmore');
-        }, (post, profile, nexturl) => {
+        }, (posts, profile, nexturl) => {
             addProfilePost(post);
             setViewProfile(profile);
             useowner ? setUserViewProfileFormLink(nexturl) : setOthersViewProfileFormLink(nexturl);

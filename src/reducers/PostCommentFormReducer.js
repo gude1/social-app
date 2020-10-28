@@ -8,7 +8,9 @@ import {
     UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES,
     PROCESSING,
     RESET,
-    SET_POST_COMMENT_FORM_LINK
+    SET_POST_COMMENT_FORM_LINK,
+    UPDATE_POST_COMMENT_ARRAY_FORM,
+    SET_POST_COMMENT_FORM
 } from '../actions/types';
 import { checkData } from '../utilities/index';
 
@@ -65,6 +67,9 @@ const PostCommentFormReducer = (state = INITIAL_STATE, action) => {
             break;
         case PREPEND_POST_COMMENT_FORM:
             return { ...state, postcomments: [...action.payload, ...state.postcomments] };
+            break;
+        case SET_POST_COMMENT_FORM:
+            return { ...state, postcomments: action.payload };
             break;
         case UPDATE_POST_COMMENT_FORM:
             let updatedstate = state.postcomments.map(item => {

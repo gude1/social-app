@@ -88,6 +88,14 @@ import {
     ADD_FOLLOWINFO_LIST,
     UPDATE_FOLLOWINFO_LIST,
     ADD_FOLLOWINFO_URL,
+    UPDATE_USER_VIEWPROFILEFORM_POSTS_ARRAY,
+    UPDATE_OTHERS_VIEWPROFILEFORM_POSTS_ARRAY,
+    SET_POST_COMMENT_FORM,
+    SET_OTHERS_VIEWPROFILEFORM_POSTS,
+    SET_USER_VIEWPROFILEFORM_POSTS,
+    SET_POST_COMMENT_REPLY_FORM,
+    SET_TIMELINE_POST_FORM,
+    SET_TIMELINE_POST,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -841,7 +849,7 @@ export const fetchProfilePosts = (profileid, initAction, okAction, failedAction)
                     break;
             }
         } catch (err) {
-            //console.warn(err.toString())
+            console.warn(err.toString())
             failedAction && failedAction();
         }
     };
@@ -1385,6 +1393,13 @@ export const addTimelinePost = (timelinepost) => {
     }
 };
 
+export const setTimelinePost = (data: Array) => {
+    return {
+        type: SET_TIMELINE_POST,
+        payload: data
+    }
+};
+
 export const prependTimelinePost = (timelinepost: Array) => {
     return {
         type: PREPEND_TIMELINE_POST,
@@ -1440,7 +1455,15 @@ export const addTimelinePostForm = (data) => {
         type: ADD_TIMELINE_POST_FORM,
         payload: data
     }
-}
+};
+
+export const setTimelinePostForm = (data: Array) => {
+    return {
+        type: SET_TIMELINE_POST_FORM,
+        payload: data
+    }
+};
+
 export const prependTimelinePostForm = (data: Array) => {
     return {
         type: PREPEND_TIMELINE_POST_FORM,
@@ -1576,14 +1599,13 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                 followedpostnexturl,
                 withincampuspostsnexturl
             } = response.data;
-            //console.warn(response.data);
+           // console.warn(response.data);
             //alert(JSON.stringify(response.data));
+            dispatch(setTimelinepostRefresh(false));
             switch (postlistrange) {
                 case 'all':
-                    dispatch(setReset('timelinepostform'));
-                    dispatch(setReset('timelinepost'));
-                    dispatch(addTimelinePostForm(timelineposts));
-                    dispatch(addTimelinePost(timelineposts));
+                    dispatch(setTimelinePostForm(timelineposts));
+                    dispatch(setTimelinePost(timelineposts));
                     dispatch(setTimelinePostFormLinks(
                         [followedpostnexturl, generalpostnexturl].filter(url => checkData(url))
                     ));
@@ -1593,10 +1615,8 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                     okAction && okAction();
                     break;
                 case 'campus':
-                    dispatch(setReset('timelinepostform'));
-                    dispatch(setReset('timelinepost'));
-                    dispatch(addTimelinePostForm(timelineposts));
-                    dispatch(addTimelinePost(timelineposts));
+                    dispatch(setTimelinePostForm(timelineposts));
+                    dispatch(setTimelinePost(timelineposts));
                     dispatch(setTimelinePostFormLinks(
                         [followedpostnexturl, withincampuspostsnexturl].filter(url => checkData(url))
                     ));
@@ -1606,10 +1626,8 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                     okAction && okAction();
                     break;
                 case 'followedpost':
-                    dispatch(setReset('timelinepostform'));
-                    dispatch(setReset('timelinepost'));
-                    dispatch(addTimelinePostForm(timelineposts));
-                    dispatch(addTimelinePost(timelineposts));
+                    dispatch(setTimelinePostForm(timelineposts));
+                    dispatch(setTimelinePost(timelineposts));
                     dispatch(setTimelinePostFormLinks(
                         [followedpostnexturl].filter(url => checkData(url))
                     ));
@@ -1632,7 +1650,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
             }
         } catch (e) {
             //alert(JSON.stringify(e));
-            //console.warn(e.toString())
+            console.warn(e.toString())
             failedAction && failedAction();
             dispatch(setTimelinepostRefresh('failed'));
             if (e.toString().indexOf('Network Error') > - 1) {
@@ -2346,9 +2364,23 @@ export const updatePostCommentForm = (data: Object) => {
     };
 };
 
+export const updatePostCommentArrayForm = (data: Array, type: String) => {
+    return {
+        type: UPDATE_POST_COMMENT_FORM,
+        payload: { data, type }
+    };
+};
+
 export const setPostCommentFormLink = (data: String) => {
     return {
         type: SET_POST_COMMENT_FORM_LINK,
+        payload: data,
+    };
+};
+
+export const setPostCommentForm = (data: Array) => {
+    return {
+        type: SET_POST_COMMENT_FORM,
         payload: data,
     };
 };
@@ -2402,7 +2434,7 @@ export const fetchPostComment = (postid) => {
             switch (status) {
                 case 302:
                     dispatch(setProcessing(false, 'postcommentformfetching'));
-                    dispatch(addPostCommentForm(comments));
+                    dispatch(setPostCommentForm(comments));
                     dispatch(setPostCommentFormLink(nextpageurl));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
@@ -2667,9 +2699,8 @@ export const refreshPostComment = (postid) => {
 
             switch (status) {
                 case 302:
-                    dispatch(setReset('postcommentform'));
                     dispatch(setPostCommentFormRefresh(false));
-                    dispatch(addPostCommentForm(comments));
+                    dispatch(setPostCommentForm(comments));
                     dispatch(setPostCommentFormLink(nextpageurl));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
@@ -2702,7 +2733,7 @@ export const refreshPostComment = (postid) => {
             }
 
         } catch (err) {
-            // console.warn(err.toString());
+            console.warn(err.toString());
             dispatch(setPostCommentFormRefresh(false));
             Toast('failed to refresh', ToastAndroid.LONG);
         }
@@ -2854,6 +2885,13 @@ export const addPostCommentReplyForm = (data: Array) => {
     };
 };
 
+export const setPostCommentReplyForm = (data: Array) => {
+    return {
+        type: SET_POST_COMMENT_REPLY_FORM,
+        payload: data
+    };
+};
+
 export const updatePostCommentReplyForm = (data: Object) => {
     return {
         type: UPDATE_POST_COMMENT_REPLY_FORM,
@@ -2917,7 +2955,7 @@ export const fetchPostCommentReply = (originid) => {
             switch (status) {
                 case 302:
                     dispatch(setProcessing(false, 'postcommentreplyformfetching'));
-                    dispatch(addPostCommentReplyForm(replies));
+                    dispatch(setPostCommentReplyForm(replies));
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
@@ -3105,8 +3143,7 @@ export const refreshPostCommentReply = (originid) => {
             switch (status) {
                 case 302:
                     dispatch(setPostCommentReplyFormRefresh(false));
-                    dispatch(setReset('postcommentreplyform'));
-                    dispatch(addPostCommentReplyForm(replies));
+                    dispatch(setPostCommentReplyForm(replies));
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
@@ -3404,10 +3441,24 @@ export const addUserViewProfileFormPost = (data: Array) => {
     };
 };
 
+export const setUserViewProfileFormPost = (data: Array) => {
+    return {
+        type: SET_USER_VIEWPROFILEFORM_POSTS,
+        payload: data
+    };
+};
+
 export const prependUserViewProfileFormPost = (data: Array) => {
     return {
         type: PREPEND_USER_VIEWPROFILEFORM_POSTS,
         payload: data
+    };
+};
+
+export const updateUserViewProfileFormPostArray = (data: Array, type: String) => {
+    return {
+        type: UPDATE_USER_VIEWPROFILEFORM_POSTS_ARRAY,
+        payload: { data, type }
     };
 };
 
@@ -3417,6 +3468,7 @@ export const updateUserViewProfileFormPost = (data: Object) => {
         payload: data
     };
 };
+
 
 export const setUserViewProfileForm = (data: Object) => {
     return {
@@ -3444,6 +3496,13 @@ export const addOthersViewProfileFormPost = (data: Array) => {
     };
 };
 
+export const setOthersViewProfileFormPost = (data: Array) => {
+    return {
+        type: SET_OTHERS_VIEWPROFILEFORM_POSTS,
+        payload: data
+    };
+};
+
 export const prependOthersViewProfileFormPost = (data: Array) => {
     return {
         type: PREPEND_OTHERS_VIEWPROFILEFORM_POSTS,
@@ -3455,6 +3514,13 @@ export const updateOthersViewProfileFormPost = (data: Object) => {
     return {
         type: UPDATE_OTHERS_VIEWPROFILEFORM_POSTS,
         payload: data
+    };
+};
+
+export const updateOthersViewProfileFormPostArray = (data: Array, type: String) => {
+    return {
+        type: UPDATE_OTHERS_VIEWPROFILEFORM_POSTS_ARRAY,
+        payload: { data, type }
     };
 };
 

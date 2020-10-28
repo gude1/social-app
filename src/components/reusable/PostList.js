@@ -109,7 +109,7 @@ class PostImageViewPager extends Component {
                     backgroundColor: colors.background,
                 }}
                 //showPageIndicator={true}
-                initialPage={0}
+                initialPage={1}
                 keyboardDismissMode='none'
             >
                 {this.pagerItems}
@@ -859,6 +859,7 @@ export default class PostList extends React.Component {
 
 
     render() {
+        //console.warn(this.props.data);
         let refreshing = this.props.refreshing == 'failed' ? false : this.props.refreshing;
         //to hide pull to refresh functionality  when data is empty
         let onRefresh = this.props.data < 1 ? null : this.props.onRefresh;
@@ -871,25 +872,22 @@ export default class PostList extends React.Component {
                     headertextsize={responsiveFontSize(2.5)}
                     lefticon={this.leftIcon}
                     leftIconPress={() => {
-                        Navigation.mergeOptions('POST_HOME_SCREEN', {
-                            bottomTabs: {
-                                visible: false
-                            }
-                        });
-                        Navigation.push('POST_HOME_SCREEN', {
+                        Navigation.showModal({
                             component: {
-                                name: 'CreatePost',
+                                name: "CreatePost",
                                 passProps: {
-                                    navparent: true
+                                    navparent: true,
+                                    screentype: "modal"
                                 }
                             }
-                        });
+                        })
                     }}
                     rightIconPress={() => Navigation.showModal({
                         component: {
                             name: "PostSetting",
                             passProps: {
                                 navparent: true,
+                                screentype: "modal"
                             }
                         }
                     })}

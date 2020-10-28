@@ -260,6 +260,8 @@ export const resizeImage = async (uri, width, height, compressFormat, quality, r
         return false;
     }
 };
+
+
 export const toHumanReadableTime = (timeseconds) => {
     return timeseconds;
 };

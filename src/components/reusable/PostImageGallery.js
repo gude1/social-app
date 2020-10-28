@@ -95,7 +95,7 @@ export default class PostImageGallery extends Component {
     }
 
     componentDidMount() {
-        if (checkData(this.props.fetchPost) && this.props.data.length < 1) {
+        if (checkData(this.props.fetchPost)) {
             this.props.fetchPost();
         }
     };

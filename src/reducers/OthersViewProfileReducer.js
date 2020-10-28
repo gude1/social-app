@@ -6,6 +6,8 @@ import {
     SET_OTHERS_VIEWPROFILEFORM_PROFILE_STATUS,
     SET_OTHERS_VIEWPROFILEFORM,
     SET_OTHERS_VIEWPROFILEFORM_LINK,
+    UPDATE_OTHERS_VIEWPROFILEFORM_POSTS_ARRAY,
+    SET_OTHERS_VIEWPROFILEFORM_POSTS,
 
 } from '../actions/types';
 import { checkData } from '../utilities/index';
@@ -51,6 +53,20 @@ const handleProcessing = (key, value, state) => {
     }
 };
 
+const handleUpdatePostArray = (prevdata, newdata, type) => {
+    if (type == "reset" || (newdata.length > 1 && prevdata.length < 1)) {
+        return newdata;
+    } else if (prevdata.length > 1 && newdata.length < 1) {
+        return prevdata;
+    }
+    let updateddata = prevdata.viewprofileposts.map(item => {
+        let value = newdata.viewprofileposts.find(newitem => newitem.id == item.id);
+        return checkData(value) ? { ...item, ...value } : item;
+    });
+    return updateddata;
+};
+
+
 
 
 //original reducer
@@ -59,12 +75,26 @@ const OthersViewProfileReducer = (state = INITIAL_STATE, action) => {
         case ADD_OTHERS_VIEWPROFILEFORM_POSTS:
             return { ...state, viewprofileposts: [...state.viewprofileposts, ...action.payload] };
             break;
+        case UPDATE_OTHERS_VIEWPROFILEFORM_POSTS_ARRAY:
+            return {
+                ...state,
+                viewprofileposts:
+                    handleUpdatePostArray(
+                        state.viewprofileposts,
+                        action.payload.data,
+                        action.payload.type
+                    )
+            };
+            break;
         case PROCESSING:
             return handleProcessing(action.payload.key,
                 action.payload.value, state);
             break;
         case SET_OTHERS_VIEWPROFILEFORM:
             return { ...state, viewprofile: { ...state.viewprofile, ...action.payload } };
+            break;
+        case SET_OTHERS_VIEWPROFILEFORM_POSTS:
+            return { ...state, viewprofileposts: action.payload };
             break;
         case SET_OTHERS_VIEWPROFILEFORM_LINK:
             return { ...state, viewprofilepostsnexturl: action.payload };
