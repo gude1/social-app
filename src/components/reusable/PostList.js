@@ -109,7 +109,7 @@ class PostImageViewPager extends Component {
                     backgroundColor: colors.background,
                 }}
                 //showPageIndicator={true}
-                initialPage={1}
+                initialPage={0}
                 keyboardDismissMode='none'
             >
                 {this.pagerItems}

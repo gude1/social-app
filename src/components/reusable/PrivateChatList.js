@@ -278,6 +278,15 @@ class PrivateChatList extends Component {
                         color: colors.text
                     }}
                     title="Start Chat"
+                    onPress={() => Navigation.showModal({
+                        component: {
+                            name: 'FindUser',
+                            passProps: {
+                                navparent: true,
+                                screentype: 'modal'
+                            },
+                        }
+                    })}
                     titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
                     buttonStyle={{
                         marginTop: 40,
@@ -330,7 +339,9 @@ class PrivateChatList extends Component {
         };
         return (
             <Button
-                onPress={() => { }}
+                onPress={() => {
+
+                }}
                 type="clear"
                 icon={{
                     name: 'plus',

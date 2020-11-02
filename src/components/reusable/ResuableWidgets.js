@@ -479,9 +479,13 @@ export const ModalList = ({ optionsArr, isVisible, onBackdropPress }) => {
     );
 };
 
-export const InputBox = ({ avatar, placeholder, inputvalue, onChangeText, autoFocus, maxLength, placeholdercolor, onSubmit }) => {
-    return (
-        <View style={styles.inputBoxCtn}>
+export const InputBox = ({ avatar, leftIcon, showAvatar, placeholder, inputvalue, onChangeText, autoFocus, maxLength, placeholdercolor, onSubmit }) => {
+
+    const renderAvatar = () => {
+        if (showAvatar == false) {
+            return null;
+        }
+        return (
             <Avatar
                 size={'small'}
                 source={avatar}
@@ -490,12 +494,18 @@ export const InputBox = ({ avatar, placeholder, inputvalue, onChangeText, autoFo
                 rounded
                 overlayContainerStyle={styles.inputBoxAvatar}
             />
+        );
+    };
+    return (
+        <View style={styles.inputBoxCtn}>
+            {renderAvatar()}
             <Input
                 placeholder={placeholder}
                 maxLength={maxLength}
                 placeholderTextColor={placeholdercolor || colors.placeholder}
                 inputStyle={{ color: colors.text }}
                 disableFullscreenUI={true}
+                leftIcon={leftIcon}
                 onChangeText={onChangeText}
                 value={inputvalue}
                 maxLength={maxLength}

@@ -28,6 +28,7 @@ import LikesListScreen from './src/screens/main/LikesListScreen';
 import SharesListScreen from './src/screens/main/SharesListScreen';
 import PostSettingScreen from './src/screens/main/PostSettingScreen';
 import FollowInfoScreen from './src/screens/main/FollowInfoScreen';
+import FindUserScreen from './src/screens/main/FindUserScreen';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
@@ -291,6 +292,14 @@ Navigation.events().registerAppLaunchedListener(async () => {
                             <FollowInfoScreen {...props} />
                         </Provider>,
                         () => FollowInfoScreen
+                    );
+                    break;
+                case 'FindUser':
+                    Navigation.registerComponent('FindUser', () => (props) =>
+                        <Provider store={store}>
+                            <FindUserScreen {...props} />
+                        </Provider>,
+                        () => FindUserScreen
                     );
                     break;
                 default:

@@ -131,6 +131,7 @@ export default class ProfileList extends React.PureComponent {
     }
 
     _keyExtractor = (item, index) => index.toString();
+
     _getItemLayout = (data, index) => {
         if (index == -1) return { index, length: 0, height: 0 };
         return { length: 70, offset: 70 * index, index }

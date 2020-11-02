@@ -1599,7 +1599,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                 followedpostnexturl,
                 withincampuspostsnexturl
             } = response.data;
-           // console.warn(response.data);
+            // console.warn(response.data);
             //alert(JSON.stringify(response.data));
             dispatch(setTimelinepostRefresh(false));
             switch (postlistrange) {
@@ -1650,7 +1650,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
             }
         } catch (e) {
             //alert(JSON.stringify(e));
-            console.warn(e.toString())
+            //console.warn(e.toString())
             failedAction && failedAction();
             dispatch(setTimelinepostRefresh('failed'));
             if (e.toString().indexOf('Network Error') > - 1) {
@@ -3681,6 +3681,10 @@ export const fetchProfileFollowers = (profileid, initAction, okAction, failedAct
                     dispatch(setProcessing(false, 'followinfoloading'));
                     Toast(errmsg);
                     break;
+                case 412:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    Toast(errmsg);
+                    break;
                 default:
                     dispatch(setProcessing(false, 'followinfoloading'));
                     Toast('something went wrong');
@@ -3732,6 +3736,10 @@ export const fetchMoreProfileFollowers = (profileid, initAction, okAction, faile
                     dispatch(setProcessing(false, 'followinfoloadingmore'));
                     logOut(() => persistor.purge());
                     break;
+                case 412:
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    Toast(errmsg);
+                    break;
                 case 404:
                     dispatch(setProcessing(false, 'followinfoloadingmore'));
                     Toast(errmsg);
@@ -3782,6 +3790,10 @@ export const fetchProfilesFollowing = (profileid, initAction, okAction, failedAc
                 case 401:
                     dispatch(setProcessing(false, 'followinfoloading'));
                     logOut(() => persistor.purge());
+                    break;
+                case 412:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    Toast(errmsg);
                     break;
                 case 404:
                     dispatch(setProcessing(false, 'followinfoloading'));
@@ -3838,6 +3850,10 @@ export const fetchMoreProfilesFollowing = (profileid, initAction, okAction, fail
                     dispatch(setProcessing(false, 'followinfoloadingmore'));
                     logOut(() => persistor.purge());
                     break;
+                case 412:
+                    dispatch(setProcessing(false, 'followinfoloadingmore'));
+                    Toast(errmsg);
+                    break;
                 case 404:
                     dispatch(setProcessing(false, 'followinfoloadingmore'));
                     Toast(errmsg);
@@ -3889,6 +3905,10 @@ export const fetchKnownProfileFollowers = (profileid, initAction, okAction, fail
                     dispatch(setProcessing(false, 'followinfoloading'));
                     logOut(() => persistor.purge());
                     break;
+                case 412:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    Toast(errmsg);
+                    break;
                 case 404:
                     dispatch(setProcessing(false, 'followinfoloading'));
                     Toast(errmsg);
@@ -3937,6 +3957,10 @@ export const fetchMoreKnownProfileFollowers = (profileid, initAction, okAction, 
                     okAction && okAction();
                     break;
                 case 400:
+                    dispatch(setProcessing(false, 'followinfoloading'));
+                    Toast(errmsg);
+                    break;
+                case 412:
                     dispatch(setProcessing(false, 'followinfoloading'));
                     Toast(errmsg);
                     break;

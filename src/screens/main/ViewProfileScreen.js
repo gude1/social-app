@@ -463,9 +463,7 @@ const ViewProfileScreen = ({
         return () => {
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
-            if (useowner) {
-                setReset('userviewprofileform');
-            } else {
+            if (!useowner) {
                 setReset('othersviewprofileform');
             }
         };
