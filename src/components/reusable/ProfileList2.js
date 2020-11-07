@@ -4,7 +4,7 @@ import { ListItem, Button, Icon } from 'react-native-elements';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { checkData } from '../../utilities/index';
-import { AvatarNavModal } from './ResuableWidgets';
+import { AvatarNavModal, PanelMsg } from './ResuableWidgets';
 import { Navigation } from 'react-native-navigation';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
 
@@ -271,15 +271,17 @@ class ProfileList2 extends React.PureComponent {
                     message={'This profile is blocked by you '}
                     buttonTitle={'View'}
                     buttonPress={() => this.props.updateItem({
-                        id: item.id,
-                        allowblockpass: true
+                        allowblockpass: true,
+                        profile: {
+                            ...item.profile
+                        }
                     })}
                 />
             );
         } else if (item.profile.profileblockedu == true) {
             return (
                 <PanelMsg
-                    message={'This profile is unavailable '}
+                    message={'This profile is unavailable to view'}
                     buttonTitle={'Learn More'}
                 />
             )

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, TouchableOpacity, View, FlatList } from 'react-native';
+import { StyleSheet, SafeAreaView, RefreshControl, ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Text, Avatar, Icon, Button, Image } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
@@ -18,7 +18,7 @@ import PostImageGallery from '../../components/reusable/PostImageGallery';
 const { colors } = useTheme();
 
 /**top section */
-const TopSection = ({ profile, isprofileowner, profileActions }) => {
+const TopSection = ({ profile, profileform, isprofileowner, profileActions }) => {
     let avatar = isprofileowner ? { uri: profile.avatarlocal } : { uri: profile.avatar[1] }
     const showButton = () => {
         let btn = null;
@@ -71,177 +71,196 @@ const TopSection = ({ profile, isprofileowner, profileActions }) => {
     }
     return (
         <View style={styles.topSection}>
-            <View style={styles.avatarIconCtn}>
-                {isprofileowner != true ? <Icon
-                    type="evilicon"
-                    name="comment"
-                    color={colors.text}
-                    size={responsiveFontSize(4.5)}
-                /> : <Icon
-                        type="antdesign"
-                        name="smileo"
-                        color={colors.text}
-                        size={responsiveFontSize(4)}
-                    />}
-                <Avatar
-                    source={avatar}
-                    resizeMode='contain'
-                    size={80}
-                    rounded
-                    icon={{ name: 'user', type: 'antdesign', size: 40, color: 'white' }}
-                    onAccessoryPress={() => {
-                    }}
-                    accessory={{
-                        type: 'evilicon',
-                        name: 'camera',
-                        size: 50,
-                        color: 'white',
-                    }}
-                    //showAccessory
-                    placeholderStyle={{ backgroundColor: colors.border }}
-                    containerStyle={{ backgroundColor: colors.border, elevation: 2, borderWidth: 1, borderColor: colors.card, }}
-                    overlayContainerStyle={styles.avatarContainerStyle}
-                    titleStyle={{ fontSize: 20 }}
-                />
-                {isprofileowner == true ? <Icon
-                    type="antdesign"
-                    onPress={() => Navigation.showModal({
-                        component: {
-                            name: "EditProfile",
-                            passProps: {
-                                navparent: true,
-                                screentype: "modal"
-                            }
-                        }
-                    })}
-                    name="adduser"
-                    color={colors.text}
-                    size={responsiveFontSize(4)}
-                /> : <Icon
-                        type="antdesign"
-                        name="smileo"
-                        color={colors.text}
-                        size={responsiveFontSize(4)}
-                    />}
-            </View>
-            <View style={styles.profileInfoCtn}>
-                <Text style={styles.profileInfoItemText}>{profile.user.username}</Text>
-                <Text style={styles.profileInfoItemText}>{profile.bio}</Text>
-                {showButton()}
-                {profile.followsu &&
-                    <Button
-                        title="Follows You"
-                        TouchableComponent={TouchableScale}
-                        disabled
-                        type="outline"
-                        titleStyle={styles.buttonTitleStyle}
-                        buttonStyle={[styles.buttonStyle]}
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={profileform.refreshing}
+                        onRefresh={() => {
+                            profileActions.handleProfilePostsFetch(() => {
+                                profileActions.setRefresh(true);
+                            }, () => {
+                                profileActions.setRefresh(false);
+                            })
+                        }}
+                        colors={['#2196F3']}
                     />
                 }
-            </View>
-
-            <View style={styles.modalCard}>
-                <View style={{ alignItems: "center" }}>
-                    <Icon
+                //style={{ borderWidth: 2, borderColor: colors.text }}
+                keyboardShouldPersistTaps='always'
+                keyboardDismissMode={'on-drag'}
+            >
+                <View style={styles.avatarIconCtn}>
+                    {isprofileowner != true ? <Icon
+                        type="evilicon"
+                        name="comment"
+                        color={colors.text}
+                        size={responsiveFontSize(4.5)}
+                    /> : <Icon
+                            type="antdesign"
+                            name="smileo"
+                            color={colors.text}
+                            size={responsiveFontSize(4)}
+                        />}
+                    <Avatar
+                        source={avatar}
+                        resizeMode='contain'
+                        size={80}
+                        rounded
+                        icon={{ name: 'user', type: 'antdesign', size: 40, color: 'white' }}
+                        onAccessoryPress={() => {
+                        }}
+                        accessory={{
+                            type: 'evilicon',
+                            name: 'camera',
+                            size: 50,
+                            color: 'white',
+                        }}
+                        //showAccessory
+                        placeholderStyle={{ backgroundColor: colors.border }}
+                        containerStyle={{ backgroundColor: colors.border, elevation: 2, borderWidth: 1, borderColor: colors.card, }}
+                        overlayContainerStyle={styles.avatarContainerStyle}
+                        titleStyle={{ fontSize: 20 }}
+                    />
+                    {isprofileowner == true ? <Icon
                         type="antdesign"
-                        name="book"
+                        onPress={() => Navigation.showModal({
+                            component: {
+                                name: "EditProfile",
+                                passProps: {
+                                    navparent: true,
+                                    screentype: "modal"
+                                }
+                            }
+                        })}
+                        name="adduser"
                         color={colors.text}
                         size={responsiveFontSize(4)}
-                    />
-                    <Text style={{
-                        color: colors.iconcolor,
-                        fontWeight: "bold",
-                        fontSize: responsiveFontSize(1.2),
-                    }}>{profile.campus}</Text>
+                    /> : <Icon
+                            type="antdesign"
+                            name="smileo"
+                            color={colors.text}
+                            size={responsiveFontSize(4)}
+                        />}
                 </View>
-                <View style={{ alignItems: "center" }}>
-                    <Icon
-                        type="font-awesome"
-                        name={profile.user.gender}
-                        color={colors.text}
-                        size={responsiveFontSize(4)}
-                    />
-                    <Text style={{
-                        color: colors.iconcolor,
-                        fontWeight: "bold",
-                        fontSize: responsiveFontSize(1.2),
-                    }}>{profile.user.gender}</Text>
+                <View style={styles.profileInfoCtn}>
+                    <Text style={styles.profileInfoItemText}>{profile.user.username}</Text>
+                    <Text style={styles.profileInfoItemText}>{profile.bio}</Text>
+                    {showButton()}
+                    {profile.followsu &&
+                        <Button
+                            title="Follows You"
+                            TouchableComponent={TouchableScale}
+                            disabled
+                            type="outline"
+                            titleStyle={styles.buttonTitleStyle}
+                            buttonStyle={[styles.buttonStyle]}
+                        />
+                    }
                 </View>
 
-            </View>
-            <View style={styles.profileActivityCtn}>
-                <TouchableOpacity
-                    activeOpacity={1}
-                    onPress={() => Navigation.showModal({
-                        component: {
-                            name: 'FollowInfo',
-                            passProps: {
-                                navparent: true,
-                                screenname: "Followers",
-                                runAction: () => profileActions.fetchProfileFollowers(profile.profile_id),
-                                loadMore: () => profileActions.fetchMoreProfileFollowers(profile.profile_id),
-                                screentype: 'modal'
-                            },
-                        }
-                    })}
-                >
+                <View style={styles.modalCard}>
+                    <View style={{ alignItems: "center" }}>
+                        <Icon
+                            type="antdesign"
+                            name="book"
+                            color={colors.text}
+                            size={responsiveFontSize(4)}
+                        />
+                        <Text style={{
+                            color: colors.iconcolor,
+                            fontWeight: "bold",
+                            fontSize: responsiveFontSize(1.2),
+                        }}>{profile.campus}</Text>
+                    </View>
+                    <View style={{ alignItems: "center" }}>
+                        <Icon
+                            type="font-awesome"
+                            name={profile.user.gender}
+                            color={colors.text}
+                            size={responsiveFontSize(4)}
+                        />
+                        <Text style={{
+                            color: colors.iconcolor,
+                            fontWeight: "bold",
+                            fontSize: responsiveFontSize(1.2),
+                        }}>{profile.user.gender}</Text>
+                    </View>
+
+                </View>
+                <View style={styles.profileActivityCtn}>
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        onPress={() => Navigation.showModal({
+                            component: {
+                                name: 'FollowInfo',
+                                passProps: {
+                                    navparent: true,
+                                    screenname: "Followers",
+                                    runAction: () => profileActions.fetchProfileFollowers(profile.profile_id),
+                                    loadMore: () => profileActions.fetchMoreProfileFollowers(profile.profile_id),
+                                    screentype: 'modal'
+                                },
+                            }
+                        })}
+                    >
+                        <View style={{ alignItems: "center" }}>
+                            <Text style={{
+                                color: colors.text,
+                                fontWeight: "bold",
+                                fontSize: responsiveFontSize(2.3),
+                            }}>{profile.num_followers}</Text>
+                            <Text style={{
+                                color: colors.iconcolor,
+                                fontWeight: "bold",
+                                fontSize: responsiveFontSize(1),
+                            }}>Followers</Text>
+                        </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        activeOpacity={1}
+                        onPress={() => Navigation.showModal({
+                            component: {
+                                name: 'FollowInfo',
+                                passProps: {
+                                    navparent: true,
+                                    screenname: "Following",
+                                    runAction: () => profileActions.fetchProfilesFollowing(profile.profile_id),
+                                    loadMore: () => profileActions.fetchMoreProfilesFollowing(profile.profile_id),
+                                    screentype: 'modal'
+                                },
+                            }
+                        })}
+                    >
+                        <View style={{ alignItems: "center" }}>
+                            <Text style={{
+                                color: colors.text,
+                                fontWeight: "bold",
+                                fontSize: responsiveFontSize(2.3),
+                            }}>{profile.num_following}</Text>
+                            <Text style={{
+                                color: colors.iconcolor,
+                                fontWeight: "bold",
+                                fontSize: responsiveFontSize(1),
+                            }}>Following</Text>
+                        </View>
+                    </TouchableOpacity>
+
                     <View style={{ alignItems: "center" }}>
                         <Text style={{
                             color: colors.text,
                             fontWeight: "bold",
                             fontSize: responsiveFontSize(2.3),
-                        }}>{profile.num_followers}</Text>
+                        }}>{profile.num_posts}</Text>
                         <Text style={{
                             color: colors.iconcolor,
                             fontWeight: "bold",
                             fontSize: responsiveFontSize(1),
-                        }}>Followers</Text>
+                        }}>Posts</Text>
                     </View>
-                </TouchableOpacity>
 
-                <TouchableOpacity
-                    activeOpacity={1}
-                    onPress={() => Navigation.showModal({
-                        component: {
-                            name: 'FollowInfo',
-                            passProps: {
-                                navparent: true,
-                                screenname: "Following",
-                                runAction: () => profileActions.fetchProfilesFollowing(profile.profile_id),
-                                loadMore: () => profileActions.fetchMoreProfilesFollowing(profile.profile_id),
-                                screentype: 'modal'
-                            },
-                        }
-                    })}
-                >
-                    <View style={{ alignItems: "center" }}>
-                        <Text style={{
-                            color: colors.text,
-                            fontWeight: "bold",
-                            fontSize: responsiveFontSize(2.3),
-                        }}>{profile.num_following}</Text>
-                        <Text style={{
-                            color: colors.iconcolor,
-                            fontWeight: "bold",
-                            fontSize: responsiveFontSize(1),
-                        }}>Following</Text>
-                    </View>
-                </TouchableOpacity>
-
-                <View style={{ alignItems: "center" }}>
-                    <Text style={{
-                        color: colors.text,
-                        fontWeight: "bold",
-                        fontSize: responsiveFontSize(2.3),
-                    }}>{profile.num_posts}</Text>
-                    <Text style={{
-                        color: colors.iconcolor,
-                        fontWeight: "bold",
-                        fontSize: responsiveFontSize(1),
-                    }}>Posts</Text>
-                </View>
-
-                {/*<View style={{ alignItems: "center" }}>
+                    {/*<View style={{ alignItems: "center" }}>
                     <Text style={{
                         color: colors.text,
                         fontWeight: "bold",
@@ -253,27 +272,27 @@ const TopSection = ({ profile, isprofileowner, profileActions }) => {
                         fontSize: responsiveFontSize(1),
                     }}>Gists</Text>
                 </View>*/}
-            </View>
-            {
-                checkData(profile.known_followers_info) &&
-                <Text style={{ color: colors.iconcolor, textAlign: "center" }}
-                    onPress={() => Navigation.showModal({
-                        component: {
-                            name: 'FollowInfo',
-                            passProps: {
-                                navparent: true,
-                                screenname: "Followers you know",
-                                runAction: () => profileActions.fetchKnownProfileFollowers(profile.profile_id),
-                                loadMore: () => profileActions.fetchMoreKnownProfileFollowers(profile.profile_id),
-                                screentype: 'modal'
-                            },
-                        }
-                    })}
-                >
-                    {profile.known_followers_info}
-                </Text>
-            }
-
+                </View>
+                {
+                    checkData(profile.known_followers_info) &&
+                    <Text style={{ color: colors.iconcolor, textAlign: "center" }}
+                        onPress={() => Navigation.showModal({
+                            component: {
+                                name: 'FollowInfo',
+                                passProps: {
+                                    navparent: true,
+                                    screenname: "Followers you know",
+                                    runAction: () => profileActions.fetchKnownProfileFollowers(profile.profile_id),
+                                    loadMore: () => profileActions.fetchMoreKnownProfileFollowers(profile.profile_id),
+                                    screentype: 'modal'
+                                },
+                            }
+                        })}
+                    >
+                        {profile.known_followers_info}
+                    </Text>
+                }
+            </ScrollView>
         </View>
     );
 };
@@ -491,12 +510,14 @@ const ViewProfileScreen = ({
     }
 
     //funnction to set view profile
-    function setViewProfile(data) {
-        if (!checkData(data)) {
+    function setViewProfile(profile) {
+        if (!checkData(profile)) {
             return;
         }
-        //console.warn(useowner)
-        useowner == false && setOthersViewProfileForm(data);
+        if (useowner)
+            setProfileData({ ...profile, avatarremote: profile.avatar[1] });
+        else
+            setOthersViewProfileForm(profile);
     }
 
     //returns the profile to show
@@ -528,6 +549,16 @@ const ViewProfileScreen = ({
             return;
         }
         useowner ? setUserViewProfileFormPost(data) : setOthersViewProfileFormPost(data);
+    }
+
+    //function to setRefresh
+
+    function setRefresh(data) {
+        if (!checkData(data)) {
+            return;
+        }
+        useowner ? setProcessing(data, 'userviewprofileformrefreshing') :
+            setProcessing(data, 'othersviewprofileformrefreshing');
     }
 
     //function to followprofile starts here
@@ -636,8 +667,9 @@ const ViewProfileScreen = ({
     }
 
     //handles fetching of profiles post
-    function handleProfilePostsFetch() {
+    function handleProfilePostsFetch(start, end) {
         if (checkData(toshowprofile) && toshowprofile.profileblockedu == false) {
+            checkData(start) && start();
             fetchProfilePosts(toshowprofile.profile_id, () => {
                 useowner ? setProcessing(true, 'userviewprofileformpostloading')
                     : setProcessing(true, 'othersviewprofileformpostloading');
@@ -648,6 +680,7 @@ const ViewProfileScreen = ({
                 useowner ? setUserViewProfileFormLink(nexturl) : setOthersViewProfileFormLink(nexturl);
                 useowner ? setProcessing(false, 'userviewprofileformpostloading')
                     : setProcessing(false, 'othersviewprofileformpostloading');
+                checkData(end) && end();
             }, (action) => {
                 if (action == "cancel") {
                     useowner ? setProcessing('failed', 'userviewprofileformpostloading') :
@@ -657,6 +690,7 @@ const ViewProfileScreen = ({
                     useowner ? setProcessing('retry', 'userviewprofileformpostloading') :
                         setProcessing('retry', 'othersviewprofileformpostloading');
                 }
+                checkData(end) && end();
             });
         }
     }
@@ -833,14 +867,17 @@ const ViewProfileScreen = ({
                 <View style={[styles.contentContainerStyle, tabcalled && { marginBottom: 55 }]}>
                     {hideparallax ? null : <TopSection
                         profile={toshowprofile}
+                        profileform={viewprofileform}
                         isprofileowner={useowner}
                         profileActions={{
                             followProfile,
                             muteProfile,
                             blockProfile,
+                            handleProfilePostsFetch,
                             fetchProfileFollowers,
                             fetchProfilesFollowing,
                             fetchMoreProfileFollowers,
+                            setRefresh,
                             fetchMoreProfilesFollowing,
                             fetchKnownProfileFollowers,
                             fetchMoreKnownProfileFollowers

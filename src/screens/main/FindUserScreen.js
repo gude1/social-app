@@ -21,6 +21,8 @@ const FindUserScreen = ({
     fetchMoreProfiles,
     fetchSearchList,
     fetchMoreSearchList,
+    updateSearchList,
+    updateProfilesList,
     userslist,
     setProcessing,
 }) => {
@@ -210,6 +212,7 @@ const FindUserScreen = ({
                             data={userslist.profileslist}
                             onFetch={fetchProfiles}
                             fetching={userslist.profileslistfetching}
+                            updateItem={updateProfilesList}
                             onLoadMore={fetchMoreProfiles}
                             loadingmore={userslist.profileslistloadingmore}
                         />
@@ -218,6 +221,7 @@ const FindUserScreen = ({
                         <ProfileList2
                             data={userslist.searchlist}
                             fetching={userslist.searchlistfetching}
+                            updateItem={updateSearchList}
                             onLoadMore={fetchMoreSearchList}
                             loadingmore={userslist.searchlistloadingmore}
                             placeholder={setPlaceholder()}

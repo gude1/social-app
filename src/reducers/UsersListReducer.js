@@ -70,13 +70,13 @@ const UsersListReducer = (state = INITIAL_STATE, action) => {
             break;
         case UPDATE_PROFILES_LIST:
             updatedprofilestate = state.profileslist.map(item => {
-                return item.profileid == action.payload.profileid ? { ...item, ...action.payload } : item;
+                return item.profile.id == action.payload.profile.id ? { ...item, ...action.payload } : item;
             });
             return { ...state, profileslist: updatedprofilestate };
             break;
         case UPDATE_SEARCH_LIST:
             updatedprofilestate = state.searchlist.map(item => {
-                return item.profileid == action.payload.profileid ? { ...item, ...action.payload } : item;
+                return item.profile.id == action.payload.profile.id ? { ...item, ...action.payload } : item;
             });
             return { ...state, searchlist: updatedprofilestate };
             break;

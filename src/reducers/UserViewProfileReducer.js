@@ -15,6 +15,7 @@ import { checkData } from '../utilities/index';
 const INITIAL_STATE = {
     viewprofile: {},
     viewprofileposts: [],
+    refreshing: false,
     viewprofilepostsnexturl: null,
     viewpostloading: false,
     viewpostloadingmore: false,
@@ -31,6 +32,9 @@ const handleProcessing = (key, value, state) => {
             break;
         case 'userviewprofileformpostloadingmore':
             return { ...state, viewpostloadingmore: value };
+            break;
+        case 'userviewprofileformrefreshing':
+            return { ...state, refreshing: value };
             break;
         default:
             return state;

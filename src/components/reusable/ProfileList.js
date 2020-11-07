@@ -266,6 +266,27 @@ export default class ProfileList extends React.PureComponent {
     };
 
     _renderItem = ({ item }) => {
+        if (item.profile.ublockedprofile == true && item.allowblockpass != true) {
+            return (
+                <PanelMsg
+                    message={'This profile is blocked by you '}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updateItem({
+                        allowblockpass: true,
+                        profile: {
+                            ...item.profile
+                        }
+                    })}
+                />
+            );
+        } else if (item.profile.profileblockedu == true) {
+            return (
+                <PanelMsg
+                    message={'This profile is unavailable to view '}
+                    buttonTitle={'Learn More'}
+                />
+            )
+        }
         return (
             <ProfileListItem
                 avatar={item.profile.avatar[1]}

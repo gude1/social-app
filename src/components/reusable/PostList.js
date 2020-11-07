@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { FlatList, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity, TouchableHighlight } from 'react-native';
+import { FlatList, StyleSheet, RefreshControl, Text, View, ActivityIndicator, TouchableOpacity, TouchableHighlight } from 'react-native';
 import { Header, ImageViewPager, BottomListModal, ConfirmModal, PanelMsg, ActivityOverlay, AvatarNavModal } from './ResuableWidgets';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveWidth, responsiveFontSize, responsiveHeight } from 'react-native-responsive-dimensions';
@@ -872,15 +872,14 @@ export default class PostList extends React.Component {
                     headertextsize={responsiveFontSize(2.5)}
                     lefticon={this.leftIcon}
                     leftIconPress={() => {
-                        Navigation.showModal({
+                        Navigation.push('POST_HOME_SCREEN', {
                             component: {
                                 name: "CreatePost",
                                 passProps: {
                                     navparent: true,
-                                    screentype: "modal"
                                 }
                             }
-                        })
+                        });
                     }}
                     rightIconPress={() => Navigation.showModal({
                         component: {
@@ -902,9 +901,9 @@ export default class PostList extends React.Component {
                     keyboardShouldPersistTaps='always'
                     keyboardDismissMode={'on-drag'}
                     //updateCellsBatchingPeriod={1}
-                    refreshing={refreshing}
                     initialNumRender={1}
                     windowSize={50}
+                    refreshing={refreshing}
                     onRefresh={onRefresh}
                     data={this.props.data}
                     //extraData={this.props.extraData}

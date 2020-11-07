@@ -106,6 +106,8 @@ import {
     SET_SEARCH_LIST_NEXT_URL,
     SET_PROFILES_LIST_RESET,
     SET_SEARCH_LIST_RESET,
+    UPDATE_PROFILES_LIST,
+    UPDATE_SEARCH_LIST,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -2572,10 +2574,12 @@ export const makePostComment = (postid, comment_text) => {
             commentid: tempid,
             created_at: 'posting...',
             profile: {
+                ...profile,
                 avatar: [
                     profile.avatarremote,
                     profile.avatarlocal
-                ], user: { username: user.username }
+                ],
+                user: { ...user }
             }
         }]));
 
@@ -3222,10 +3226,12 @@ export const makePostCommentReply = (originid, reply_text) => {
             replyid: tempid,
             created_at: 'posting...',
             profile: {
+                ...profile,
                 avatar: [
                     profile.avatarremote,
                     profile.avatarlocal
-                ], user: { username: user.username }
+                ],
+                user: { ...user }
             }
         }]));
 
@@ -4018,6 +4024,13 @@ export const addProfilesList = (data: Array) => {
     };
 };
 
+export const updateProfilesList = (data: Object) => {
+    return {
+        type: UPDATE_PROFILES_LIST,
+        payload: data
+    };
+};
+
 export const PrependProfilesList = (data: Array) => {
     return {
         type: PREPEND_PROFILES_LIST,
@@ -4034,8 +4047,8 @@ export const setProfilesListUrl = (data: Array) => {
 
 export const setProfilesListReset = () => {
     return {
-       type:SET_PROFILES_LIST_RESET
-   } 
+        type: SET_PROFILES_LIST_RESET
+    }
 };
 
 //for searchlist
@@ -4049,6 +4062,13 @@ export const setSearchList = (data: Array) => {
 export const addSearchList = (data: Array) => {
     return {
         type: ADD_SEARCH_LIST,
+        payload: data
+    };
+};
+
+export const updateSearchList = (data: Object) => {
+    return {
+        type: UPDATE_SEARCH_LIST,
         payload: data
     };
 };
@@ -4088,7 +4108,7 @@ export const fetchProfiles = () => {
             switch (status) {
                 case 200:
                     results = results.map(item => {
-                        return { profile: item };
+                        return { id: item.id, profile: item };
                     });
                     dispatch(setProfilesList(results));
                     dispatch(setProfilesListUrl(offset_links));
@@ -4132,7 +4152,7 @@ export const fetchMoreProfiles = () => {
             switch (status) {
                 case 200:
                     results = results.map(item => {
-                        return { profile: item };
+                        return { id: item.id, profile: item };
                     });
                     dispatch(addProfilesList(results));
                     dispatch(setProfilesListUrl(offset_links));
@@ -4223,7 +4243,7 @@ export const fetchMoreSearchList = () => {
             const options = {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
-            const response = await session.post(userslist.searchlistnexturl, { keyword:userslist.searchword}, options);
+            const response = await session.post(userslist.searchlistnexturl, { keyword: userslist.searchword }, options);
             let { errmsg, status, results, message, next_url } = response.data;
             switch (status) {
                 case 200:

@@ -18,6 +18,7 @@ const INITIAL_STATE = {
     viewprofileposts: [],
     viewprofilepostsnexturl: null,
     following: false,
+    refreshing: false,
     blocking: false,
     muting: false,
     viewpostloading: false,
@@ -46,6 +47,9 @@ const handleProcessing = (key, value, state) => {
             break;
         case 'othersviewprofileformfollowing':
             return { ...state, following: value };
+            break;
+        case 'othersviewprofileformrefreshing':
+            return { ...state, refreshing: value };
             break;
         default:
             return state;
