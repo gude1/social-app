@@ -4,7 +4,7 @@ import { ListItem, Button, Icon } from 'react-native-elements';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { checkData } from '../../utilities/index';
-import { AvatarNavModal } from './ResuableWidgets';
+import { AvatarNavModal, PanelMsg } from './ResuableWidgets';
 import { Navigation } from 'react-native-navigation';
 
 const { colors } = useTheme();
@@ -288,6 +288,8 @@ export default class ProfileList extends React.PureComponent {
                 data={this.props.data}
                 initialNumRender={5}
                 windowSize={2}
+                keyboardShouldPersistTaps='always'
+                keyboardDismissMode={'on-drag'}
                 maxToRenderPerBatch={1}
                 updateCellsBatchingPeriod={1}
                 getItemLayout={this._getItemLayout}

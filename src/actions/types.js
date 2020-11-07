@@ -153,6 +153,21 @@ export const SET_OTHERS_VIEWPROFILEFORM = 'set_others_viewprofileform';
 export const SET_OTHERS_VIEWPROFILEFORM_PROFILE_STATUS = 'set_others_viewprofileform_profile_status';
 export const SET_OTHERS_VIEWPROFILEFORM_LINK = 'set_others_viewprofileform_link';
 
+/**
+ * TYPE CONSTANT FOR PRIVATECHATLIST REDUCER
+ */
+export const SET_PROFILES_LIST = 'set_profiles_list';
+export const ADD_PROFILES_LIST = 'add_profiles_list';
+export const UPDATE_PROFILES_LIST = 'update_profiles_list';
+export const PREPEND_PROFILES_LIST = 'prepend_profiles_list';
+export const SET_PROFILES_LIST_NEXT_URL = 'set_profiles_list_next_url';
+export const SET_SEARCH_LIST = 'set_search_list';
+export const ADD_SEARCH_LIST = 'add_search_list';
+export const UPDATE_SEARCH_LIST = 'update_search_list';
+export const PREPEND_SEARCH_LIST = 'prepend_search_list';
+export const SET_SEARCH_LIST_NEXT_URL = 'set_search_list_next_url';
+export const SET_PROFILES_LIST_RESET = 'set_profiles_list_reset';
+export const SET_SEARCH_LIST_RESET = 'set_search_list_reset'
 
 /**
  * TYPE CONSTANT FOR PRIVATECHATLIST REDUCER

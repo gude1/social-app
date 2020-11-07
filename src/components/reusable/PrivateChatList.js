@@ -376,6 +376,8 @@ class PrivateChatList extends Component {
                         {this._setEmptyPlaceHolder()}
                     </View>
                 }
+                keyboardShouldPersistTaps='always'
+                keyboardDismissMode={'on-drag'}
                 ListFooterComponent={this._setFlatlistFooter()}
             />
 

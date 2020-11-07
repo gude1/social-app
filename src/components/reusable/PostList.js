@@ -899,6 +899,8 @@ export default class PostList extends React.Component {
                     //removeClippedSubviews={true}
                     //maxToRenderPerBatch={1}
                     showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps='always'
+                    keyboardDismissMode={'on-drag'}
                     //updateCellsBatchingPeriod={1}
                     refreshing={refreshing}
                     initialNumRender={1}

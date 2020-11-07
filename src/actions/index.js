@@ -96,6 +96,16 @@ import {
     SET_POST_COMMENT_REPLY_FORM,
     SET_TIMELINE_POST_FORM,
     SET_TIMELINE_POST,
+    SET_PROFILES_LIST,
+    ADD_PROFILES_LIST,
+    PREPEND_PROFILES_LIST,
+    SET_PROFILES_LIST_NEXT_URL,
+    ADD_SEARCH_LIST,
+    PREPEND_SEARCH_LIST,
+    SET_SEARCH_LIST,
+    SET_SEARCH_LIST_NEXT_URL,
+    SET_PROFILES_LIST_RESET,
+    SET_SEARCH_LIST_RESET,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -849,7 +859,7 @@ export const fetchProfilePosts = (profileid, initAction, okAction, failedAction)
                     break;
             }
         } catch (err) {
-            console.warn(err.toString())
+            //console.warn(err.toString())
             failedAction && failedAction();
         }
     };
@@ -3988,7 +3998,267 @@ export const fetchMoreKnownProfileFollowers = (profileid, initAction, okAction, 
     };
 };
 
+/**
+ * ACTION CREATOR FOR USERLIST REDUCER
+ * 
+ */
 
+// for profiles list
+export const setProfilesList = (data: Array) => {
+    return {
+        type: SET_PROFILES_LIST,
+        payload: data
+    };
+};
+
+export const addProfilesList = (data: Array) => {
+    return {
+        type: ADD_PROFILES_LIST,
+        payload: data
+    };
+};
+
+export const PrependProfilesList = (data: Array) => {
+    return {
+        type: PREPEND_PROFILES_LIST,
+        payload: data
+    };
+};
+
+export const setProfilesListUrl = (data: Array) => {
+    return {
+        type: SET_PROFILES_LIST_NEXT_URL,
+        payload: data
+    };
+};
+
+export const setProfilesListReset = () => {
+    return {
+       type:SET_PROFILES_LIST_RESET
+   } 
+};
+
+//for searchlist
+export const setSearchList = (data: Array) => {
+    return {
+        type: SET_SEARCH_LIST,
+        payload: data
+    };
+};
+
+export const addSearchList = (data: Array) => {
+    return {
+        type: ADD_SEARCH_LIST,
+        payload: data
+    };
+};
+
+export const PrependSearchList = (data: Array) => {
+    return {
+        type: PREPEND_SEARCH_LIST,
+        payload: data
+    };
+};
+
+export const setSearchListUrl = (data: Array) => {
+    return {
+        type: SET_SEARCH_LIST_NEXT_URL,
+        payload: data
+    };
+};
+
+export const setSearchListReset = () => {
+    return {
+        type: SET_SEARCH_LIST_RESET
+    };
+};
+
+
+
+export const fetchProfiles = () => {
+    return async (dispatch) => {
+        const { user, userslist } = store.getState();
+        dispatch(setProcessing(true, 'profileslistfetching'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('profileslist', null, options);
+            let { errmsg, status, results, message, offset_links } = response.data;
+            switch (status) {
+                case 200:
+                    results = results.map(item => {
+                        return { profile: item };
+                    });
+                    dispatch(setProfilesList(results));
+                    dispatch(setProfilesListUrl(offset_links));
+                    dispatch(setProcessing(false, 'profileslistfetching'));
+                    break;
+                case 404:
+                    dispatch(setProcessing('retry', 'profileslistfetching'));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'profileslistfetching'));
+                    logOut(() => persistor.purge());
+                    break;
+                default:
+                    dispatch(setProcessing('retry', 'profileslistfetching'));
+                    Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing('retry', 'profileslistfetching'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!', null, ToastAndroid.CENTER);
+            } else {
+                Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+        }
+    };
+};
+
+export const fetchMoreProfiles = () => {
+    return async (dispatch) => {
+        const { user, userslist } = store.getState();
+        dispatch(setProcessing(true, 'profileslistloadingmore'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('profileslist', {
+                delimiter_arr: userslist.profileslistnexturl
+            }, options);
+            let { errmsg, status, results, message, offset_links } = response.data;
+            switch (status) {
+                case 200:
+                    results = results.map(item => {
+                        return { profile: item };
+                    });
+                    dispatch(addProfilesList(results));
+                    dispatch(setProfilesListUrl(offset_links));
+                    dispatch(setProcessing(false, 'profileslistloadingmore'));
+                    break;
+                case 404:
+                    dispatch(setProcessing(false, 'profileslistloadingmore'));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'profileslistloadingmore'));
+                    logOut(() => persistor.purge());
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'profileslistloadingmore'));
+                    Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'profileslistloadingmore'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!', null, ToastAndroid.CENTER);
+            } else {
+                Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+        }
+    };
+};
+
+
+export const fetchSearchList = (keyword) => {
+    return async (dispatch) => {
+        if (!checkData(keyword)) {
+            return;
+        }
+        const { user, userslist } = store.getState();
+        dispatch(setSearchListReset());
+        dispatch(setProcessing(true, 'searchlistfetching'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('profilesearch', { keyword }, options);
+            let { errmsg, status, results, message, next_url } = response.data;
+            switch (status) {
+                case 200:
+                    results = results.map(item => {
+                        let profile = item.profile;
+                        delete item.profile;
+                        return { profile: { ...profile, user: item } };
+                    });
+                    dispatch(setSearchList(results));
+                    dispatch(setSearchListUrl(next_url));
+                    dispatch(setProcessing(keyword, 'setsearchlistkeyword'));
+                    dispatch(setProcessing(false, 'searchlistfetching'));
+                    break;
+                case 404:
+                    dispatch(setProcessing('noresult', 'searchlistfetching'));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'searchlistfetching'));
+                    logOut(() => persistor.purge());
+                    break;
+                default:
+                    dispatch(setProcessing('retry', 'searchlistfetching'));
+                    //Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing('retry', 'searchlistfetching'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                // Toast('network error!', null, ToastAndroid.CENTER);
+            } else {
+                //Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+        }
+    };
+};
+
+export const fetchMoreSearchList = () => {
+    return async (dispatch) => {
+        const { user, userslist } = store.getState();
+        if (!checkData(userslist.searchlistnexturl) || !checkData(userslist.searchword)) {
+            dispatch(setProcessing('done', 'searchlistloadingmore'));
+            return;
+        }
+        dispatch(setProcessing(true, 'searchlistloadingmore'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post(userslist.searchlistnexturl, { keyword:userslist.searchword}, options);
+            let { errmsg, status, results, message, next_url } = response.data;
+            switch (status) {
+                case 200:
+                    results = results.map(item => {
+                        let profile = item.profile;
+                        delete item.profile;
+                        return { profile: { ...profile, user: item } };
+                    });
+                    dispatch(addSearchList(results));
+                    dispatch(setSearchListUrl(next_url));
+                    dispatch(setProcessing(false, 'searchlistloadingmore'));
+                    break;
+                case 404:
+                    dispatch(setProcessing('done', 'searchlistloadingmore'));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'searchlistloadingmore'));
+                    logOut(() => persistor.purge());
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'searchlistloadingmore'));
+                    Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+                    break;
+            }
+        } catch (err) {
+            console.warn(err.toString());
+            dispatch(setProcessing(false, 'searchlistloadingmore'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!', null, ToastAndroid.CENTER);
+            } else {
+                Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+        }
+    };
+};
 
 
 /**

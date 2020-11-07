@@ -16,7 +16,6 @@ class ProfileList2Item extends Component {
         this.state = {};
     }
     shouldComponentUpdate(nextProps, nextState, nextContext) {
-        return true;
         if (this.props.avatar != nextProps.avatar || this.props.username != nextProps.username) {
             return true;
         };
@@ -24,12 +23,13 @@ class ProfileList2Item extends Component {
     }
 
     render() {
-        const { avatar, username, bio, gender, containerStyle, leftAvatarPress, onPress } = this.props;
+        let { avatar, username, bio, gender, rightTitle, containerStyle, leftAvatarPress, onPress } = this.props;
+        avatar = checkData(avatar) ? { uri: avatar } : require('../../assets/images/placeholder.png');
         return (
             <ListItem
                 leftAvatar={{
-                    source: { uri: avatar },
-                    onPress: () => { },
+                    source: avatar,
+                    onPress: leftAvatarPress,
                     size: 35,
                 }}
                 Component={TouchableScale}
@@ -37,9 +37,9 @@ class ProfileList2Item extends Component {
                 activeScale={0.8}
                 friction={100}
                 tension={100}
-                rightTitle={'you follow'}
+                rightTitle={rightTitle}
                 rightIcon={{
-                    name: gender,
+                    name: gender == 'false' ? 'user' : gender,
                     type: 'font-awesome',
                     size: responsiveFontSize(2),
                     marginRight: 15,
@@ -75,8 +75,59 @@ class ProfileList2Item extends Component {
 class ProfileList2 extends React.PureComponent {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            avatarnavmodal: {
+                visible: false,
+                avatar: null,
+                profile: null,
+                headername: '',
+            }
+        };
+        this.navmodallistitem = [{
+            icon: {
+                name: "user",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+                Navigation.showModal({
+                    component: {
+                        name: 'ViewProfile',
+                        passProps: {
+                            navparent: true,
+                            reqprofile: this.state.avatarnavmodal.profile,
+                            screentype: 'modal'
+                        },
+                    }
+                });
+            }
+        }, {
+            icon: {
+                name: "comment",
+                type: "evilicon"
+            },
+            onPress: () => {
+                this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                });
+            }
+        }];
     }
+
+    componentDidMount() {
+        if (checkData(this.props.onFetch)) {
+            this.props.onFetch();
+        }
+    }
+
 
     _keyExtractor = (item, index) => index.toString();
 
@@ -145,36 +196,101 @@ class ProfileList2 extends React.PureComponent {
 
     _setEmptyPlaceholder = () => {
         if (this.props.fetching == true) {
-            return (<View style={{
-                alignItems: "center",
-                height: 200,
-                justifyContent: 'center'
-            }}>
-                <ActivityIndicator size="large" color={'silver'} />
-            </View>);
+            return (
+                <View style={{
+                    alignItems: "center",
+                    height: 200,
+                    justifyContent: 'center'
+                }}>
+                    <ActivityIndicator size="large" color={'silver'} />
+                </View>
+            );
         } else if (this.props.fetching == 'retry') {
-            return (<View
-                style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
-                <Icon
-                    onPress={() => this.props.onFetch()}
-                    color={colors.text}
-                    size={responsiveFontSize(4)}
-                    name="sync"
-                    type="antdesign"
-                />
-                <Text style={{ color: colors.text }}>Tap to retry </Text>
-            </View>)
+            return (
+                <View
+                    style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
+                    <Icon
+                        onPress={() => this.props.onFetch()}
+                        color={colors.text}
+                        size={responsiveFontSize(4)}
+                        name="sync"
+                        type="antdesign"
+                    />
+                    <Text style={{ color: colors.text }}>Tap to retry </Text>
+                </View>
+            );
         }
-        return null;
+        return (
+            <View style={{
+                flexDirection: "row",
+                height: 200,
+                alignItems: "center",
+                justifyContent: "center",
+            }}>
+                <Icon
+                    type="entypo"
+                    name="users"
+                    style={{ borderColor: colors.text, marginHorizontal: 3 }}
+                    color={colors.border}
+                    size={responsiveFontSize(4.5)}
+                />
+            </View>
+        );
+    };
+    _setAvatarNavModal = (item) => {
+        if (!checkData(item)) {
+            return;
+        }
+        this.setState({
+            avatarnavmodal: {
+                //...this.state.avatarnavmodal,
+                headername: item.profile.user.username,
+                profile: item.profile,
+                avatar: item.profile.avatar[1],
+                visible: true
+            }
+        });
     };
 
+    _setFollowMsg = (item) => {
+        if (item.profile.following == true && item.profile.followsu == true) {
+            return 'You follow each other';
+        } else if (item.profile.following == true) {
+            return 'you follow';
+        } else if (item.profile.followsu == true) {
+            return 'profile follows you';
+        } else {
+            return null;
+        }
+    }
+
     _renderItem = ({ item }) => {
+        if (item.profile.ublockedprofile == true && item.allowblockpass != true) {
+            return (
+                <PanelMsg
+                    message={'This profile is blocked by you '}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updateItem({
+                        id: item.id,
+                        allowblockpass: true
+                    })}
+                />
+            );
+        } else if (item.profile.profileblockedu == true) {
+            return (
+                <PanelMsg
+                    message={'This profile is unavailable '}
+                    buttonTitle={'Learn More'}
+                />
+            )
+        }
         return (
             <ProfileList2Item
                 avatar={item.profile.avatar[1]}
                 username={item.profile.user.username}
                 gender={item.profile.user.gender}
-                //leftAvatarPress={() => this._setAvatarNavModal(item)}
+                leftAvatarPress={() => this._setAvatarNavModal(item)}
+                rightTitle={this._setFollowMsg(item)}
                 // onPress={() => this._followProfileAction(item)}
                 bio={item.profile.bio && item.profile.bio.length > 35 ? item.profile.bio.substring(0, 35) + "..." : item.profile.bio}
                 textStyle={{ color: colors.text }}
@@ -185,20 +301,55 @@ class ProfileList2 extends React.PureComponent {
     }
 
     render() {
+        let placeholder = checkData(this.props.placeholder) == true ?
+            this.props.placeholder : this._setEmptyPlaceholder();
         return (
+            <>
             <FlatList
                 data={this.props.data}
                 contentContainerStyle={{ marginTop: 10 }}
                 initialNumRender={5}
+                keyboardShouldPersistTaps='always'
+                keyboardDismissMode={'on-drag'}
                 windowSize={2}
                 maxToRenderPerBatch={1}
                 updateCellsBatchingPeriod={1}
                 getItemLayout={this._getItemLayout}
                 keyExtractor={this._keyExtractor}
-                ListEmptyComponent={this._setEmptyPlaceholder()}
+                ListEmptyComponent={placeholder}
                 ListFooterComponent={this.props.data.length > 0 && this._setFlatlistFooter()}
                 renderItem={this._renderItem}
             />
+            <AvatarNavModal
+                avatar={this.state.avatarnavmodal.avatar}
+                isVisible={this.state.avatarnavmodal.visible}
+                onBackdropPress={() => this.setState({
+                    avatarnavmodal: {
+                        ...this.state.avatarnavmodal,
+                        visible: false,
+                    }
+                })}
+                onAvatarPress={() => {
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            visible: false,
+                        }
+                    });
+                    Navigation.showModal({
+                        component: {
+                            name: 'PhotoViewer',
+                            passProps: {
+                                navparent: true,
+                                photos: [this.state.avatarnavmodal.avatar]
+                            },
+                        }
+                    })
+                }}
+                headername={this.state.avatarnavmodal.headername}
+                navBarItemArr={this.navmodallistitem}
+            />
+            </>
         );
     }
 }

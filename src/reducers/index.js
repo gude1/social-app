@@ -20,7 +20,7 @@ import UserViewProfileReducer from './UserViewProfileReducer';
 import OthersViewProfileReducer from './OthersViewProfileReducer';
 import PrivateChatListReducer, { PrivateChatListConfig } from './PrivateChatListReducer';
 import FollowInfoReducer from './FollowInfoReducer';
-
+import UsersListReducer from './UsersListReducer';
 
 export default combineReducers({
     user: userReducer,
@@ -41,6 +41,7 @@ export default combineReducers({
     profileactionform: ProfileActionFormReducer,
     privatechatlist: persistReducer(PrivateChatListConfig, PrivateChatListReducer),
     followinfo: FollowInfoReducer,
+    userslist: UsersListReducer,
     appinfo: AppInfoReducer,
     photogalleryform: PhotoGalleryReducer,
 });
