@@ -26,6 +26,7 @@ export const UPDATE_USER = 'update_user';
  */
 export const UPDATE_USERNAME_CHANGED = 'update_username_changed';
 export const UPDATE_BIO_CHANGED = 'update_bio_changed';
+export const UPDATE_PROFILE_CHANGED = 'update_profile_changed';
 export const UPDATE_CAMPUS_CHANGED = 'update_campus_changed';
 export const UPDATE_PASSWORD_CHANGED = 'update_password_changed';
 export const UPDATE_GENDER_CHANGED = 'update_gender_changed';

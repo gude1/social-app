@@ -950,7 +950,7 @@ const ViewProfileScreen = ({
             <>
             <Header
                 headercolor={colors.card}
-                headertext={toshowprofile && toshowprofile.user.username}
+                headertext={toshowprofile && toshowprofile.profile_name}
                 headertextcolor={colors.text}
                 headertextsize={responsiveFontSize(2.5)}
                 headerStyle={{

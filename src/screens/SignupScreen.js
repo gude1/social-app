@@ -139,7 +139,7 @@ const SignupScreen = ({
                         type: 'default',
                         value: username,
                         autoCompleteType: 'username',
-                        maxLength: 10,
+                        maxLength: 15,
                         inputstyle: usernameinputstyle,
                         onFocus: () => {
                             setStyles({

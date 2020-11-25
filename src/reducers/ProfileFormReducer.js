@@ -4,6 +4,8 @@ import {
     UPDATE_CAMPUS_CHANGED,
     UPDATE_PASSWORD_CHANGED,
     UPDATE_GENDER_CHANGED,
+    UPDATE_PROFILE_CHANGED,
+    UPDATE_PROFILE_NAME_CHANGED,
     PROCESSING,
     SET_IMAGE_TRY,
     SET_UPDATE_PROFILE_ERRORS,
@@ -11,6 +13,7 @@ import {
 } from '../actions/types';
 const ERRORS = {
     usernameerr: null,
+    profile_nameerr: null,
     campuserr: null,
     bioerr: null,
     gendererr: null,
@@ -21,6 +24,7 @@ const INITIAL_STATE = {
         isProcessing: false,
         isProcessingImage: false,
         updatedusername: null,
+        updatedprofile_name: null,
         updatedpassword: null,
         updatedcampus: null,
         updatedbio: null,
@@ -35,6 +39,9 @@ const ProfileFormReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case UPDATE_USERNAME_CHANGED:
             return { ...state, updateProfile: { ...state.updateProfile, ...action.payload } }
+            break;
+        case UPDATE_PROFILE_CHANGED:
+            return { ...state, updateProfile: { ...state.updateProfile, ...action.payload } };
             break;
         case UPDATE_BIO_CHANGED:
             return { ...state, updateProfile: { ...state.updateProfile, ...action.payload } }

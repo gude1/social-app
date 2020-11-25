@@ -108,6 +108,7 @@ import {
     SET_SEARCH_LIST_RESET,
     UPDATE_PROFILES_LIST,
     UPDATE_SEARCH_LIST,
+    UPDATE_PROFILE_CHANGED,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -234,7 +235,7 @@ export const signUp = ({ email, username, name, phone, password, Navigation, com
                 phone,
                 password
             });
-            const { errors, status, message, generalerrmsg } = response.data;
+            const { errors, status, message, errmsg } = response.data;
 
             switch (status) {
                 case 400:
@@ -261,7 +262,7 @@ export const signUp = ({ email, username, name, phone, password, Navigation, com
                     dispatch(setProcessing(false, 'signup'));
                     break;
                 default:
-                    dispatch(setErrors({ generalerrmsg }, 'signup'));
+                    dispatch(setErrors({ generalerrmsg: errmsg }, 'signup'));
                     dispatch(setProcessing(false, 'signup'));
                     return;
                     break;
@@ -954,6 +955,13 @@ export const setImageTry = (data) => {
     }
 };
 
+export const setUpdateProfileChange = (data: object) => {
+    return {
+        type: UPDATE_PROFILE_CHANGED,
+        payload: data
+    };
+};
+
 export const setUpdateUsername = (username) => {
     return {
         type: UPDATE_USERNAME_CHANGED,
@@ -1017,7 +1025,7 @@ export const uploadProfilePic = (image) => {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
             const response = await session.post('profileupdate', formdata, options);
-            const { errors, profileupdate, status } = response.data;
+            const { errors, profile, status } = response.data;
             switch (status) {
                 case 401:
                     deleteFile(image.path);
@@ -1032,17 +1040,18 @@ export const uploadProfilePic = (image) => {
                     dispatch(setProcessing(false, 'updateProfileImage'));
                     break;
                 case 200:
+                    dispatch(updateUser({ ...profile.user }));
                     let c = image.path.split('/');
                     let e = image.path.split('///');
-                    let d = profileupdate.avatar.split('/');
+                    let d = profile.avatar[0].split('/');
                     deleteFile(avatarlocal);
-                    RNFetchBlob.fs.createFile(`${dirs.CacheDir}/${d[7]}`,
+                    RNFetchBlob.fs.createFile(`${dirs.CacheDir}/${d[3]}`,
                         `${e[1]}`,
                         'uri')
                         .then(e => {
                             //console.warn(e);
                             dispatch(setProfileData({
-                                avatarlocal: rnPath(e), avatarremote: profileupdate.avatar
+                                avatarlocal: rnPath(e), avatarremote: profile.avatar[1]
                             }));
                             dispatch(setImageTry(false));
                             deleteFile(image.path);
@@ -1058,7 +1067,7 @@ export const uploadProfilePic = (image) => {
                         .catch(e => {
                             //console.warn(e);
                             dispatch(setProfileData({
-                                avatarlocal: '', avatarremote: profileupdate.avatar
+                                avatarlocal: '', avatarremote: profile.avatar[1]
                             }));
                             dispatch(setImageTry(false));
                             deleteFile(image.path);
@@ -1088,36 +1097,36 @@ export const uploadProfilePic = (image) => {
 
 
 
-export const saveProfileUpdate = (updateusername, updatebio, updatecampus, updategender, componentId) => {
+export const saveProfileUpdate = (updateusername, updateprofile_name, updatebio, updatecampus, updategender, componentId) => {
     return async (dispatch) => {
         const { user, profile } = store.getState();
         let profilecompleted = getAppInfo(profile, 'profile');//very essential determines wheter set root or wait
         //dispatch(setReset('updateprofileerrors'));
         dispatch(setProcessing(true, 'updateProfile'));
-        if (checkData(updateusername) != true) {
+        if (checkData(updateprofile_name) != true) {
             dispatch(setProcessing(false, 'updateProfile'));
-            dispatch(setUpdateProfileErrors({ usernameerr: "The username field is required" }, 'updateProfile'));
-            Toast('profile update failed please check your inputs and try again',
+            dispatch(setUpdateProfileErrors({ profile_nameerr: "The profilename field is required" }, 'updateProfile'));
+            Toast('profile update failed please check and fill your inputs and try again',
                 ToastAndroid.LONG);
             return;
         } else if (checkData(updatebio) != true) {
             dispatch(setProcessing(false, 'updateProfile'));
             dispatch(setUpdateProfileErrors({ 'bioerr': "The bio field is required" }, 'updateProfile'));
-            Toast('profile update failed please check your inputs and try again',
+            Toast('profile update failed please check and fill your inputs and try again',
                 ToastAndroid.LONG);
             return;
         } else if (checkData(updategender) != true || updategender == "none" || updategender == 'false') {
             dispatch(setProcessing(false, 'updateProfile'));
             //console.warn('updated gender');
             dispatch(setUpdateProfileErrors({ gendererr: "The gender field is required" }, 'updateProfile'));
-            Toast('profile update failed please check your inputs and try again',
+            Toast('profile update failed please check and fill your inputs and try again',
                 ToastAndroid.LONG);
             return;
         } else if (checkData(updatecampus) != true || updatecampus == "none") {
             dispatch(setProcessing(false, 'updateProfile'));
             //console.warn('updated campus');
             dispatch(setUpdateProfileErrors({ "campuserr": "please input your campus" }, 'updateProfile'));
-            Toast('profile update failed please check your inputs and try again',
+            Toast('profile update failed please check and fill your inputs and try again',
                 ToastAndroid.LONG);
             return;
         }
@@ -1128,20 +1137,18 @@ export const saveProfileUpdate = (updateusername, updatebio, updatecampus, updat
             };
             const response = await session.post('profileupdate', {
                 bio: updatebio,
-                username: updateusername,
+                profile_name: updateprofile_name,
                 campus: updatecampus,
                 gender: updategender
             }, options);
-            const { errors, errmsg, profileupdate, status, u } = response.data;
+            const { errors, errmsg, profile, status } = response.data;
+            //console.warn(response.data);
             switch (status) {
                 case 200:
                     //console.warn(profileupdate);
                     dispatch(setReset('updateprofileerrors'));
-                    dispatch(setProfileData({ ...profileupdate, avatarremote: profileupdate.avatar }));
-                    dispatch(updateUser({
-                        username: profileupdate.username,
-                        gender: profileupdate.gender
-                    }));
+                    dispatch(setProfileData({ ...profile, avatarremote: profile.avatar[1] }));
+                    dispatch(updateUser({ ...profile.user }));
                     dispatch(setProcessing(false, 'updateProfile'));
                     dispatch(setImageTry(false));
                     Toast('profile saved!', ToastAndroid.LONG);
@@ -1152,7 +1159,6 @@ export const saveProfileUpdate = (updateusername, updatebio, updatecampus, updat
                     }
                     break;
                 case 400:
-                    // console.warn(errors);
                     dispatch(setReset('updateprofileerrors'));
                     dispatch(setProcessing(false, 'updateProfile'));
                     dispatch(setUpdateProfileErrors(errors, 'updateProfile'));

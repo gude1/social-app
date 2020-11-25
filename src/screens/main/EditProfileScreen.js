@@ -40,6 +40,7 @@ const EditProfileScreen = ({ navigation,
     profileform,
     navparent,
     componentId,
+    setUpdateProfileChange,
     setUpdateUsername,
     saveProfileUpdate,
     setUpdateGender,
@@ -122,8 +123,8 @@ const EditProfileScreen = ({ navigation,
     const openDeviceCamera = () => {
         setModalState({ ...modalstate, chooseimagestate: false });
         ImagePicker.openCamera({
-            width: 300,
-            height: 300,
+            width: 400,
+            height: 400,
             cropping: true,
             cropperActiveWidgetColor: '#2196F3',
             // cropperToolbarTitle: "Edit Photo",
@@ -144,8 +145,8 @@ const EditProfileScreen = ({ navigation,
     const openDeviceGallery = () => {
         setModalState({ ...modalstate, chooseimagestate: false });
         ImagePicker.openPicker({
-            width: 200,
-            height: 200,
+            width: 400,
+            height: 400,
             cropping: true,
             cropperActiveWidgetColor: '#2196F3',
             cropperToolbarTitle: "Edit Photo",
@@ -170,19 +171,18 @@ const EditProfileScreen = ({ navigation,
         }
         if (getimagetry == false) {
             let image = uri.split('/');
-            if (image[7] == undefined || image[7] == '' || image[7] == null) {
+            if (image[6] == undefined || image[6] == '' || image[6] == null) {
                 setProfileData({ avatarremote: "" });
                 return;
             }
             let dirs = RNFetchBlob.fs.dirs;
-            let task = RNFetchBlob.config({ path: `${dirs.CacheDir}/${image[7]}` }).fetch('GET', uri, {})
+            let task = RNFetchBlob.config({ path: `${dirs.CacheDir}/${image[6]}` }).fetch('GET', uri, {})
             task.then((res) => {
                 setProfileData({ avatarlocal: rnPath(res.path()) });
                 if (getimagetry) {
                     setImageTry(false);
                     //console.log('from here');
                 }
-
                 console.log('The file saved to ', rnPath(res.path()))
             })
                 .catch(e => {
@@ -206,11 +206,12 @@ const EditProfileScreen = ({ navigation,
      */
 
     let { name, username, phone, gender } = user;
-    let { bio, campus, avatar, avatarlocal, avatarremote } = profile;
-    let { getimagetry, updateProfile: { updatedusername, errors, updatedbio, updatedcampus, updatedgender, isProcessing, isProcessingImage } } = profileform;
-    username = updatedusername == null ? username : updatedusername;
-    bio = updatedbio == null ? bio : updatedbio;
-    campus = updatedcampus == null ? campus : updatedcampus;
+    let { bio, campus, avatar, avatarlocal, avatarremote, profile_name } = profile;
+    let { getimagetry, updateProfile: { updatedusername, updatedprofile_name, errors, updatedbio, updatedcampus, updatedgender, isProcessing, isProcessingImage } } = profileform;
+    username = typeof (updatedusername) == "string" ? updatedusername : username;
+    bio = typeof (updatedbio) == "string" ? updatedbio : bio;
+    profile_name = typeof (updatedprofile_name) == "string" ? updatedprofile_name : profile_name;
+    campus = typeof (updatedcampus) == "string" ? updatedcampus : campus;
     let genderenable = gender == 'false' ? true : false;
     //gender = gender == 0 ? 'male' : gender == 1 ? 'female' : gender;
     gender = updatedgender == null ? gender : updatedgender;
@@ -222,7 +223,6 @@ const EditProfileScreen = ({ navigation,
         { uri: avatarlocal };
     let profilemodaltext = isProcessing ? 'saving profile' : 'uploading profile picture';
     let profilemodalstate = false;
-
     /**
      * CONDITIONAL IF ELSE STATEMENTS STARTS HERE
      */
@@ -290,7 +290,7 @@ const EditProfileScreen = ({ navigation,
                 righticon2={righticon2}
                 //saveProfileUpdate(username, bio, campus, gender)
                 leftIconPress={lefticonpress}
-                rightIconPress={() => saveProfileUpdate(username, bio, campus, gender, componentId)}
+                rightIconPress={() => saveProfileUpdate(username, profile_name, bio, campus, gender, componentId)}
                 rightIcon2Press={rightIcon2Press}
             />
 
@@ -406,6 +406,8 @@ const EditProfileScreen = ({ navigation,
                                     overlayContainerStyle={styles.imageContainerStyle}
                                     titleStyle={{ fontSize: 20 }}
                                 />
+                                <Text style={{ color: colors.text, fontSize: responsiveFontSize(2.5) }}> {profile_name}</Text>
+                                <Text style={{ color: colors.iconcolor, fontSize: responsiveFontSize(2.1) }}> {username}</Text>
                             </View>
                             <View style={styles.bottomFormContainerStyle}>
                                 <Input
@@ -432,20 +434,22 @@ const EditProfileScreen = ({ navigation,
                                 <Input
                                     containerStyle={styles.containerInputStyle}
                                     inputStyle={{ color: colors.text }}
-                                    label="Username"
+                                    label="Profilename"
                                     autoCorrect={false}
-                                    maxLength={10}
+                                    maxLength={20}
                                     errorStyle={[styles.errorStyle]}
                                     selectionColor='#2196F3'
-                                    errorMessage={errors.usernameerr}
+                                    errorMessage={errors.profile_nameerr}
                                     labelStyle={[styles.labelStyle, { color: colors.text }]}
                                     inputContainerStyle={[styles.inputContainerStyle,
                                     { borderColor: colors.border }]}
-                                    placeholder="eg: ak"
+                                    placeholder="eg: cool"
                                     leftIconContainerStyle={styles.leftIconContainerStyle}
                                     placeholderTextColor={placeholderColor}
-                                    value={username}
-                                    onChangeText={(txt) => setUpdateUsername(txt)}
+                                    value={profile_name}
+                                    onChangeText={(txt) => setUpdateProfileChange({
+                                        updatedprofile_name: txt
+                                    })}
                                     leftIcon={{
                                         type: 'font-awesome',
                                         name: 'user-o',
