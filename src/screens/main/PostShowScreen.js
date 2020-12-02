@@ -79,22 +79,24 @@ const PostShowScreen = ({
     }, []);
     /**component functions starts here */
     function setShowPost() {
-        if (!checkData(toshowpost)) {
-            return null;
-        } else if (!checkData(toshowpost.postid) || !checkData(toshowpost.profile)) {
+        if (!checkData(toshowpost) ||
+            !checkData(toshowpost.postid) ||
+            !checkData(toshowpost.profile) ||
+            !checkData(toshowpost.profile.user)
+        ) {
             return null;
         }
         let check = timelinepostform.timelineposts.find(item => item.postid == toshowpost.postid);
         if (!checkData(check)) {
             foreign = true;
-            updateTimelinePostForm(toshowpost);
+            updateTimelinePostForm(toshowpost, true);
             return toshowpost;
         }
         return check;
     }
     //function to determine dismiss of navigation based on screentype
     function setDismissNav() {
-        if (screentype != "modal")
+        if (screentype == "screen")
             return Navigation.pop(componentId);
         else
             return Navigation.dismissModal(componentId)
@@ -133,7 +135,7 @@ const PostShowScreen = ({
                             onRefresh={() => {
                                 let onrefresh = () => setTimelinepostRefresh(true);
                                 let offrefresh = () => setTimelinepostRefresh(false);
-                                fetchParticularPost(postid, onrefresh, null, offrefresh);
+                                fetchParticularPost(toshowpost.postid, onrefresh, null, offrefresh);
                             }}
                             onDeletePress={deleteTimelinePost}
                             removeProfilePosts={(id) => {

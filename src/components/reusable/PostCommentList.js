@@ -308,7 +308,7 @@ export default class PostCommentList extends React.Component {
                 name: "PostCommentReply",
                 passProps: {
                     navparent: true,
-                    ownercommentid: comment.commentid
+                    ownercomment: comment
                 },
             }
         });
@@ -337,7 +337,16 @@ export default class PostCommentList extends React.Component {
                             },
                         }
                     })}
-                    title={this.props.parentpost.profile.user.username}
+                    onPress={() => Navigation.showModal({
+                        component: {
+                            name: 'PostShow',
+                            passProps: {
+                                navparent: true,
+                                toshowpost: this.props.parentpost
+                            },
+                        }
+                    })}
+                    title={this.props.parentpost.profile.profile_name}
                     leftAvatar={{ uri: this.props.parentpost.profile.avatar[1] }}
                     onAvatarPress={() => {
                         this.setState({
@@ -467,7 +476,7 @@ export default class PostCommentList extends React.Component {
                         }
                     });
                 }}
-                title={item.profile.user.username}
+                title={item.profile.profile_name}
                 subtitle={item.comment_text}
                 profilemuted={item.profile.profilemuted}
                 likes={item.num_likes}

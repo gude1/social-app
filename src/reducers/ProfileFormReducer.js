@@ -7,22 +7,22 @@ import {
     UPDATE_PROFILE_CHANGED,
     UPDATE_PROFILE_NAME_CHANGED,
     PROCESSING,
-    SET_IMAGE_TRY,
     SET_UPDATE_PROFILE_ERRORS,
     RESET,
 } from '../actions/types';
 const ERRORS = {
     usernameerr: null,
     profile_nameerr: null,
+    phoneerr: null,
     campuserr: null,
     bioerr: null,
     gendererr: null,
 };
 const INITIAL_STATE = {
-    getimagetry: false,
     updateProfile: {
         isProcessing: false,
         isProcessingImage: false,
+        updatedphone: null,
         updatedusername: null,
         updatedprofile_name: null,
         updatedpassword: null,
@@ -85,8 +85,6 @@ const ProfileFormReducer = (state = INITIAL_STATE, action) => {
             }
             return state;
             break;
-        case SET_IMAGE_TRY:
-            return { ...state, getimagetry: action.payload };
         default:
             return state;
             break;

@@ -109,6 +109,11 @@ import {
     UPDATE_PROFILES_LIST,
     UPDATE_SEARCH_LIST,
     UPDATE_PROFILE_CHANGED,
+    SET_POST_COMMENT_OWNER_POST,
+    SET_POST_COMMENT_FORM_OWNER_POST,
+    UPDATE_POST_COMMENT_FORM_OWNER_POST,
+    UPDATE_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
+    SET_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -307,7 +312,7 @@ export const logIn = ({ email, password, Navigation, componentId }) => {
                     if (checkData(posts)) {
                         dispatch(savePost(posts));
                     }
-                    dispatch(setProfileData({ ...profile, avatarremote: profile.avatar[1] }));
+                    dispatch(setProfileData({ ...profile }));
                     getAppInfo(store.getState().profile, 'profile') == 'profiletrue' ?
                         dispatch(setAppInfo({ editprofileinformed: true })) : null;
                     getAppInfo(store.getState().posts, 'post') == 'posttrue' ?
@@ -1036,57 +1041,35 @@ export const uploadProfilePic = (image) => {
                 case 400:
                     deleteFile(image.path);
                     ImagePicker.clean();
-                    Toast(errors.avatarerr, ToastAndroid.LONG);
                     dispatch(setProcessing(false, 'updateProfileImage'));
+                    checkData(errors.avatarerr) && Toast(errors.avatarerr, ToastAndroid.LONG);
+                    checkData(errmsg) && Toast(errmsg, ToastAndroid.LONG);
                     break;
                 case 200:
                     dispatch(updateUser({ ...profile.user }));
-                    let c = image.path.split('/');
-                    let e = image.path.split('///');
-                    let d = profile.avatar[0].split('/');
-                    deleteFile(avatarlocal);
-                    RNFetchBlob.fs.createFile(`${dirs.CacheDir}/${d[3]}`,
-                        `${e[1]}`,
-                        'uri')
-                        .then(e => {
-                            //console.warn(e);
-                            dispatch(setProfileData({
-                                avatarlocal: rnPath(e), avatarremote: profile.avatar[1]
-                            }));
-                            dispatch(setImageTry(false));
-                            deleteFile(image.path);
-                            ImagePicker.clean();
-                            dispatch(setProcessing(false, 'updateProfileImage'));
-                            Toast('profile photo updated', ToastAndroid.SHORT);
-                            if (profilecompleted == 'profilefalse' &&
-                                getAppInfo(store.getState().profile, 'profile') == 'profiletrue' &&
-                                getAppInfo(store.getState().posts, 'post') == 'posttrue') {
-                                setRoute(store.getState());
-                            }
-                        })
-                        .catch(e => {
-                            //console.warn(e);
-                            dispatch(setProfileData({
-                                avatarlocal: '', avatarremote: profile.avatar[1]
-                            }));
-                            dispatch(setImageTry(false));
-                            deleteFile(image.path);
-                            ImagePicker.clean();
-                            dispatch(setProcessing(false, 'updateProfileImage'));
-                            Toast('profile photo updated', ToastAndroid.SHORT);
-                        });
-                    break;
-                default:
-                    deleteFile(image.path);
+                    //console.warn(e);
+                    delete profile.user;
+                    dispatch(setProfileData({ ...profile }));
                     ImagePicker.clean();
                     dispatch(setProcessing(false, 'updateProfileImage'));
+                    Toast('profile photo updated', ToastAndroid.SHORT);
+                    if (profilecompleted == 'profilefalse' &&
+                        getAppInfo(store.getState().profile, 'profile') == 'profiletrue' &&
+                        getAppInfo(store.getState().posts, 'post') == 'posttrue') {
+                        setRoute(store.getState());
+                    }
+                    break;
+                default:
+                    ImagePicker.clean();
+                    dispatch(setProcessing(false, 'updateProfileImage'));
+                    checkData(errors.avatarerr) && Toast(errors.avatarerr, ToastAndroid.LONG);
+                    checkData(errmsg) && Toast(errmsg, ToastAndroid.LONG);
                     break;
             }
 
         } catch (e) {
             //alert(e.toString());
             //console.warn(e);
-            deleteFile(image.path);
             ImagePicker.clean().catch(e => alert(e));
             dispatch(setProcessing(false, 'updateProfileImage'));
             Toast('could not update profile picture possible a network error please try again',
@@ -1097,57 +1080,70 @@ export const uploadProfilePic = (image) => {
 
 
 
-export const saveProfileUpdate = (updateusername, updateprofile_name, updatebio, updatecampus, updategender, componentId) => {
+export const saveProfileUpdate = (updateusername, updateprofile_name, updatebio, updatecampus, updategender, updatephone) => {
     return async (dispatch) => {
         const { user, profile } = store.getState();
+        let iserror = false;
         let profilecompleted = getAppInfo(profile, 'profile');//very essential determines wheter set root or wait
-        //dispatch(setReset('updateprofileerrors'));
+
+        dispatch(setReset('updateprofileerrors'));
         dispatch(setProcessing(true, 'updateProfile'));
+
         if (checkData(updateprofile_name) != true) {
             dispatch(setProcessing(false, 'updateProfile'));
             dispatch(setUpdateProfileErrors({ profile_nameerr: "The profilename field is required" }, 'updateProfile'));
-            Toast('profile update failed please check and fill your inputs and try again',
-                ToastAndroid.LONG);
-            return;
-        } else if (checkData(updatebio) != true) {
+            iserror = true;
+        }
+        if (checkData(updatebio) != true) {
             dispatch(setProcessing(false, 'updateProfile'));
             dispatch(setUpdateProfileErrors({ 'bioerr': "The bio field is required" }, 'updateProfile'));
-            Toast('profile update failed please check and fill your inputs and try again',
-                ToastAndroid.LONG);
-            return;
-        } else if (checkData(updategender) != true || updategender == "none" || updategender == 'false') {
+            iserror = true;
+        }
+        if (checkData(updategender) != true || updategender == "none" || updategender == 'false') {
             dispatch(setProcessing(false, 'updateProfile'));
             //console.warn('updated gender');
             dispatch(setUpdateProfileErrors({ gendererr: "The gender field is required" }, 'updateProfile'));
-            Toast('profile update failed please check and fill your inputs and try again',
-                ToastAndroid.LONG);
-            return;
-        } else if (checkData(updatecampus) != true || updatecampus == "none") {
+            iserror = true;
+        }
+        if (checkData(updatecampus) != true || updatecampus == "none") {
             dispatch(setProcessing(false, 'updateProfile'));
             //console.warn('updated campus');
             dispatch(setUpdateProfileErrors({ "campuserr": "please input your campus" }, 'updateProfile'));
+            iserror = true;
+        }
+        if (checkData(updatephone) != true || updatephone.length != 11) {
+            dispatch(setProcessing(false, 'updateProfile'));
+            //console.warn('updated campus');
+            dispatch(setUpdateProfileErrors({ "phoneerr": "phone must be 11 digits" }, 'updateProfile'));
+            iserror = true;
+        }
+        if (iserror) {
             Toast('profile update failed please check and fill your inputs and try again',
                 ToastAndroid.LONG);
             return;
+        }
+        let requestData = {
+            bio: updatebio,
+            profile_name: updateprofile_name,
+            phone: updatephone,
+            campus: updatecampus,
+        };
+        if (!['male', 'female'].includes(user.gender)) {
+            requestData = { ...requestData, gender: updategender };
         }
 
         try {
             const options = {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
-            const response = await session.post('profileupdate', {
-                bio: updatebio,
-                profile_name: updateprofile_name,
-                campus: updatecampus,
-                gender: updategender
-            }, options);
+            const response = await session.post('profileupdate', requestData, options);
             const { errors, errmsg, profile, status } = response.data;
             //console.warn(response.data);
             switch (status) {
                 case 200:
                     //console.warn(profileupdate);
                     dispatch(setReset('updateprofileerrors'));
-                    dispatch(setProfileData({ ...profile, avatarremote: profile.avatar[1] }));
+                    dispatch(setProfileData({ ...profile }));
                     dispatch(updateUser({ ...profile.user }));
                     dispatch(setProcessing(false, 'updateProfile'));
                     dispatch(setImageTry(false));
@@ -1489,10 +1485,10 @@ export const prependTimelinePostForm = (data: Array) => {
     }
 };
 
-export const updateTimelinePostForm = (data) => {
+export const updateTimelinePostForm = (data, add) => {
     return {
         type: UPDATE_TIMELINE_POST_FORM,
-        payload: data
+        payload: { data, add }
     }
 }
 export const setTimelinePostFormLinks = (data) => {
@@ -2375,6 +2371,21 @@ export const addPostCommentForm = (data: Array) => {
     };
 };
 
+export const setPostCommentFormOwnerPost = (data: Object) => {
+    return {
+        type: SET_POST_COMMENT_FORM_OWNER_POST,
+        payload: data
+    };
+};
+
+export const updatePostCommentFormOwnerPost = (data: Object) => {
+    return {
+        type: UPDATE_POST_COMMENT_FORM_OWNER_POST,
+        payload: data
+    };
+};
+
+
 export const updatePostCommentForm = (data: Object) => {
     return {
         type: UPDATE_POST_COMMENT_FORM,
@@ -2454,6 +2465,7 @@ export const fetchPostComment = (postid) => {
                     dispatch(setProcessing(false, 'postcommentformfetching'));
                     dispatch(setPostCommentForm(comments));
                     dispatch(setPostCommentFormLink(nextpageurl));
+                    dispatch(updatePostCommentFormOwnerPost(ownerpost));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
                     hiddens == true && Toast(
@@ -2526,6 +2538,7 @@ export const retryPostComment = (postid, commentid, comment_text) => {
                 case 201:
                     dispatch(removePostCommentForm(tempid));
                     dispatch(prependPostCommentForm([comment]));
+                    dispatch(updatePostCommentFormOwnerPost(ownerpost));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
                     //alert(JSON.stringify(comment));
@@ -2581,10 +2594,6 @@ export const makePostComment = (postid, comment_text) => {
             created_at: 'posting...',
             profile: {
                 ...profile,
-                avatar: [
-                    profile.avatarremote,
-                    profile.avatarlocal
-                ],
                 user: { ...user }
             }
         }]));
@@ -2602,6 +2611,7 @@ export const makePostComment = (postid, comment_text) => {
                 case 201:
                     dispatch(removePostCommentForm(tempid));
                     dispatch(prependPostCommentForm([comment]));
+                    dispatch(updatePostCommentFormOwnerPost(ownerpost));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
                     //alert(JSON.stringify(comment));
@@ -2722,6 +2732,7 @@ export const refreshPostComment = (postid) => {
                     dispatch(setPostCommentFormRefresh(false));
                     dispatch(setPostCommentForm(comments));
                     dispatch(setPostCommentFormLink(nextpageurl));
+                    dispatch(updatePostCommentFormOwnerPost(ownerpost));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
                     hiddens == true && Toast(
@@ -2753,7 +2764,7 @@ export const refreshPostComment = (postid) => {
             }
 
         } catch (err) {
-            console.warn(err.toString());
+            //console.warn(err.toString());
             dispatch(setPostCommentFormRefresh(false));
             Toast('failed to refresh', ToastAndroid.LONG);
         }
@@ -2780,6 +2791,7 @@ export const loadMorePostComment = (postid) => {
                     dispatch(setProcessing(false, 'postcommentformloadmore'));
                     dispatch(addPostCommentForm(comments));
                     dispatch(setPostCommentFormLink(nextpageurl));
+                    dispatch(updatePostCommentFormOwnerPost(ownerpost));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
                     hiddens == true && Toast(
@@ -2828,9 +2840,11 @@ export const deletePostComment = (postcommentid, ownerid) => {
             };
             const response = await session.post('postcommentdelete', { postcommentid }, options);
             const { errmsg, status, message, ownerpost } = response.data;
+            //console.warn(response.data);
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'postcommentformdeleting'));
+                    dispatch(updatePostCommentFormOwnerPost(ownerpost));
                     dispatch(updateTimelinePost(ownerpost));
                     dispatch(updateTimelinePostForm(ownerpost));
                     dispatch(removePostCommentForm(postcommentid));
@@ -2901,6 +2915,20 @@ export const hidePostCommentAction = (commentid, ownerid) => {
 export const addPostCommentReplyForm = (data: Array) => {
     return {
         type: ADD_POST_COMMENT_REPLY_FORM,
+        payload: data
+    };
+};
+
+export const setPostCommentReplyFormOwnerComment = (data: Object) => {
+    return {
+        type: SET_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
+        payload: data
+    };
+};
+
+export const updatePostCommentReplyFormOwnerComment = (data: Object) => {
+    return {
+        type: UPDATE_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
         payload: data
     };
 };
@@ -2979,6 +3007,7 @@ export const fetchPostCommentReply = (originid) => {
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
+                    dispatch(updatePostCommentReplyFormOwnerComment(origin));
                     hiddens == true && Toast(
                         'some replies are hidden by author',
                         ToastAndroid.LONG,
@@ -3044,6 +3073,7 @@ export const loadMorePostCommentReply = (originid) => {
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
+                    dispatch(updatePostCommentReplyFormOwnerComment(origin));
                     hiddens == true && Toast(
                         'some replies are hidden by author',
                         ToastAndroid.LONG,
@@ -3167,6 +3197,7 @@ export const refreshPostCommentReply = (originid) => {
                     dispatch(setPostCommentReplyFormLink(nextpageurl));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
+                    dispatch(updatePostCommentReplyFormOwnerComment(origin));
                     hiddens == true && Toast(
                         'some replies are hidden by author',
                         ToastAndroid.LONG,
@@ -3233,10 +3264,6 @@ export const makePostCommentReply = (originid, reply_text) => {
             created_at: 'posting...',
             profile: {
                 ...profile,
-                avatar: [
-                    profile.avatarremote,
-                    profile.avatarlocal
-                ],
                 user: { ...user }
             }
         }]));
@@ -3250,12 +3277,14 @@ export const makePostCommentReply = (originid, reply_text) => {
                 reply_text,
             }, options);
             const { errmsg, origin, message, status, reply } = response.data;
+            //console.warn(response.data);
             switch (status) {
                 case 201:
                     dispatch(removePostCommentReplyForm(tempid));
                     dispatch(prependPostCommentReplyForm([reply]));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
+                    dispatch(updatePostCommentReplyFormOwnerComment(origin));
                     //alert(JSON.stringify(comment));
                     break;
                 case 400:
@@ -3329,6 +3358,7 @@ export const retryPostCommentReply = (originid, replyid, reply_text) => {
                     dispatch(prependPostCommentReplyForm([reply]));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
+                    dispatch(updatePostCommentReplyFormOwnerComment(origin));
                     //alert(JSON.stringify(comment));
                     break;
                 case 400:
@@ -3380,6 +3410,7 @@ export const deletePostCommentReply = (replyid, ownerid) => {
                     dispatch(removePostCommentReplyForm(replyid));
                     checkData(origin.replyid) ? dispatch(updatePostCommentReplyForm(origin))
                         : dispatch(updatePostCommentForm(origin));
+                    dispatch(updatePostCommentReplyFormOwnerComment(origin));
                     break;
                 case 401:
                     dispatch(setProcessing(false, 'postcommentreplyformdeleting'));

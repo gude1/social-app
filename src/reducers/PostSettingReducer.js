@@ -3,6 +3,7 @@ import { checkData } from '../utilities/index';
 
 const INITIAL_STATE = {
     processing: false,
+    timeline_post_range: null,
 };
 
 const handleProcessing = (key, value, state) => {

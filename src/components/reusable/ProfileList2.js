@@ -289,12 +289,12 @@ class ProfileList2 extends React.PureComponent {
         return (
             <ProfileList2Item
                 avatar={item.profile.avatar[1]}
-                username={item.profile.user.username}
+                username={item.profile.profile_name}
                 gender={item.profile.user.gender}
                 leftAvatarPress={() => this._setAvatarNavModal(item)}
                 rightTitle={this._setFollowMsg(item)}
                 // onPress={() => this._followProfileAction(item)}
-                bio={item.profile.bio && item.profile.bio.length > 35 ? item.profile.bio.substring(0, 35) + "..." : item.profile.bio}
+                bio={item.profile.user.username}
                 textStyle={{ color: colors.text }}
                 containerStyle={{ padding: 5, backgroundColor: colors.background }}
                 loading={false}

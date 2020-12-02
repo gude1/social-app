@@ -96,10 +96,12 @@ const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
             break;
         case UPDATE_TIMELINE_POST_FORM:
             let updatedstate = state.timelineposts.map(item => {
-                return item.postid == action.payload.postid ? { ...item, ...action.payload } : item;
+                return item.postid == action.payload.data.postid ? { ...item, ...action.payload.data } : item;
             });
-            updatedstate.find(item => item.postid == action.payload.postid) == undefined ?
-                updatedstate.push({ ...action.payload }) : null;
+            if (action.payload.add == true) {
+                updatedstate.find(item => item.postid == action.payload.data.postid) == undefined ?
+                    updatedstate.push({ ...action.payload }) : null;
+            }
             return { ...state, timelineposts: updatedstate };
             break;
         case SET_TIMELINE_POST_FORM_LINKS:

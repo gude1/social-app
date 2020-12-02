@@ -5,6 +5,7 @@ import {
 const INITIAL_STATE = {
     bio: null,
     campus: null,
+    avatar: [],
     avatarremote: null,
     avatarlocal: null,
 };

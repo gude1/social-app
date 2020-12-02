@@ -16,17 +16,18 @@ const { colors } = useTheme();
 const PostCommentReplyScreen = ({
     navparent,
     componentId,
-    ownercommentid,
-    ownerreplyid,
+    ownercomment,
+    replies,
     profile,
-    profileimage,
+    makeRequest,
     muteProfileAction,
     profileactionform,
     postcommentreplyform,
     screentype,
-    postcommentform,
     fetchPostCommentReply,
     setProcessing,
+    setPostCommentReplyFormOwnerComment,
+    setPostCommentReplyForm,
     updatePostCommentReplyForm,
     updatePostCommentReplyFormProfileChanges,
     makePostCommentReply,
@@ -37,10 +38,6 @@ const PostCommentReplyScreen = ({
     deletePostCommentReply,
     setReset,
 }) => {
-    let origin = checkData(ownercommentid) ?
-        postcommentform.postcomments.find(item => item.commentid == ownercommentid)
-        : postcommentreplyform.postcommentreplies.find(item => item.replyid == ownerreplyid)
-        ;
     const [loaded, setLoaded] = useState(false);
     const [inputtext, setInputText] = useState('');
     let flatlistref = null;
@@ -53,8 +50,15 @@ const PostCommentReplyScreen = ({
     let lefticonpress = navparent == true ? () => setDismissNav() : null;
     let righticon = '';
     let righticonpress = '';
+
+    /**component functions starts here */
     useEffect(() => {
-        fetchPostCommentReply(ownercommentid || ownerreplyid);
+        setReset('postcommentreplyform');// set the replies to empty
+        setPostCommentReplyFormOwnerComment(ownercomment);
+        setPostCommentReplyForm(replies || []);
+        if (makeRequest != false) {
+            fetchPostCommentReply(ownercomment.commentid);
+        }
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
@@ -70,11 +74,8 @@ const PostCommentReplyScreen = ({
         return () => {
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
-            setReset('postcommentreplyform');// set the replies to empty
         };
     }, []);
-    /**component functions starts here */
-
     const setFlatlistRef = (ref) => {
         flatlistref = ref;
     };
@@ -85,6 +86,70 @@ const PostCommentReplyScreen = ({
             return Navigation.pop(componentId);
         else
             return Navigation.dismissModal(componentId)
+    }
+
+    function renderView() {
+        if (!loaded) {
+            return (
+                <LoaderScreen
+                    loaderIcon={<Icon
+                        type="antdesign"
+                        name="message1"
+                        color={colors.text}
+                        size={responsiveFontSize(10)}
+                    />}
+                    animationType={'zoomIn'}
+                />
+            );
+        } else if (!checkData(postcommentreplyform.ownercomment) ||
+            !checkData(postcommentreplyform.ownercomment.profile) ||
+            !checkData(postcommentreplyform.ownercomment.profile.user) ||
+            !Array.isArray(postcommentreplyform.postcommentreplies)) {
+            return null;
+        } else {
+            return (
+                <>
+                <PostCommentReplyList
+                    onFetch={fetchPostCommentReply}
+                    fetching={postcommentreplyform.fetching}
+                    userprofile={profile}
+                    profileschanges={postcommentreplyform.profileschanges}
+                    updatePostCommentReplyProfile={updatePostCommentReplyFormProfileChanges}
+                    updateReply={updatePostCommentReplyForm}
+                    setFlatlistRef={setFlatlistRef}
+                    origin={postcommentreplyform.ownercomment}
+                    onItemLike={likePostCommentReply}
+                    data={postcommentreplyform.postcommentreplies}
+                    onLoadMore={loadMorePostCommentReply}
+                    loadingmore={postcommentreplyform.loadmore}
+                    onMute={muteProfileAction}
+                    setProcessing={setProcessing}
+                    muting={postcommentreplyform.muting}
+                    onRefresh={refreshPostCommentReply}
+                    refreshing={postcommentreplyform.refreshing}
+                    onHide={hidePostCommentReply}
+                    hiding={postcommentreplyform.hiding}
+                    onDelete={deletePostCommentReply}
+                    deleting={postcommentreplyform.deleting}
+                />
+                <InputBox
+                    placeholder={'Post a reply'}
+                    onChangeText={setInputText}
+                    inputvalue={inputtext}
+                    onSubmit={() => {
+                        setInputText('');
+                        makePostCommentReply(ownercomment.commentid, inputtext);
+                        if (checkData(inputtext)) {
+                            flatlistref.scrollToOffset({ offset: 0 })
+                        }
+                    }}
+                    maxLength={300}
+                    autoFocus={false}
+                    avatar={{ uri: profile.avatar[1] }}
+                />
+                </>
+            );
+        }
     }
 
     /**component functions ends here */
@@ -98,56 +163,7 @@ const PostCommentReplyScreen = ({
                 headerTextStyle={{ color: colors.text }}
                 headertextsize={responsiveFontSize(2.9)}
             />
-            {
-                loaded == false ? <LoaderScreen
-                    loaderIcon={<Icon
-                        type="antdesign"
-                        name="message1"
-                        color={colors.text}
-                        size={responsiveFontSize(10)}
-                    />}
-                    animationType={'zoomIn'}
-                /> : <>
-                    <PostCommentReplyList
-                        onFetch={fetchPostCommentReply}
-                        fetching={postcommentreplyform.fetching}
-                        userprofile={profile}
-                        profileschanges={postcommentreplyform.profileschanges}
-                        updatePostCommentReplyProfile={updatePostCommentReplyFormProfileChanges}
-                        updateReply={updatePostCommentReplyForm}
-                        setFlatlistRef={setFlatlistRef}
-                        origin={origin}
-                        onItemLike={likePostCommentReply}
-                        data={postcommentreplyform.postcommentreplies}
-                        onLoadMore={loadMorePostCommentReply}
-                        loadingmore={postcommentreplyform.loadmore}
-                        onMute={muteProfileAction}
-                        setProcessing={setProcessing}
-                        muting={postcommentreplyform.muting}
-                        onRefresh={refreshPostCommentReply}
-                        refreshing={postcommentreplyform.refreshing}
-                        onHide={hidePostCommentReply}
-                        hiding={postcommentreplyform.hiding}
-                        onDelete={deletePostCommentReply}
-                        deleting={postcommentreplyform.deleting}
-                    />
-                    <InputBox
-                        placeholder={'Post a reply'}
-                        onChangeText={setInputText}
-                        inputvalue={inputtext}
-                        onSubmit={() => {
-                            setInputText('');
-                            makePostCommentReply(origin.commentid || origin.replyid, inputtext);
-                            if (checkData(inputtext)) {
-                                flatlistref.scrollToOffset({ offset: 0 })
-                            }
-                        }}
-                        maxLength={300}
-                        autoFocus={false}
-                        avatar={{ uri: profileimage }}
-                    />
-                    </>
-            }
+            {renderView()}
         </SafeAreaView>
     );
 };
@@ -160,10 +176,8 @@ PostCommentReplyScreen.options = {
 
 const mapStateToProps = (state) => {
     return {
-        profileimage: state.profile.avatarlocal || state.profile.avatarremote,
         profile: state.profile,
         profileactionform: state.profileactionform,
-        postcommentform: state.postcommentform,
         postcommentreplyform: state.postcommentreplyform
     }
 };

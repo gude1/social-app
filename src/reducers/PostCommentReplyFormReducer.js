@@ -10,13 +10,15 @@ import {
     PROCESSING,
     RESET,
     SET_POST_COMMENT_REPLY_FORM,
+    SET_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
+    UPDATE_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
 } from '../actions/types';
 import { checkData } from '../utilities/index';
 
 const INITIAL_STATE = {
     postcommentreplies: [],
     profileschanges: [],
-    ownerpost: null,
+    ownercomment: null,
     fetching: false,
     processing: false,
     hiding: false,
@@ -74,6 +76,12 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
                 action.payload.value,
                 state
             );
+            break;
+        case SET_POST_COMMENT_REPLY_FORM_OWNER_COMMENT:
+            return { ...state, ownercomment: action.payload };
+            break;
+        case UPDATE_POST_COMMENT_REPLY_FORM_OWNER_COMMENT:
+            return { ...state, ownercomment: { ...state.ownercomment, ...action.payload } };
             break;
         case ADD_POST_COMMENT_REPLY_FORM:
             return { ...state, postcommentreplies: [...state.postcommentreplies, ...action.payload] };

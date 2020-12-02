@@ -536,6 +536,7 @@ export class ListItem extends Component {
     }
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         if (nextProps.liked != this.props.liked ||
+            nextProps.title != this.props.title ||
             nextProps.replies != this.props.replies ||
             nextProps.likes != this.props.likes ||
             nextProps.time != this.props.time ||
@@ -576,14 +577,14 @@ export class ListItem extends Component {
 
     //onTimePress time liked
     render() {
-        const { title, time, likebtn, onLongPress, onAvatarPress, liked, likeButtonComponent, onRetryPress, numLikesPress, likePress, timeTextStyle, likes,
+        const { title, time, likebtn, onLongPress, onAvatarPress, onPress, liked, likeButtonComponent, onRetryPress, numLikesPress, likePress, timeTextStyle, likes,
             replies, subtitle, BottomContainerItem,
             replyPress, rightIcon, leftAvatar } = this.props;
         //onRetrypress has precedence
         let longpress = null;
         let onpress = null;
-        if (checkData(onRetryPress) == true) {
-            onpress = onRetryPress;
+        if (checkData(onRetryPress) || checkData(onPress)) {
+            onpress = onPress || onRetryPress;
         } else {
             longpress = onLongPress
         }

@@ -130,6 +130,7 @@ export class PostItem extends Component {
     }
     shouldComponentUpdate(nextProps, nextState) {
         if (nextProps.postliked != this.props.postliked ||
+            nextProps.posterusername != this.props.posterusername ||
             nextProps.postshared != this.props.postshared ||
             nextProps.numlikes != this.props.numlikes ||
             nextProps.numshares != this.props.numshares ||
@@ -654,7 +655,7 @@ export default class PostList extends React.Component {
                 passProps: {
                     navparent: true,
                     screentype: "modal",
-                    ownerpostid: post.postid,
+                    ownerpost: post,
                 },
             }
         });
@@ -726,7 +727,7 @@ export default class PostList extends React.Component {
         }
 
         return (<PostItem
-            posterusername={item.profile.user.username}
+            posterusername={item.profile.profile_name}
             posteravatar={item.profile.avatar[1]}
             postimages={this._arrangePostImage(item.post_image)}
             postliked={item.postliked}
@@ -1100,6 +1101,7 @@ const styles = StyleSheet.create({
     postListItemTopBar: {
         width: postwidth,
         flexDirection: "row",
+        flex: 1,
         //borderWidth: 1,
         justifyContent: "space-between",
         alignItems: 'center',
@@ -1109,6 +1111,7 @@ const styles = StyleSheet.create({
     postListItemTopBarItem: {
         flexDirection: 'row',
         alignItems: 'center',
+        flex: 1
         //borderWidth: 1,
     },
     postListItemTopBarItemAvatar: {
@@ -1123,6 +1126,7 @@ const styles = StyleSheet.create({
     postListItemBottomBar: {
         width: postwidth,
         flexDirection: "row",
+        flex: 1,
         //borderWidth: 1,
         justifyContent: 'space-evenly',
         alignItems: 'center',

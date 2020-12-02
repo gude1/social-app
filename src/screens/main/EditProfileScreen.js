@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     SafeAreaView,
     View,
     StyleSheet,
-    StatusBar,
     ActivityIndicator,
     ToastAndroid,
     TouchableOpacity,
-    Dimensions,
     ScrollView
 } from 'react-native';
 import { Input, Text, Image, Avatar, Card, Icon, Overlay, Divider } from 'react-native-elements';
@@ -25,7 +23,6 @@ import { Navigation } from 'react-native-navigation';
 import * as Animatable from 'react-native-animatable';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions'
 import { useTheme } from '../../assets/themes';
-
 const { colors } = useTheme();
 let inputwidth = responsiveWidth(85);
 let containerinputwidth = responsiveWidth(90);
@@ -46,13 +43,16 @@ const EditProfileScreen = ({ navigation,
     setUpdateGender,
     setProcessing,
     setUpdateBio,
-    setImageTry,
     editprofileinfo,
+    fetchAProfile,
+    setReset,
     setAppInfo,
+    saveUser,
     setProfileData,
     setUpdateCampus,
     uploadProfilePic,
     screentype,
+    updateUser
 }) => {
     const placeholderColor = '#606060';
     let lefticon = navparent == true ? <Icon
@@ -74,15 +74,25 @@ const EditProfileScreen = ({ navigation,
      * component function goes here
      */
     useEffect(() => {
+        setUpdateProfileChange({
+            updatedphone: user.phone,
+            updatedusername: user.username,
+            updatedprofile_name: profile.profile_name,
+            updatedcampus: profile.campus,
+            updatedbio: profile.bio,
+            updatedgender: user.gender,
+        })
+        //fetch users profile
+        fetchAProfile(profile.profile_id, null, (profile) => {
+            setProfileData(profile);
+            updateUser(profile.user);
+        });
         const listener = {
             componentDidAppear: () => {
                 //to show toast modal if profile is not here completed and pageinfo modal has already being shown
                 if (editprofileinfo == true && getAppInfo(profile, 'profile') == 'profilefalse') {
                     Toast('Make sure you upload your profile picture and complete your profile so as to continue into the app',
                         ToastAndroid.LONG);
-                }
-                if (getimagetry) {
-                    setImageTry(false);
                 }
                 if (!loaded) {
                     setLoaded(true);
@@ -95,6 +105,7 @@ const EditProfileScreen = ({ navigation,
         // Register the listener to all events related to our component
         const unsubscribe = Navigation.events().bindComponent(listener, componentId);
         return () => {
+            setReset('updateprofileerrors');
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
         };
@@ -163,89 +174,31 @@ const EditProfileScreen = ({ navigation,
             .catch(err => { });
 
     };
-
-
-    const downloadImage = (uri) => {
-        if (uri == '' || uri == null || uri == undefined) {
-            return;
-        }
-        if (getimagetry == false) {
-            let image = uri.split('/');
-            if (image[6] == undefined || image[6] == '' || image[6] == null) {
-                setProfileData({ avatarremote: "" });
-                return;
-            }
-            let dirs = RNFetchBlob.fs.dirs;
-            let task = RNFetchBlob.config({ path: `${dirs.CacheDir}/${image[6]}` }).fetch('GET', uri, {})
-            task.then((res) => {
-                setProfileData({ avatarlocal: rnPath(res.path()) });
-                if (getimagetry) {
-                    setImageTry(false);
-                    //console.log('from here');
-                }
-                console.log('The file saved to ', rnPath(res.path()))
-            })
-                .catch(e => {
-                    setImageTry(true);
-                    console.log(e.toString());
-                });
-        }
-    };
-    const checkImage = (data) => {
-        RNFetchBlob.fs.exists(data)
-            .then(res => {
-                //console.warn(res);
-                if (res == false) {
-                    setProfileData({ avatarlocal: '' });
-                }
-            })
-            .catch(e => e);
-    };
     /**
      * component function ends here
      */
 
     let { name, username, phone, gender } = user;
-    let { bio, campus, avatar, avatarlocal, avatarremote, profile_name } = profile;
-    let { getimagetry, updateProfile: { updatedusername, updatedprofile_name, errors, updatedbio, updatedcampus, updatedgender, isProcessing, isProcessingImage } } = profileform;
-    username = typeof (updatedusername) == "string" ? updatedusername : username;
-    bio = typeof (updatedbio) == "string" ? updatedbio : bio;
-    profile_name = typeof (updatedprofile_name) == "string" ? updatedprofile_name : profile_name;
-    campus = typeof (updatedcampus) == "string" ? updatedcampus : campus;
+    let { bio, campus, avatar, profile_name } = profile;
+    let { updateProfile: { updatedusername, updatedphone, updatedprofile_name, errors, updatedbio, updatedcampus, updatedgender, isProcessing, isProcessingImage } } = profileform;
     let genderenable = gender == 'false' ? true : false;
-    //gender = gender == 0 ? 'male' : gender == 1 ? 'female' : gender;
-    gender = updatedgender == null ? gender : updatedgender;
     let gendericon = (gender == null || gender == "none" || gender == 'false') ? 'question' : gender;
     let genderfont = 'font-awesome';
-    let loadingplaceholder = null;
-    avatar = (avatarlocal == null || avatarlocal == "" || avatarlocal == undefined) ?
-        null :
-        { uri: avatarlocal };
+    let loadingplaceholder = checkData(avatar[1]) ? <ActivityIndicator size="large" color="#2196F3" /> : null;
+    avatar = checkData(avatar[1]) ? { uri: avatar[1] } : null;
     let profilemodaltext = isProcessing ? 'saving profile' : 'uploading profile picture';
     let profilemodalstate = false;
     /**
      * CONDITIONAL IF ELSE STATEMENTS STARTS HERE
      */
+    //loadingplaceholder = <ActivityIndicator size="large" color="#2196F3" />;
+
     //show toast message to user asking to complete profile if editprofile info modal has already being displayed
     if (editprofileinfo == false || checkData(editprofileinfo) == false) {
         setTimeout(() => {
             setModalState({ ...modalstate, screeninfomodal: true });
             setAppInfo({ editprofileinformed: true });
         }, 1000);
-    }
-    if (modalstate.chooseimagestate == true && getimagetry == false) {
-        setImageTry(true);
-    }
-    if ((avatarlocal == null || avatarlocal == "" || avatarlocal == undefined) &&
-        (avatarremote != "" && avatarremote != null && avatarremote != undefined) &&
-        getimagetry == false) {
-        //if local image is empty but uri is available
-        //getimagetry is to only try to download the image once
-        loadingplaceholder = <ActivityIndicator size="large" color="#2196F3" />;
-        downloadImage(avatarremote);
-    } else if (avatarlocal != null & avatarlocal != "" && avatarlocal != undefined) {
-        //if local image is existent confirm it is actually in cache
-        checkImage(avatarlocal);
     }
     if (isProcessing == true || isProcessingImage == true) {
         profilemodalstate = true;
@@ -290,7 +243,7 @@ const EditProfileScreen = ({ navigation,
                 righticon2={righticon2}
                 //saveProfileUpdate(username, bio, campus, gender)
                 leftIconPress={lefticonpress}
-                rightIconPress={() => saveProfileUpdate(username, profile_name, bio, campus, gender, componentId)}
+                rightIconPress={() => saveProfileUpdate(updatedusername, updatedprofile_name, updatedbio, updatedcampus, updatedgender, updatedphone)}
                 rightIcon2Press={rightIcon2Press}
             />
 
@@ -446,7 +399,7 @@ const EditProfileScreen = ({ navigation,
                                     placeholder="eg: cool"
                                     leftIconContainerStyle={styles.leftIconContainerStyle}
                                     placeholderTextColor={placeholderColor}
-                                    value={profile_name}
+                                    value={updatedprofile_name}
                                     onChangeText={(txt) => setUpdateProfileChange({
                                         updatedprofile_name: txt
                                     })}
@@ -471,7 +424,7 @@ const EditProfileScreen = ({ navigation,
                                     placeholder="Tell us something about you..."
                                     leftIconContainerStyle={styles.leftIconContainerStyle}
                                     placeholderTextColor={placeholderColor}
-                                    value={bio}
+                                    value={updatedbio}
                                     onChangeText={(txt) => setUpdateBio(txt)}
                                     multiline={true}
                                     leftIcon={{
@@ -481,12 +434,37 @@ const EditProfileScreen = ({ navigation,
                                         size: 28
                                     }} />
 
+                                <Input
+                                    containerStyle={styles.containerInputStyle}
+                                    inputStyle={{ color: colors.text }}
+                                    label="phone"
+                                    maxLength={11}
+                                    value={updatedphone}
+                                    selectionColor='#2196F3'
+                                    keyboardType="phone-pad"
+                                    errorMessage={errors.phoneerr}
+                                    labelStyle={[styles.labelStyle, { color: colors.text }]}
+                                    inputContainerStyle={[styles.inputContainerStyle,
+                                    { borderColor: colors.border, }]}
+                                    placeholder="eg: +234"
+                                    onChangeText={(txt) => setUpdateProfileChange({
+                                        updatedphone: txt
+                                    })}
+                                    leftIconContainerStyle={styles.leftIconContainerStyle}
+                                    placeholderTextColor={placeholderColor}
+                                    leftIcon={{
+                                        type: 'feather',
+                                        name: 'phone',
+                                        color: colors.text,
+                                        size: 28
+                                    }} />
+
                                 <CustomPicker
                                     containerPickerStyle={styles.containerInputStyle}
                                     pickerContainerStyle={styles.inputContainerStyle}
                                     mode="dropdown"
                                     options={GenderData}
-                                    selectedValue={gender}
+                                    selectedValue={updatedgender}
                                     errorMessage={errors.gendererr}
                                     onValueChange={(itemValue, itemIndex) => {
                                         setUpdateGender(itemValue);
@@ -504,12 +482,11 @@ const EditProfileScreen = ({ navigation,
                                         size: 28
                                     }}
                                 />
-
                                 <CustomPicker
                                     containerPickerStyle={styles.containerInputStyle}
                                     pickerContainerStyle={styles.inputContainerStyle}
                                     errorMessage={errors.campuserr}
-                                    selectedValue={campus}
+                                    selectedValue={updatedcampus}
                                     onValueChange={(itemValue, itemIndex) => {
                                         setUpdateCampus(itemValue);
                                     }}
@@ -550,30 +527,6 @@ const EditProfileScreen = ({ navigation,
                                         color: colors.iconcolor,
                                         size: 28
                                     }} />
-
-
-                                {/*<Input
-                                containerStyle={styles.containerInputStyle}
-                                inputStyle={{ color: colors.text }}
-                                label="phone"
-                                maxLength={11}
-                                selectionColor='#2196F3'
-                                keyboardType="phone-pad"
-                                labelStyle={[styles.labelStyle, { color: colors.text }]}
-                                inputContainerStyle={[styles.inputContainerStyle,
-                                { borderColor: colors.border, }]}
-                                placeholder="eg: +234"
-                                leftIconContainerStyle={styles.leftIconContainerStyle}
-                                placeholderTextColor={placeholderColor}
-                                leftIcon={{
-                                    type: 'feather',
-                                    name: 'phone',
-                                    color: colors.text,
-                                    size: 28
-                                }} />*/}
-
-
-
                             </View>
                         </View>
 

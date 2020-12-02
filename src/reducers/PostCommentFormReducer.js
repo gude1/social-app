@@ -6,6 +6,8 @@ import {
     REMOVE_POST_COMMENT_FORM,
     UPDATE_POST_COMMENT_FORM,
     UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES,
+    UPDATE_POST_COMMENT_FORM_OWNER_POST,
+    SET_POST_COMMENT_FORM_OWNER_POST,
     PROCESSING,
     RESET,
     SET_POST_COMMENT_FORM_LINK,
@@ -62,6 +64,12 @@ const PostCommentFormReducer = (state = INITIAL_STATE, action) => {
                 state
             );
             break;
+        case SET_POST_COMMENT_FORM_OWNER_POST:
+            return { ...state, ownerpost: action.payload };
+            break;
+        case UPDATE_POST_COMMENT_FORM_OWNER_POST:
+            return { ...state, ownerpost: { ...state.ownerpost, ...action.payload } };
+            break;
         case ADD_POST_COMMENT_FORM:
             return { ...state, postcomments: [...state.postcomments, ...action.payload] };
             break;
@@ -75,8 +83,8 @@ const PostCommentFormReducer = (state = INITIAL_STATE, action) => {
             let updatedstate = state.postcomments.map(item => {
                 return item.commentid == action.payload.commentid ? { ...item, ...action.payload } : item;
             });
-            updatedstate.find(item => item.commentid == action.payload.commentid) == undefined ?
-                updatedstate.push({ ...action.payload }) : null;
+            /*updatedstate.find(item => item.commentid == action.payload.commentid) == undefined ?
+                updatedstate.push({ ...action.payload }) : null;*/
             return { ...state, postcomments: updatedstate };
             break;
         case SET_POST_COMMENT_FORM_LINK:

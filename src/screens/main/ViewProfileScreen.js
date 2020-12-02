@@ -19,7 +19,7 @@ const { colors } = useTheme();
 
 /**top section */
 const TopSection = ({ profile, profileform, isprofileowner, profileActions }) => {
-    let avatar = isprofileowner ? { uri: profile.avatarlocal } : { uri: profile.avatar[1] }
+    let avatar = checkData(profile.avatar[1]) ? { uri: profile.avatar[1] } : null;
     const showButton = () => {
         let btn = null;
         if (isprofileowner) {
@@ -144,7 +144,8 @@ const TopSection = ({ profile, profileform, isprofileowner, profileActions }) =>
                         />}
                 </View>
                 <View style={styles.profileInfoCtn}>
-                    <Text style={styles.profileInfoItemText}>{profile.user.username}</Text>
+                    <Text style={styles.profileInfoItemText}>{profile.profile_name}</Text>
+                    <Text style={[styles.profileInfoItemText, { color: colors.iconcolor }]}>{profile.user.username}</Text>
                     <Text style={styles.profileInfoItemText}>{profile.bio}</Text>
                     {showButton()}
                     {profile.followsu &&
@@ -403,6 +404,7 @@ const ViewProfileScreen = ({
     fetchKnownProfileFollowers,
     fetchMoreKnownProfileFollowers,
     fetchAProfile,
+    updateUser,
 }) => {
     const [loaded, setLoaded] = useState(false);
     const [hideparallax, setHideParallax] = useState(false);
@@ -498,7 +500,8 @@ const ViewProfileScreen = ({
         if (toshowprofile.profileblockedu == false) {
             fetchAProfile(toshowprofile.profile_id, null, (profile) => {
                 if (useowner) {
-                    setProfileData({ ...profile, avatarremote: profile.avatar[1] })
+                    setProfileData({ ...profile });
+                    updateUser(profile.user);
                 } else {
                     setViewProfile(profile);
                 }
@@ -514,10 +517,14 @@ const ViewProfileScreen = ({
         if (!checkData(profile)) {
             return;
         }
-        if (useowner)
-            setProfileData({ ...profile, avatarremote: profile.avatar[1] });
-        else
+        if (useowner) {
+            setProfileData({ ...profile });
+            updateUser(profile.user);
+        }
+        else {
             setOthersViewProfileForm(profile);
+        }
+
     }
 
     //returns the profile to show

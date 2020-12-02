@@ -376,7 +376,7 @@ export default class PostShowList extends Component {
         }
 
         return (<PostItem
-            posterusername={item.profile.user.username}
+            posterusername={item.profile.profile_name}
             posteravatar={item.profile.avatar[1]}
             postimages={this._arrangePostImage(item.post_image)}
             postliked={item.postliked}

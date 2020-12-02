@@ -74,7 +74,7 @@ const CreatePostScreen = ({
     let righticon = '';
     let righticonpress = '';
     let postimagecontainer = '';
-    let avatarprofile = (profileimage == "" || profileimage == null) ? null : { uri: profileimage };
+    let avatarprofile = checkData(profileimage) == false ? null : { uri: profileimage };
     /**
      * functions
      */
@@ -370,7 +370,7 @@ const mapStateToProps = (state) => ({
     posts: state.posts,
     username: state.user.username,
     postinfo: state.appinfo.postinformed,
-    profileimage: state.profile.avatarlocal || state.profile.avatarremote,
+    profileimage: state.profile.avatar[1],
     //profileimage: checkData(state.profile.avatarlocal) != true ? state.profile.avatarremote : state.profile.avatarlocal,
     postform: state.postform
 });

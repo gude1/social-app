@@ -338,7 +338,7 @@ export default class PostCommentReplyList extends Component {
                             },
                         }
                     })}
-                    title={this.props.origin.profile.user.username}
+                    title={this.props.origin.profile.profile_name}
                     leftAvatar={{ uri: this.props.origin.profile.avatar[1] }}
                     onAvatarPress={() => {
                         this.setState({
@@ -458,7 +458,7 @@ export default class PostCommentReplyList extends Component {
                 )}
                 //replyPress={}
                 leftAvatar={{ uri: item.profile.avatar[1] }}
-                title={item.profile.user.username}
+                title={item.profile.profile_name}
                 onAvatarPress={() => {
                     this.setState({
                         avatarnavmodal: {

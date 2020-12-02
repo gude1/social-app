@@ -16,14 +16,18 @@ const PostCommentScreen = ({ navparent,
     componentId,
     profile,
     muteProfileAction,
-    ownerpostid,
     timelineposts,
     profileimage,
     setProcessing,
+    ownerpost,
+    postcomments,
     setReset,
     postcommentform,
+    makerequest,
     screentype,
     profileactionform,
+    setPostCommentFormOwnerPost,
+    setPostCommentForm,
     fetchPostComment,
     makePostComment,
     loadMorePostComment,
@@ -34,7 +38,6 @@ const PostCommentScreen = ({ navparent,
     hidePostCommentAction,
     deletePostComment
 }) => {
-    let ownerpost = timelineposts.find(item => item.postid == ownerpostid);
     const [loaded, setLoaded] = useState(false);
     const [inputtext, setInputText] = useState('');
     let flatlistref = null;
@@ -47,8 +50,14 @@ const PostCommentScreen = ({ navparent,
     let lefticonpress = navparent == true ? () => setDismissNav() : null;
     let righticon = '';
     let righticonpress = '';
+    /**component functions starts here */
     useEffect(() => {
-        fetchPostComment(ownerpostid);
+        setReset('postcommentform');
+        setPostCommentFormOwnerPost(ownerpost);
+        setPostCommentForm(postcomments || []);
+        if (makerequest != false) {
+            fetchPostComment(ownerpost.postid);
+        }
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
@@ -57,7 +66,6 @@ const PostCommentScreen = ({ navparent,
             },
             componentDidDisappear: () => {
             }
-
         };
 
         // Register the listener to all events related to our component
@@ -65,10 +73,9 @@ const PostCommentScreen = ({ navparent,
         return () => {
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
-            setReset('postcommentform');// set the comments to empty
         };
     }, []);
-    /**component functions starts here */
+
     const setFlatlistRef = (ref) => {
         flatlistref = ref;
     };
@@ -79,7 +86,70 @@ const PostCommentScreen = ({ navparent,
         else
             return Navigation.dismissModal(componentId)
     }
+    function renderView() {
+        if (!loaded) {
+            return (<LoaderScreen
+                loaderIcon={<Icon
+                    type="antdesign"
+                    name="message1"
+                    color={colors.text}
+                    size={responsiveFontSize(10)}
+                />}
+                animationType={'zoomIn'}
+            />);
+        } else if (!checkData(postcommentform.ownerpost) ||
+            !checkData(postcommentform.ownerpost.profile) ||
+            !checkData(postcommentform.ownerpost.profile.user) ||
+            !Array.isArray(postcommentform.postcomments)) {
+            return null;
+        } else {
+            return (
+                <>
+                <PostCommentList
+                    onFetch={fetchPostComment}
+                    fetching={postcommentform.fetching}
+                    userprofile={profile}
+                    setFlatlistRef={setFlatlistRef}
+                    parentpost={postcommentform.ownerpost}
+                    data={postcommentform.postcomments}
+                    updateComment={updatePostCommentForm}
+                    onItemLike={likePostComment}
+                    onLoadMore={loadMorePostComment}
+                    loadingmore={postcommentform.loadmore}
+                    profileschanges={postcommentform.profileschanges}
+                    updatePostCommentProfile={updatePostCommentFormProfileChanges}
+                    onRefresh={refreshPostComment}
+                    onMute={muteProfileAction}
+                    muting={postcommentform.muting}
+                    setProcessing={setProcessing}
+                    refreshing={postcommentform.refreshing}
+                    onHide={hidePostCommentAction}
+                    hiding={postcommentform.hiding}
+                    onDelete={deletePostComment}
+                    deleting={postcommentform.deleting}
+                />
+                <InputBox
+                    placeholder={'Add a comment'}
+                    onChangeText={setInputText}
+                    inputvalue={inputtext}
+                    onSubmit={() => {
+                        //flatlistref.scrollToOffset({ offset: 0, animated: true })
+                        setInputText('');
+                        makePostComment(ownerpost.postid, inputtext);
+                        if (checkData(inputtext)) {
+                            flatlistref.scrollToOffset({ offset: 0 })
+                        }
+                    }}
+                    maxLength={300}
+                    autoFocus={false}
+                    avatar={{ uri: profile.avatar[1] }}
+                />
+                </>
+            );
+        }
+    }
     /**component functions ends here */
+
     return (
 
         <SafeAreaView style={styles.containerStyle} >
@@ -91,58 +161,7 @@ const PostCommentScreen = ({ navparent,
                 headerTextStyle={{ color: colors.text }}
                 headertextsize={responsiveFontSize(2.9)}
             />
-            {
-                loaded == false ? <LoaderScreen
-                    loaderIcon={<Icon
-                        type="antdesign"
-                        name="message1"
-                        color={colors.text}
-                        size={responsiveFontSize(10)}
-                    />}
-                    animationType={'zoomIn'}
-                /> :
-                    <>
-                    <PostCommentList
-                        onFetch={fetchPostComment}
-                        fetching={postcommentform.fetching}
-                        userprofile={profile}
-                        setFlatlistRef={setFlatlistRef}
-                        parentpost={ownerpost}
-                        data={postcommentform.postcomments}
-                        updateComment={updatePostCommentForm}
-                        onItemLike={likePostComment}
-                        onLoadMore={loadMorePostComment}
-                        loadingmore={postcommentform.loadmore}
-                        profileschanges={postcommentform.profileschanges}
-                        updatePostCommentProfile={updatePostCommentFormProfileChanges}
-                        onRefresh={refreshPostComment}
-                        onMute={muteProfileAction}
-                        muting={postcommentform.muting}
-                        setProcessing={setProcessing}
-                        refreshing={postcommentform.refreshing}
-                        onHide={hidePostCommentAction}
-                        hiding={postcommentform.hiding}
-                        onDelete={deletePostComment}
-                        deleting={postcommentform.deleting}
-                    />
-                    <InputBox
-                        placeholder={'Add a comment'}
-                        onChangeText={setInputText}
-                        inputvalue={inputtext}
-                        onSubmit={() => {
-                            //flatlistref.scrollToOffset({ offset: 0, animated: true })
-                            setInputText('');
-                            makePostComment(ownerpost.postid, inputtext);
-                            if (checkData(inputtext)) {
-                                flatlistref.scrollToOffset({ offset: 0 })
-                            }
-                        }}
-                        maxLength={300}
-                        autoFocus={false}
-                        avatar={{ uri: profileimage }}
-                    />
-                    </>
-            }
+            {renderView()}
         </SafeAreaView >
     );
 };
