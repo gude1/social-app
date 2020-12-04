@@ -268,7 +268,8 @@ export default class PostShowList extends Component {
                 name: 'PostComment',
                 passProps: {
                     navparent: true,
-                    ownerpostid: post.postid,
+                    screentype: "modal",
+                    ownerpost: post,
                 },
             }
         });
@@ -345,6 +346,7 @@ export default class PostShowList extends Component {
     };
 
     renderItem = ({ item }) => {
+        let sharemsg = null;
         if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
             return (
                 <PanelMsg
@@ -373,11 +375,33 @@ export default class PostShowList extends Component {
                     message={'You are blocked by postowner'}
                 />
             )
+        } else if (item.profile.user.approved != true || item.profile.user.deleted == true) {
+            return null;
+        }
+
+        if (checkData(item.known_sharers_profile[0])) {
+            sharemsg = item.known_sharers_profile.length > 1 ?
+                `shared by ${item.known_sharers_profile[0].profile_name} and others`
+                : `shared by ${item.known_sharers_profile[0].profile_name}`;
+            sharemsg = <Text onPress={() => Navigation.showModal({
+                component: {
+                    name: 'ViewProfile',
+                    passProps: {
+                        navparent: true,
+                        reqprofile: item.known_sharers_profile[0],
+                        screentype: 'modal'
+                    },
+                }
+            })
+            }>
+                {sharemsg}
+            </Text >
         }
 
         return (<PostItem
             posterusername={item.profile.profile_name}
             posteravatar={item.profile.avatar[1]}
+            sharemsg={sharemsg}
             postimages={this._arrangePostImage(item.post_image)}
             postliked={item.postliked}
             profileid={item.profile.profile_id}

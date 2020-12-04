@@ -40,6 +40,7 @@ const FollowInfoReducer = (state = INITIAL_STATE, action) => {
             let updatedstate = state.list.map(item => {
                 return item.profile.profile_id == action.payload.profile.profile_id ? { ...item, ...action.payload } : item;
             });
+            return { ...state, list: updatedstate };
         case ADD_FOLLOWINFO_URL:
             return { ...state, nexturl: action.payload };
             break;

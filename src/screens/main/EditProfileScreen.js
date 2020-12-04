@@ -518,7 +518,7 @@ const EditProfileScreen = ({ navigation,
                                     placeholder="eg : oou oau"
                                     leftIconContainerStyle={styles.leftIconContainerStyle}
                                     placeholderTextColor={placeholderColor}
-                                    value={campus}
+                                    value={updatedcampus}
                                     onChangeText={(txt) => setUpdateCampus(txt)}
                                     multiline={true}
                                     leftIcon={{

@@ -51,7 +51,6 @@ class PostImageViewPager extends Component {
         });
     }
 
-
     _createPagers = (data, placeholder) => {
         if (checkData(data) != true || data.length < 1 || !Array.isArray(data)) {
             return null;
@@ -178,7 +177,6 @@ export class PostItem extends Component {
         //console.warn('uo');
         return (
             <View style={styles.postListItemContainer}>
-
                 <View style={styles.postListItemTopBar}>
                     <View style={styles.postListItemTopBarItem}>
                         <Avatar size={35} rounded
@@ -281,16 +279,23 @@ export class PostItem extends Component {
                     </View>
 
                 </View>
+                {checkData(this.props.sharemsg) &&
+                    <View style={[styles.postTextContainer, { marginBottom: 0.7 }]}>
+                        <Text style={{ color: colors.iconcolor }}>
+                            {this.props.sharemsg}
+                        </Text>
+                    </View>}
                 {
                     checkData(this.props.posttext) ?
                         <View style={styles.postTextContainer}>
                             <Text style={styles.postText}>
                                 <Text style={{ fontWeight: 'bold' }}>
-                                    {this.props.posterusername}
+                                    {this.props.posterusername}:
                                 </Text> {this.props.posttext}
                             </Text>
                         </View> : null
                 }
+
             </View >
         );
     }
@@ -696,6 +701,7 @@ export default class PostList extends React.Component {
     };
 
     _renderItem = ({ item }) => {
+        let sharemsg = null;
         if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
             return (
                 <PanelMsg
@@ -724,11 +730,33 @@ export default class PostList extends React.Component {
                     message={'You are blocked by postowner'}
                 />
             )
+        } else if (item.profile.user.approved != true || item.profile.user.deleted == true) {
+            return null;
+        }
+
+        if (checkData(item.known_sharers_profile[0])) {
+            sharemsg = item.known_sharers_profile.length > 1 ?
+                `shared by ${item.known_sharers_profile[0].profile_name} and others`
+                : `shared by ${item.known_sharers_profile[0].profile_name}`;
+            sharemsg = <Text onPress={() => Navigation.showModal({
+                component: {
+                    name: 'ViewProfile',
+                    passProps: {
+                        navparent: true,
+                        reqprofile: item.known_sharers_profile[0],
+                        screentype: 'modal'
+                    },
+                }
+            })
+            }>
+                {sharemsg}
+            </Text >
         }
 
         return (<PostItem
             posterusername={item.profile.profile_name}
             posteravatar={item.profile.avatar[1]}
+            sharemsg={sharemsg}
             postimages={this._arrangePostImage(item.post_image)}
             postliked={item.postliked}
             profileid={item.profile.profile_id}
@@ -1093,7 +1121,9 @@ const styles = StyleSheet.create({
         elevation: 3
     },
     postTextContainer: {
-        padding: 5,
+        padding: 0,
+        margin: 0,
+        flex: 1,
         width: postwidth,
         //borderWidth: 1,
         flexDirection: 'row'

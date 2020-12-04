@@ -285,7 +285,10 @@ class ProfileList2 extends React.PureComponent {
                     buttonTitle={'Learn More'}
                 />
             )
+        } else if (item.profile.user.approved != true || item.profile.user.deleted == true) {
+            return null;
         }
+
         return (
             <ProfileList2Item
                 avatar={item.profile.avatar[1]}

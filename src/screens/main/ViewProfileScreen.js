@@ -107,6 +107,15 @@ const TopSection = ({ profile, profileform, isprofileowner, profileActions }) =>
                         resizeMode='contain'
                         size={80}
                         rounded
+                        onPress={() => Navigation.showModal({
+                            component: {
+                                name: 'PhotoViewer',
+                                passProps: {
+                                    navparent: true,
+                                    photos: [profile.avatar[1]]
+                                },
+                            }
+                        })}
                         icon={{ name: 'user', type: 'antdesign', size: 40, color: 'white' }}
                         onAccessoryPress={() => {
                         }}

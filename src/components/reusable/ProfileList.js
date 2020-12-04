@@ -62,6 +62,7 @@ class ProfileListItem extends Component {
     };
     render() {
         const { avatar, username, bio, containerStyle, leftAvatarPress } = this.props;
+        //console.warn(this.props.processfollow)
         return (
             <ListItem
                 leftAvatar={{ source: { uri: avatar }, onPress: leftAvatarPress }}
@@ -286,7 +287,10 @@ export default class ProfileList extends React.PureComponent {
                     buttonTitle={'Learn More'}
                 />
             )
+        } else if (item.profile.user.approved != true || item.profile.user.deleted == true) {
+            return null;
         }
+
         return (
             <ProfileListItem
                 avatar={item.profile.avatar[1]}
@@ -304,6 +308,7 @@ export default class ProfileList extends React.PureComponent {
         );
     }
     render() {
+        // console.warn(this.props.updateItem);
         return (
             <>
             <FlatList

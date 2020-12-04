@@ -84,6 +84,7 @@ const PostShowScreen = ({
             !checkData(toshowpost.profile) ||
             !checkData(toshowpost.profile.user)
         ) {
+            setDismissNav();
             return null;
         }
         let check = timelinepostform.timelineposts.find(item => item.postid == toshowpost.postid);

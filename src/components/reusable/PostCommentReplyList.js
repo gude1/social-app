@@ -446,7 +446,10 @@ export default class PostCommentReplyList extends Component {
                     buttonTitle={'Learn More'}
                 />
             )
+        } else if (item.profile.user.approved != true || item.profile.user.deleted == true) {
+            return null;
         }
+
         return (
             <ListItem
                 time={item.created_at}

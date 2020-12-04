@@ -105,7 +105,7 @@ const PostCommentReplyScreen = ({
             !checkData(postcommentreplyform.ownercomment.profile) ||
             !checkData(postcommentreplyform.ownercomment.profile.user) ||
             !Array.isArray(postcommentreplyform.postcommentreplies)) {
-            return null;
+            setDismissNav();
         } else {
             return (
                 <>

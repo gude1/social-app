@@ -80,9 +80,9 @@ export const setRoute = (store) => {
         //console.warn(profile);
         //console.warn(posts);
     } else if (checkData(profile.campus) == false
+        || checkData(profile.profile_name) == false
         || checkData(profile.bio) == false
-        || checkData(profile.campus) == false
-        || checkData(profile.avatarremote) == false
+        || checkData(profile.avatar) == false
     ) {
         Navigation.setRoot(SETUPPROFILEROUTE);
     } else if (posts == undefined || posts == null
@@ -157,9 +157,9 @@ export const getAppInfo = (data, name) => {
         case 'profile':
             let profile = data;
             if (checkData(profile.campus) == false
+                || checkData(profile.profile_name) == false
                 || checkData(profile.bio) == false
-                || checkData(profile.campus) == false
-                || checkData(profile.avatarremote) == false
+                || checkData(profile.avatar) == false
             ) {
                 return 'profilefalse';
             } else {

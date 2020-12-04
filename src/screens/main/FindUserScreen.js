@@ -207,7 +207,7 @@ const FindUserScreen = ({
                     style={{ flex: 1 }}
                     keyboardDismissMode='none'
                 >
-                    <View key={0}>
+                    <View key={0} style={{ flex: 1 }}>
                         <ProfileList2
                             data={userslist.profileslist}
                             onFetch={fetchProfiles}

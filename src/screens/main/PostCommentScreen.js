@@ -101,7 +101,7 @@ const PostCommentScreen = ({ navparent,
             !checkData(postcommentform.ownerpost.profile) ||
             !checkData(postcommentform.ownerpost.profile.user) ||
             !Array.isArray(postcommentform.postcomments)) {
-            return null;
+            setDismissNav();
         } else {
             return (
                 <>

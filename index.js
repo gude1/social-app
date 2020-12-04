@@ -103,6 +103,7 @@ const setTheDefault = () => {
                 }
             },
             dismissModal: {
+                waitForRender: true,
                 alpha: {
                     from: 1,
                     to: 0,
