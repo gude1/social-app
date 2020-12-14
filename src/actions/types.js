@@ -181,7 +181,12 @@ export const PREPEND_PRIVATECHATLIST = 'prepend_privatachatlist';
 export const ADD_PRIVATECHATLIST = 'add_privatechatlist';
 export const UPDATE_PRIVATECHATLIST = 'update_privatechatlist';
 export const UPDATE_ARRAY_PRIVATECHATLIST = 'update_array_privatechatlist';
+export const ADD_PRIVATECHATLIST_TOSETREADARR = 'add_privatechatlist_tosetreadarr';
+export const REMOVE_PRIVATECHATLIST_TOSETREADARR = 'remove_privatechatlist_tosetreadarr';
 export const DELETE_PRIVATECHATLIST = 'delete_privatechatlist';
+export const PIN_PRIVATECHATLIST = 'pin_privatechatlist';
+export const UNPIN_PRIVATECHATLIST = 'unpin_privatechatlist';
+export const SET_PRIVATE_CHATLIST_NEXTURL = 'set_private_chatlist_nexturl';
 
 /**
  * TYPE CONSTANT FOR FOLLOWINFO REDUCER

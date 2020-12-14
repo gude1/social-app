@@ -1,8 +1,11 @@
-const THEME = 'white';
+const THEME = 'black';
 export const BlackTheme = {
     colors: {
         theme: 'rgb(1, 1, 1)',
         statusbar: '#000',
+        chatbadge: 'seagreen',
+        chatbadgetxt: 'black',
+        chattext: 'silver',
         statusbartext: 'white',
         background: "rgb(1, 1, 1)",
         border: "rgb(39, 39, 41)",
@@ -24,6 +27,8 @@ export const WhiteTheme = {
     colors: {
         theme: 'white',
         statusbar: '#E8E8E8',
+        chatbadge: 'limegreen',
+        chatbadgetxt: 'white',
         statusbartext: 'dark',
         lightgray: '#F8F8F8',
         background: 'rgb(245, 245, 245)',

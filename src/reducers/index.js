@@ -39,7 +39,7 @@ export default combineReducers({
     likeslistform: LikesListFormReducer,
     shareslistform: SharesListFormReducer,
     profileactionform: ProfileActionFormReducer,
-    privatechatlist: persistReducer(PrivateChatListConfig, PrivateChatListReducer),
+    privatechatlistform: persistReducer(PrivateChatListConfig, PrivateChatListReducer),
     followinfo: FollowInfoReducer,
     userslist: UsersListReducer,
     appinfo: AppInfoReducer,

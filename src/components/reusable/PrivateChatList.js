@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { Navigation } from 'react-native-navigation';
 import { Icon, Text, ListItem, Button } from 'react-native-elements';
 import { responsiveHeight, responsiveFontSize } from 'react-native-responsive-dimensions';
 import TouchableScale from 'react-native-touchable-scale';
 import { useTheme } from '../../assets/themes/index';
-import { checkData } from '../../utilities/index';
-import { AvatarNavModal } from './ResuableWidgets';
+import { checkData, cutText } from '../../utilities/index';
+import { AvatarNavModal, ModalList, ActivityOverlay } from './ResuableWidgets';
 
 const { colors } = useTheme();
 class ChatListItem extends Component {
@@ -15,6 +15,12 @@ class ChatListItem extends Component {
         this.state = {};
     }
     shouldComponentUpdate(nextProps, nextState, nextContext) {
+        if (nextProps.item.read != this.props.item.read ||
+            nextProps.item.created_at != this.props.item.created_at ||
+            nextProps.item.num_new_msg != this.props.item.num_new_msg
+        ) {
+            return true;
+        }
         return false;
     }
 
@@ -23,25 +29,37 @@ class ChatListItem extends Component {
         if (userprofile.profile_id != item.sender_profile.profile_id) {
             return null;
         }
+        //console.warn(item.read);
+
         if (item.read == true) {
             return (
-                <Icon
-                    name="check"
-                    type="evilicons"
-                    color={'#2196F3'}
-                    iconStyle={{ marginRight: 2.5, fontWeight: 'bold' }}
-                    size={responsiveFontSize(2)}
-                />
+                <Text style={{
+                    color: "#2196F3",
+                    fontWeight: "bold",
+                    letterSpacing: -1,
+                    fontSize: responsiveFontSize(1.8),
+                    marginRight: 5
+                }}> √√</Text>
+            );//
+        } else if (item.read == "delivered") {
+            return (
+                <Text style={{
+                    color: "#a0a0a0",
+                    fontWeight: "bold",
+                    letterSpacing: -1,
+                    fontSize: responsiveFontSize(1.8),
+                    marginRight: 5
+                }}> √√</Text>
             );
         } else {
             return (
-                <Icon
-                    name="check"
-                    type="evilicons"
-                    color={'#a0a0a0'}
-                    iconStyle={{ marginRight: 2.5, fontWeight: 'bold' }}
-                    size={responsiveFontSize(2)}
-                />
+                <Text style={{
+                    color: "#a0a0a0",
+                    fontWeight: "bold",
+                    letterSpacing: -1,
+                    fontSize: responsiveFontSize(1.8),
+                    marginRight: 5
+                }}> √</Text>
             );
         }
     }
@@ -58,14 +76,19 @@ class ChatListItem extends Component {
                         iconStyle={{ marginRight: 5, color: colors.iconcolor }}
                         size={responsiveFontSize(2.4)}
                     />
-                    <Text style={{ color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>{item.chat_msg}</Text>
+                    <Text
+                        ellipsizeMode={'tail'}
+                        numberOfLines={1}
+                        style={{ color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>{item.chat_msg}</Text>
                 </View>
             );
         } else if (checkData(item.chat_msg)) {
             return (
                 <View style={{ flexDirection: 'row', alignItems: "center", marginTop: 5 }}>
                     {this.renderCheck()}
-                    <Text style={{ color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>
+                    <Text ellipsizeMode={'tail'}
+                        numberOfLines={1}
+                        style={{ flexDirection: "row", color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>
                         {item.chat_msg}
                     </Text>
                 </View>
@@ -95,21 +118,32 @@ class ChatListItem extends Component {
         if (checkData(item.num_new_msg) && item.num_new_msg > 0) {
             return {
                 value: item.num_new_msg,
-                badgeStyle: { backgroundColor: "red", borderWidth: 0, height: 20, borderRadius: 10 },
-                textStyle: { padding: 0, fontSize: responsiveFontSize(1.7) },
+                badgeStyle: { backgroundColor: colors.chatbadge, borderWidth: 0, height: 25, width: 25, borderRadius: 50 },
+                textStyle: { padding: 0, fontSize: responsiveFontSize(1.7), color: colors.chatbadgetxt },
                 containerStyle: { backgroundColor: colors.background, }
             };
         }
         return null;
     };
 
+    rightTitleStyle = () => {
+        const { item } = this.props;
+        if (checkData(item.num_new_msg) && item.num_new_msg > 0)
+            return { fontSize: responsiveFontSize(1.2), color: colors.chatbadge };
+        else
+            return { fontSize: responsiveFontSize(1.2), color: colors.iconcolor };
+    }
+
     render() {
-        const { item, userprofile, leftAvatarPress } = this.props;
+        const { item, userprofile, leftAvatarPress, checkmark, onPress, onLongPress } = this.props;
         let profile = item.sender_profile.profile_id == userprofile.profile_id ?
             item.receiver_profile : item.sender_profile;
         return (
             <ListItem
                 Component={TouchableScale}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                checkmark={checkmark}
                 activeScale={0.8}
                 friction={100}
                 tension={100}
@@ -124,16 +158,17 @@ class ChatListItem extends Component {
                     resizeMode: "contain"
                 }}
                 rightTitle={item.created_at}
-                rightTitleStyle={{ fontSize: 10, color: colors.iconcolor }}
+                rightTitleProps={{ ellipsizeMode: 'tail', numberOfLines: 1 }}
+                rightTitleStyle={this.rightTitleStyle()}
                 contentContainerStyle={styles.listItemContentContainerStyle}
-                title={profile.user.username}
+                title={profile.profile_name}
+                titleProps={{ ellipsizeMode: 'tail', numberOfLines: 1 }}
                 subtitle={this.renderSubTitle()}
                 titleStyle={{ fontWeight: 'bold', color: colors.text }}
             />
         );
     }
 }
-
 
 class PrivateChatList extends Component {
     constructor(props) {
@@ -144,8 +179,12 @@ class PrivateChatList extends Component {
                 avatar: null,
                 profile: null,
                 headername: '',
-            }
+            },
+            modallistvisible: false,
         };
+        this.currentselectedchat = null;
+        this.headerdata = [];
+        this.bodydata = [];
         this.navmodallistitem = [{
             icon: {
                 name: "user",
@@ -214,13 +253,76 @@ class PrivateChatList extends Component {
         });
     };
 
+    _setCurrentSelectedChat = (chat) => {
+        this.currentselectedchat = chat;
+    };
+
+    _setData = () => {
+        let pinnedchatarr = [...this.props.chatlistform.pinnedchatarr];
+        let chatlist = this.props.chatlistform.chatlist;
+        if (pinnedchatarr.length < 1) {
+            return [[], chatlist];
+        }
+        pinnedchatarr = pinnedchatarr.reverse();
+        let headerdata = pinnedchatarr.map(id => {
+            return chatlist.find(item => item.create_chatid == id);
+        });
+        //console.warn(pinnedchatarr);
+        let bodydata = chatlist.filter(item => {
+            return !pinnedchatarr.includes(item.create_chatid);
+        });
+        return [headerdata, bodydata];
+    }
+
     _renderItem = ({ item }) => {
         return (
             <ChatListItem
                 item={item}
                 userprofile={this.props.userprofile}
                 leftAvatarPress={this._setAvatarNavModal}
+                onLongPress={() => {
+                    this._setCurrentSelectedChat(item);
+                    this.setState({ modallistvisible: true });
+                }}
             />
+        );
+    };
+
+    _setListHeaderComponent = () => {
+        if (!Array.isArray(this.headerdata) || this.headerdata.length < 1) {
+            return null;
+        }
+        //console.warn(data[0]);
+        //console.warn('----------------------------------------');
+        //console.warn(data[1]);
+        let pinnedlist = this.headerdata.map((item, index) => {
+            return (
+                <ChatListItem
+                    key={index.toString()}
+                    item={item}
+                    checkmark={{
+                        name: 'thumb-tack',
+                        color: colors.iconcolor,
+                        size: responsiveFontSize(2.2),
+                        type: "font-awesome"
+                    }}
+                    userprofile={this.props.userprofile}
+                    leftAvatarPress={this._setAvatarNavModal}
+                    onLongPress={() => {
+                        this._setCurrentSelectedChat(item);
+                        this.setState({ modallistvisible: true });
+                    }}
+                />
+            );
+        });
+        return (
+            <ScrollView showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flex: 1 }}
+                keyboardShouldPersistTaps='always'
+                keyboardDismissMode={'on-drag'}
+            >
+                {pinnedlist}
+            </ScrollView>
         );
     };
 
@@ -235,7 +337,7 @@ class PrivateChatList extends Component {
                         textAlign: "center",
                         fontWeight: "bold", fontSize: responsiveFontSize(3)
                     }}>
-                        Oops!, something went wrong
+                        chat not fetched,something went wrong
                         </Text>
                     <Button
                         type="outline"
@@ -300,6 +402,58 @@ class PrivateChatList extends Component {
         );
     };
 
+    _rPinned = () => {
+        if (!checkData(this.currentselectedchat)) {
+            return [{
+                title: "Pin chat",
+                onPress: () => {
+                    this.setState({ modallistvisible: false });
+                    this.props.pinPrivateChatList(this.currentselectedchat.create_chatid);
+                },
+                icon: {
+                    name: 'thumb-tack',
+                    color: colors.text,
+                    size: responsiveFontSize(3),
+                    type: "font-awesome"
+                }
+            }
+            ];
+        }
+        let check = this.headerdata.find(
+            item => item.create_chatid == this.currentselectedchat.create_chatid
+        );
+        if (!checkData(check)) {
+            return [{
+                title: "Pin chat",
+                onPress: () => {
+                    this.setState({ modallistvisible: false });
+                    this.props.pinPrivateChatList(this.currentselectedchat.create_chatid);
+                },
+                icon: {
+                    name: 'thumb-tack',
+                    color: colors.text,
+                    size: responsiveFontSize(3),
+                    type: "font-awesome"
+                }
+            }
+            ];
+        } else {
+            return [{
+                title: "UnPin chat",
+                onPress: () => {
+                    this.setState({ modallistvisible: false });
+                    this.props.unPinPrivateChatList(this.currentselectedchat.create_chatid);
+                },
+                icon: {
+                    name: 'thumb-tack',
+                    color: colors.text,
+                    size: responsiveFontSize(3),
+                    type: "font-awesome"
+                }
+            }
+            ];
+        }
+    };
     _setFlatlistFooter = () => {
         if (this.props.chatlistform.chatlist.length < 1) {
             return null;
@@ -319,6 +473,9 @@ class PrivateChatList extends Component {
             return (
                 <Button
                     type="clear"
+                    onPress={() => {
+                        this.props.fetchMoreList();
+                    }}
                     icon={{
                         name: 'sync',
                         type: "antdesign",
@@ -336,11 +493,13 @@ class PrivateChatList extends Component {
                     }}
                 />
             );
-        };
+        } else if (this.props.chatlistform.loadingmore == 'done') {
+            return null;
+        }
         return (
             <Button
                 onPress={() => {
-
+                    this.props.fetchMoreList();
                 }}
                 type="clear"
                 icon={{
@@ -362,23 +521,68 @@ class PrivateChatList extends Component {
     };
 
     render() {
+        let pinneddata = this._setData();
+        this.headerdata = pinneddata[0];
+        this.bodydata = pinneddata[1];
+        let emptyplaceholder = !checkData(this.headerdata) ?
+            <View style={styles.listEmptyStyle}>
+                {this._setEmptyPlaceHolder()}
+            </View> : null;
+
         return (
             <>
             <FlatList
-                data={this.props.chatlistform.chatlist}
+                data={this.bodydata}
                 renderItem={this._renderItem}
                 //extraData={this.props.chatlistform.chatlist}
                 initialNumRender={10}
                 getItemLayout={this._getItemLayout}
                 keyExtractor={this._keyExtractor}
-                ListEmptyComponent={
-                    <View style={styles.listEmptyStyle}>
-                        {this._setEmptyPlaceHolder()}
-                    </View>
-                }
+                ListEmptyComponent={emptyplaceholder}
+                ListHeaderComponent={this._setListHeaderComponent()}
                 keyboardShouldPersistTaps='always'
                 keyboardDismissMode={'on-drag'}
                 ListFooterComponent={this._setFlatlistFooter()}
+            />
+
+            <ModalList
+                isVisible={this.state.modallistvisible}
+                onBackdropPress={() => this.setState({ modallistvisible: false })}
+                optionsArr={[{
+                    title: "Delete Chat",
+                    onPress: () => {
+                        this.setState({ modallistvisible: false });
+                        let item = this.currentselectedchat;
+                        let profile = this.props.userprofile.profile_id == item.sender_profile.profile_id ?
+                            item.receiver_profile : item.sender_profile;
+                        Alert.alert(
+                            `Delete Chat between ${profile.profile_name} and you?`,
+                            null,
+                            [
+                                {
+                                    text: "Yes",
+                                    onPress: () => this.props.deletePrivateChatList(item),
+                                },
+                                {
+                                    text: "No",
+                                    style: "cancel"
+                                },
+                            ]
+                        );
+                    },
+                    icon: {
+                        name: 'close-o',
+                        color: colors.text,
+                        size: responsiveFontSize(3),
+                        type: "evilicon"
+                    }
+                },
+                ...this._rPinned(),
+                ]}
+            />
+            <ActivityOverlay
+                isVisible={this.props.chatlistform.deleting}
+                text={'Deleting Chat'}
             />
 
             <AvatarNavModal

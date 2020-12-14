@@ -18,7 +18,7 @@ import PhotoViewerScreen from './src/screens/main/PhotoViewerScreen';
 import RouterScreen from './src/screens/RouterScreen';
 import HomeScreen from './src/screens/main/HomeScreen';
 import GistScreen from './src/screens/main/GistScreen';
-import PrivateChatScreen from './src/screens/main/PrivateChatScreen';
+import PrivateChatListScreen from './src/screens/main/PrivateChatListScreen';
 import ViewProfileScreen from './src/screens/main/ViewProfileScreen';
 import ExploreScreen from './src/screens/main/ExploreScreen';
 import PostCommentScreen from './src/screens/main/PostCommentScreen';
@@ -50,7 +50,7 @@ const setTheDefault = () => {
         },
         content: {
             background: {
-                color: colors.theme
+                color: colors.background
             }
         },
         bottomTab: {
@@ -129,9 +129,9 @@ Navigation.events().registerAppLaunchedListener(async () => {
         );
         Navigation.registerComponent('Chat', () => (props) =>
             <Provider store={store}>
-                <PrivateChatScreen {...props} />
+                <PrivateChatListScreen {...props} />
             </Provider>,
-            () => PrivateChatScreen
+            () => PrivateChatListScreen
         );
         Navigation.registerComponent('Signup', () => (props) =>
             <Provider store={store}>

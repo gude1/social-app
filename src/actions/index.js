@@ -114,6 +114,11 @@ import {
     UPDATE_POST_COMMENT_FORM_OWNER_POST,
     UPDATE_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
     SET_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
+    ADD_PRIVATECHATLIST_TOSETREADARR,
+    REMOVE_PRIVATECHATLIST_TOSETREADARR,
+    SET_PRIVATE_CHATLIST_NEXTURL,
+    PIN_PRIVATECHATLIST,
+    UNPIN_PRIVATECHATLIST,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -3623,6 +3628,27 @@ export const deletePrivateChatList = (data: String) => {
     };
 };
 
+export const addPrivateChatListReadArr = (data: Array) => {
+    return {
+        type: ADD_PRIVATECHATLIST_TOSETREADARR,
+        payload: data
+    };
+};
+
+export const setPrivateChatListNextUrl = (data: String) => {
+    return {
+        type: SET_PRIVATE_CHATLIST_NEXTURL,
+        payload: data,
+    };
+};
+
+export const removePrivateChatListReadArr = (data: Array) => {
+    return {
+        type: REMOVE_PRIVATECHATLIST_TOSETREADARR,
+        payload: data
+    };
+};
+
 export const fetchPrivateChatList = () => {
     return async (dispatch) => {
         const { user } = store.getState();
@@ -3632,18 +3658,15 @@ export const fetchPrivateChatList = () => {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
             const response = await session.post('privatechatlist', null, options);
-            const { status, next_url, chatlist, errmsg, each_related_chat_arr } = response.data;
+            const { status, chatlist, errmsg, each_related_chat_arr } = response.data;
             //console.warn(response.data.chatlist);
             //console.warn(response.data.chatlist.length)
             switch (status) {
                 case 200:
-                    dispatch(setProcessing(false, 'privatechatlistloading'));
                     chatlist.forEach(item => {
-                        setTimeout(() => {
-                            //console.warn(dispatch);
-                            dispatch(updatePrivateChatList(item));
-                        }, 1500);
+                        dispatch(updatePrivateChatList(item));
                     });
+                    dispatch(setProcessing(false, 'privatechatlistloading'));
                     break;
                 case 404:
                     dispatch(setProcessing(false, 'privatechatlistloading'));
@@ -3661,7 +3684,7 @@ export const fetchPrivateChatList = () => {
         } catch (err) {
             dispatch(setProcessing('retry', 'privatechatlistloading'));
             //console.warn(err.toString());
-            if (err.toString().indexOf('Network Error') != -1) {
+            /*if (err.toString().indexOf('Network Error') != -1) {
                 Toast(
                     'Nework error!',
                     ToastAndroid.LONG,
@@ -3669,8 +3692,168 @@ export const fetchPrivateChatList = () => {
                 );
             } else {
                 Toast('something went wrong chatlist could not be fetched', ToastAndroid.LONG, ToastAndroid.CENTER);
+            }*/
+        }
+    };
+};
+
+export const fetchPreviousChatList = () => {
+    return async (dispatch) => {
+        const { user, privatechatlistform } = store.getState();
+        if (privatechatlistform.chatlist.length < 1 || privatechatlistform.loadingmore == "done") {
+            return;
+        }
+        dispatch(setProcessing(true, 'privatechatlistloadingmore'));
+        let chat_list = privatechatlistform.chatlist;
+        let lastchat = chat_list[chat_list.length - 1];
+        let blacklist = chat_list.map(item => item.create_chatid);
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+
+            const response = await session.post('privatechatlist', {
+                limiter: lastchat.id,
+                black_list: blacklist
+            }, options);
+            const { status, chatlist, errmsg, each_related_chat_arr } = response.data;
+            switch (status) {
+                case 200:
+                    chatlist.forEach(item => {
+                        dispatch(updatePrivateChatList(item));
+                    });
+                    dispatch(setProcessing(false, 'privatechatlistloadingmore'));
+                    break;
+                case 404:
+                    dispatch(setProcessing('done', 'privatechatlistloadingmore'));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false, 'privatechatlistloadingmore'));
+                    logOut(() => persistor.purge());
+                    break;
+                default:
+                    dispatch(setProcessing('failed', 'privatechatlistloadingmore'));
+                    Toast('something went wrong chatlist could not be fetched', ToastAndroid.LONG, ToastAndroid.CENTER);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing('retry', 'privatechatlistloadingmore'));
+            console.warn(err.toString());
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast(
+                    'Nework error!',
+                    ToastAndroid.LONG,
+                    ToastAndroid.CENTER
+                );
             }
         }
+    };
+}
+
+export const pinPrivateChatList = (create_chatid) => {
+    return async (dispatch) => {
+        try {
+            const { privatechatlistform } = store.getState();
+            if (!checkData(create_chatid)) {
+                Toast('chat not pinned, missing values');
+                return;
+            } else if (!privatechatlistform.chatlist.find(item => item.create_chatid == create_chatid)) {
+                Toast('chat to pin not found')
+                return;
+            } else if (privatechatlistform.pinnedchatarr.length >= 3) {
+                Toast('A max of 3 chats can be pinned');
+                return;
+            } else if (privatechatlistform.pinnedchatarr.includes(create_chatid)) {
+                Toast('chat already pinned');
+                return;
+            } else {
+                dispatch({
+                    type: PIN_PRIVATECHATLIST,
+                    payload: create_chatid
+                });
+            }
+        } catch (err) {
+            console.warn(err.toString());
+        }
+
+    };
+};
+
+export const unPinPrivateChatList = (create_chatid) => {
+    return async (dispatch) => {
+        try {
+            const { privatechatlistform } = store.getState();
+            if (!checkData(create_chatid)) {
+                Toast('Failed to unpin, missing values');
+                return;
+            }
+            dispatch({
+                type: UNPIN_PRIVATECHATLIST,
+                payload: create_chatid
+            });
+        } catch (err) {
+            console.warn(err.toString());
+        }
+
+    };
+};
+
+
+export const delPrivateChatList = (chat) => {
+    return async (dispatch) => {
+        const { user, privatechatlistform } = store.getState();
+        if (!checkData(chat)) {
+            Toast('cannot delete chat incomplete request');
+            return;
+        }
+        dispatch(setProcessing(true, 'privatechatlistdeleting'));
+        try {
+
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('deleteprivatechat', {
+                create_chatid: chat.create_chatid,
+                limit_id: chat.id
+            }, options);
+            const { status, errmsg, message } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(deletePrivateChatList(chat.create_chatid));
+                    dispatch(setProcessing(false, 'privatechatlistdeleting'));
+                    break;
+                case 500:
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    dispatch(setProcessing(false, 'privatechatlistdeleting'));
+                    break;
+                case 400:
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    dispatch(setProcessing(false, 'privatechatlistdeleting'));
+                    break;
+                default:
+                    Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+                    dispatch(setProcessing(false, 'privatechatlistdeleting'));
+                    break;
+            }
+
+        } catch (err) {
+            console.warn(err);
+            dispatch(setProcessing(false, 'privatechatlistdeleting'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast(
+                    'chat not deleted please check your network',
+                    null,
+                    ToastAndroid.CENTER
+                );
+            } else {
+                Toast(
+                    'chat not deleted something went wrong please try again',
+                    null,
+                    ToastAndroid.CENTER
+                );
+            }
+        }
+
     };
 };
 

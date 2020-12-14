@@ -1,3 +1,5 @@
+√√
+
  <Animatable.View
                                     animation="pulse"
                                     iterationCount="infinite"

@@ -70,6 +70,11 @@ const HomeScreen = ({ componentId,
                     icon: e,
                 }
             }));
+        Navigation.mergeOptions('POST_HOME_SCREEN', {
+            bottomTabs: {
+                visible: true
+            }
+        });
         const listener = {
             componentDidAppear: () => {
                 Navigation.mergeOptions('POST_HOME_SCREEN', {

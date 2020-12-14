@@ -481,7 +481,11 @@ const ViewProfileScreen = ({
                     screenshown = true;
                     handleFecthViewProfile();
                 }
-
+                Navigation.mergeOptions(componentId, {
+                    bottomTabs: {
+                        visible: true,
+                    }
+                });
             },
             componentDidDisappear: () => {
                 //setHideParallax(false);

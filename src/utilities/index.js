@@ -183,7 +183,7 @@ export const getAppInfo = (data, name) => {
 }
 
 //function to determine if data has valid values
-export const checkData = (data) => {
+export function checkData(data) {
     if ((data != null && data != undefined && data != '') || data == '0') {
         return true;
     }
@@ -207,6 +207,20 @@ export const toNav = (navigator, componentId, componentName, props) => {
             },
         }
     })
+};
+
+export const cutText = (data, start, len, elipsis) => {
+    start = start || 0;
+    elipsis = elipsis || false;
+    if (!checkData(data) || !checkData(len) || len <= 0) {
+        return data;
+    }
+    if (data.length > len) {
+        data = data.substr(start, len);
+        return elipsis == true ? data + "..." : data;
+    } else {
+        return data;
+    }
 };
 
 export const getImageSize = async (uri) => {
