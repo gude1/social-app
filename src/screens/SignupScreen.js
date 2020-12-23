@@ -54,7 +54,6 @@ const SignupScreen = ({
     /**
      * functions
      */
-
     useEffect(() => {
         const listener = {
             componentDidAppear: () => {
@@ -85,7 +84,6 @@ const SignupScreen = ({
     /**
      * functions
      */
-
     return (
         <SafeAreaView style={[screenstyle.containerStyle, { backgroundColor: colors.background }]} >
             <AuthForm

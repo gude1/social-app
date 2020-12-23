@@ -28,9 +28,11 @@ const persistConfig = {
         'profileactionform',
         'userviewprofileform',
         'othersviewprofileform',
-        'privatechatlist',
+        'privatechatlistform',
         'followinfo',
-        'userslist'
+        'userslist',
+        'offlineactionslist',
+        'network'
     ]
 };
 

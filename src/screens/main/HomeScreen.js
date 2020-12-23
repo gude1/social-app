@@ -14,6 +14,8 @@ import * as actions from '../../actions';
 import OnlineList from '../../components/reusable/OnlineList';
 import * as Animatable from 'react-native-animatable';
 import PostList from '../../components/reusable/PostList';
+import OfflineActions from '../../components/reusable/OfflineActions';
+
 const { colors } = useTheme();
 /*const getConstants = async () => {
     return { statusBarHeight, topBarHeight, bottomTabsHeight } = await Navigation.constants();
@@ -138,6 +140,7 @@ const HomeScreen = ({ componentId,
                 righticon={righticon}
                 righticon2={righticon2}
             />
+            <OfflineActions />
             {
                 loaded == false ? <LoaderScreen
                     animationOff={true}

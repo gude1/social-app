@@ -4,7 +4,7 @@
 
 import { Navigation } from 'react-native-navigation';
 //import { gestureHandlerRootHOC } from 'react-native-gesture-handler'
-import React from 'react'
+import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { store, persistor } from './src/store';
 import { persistStore } from 'redux-persist';
@@ -34,6 +34,7 @@ import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
 import { setRoute } from './src/utilities';
 import { getGalleryPhotos } from './src/actions/index';
+import { ReduxNetworkProvider } from 'react-native-offline';
 
 const { colors } = useTheme();
 const setTheDefault = () => {
@@ -117,7 +118,12 @@ Navigation.events().registerAppLaunchedListener(async () => {
     persistStore(store, null, () => {
         Navigation.registerComponent('Home', () => (props) =>
             <Provider store={store}>
-                <HomeScreen {...props} />
+                <ReduxNetworkProvider
+                    pingServerUrl={'http://127.0.0.1:8000/'}
+                    pingInterval={3000}
+                >
+                    <HomeScreen {...props} />
+                </ReduxNetworkProvider>
             </Provider>,
             () => HomeScreen
         );

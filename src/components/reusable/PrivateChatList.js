@@ -402,6 +402,10 @@ class PrivateChatList extends Component {
         );
     };
 
+    _renderTxtHeader = () => {
+
+    };
+
     _rPinned = () => {
         if (!checkData(this.currentselectedchat)) {
             return [{

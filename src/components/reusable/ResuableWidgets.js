@@ -1,6 +1,5 @@
 import React, { Component, useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Modal } from 'react-native';
-import { ViewPager } from '@shankarmorwal/rn-viewpager';
 import * as Animatable from 'react-native-animatable';
 import { useTheme } from '../../assets/themes';
 import { Icon, Avatar, Overlay, Image, Input, Button } from 'react-native-elements';
@@ -10,6 +9,7 @@ import Toast, { DURATION } from 'react-native-easy-toast';
 import { ActivityIndicator } from 'react-native';
 import TouchableScale from 'react-native-touchable-scale';
 import { Navigation } from 'react-native-navigation';
+import { ViewPager } from './viewpager/index';
 
 const { colors } = useTheme();
 export class Header extends React.PureComponent {

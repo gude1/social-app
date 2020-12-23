@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, ActivityIndicator, Text, View } from 'react-native';
-import { Icon } from 'react-native-elements';
+import { Icon, Button } from 'react-native-elements';
 import { Header } from '../../components/reusable/ResuableWidgets';
 import { LoaderScreen } from '../../components/reusable/ResuableWidgets';
 import { useTheme } from '../../assets/themes';
@@ -16,6 +16,9 @@ const { colors } = useTheme();
 const PrivateChatListScreen = ({
     componentId,
     privatechatlistform,
+    test1,
+    addOfflineAction,
+    offlineactions,
     //setProcessing,
     fetchPrivateChatList,
     fetchPreviousChatList,
@@ -59,7 +62,7 @@ const PrivateChatListScreen = ({
         if (privatechatlistform.chatlist.length < 1 && privatechatlistform.persistedchatlist.length > 0) {
             addPrivateChatList(privatechatlistform.persistedchatlist);
         }
-        fetchPrivateChatList();
+        //fetchPrivateChatList();
         const listener = {
             componentDidAppear: () => {
                 setLoaded(true);
@@ -68,11 +71,15 @@ const PrivateChatListScreen = ({
                         visible: true,
                     }
                 });
+
+                //console.warn(privatechatlistform);
+
             },
             componentDidDisappear: () => {
             }
 
         };
+
         // Register the listener to all events related to our component
         const unsubscribe = Navigation.events().bindComponent(listener, componentId);
         return () => {
@@ -119,8 +126,8 @@ const PrivateChatListScreen = ({
             );
         }
     }
-
     /**compoent function ends here */
+    console.warn(offlineactions);
     return (
         <SafeAreaView style={styles.containerStyle}>
             <Header
@@ -132,6 +139,18 @@ const PrivateChatListScreen = ({
                 righticon={righticon}
                 rightIconPress={righticonpress}
                 righticon2={righticon2}
+            />
+            <Button
+                title="Press"
+                onPress={() => {
+                    addOfflineAction({
+                        id: 'setchatlistreadarr1344',
+                        funcName: 'test1',
+                        param: [],
+                        override: true,
+                        persist: true,
+                    })
+                }}
             />
             {renderView()}
         </SafeAreaView>
@@ -154,6 +173,7 @@ PrivateChatListScreen.options = {
 const mapStateToProps = (state) => ({
     profile: state.profile,
     privatechatlistform: state.privatechatlistform,
+    offlineactions: state.offlineactionslist
 });
 const styles = StyleSheet.create({
     containerStyle: {

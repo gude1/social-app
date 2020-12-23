@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 import { Text } from 'react-native-elements';
+import * as actions from '../../actions';
+import { connect } from 'react-redux';
 import { useTheme } from '../../assets/themes'
 import Icon from 'react-native-vector-icons/Entypo';
 import { Navigation } from 'react-native-navigation';
-
+import asyncStorage from '@react-native-community/async-storage';
+import { store } from '../../store/index';
 const { colors } = useTheme();
 
-const GistScreen = ({ componentId }) => {
+const GistScreen = ({ componentId, fetchPrivateChatList, setTimelinePostRefresh, offlineactions, connected }) => {
     const [loaded, setLoaded] = useState(false);
     /**compoent function goes here */
     useEffect(() => {
@@ -18,8 +21,9 @@ const GistScreen = ({ componentId }) => {
                 }
             }));
         setLoaded(true);
+
     }, []);
-    /**compoent function ends here */
+    /**component function ends here */
     return (
         <SafeAreaView style={styles.containerStyle}>
             {loaded == false ? <ActivityIndicator size="large" color="#2196F3" /> :
@@ -43,6 +47,10 @@ GistScreen.options = {
 
 };
 
+const mapStateToProps = state => ({
+    connected: state.network.isConnected,
+    offlineactions: state.offlineactions,
+});
 
 const styles = StyleSheet.create({
     containerStyle: {
@@ -53,4 +61,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default GistScreen;
+export default connect(mapStateToProps, actions)(GistScreen);

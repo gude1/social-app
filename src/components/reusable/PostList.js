@@ -5,12 +5,13 @@ import { useTheme } from '../../assets/themes/index';
 import { responsiveWidth, responsiveFontSize, responsiveHeight } from 'react-native-responsive-dimensions';
 import { Icon, Avatar, Image, Overlay, Button } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
-import { ViewPager, IndicatorViewPager, PagerDotIndicator } from '@shankarmorwal/rn-viewpager';
+//import { ViewPager, IndicatorViewPager, PagerDotIndicator } from '';
 import * as  Animatable from 'react-native-animatable';
 import { checkData, toHumanReadableTime } from '../../utilities/index';
 import { Navigation } from 'react-native-navigation';
 import { store } from '../../store/index';
 import TouchableScale from 'react-native-touchable-scale';
+import { ViewPager, IndicatorViewPager, PagerDotIndicator } from './viewpager';
 
 
 const { colors } = useTheme();

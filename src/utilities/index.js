@@ -3,7 +3,7 @@ import { Platform, Image, ToastAndroid } from 'react-native';
 import { Navigation } from 'react-native-navigation';
 import { AUTHROUTE, SETUPPROFILEROUTE, SETUPPOSTROUTE, MAINTABSROUTE } from '../routes';
 import ImageResizer from 'react-native-image-resizer';
-
+import { persistor } from '../store/index';
 export const deleteFile = (data) => {
     if (data != null && data != '' && data != undefined) {
         RNFetchBlob.fs.unlink(data)
@@ -46,6 +46,7 @@ export const Toast = (message: String, duration: Number, gravity: Number) => {
 
 export const logOut = (after) => {
     alert('Session expired! you are required to login');
+    persistor.purge();
     Navigation.setRoot({
         root: {
             stack: {
@@ -59,7 +60,6 @@ export const logOut = (after) => {
             }
         }
     });
-    after();
 };
 
 

@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import { Navigation } from 'react-native-navigation';
 import { responsiveHeight, responsiveFontSize } from 'react-native-responsive-dimensions';
-import { ViewPager } from '@shankarmorwal/rn-viewpager';
+import { ViewPager } from '../../components/reusable/viewpager';
 import ProfileList2 from '../../components/reusable/ProfileList2';
 
 

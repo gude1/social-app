@@ -14,6 +14,7 @@ import {
 } from '../actions/types';
 import AsyncStorage from '@react-native-community/async-storage';
 import { checkData } from '../utilities/index';
+import { store } from '../store/index';
 
 const INITIAL_STATE = {
     chatlist: [],
@@ -45,7 +46,6 @@ const arrayReduce = (data) => {
     }
     return data;
 };
-
 const handleProcessing = (key, value, state) => {
     if (checkData(key) != true || checkData(state) != true || checkData(value) != true) {
         return state;
@@ -107,7 +107,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
             return { ...state, tosetreadarr: [...state.tosetreadarr, ...action.payload] };
             break;
         case REMOVE_PRIVATECHATLIST_TOSETREADARR:
-            reducerdata = state.tosetreadarr.filter(item => !action.payload.contains(item));
+            reducerdata = state.tosetreadarr.filter(item => !action.payload.includes(item));
             return { ...state, tosetreadarr: reducerdata };
             break;
         case PIN_PRIVATECHATLIST:

@@ -21,6 +21,9 @@ import OthersViewProfileReducer from './OthersViewProfileReducer';
 import PrivateChatListReducer, { PrivateChatListConfig } from './PrivateChatListReducer';
 import FollowInfoReducer from './FollowInfoReducer';
 import UsersListReducer from './UsersListReducer';
+import { reducer as network } from 'react-native-offline';
+import OfflineActionsReducer, { offlineActionsListConfig } from './OfflineActionsReducer';
+
 
 export default combineReducers({
     user: userReducer,
@@ -44,4 +47,6 @@ export default combineReducers({
     userslist: UsersListReducer,
     appinfo: AppInfoReducer,
     photogalleryform: PhotoGalleryReducer,
+    offlineactionslist: persistReducer(offlineActionsListConfig, OfflineActionsReducer),
+    network
 });

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, SafeAreaView, View, ToastAndroid } from 'react-native';
 import { Text, Image, Icon } from 'react-native-elements';
-import { ViewPager } from '@shankarmorwal/rn-viewpager';
 import { checkData } from '../../../utilities';
 import { Header } from '../../reusable/ResuableWidgets';
 import {
@@ -9,6 +8,7 @@ import {
     responsiveWidth,
     responsiveFontSize
 } from "react-native-responsive-dimensions";
+import { ViewPager } from '../viewpager/index';
 
 class ViewerImage extends Component {
     shouldComponentUpdate(nextProps) {

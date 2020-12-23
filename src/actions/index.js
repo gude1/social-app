@@ -119,6 +119,9 @@ import {
     SET_PRIVATE_CHATLIST_NEXTURL,
     PIN_PRIVATECHATLIST,
     UNPIN_PRIVATECHATLIST,
+    ADD_OFFLINE_ACTION,
+    DELETE_OFFLINE_ACTION,
+    DELETE_OFFLINE_ACTIONS,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -288,8 +291,6 @@ export const signUp = ({ email, username, name, phone, password, Navigation, com
         }
     };
 };
-
-
 
 export const logIn = ({ email, password, Navigation, componentId }) => {
 
@@ -3651,7 +3652,8 @@ export const removePrivateChatListReadArr = (data: Array) => {
 
 export const fetchPrivateChatList = () => {
     return async (dispatch) => {
-        const { user } = store.getState();
+        const { user } = availablestore;
+        //console.log('GOT HERE', 'yeso')
         dispatch(setProcessing(true, 'privatechatlistloading'));
         try {
             const options = {
@@ -3675,27 +3677,41 @@ export const fetchPrivateChatList = () => {
                     dispatch(setProcessing(false, 'privatechatlistloading'));
                     logOut(() => persistor.purge());
                     break;
+                case 500:
+                    dispatch(addOfflineAction({
+                        id: 'fetchpchatlist8383',
+                        funcName: 'fetchPrivateChatList',
+                        param: null,
+                        override: true,
+                        persist: true,
+                    }));
+                    break;
                 default:
-                    dispatch(setProcessing('failed', 'privatechatlistloading'));
+                    dispatch(setProcessing(false, 'privatechatlistloading'));
                     Toast('something went wrong chatlist could not be fetched', ToastAndroid.LONG, ToastAndroid.CENTER);
                     break;
             }
 
         } catch (err) {
             dispatch(setProcessing('retry', 'privatechatlistloading'));
-            //console.warn(err.toString());
-            /*if (err.toString().indexOf('Network Error') != -1) {
-                Toast(
-                    'Nework error!',
-                    ToastAndroid.LONG,
-                    ToastAndroid.CENTER
-                );
-            } else {
-                Toast('something went wrong chatlist could not be fetched', ToastAndroid.LONG, ToastAndroid.CENTER);
-            }*/
+            console.warn('dispatch list')
+            dispatch(addOfflineAction({
+                id: 'fetchpchatlist8383',
+                funcName: 'fetchPrivateChatList',
+                param: null,
+                override: true,
+                persist: true,
+            }));
         }
     };
 };
+
+export const test1 = () => {
+    return async () => {
+        const { user } = store.getState();
+        console.warn(user);
+    }
+}
 
 export const fetchPreviousChatList = () => {
     return async (dispatch) => {
@@ -3738,7 +3754,6 @@ export const fetchPreviousChatList = () => {
             }
         } catch (err) {
             dispatch(setProcessing('retry', 'privatechatlistloadingmore'));
-            console.warn(err.toString());
             if (err.toString().indexOf('Network Error') != -1) {
                 Toast(
                     'Nework error!',
@@ -3749,6 +3764,7 @@ export const fetchPreviousChatList = () => {
         }
     };
 }
+
 
 export const pinPrivateChatList = (create_chatid) => {
     return async (dispatch) => {
@@ -3798,6 +3814,60 @@ export const unPinPrivateChatList = (create_chatid) => {
     };
 };
 
+export const setChatListArrayRead = (data) => {
+    return async (dispatch) => {
+        const { user, privatechatlistform } = store.getState();
+        let tosetreadarr = privatechatlistform.tosetreadarr || [];
+        let onSuccess = null;
+        let onFail = null;
+        if (Array.isArray(data)) {
+            onSuccess = data[0];
+            onFail = data[1];
+        }
+        if (!checkData(tosetreadarr) || tosetreadarr.length < 1) {
+            return;
+        }
+
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('setprivatechatarrread', {
+                chat_arr: tosetreadarr
+            }, options);
+            const { status, message, set_to_read_arr, errmsg } = response.data;
+            switch (status) {
+                case 200:
+                    checkData(onSuccess) && onSuccess();
+                    break;
+                case 401:
+                    break;
+                case 500:
+                    checkData(onFail) && onFail();
+                    dispatch(addOfflineAction({
+                        id: 'setchatlistreadarr1344',
+                        funcName: 'setChatListArrayRead',
+                        param: data,
+                        override: true,
+                        persist: true,
+                    }))
+                    break;
+                default:
+                    checkData(onFail) && onFail();
+                    break;
+            }
+        } catch (err) {
+            checkData(onFail) && onFail();
+            dispatch(addOfflineAction({
+                id: 'setchatlistreadarr1344',
+                funcName: 'setChatListArrayRead',
+                param: data,
+                override: true,
+                persist: true,
+            }));
+        }
+    };
+};
 
 export const delPrivateChatList = (chat) => {
     return async (dispatch) => {
@@ -4512,6 +4582,30 @@ export const bookMark = (data: Object, key: String) => {
     }
 };
 
+/**
+ * ACTION CREATOR FOR OFFLINEACTIONS REDUCER
+ * 
+ */
+export const addOfflineAction = (data: Object) => {
+    return {
+        type: ADD_OFFLINE_ACTION,
+        payload: data,
+    };
+};
+
+export const deleteOfflineAction = (data: Object) => {
+    return {
+        type: DELETE_OFFLINE_ACTION,
+        payload: data,
+    };
+};
+
+export const deleteOfflineActions = (data: Array) => {
+    return {
+        type: DELETE_OFFLINE_ACTIONS,
+        payload: data
+    };
+};
 
 /**
  * ACTION CREATOR FOR PHOTO GALLERY REDUCER

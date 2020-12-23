@@ -189,6 +189,15 @@ export const UNPIN_PRIVATECHATLIST = 'unpin_privatechatlist';
 export const SET_PRIVATE_CHATLIST_NEXTURL = 'set_private_chatlist_nexturl';
 
 /**
+ * TYPE CONSTANT FOR OFFLINEACTIONS REDUCER
+ */
+export const ADD_OFFLINE_ACTION = 'add_offline_action';
+export const DELETE_OFFLINE_ACTION = 'delete_offline_action';
+export const DELETE_OFFLINE_ACTIONS = 'delete_offline_actions';
+
+
+
+/**
  * TYPE CONSTANT FOR FOLLOWINFO REDUCER
  */
 export const ADD_FOLLOWINFO_LIST = 'add_followinfo_list';
