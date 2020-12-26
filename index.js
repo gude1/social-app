@@ -35,7 +35,6 @@ import { useTheme } from './src/assets/themes/index';
 import { setRoute } from './src/utilities';
 import { getGalleryPhotos } from './src/actions/index';
 import { ReduxNetworkProvider } from 'react-native-offline';
-
 const { colors } = useTheme();
 const setTheDefault = () => {
     Navigation.setDefaultOptions({
@@ -120,7 +119,7 @@ Navigation.events().registerAppLaunchedListener(async () => {
             <Provider store={store}>
                 <ReduxNetworkProvider
                     pingServerUrl={'http://127.0.0.1:8000/'}
-                    pingInterval={3000}
+                    pingInterval={5000}
                 >
                     <HomeScreen {...props} />
                 </ReduxNetworkProvider>

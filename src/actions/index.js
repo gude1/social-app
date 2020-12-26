@@ -3652,8 +3652,7 @@ export const removePrivateChatListReadArr = (data: Array) => {
 
 export const fetchPrivateChatList = () => {
     return async (dispatch) => {
-        const { user } = availablestore;
-        //console.log('GOT HERE', 'yeso')
+        const { user } = store.getState();
         dispatch(setProcessing(true, 'privatechatlistloading'));
         try {
             const options = {
@@ -3694,7 +3693,6 @@ export const fetchPrivateChatList = () => {
 
         } catch (err) {
             dispatch(setProcessing('retry', 'privatechatlistloading'));
-            console.warn('dispatch list')
             dispatch(addOfflineAction({
                 id: 'fetchpchatlist8383',
                 funcName: 'fetchPrivateChatList',
@@ -3709,7 +3707,6 @@ export const fetchPrivateChatList = () => {
 export const test1 = () => {
     return async () => {
         const { user } = store.getState();
-        console.warn(user);
     }
 }
 
@@ -3721,18 +3718,19 @@ export const fetchPreviousChatList = () => {
         }
         dispatch(setProcessing(true, 'privatechatlistloadingmore'));
         let chat_list = privatechatlistform.chatlist;
-        let lastchat = chat_list[chat_list.length - 1];
+        let max_chat = chat_list[0];
+        let min_chat = chat_list[chat_list.length - 1];
         let blacklist = chat_list.map(item => item.create_chatid);
         try {
             const options = {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
-
             const response = await session.post('privatechatlist', {
-                limiter: lastchat.id,
+                limiter: [max_chat.id, min_chat.id],
                 black_list: blacklist
             }, options);
             const { status, chatlist, errmsg, each_related_chat_arr } = response.data;
+            //console.warn(response.data);
             switch (status) {
                 case 200:
                     chatlist.forEach(item => {
@@ -3753,14 +3751,15 @@ export const fetchPreviousChatList = () => {
                     break;
             }
         } catch (err) {
-            dispatch(setProcessing('retry', 'privatechatlistloadingmore'));
-            if (err.toString().indexOf('Network Error') != -1) {
+            //console.warn(err.toString());
+            dispatch(setProcessing(false, 'privatechatlistloadingmore'));
+            /*if (err.toString().indexOf('Network Error') != -1) {
                 Toast(
                     'Nework error!',
                     ToastAndroid.LONG,
                     ToastAndroid.CENTER
                 );
-            }
+            }*/
         }
     };
 }
@@ -3808,10 +3807,18 @@ export const unPinPrivateChatList = (create_chatid) => {
                 payload: create_chatid
             });
         } catch (err) {
+            Toast('Failed to unpin');
             console.warn(err.toString());
         }
 
     };
+};
+
+const arrangeToString = (data) => {
+    if (!Array.isArray(data)) {
+        return '';
+    }
+    return String(data.sort((item1, item2) => item1 - item2));
 };
 
 export const setChatListArrayRead = (data) => {
@@ -3820,7 +3827,7 @@ export const setChatListArrayRead = (data) => {
         let tosetreadarr = privatechatlistform.tosetreadarr || [];
         let onSuccess = null;
         let onFail = null;
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
             onSuccess = data[0];
             onFail = data[1];
         }
@@ -3841,11 +3848,12 @@ export const setChatListArrayRead = (data) => {
                     checkData(onSuccess) && onSuccess();
                     break;
                 case 401:
+                    checkData(onFail) && onFail();
                     break;
                 case 500:
                     checkData(onFail) && onFail();
                     dispatch(addOfflineAction({
-                        id: 'setchatlistreadarr1344',
+                        id: `setchatlistreadarr1344`,
                         funcName: 'setChatListArrayRead',
                         param: data,
                         override: true,
@@ -3859,7 +3867,7 @@ export const setChatListArrayRead = (data) => {
         } catch (err) {
             checkData(onFail) && onFail();
             dispatch(addOfflineAction({
-                id: 'setchatlistreadarr1344',
+                id: `setchatlistreadarr1344`,
                 funcName: 'setChatListArrayRead',
                 param: data,
                 override: true,

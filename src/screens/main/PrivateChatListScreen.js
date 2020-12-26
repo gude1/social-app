@@ -18,6 +18,7 @@ const PrivateChatListScreen = ({
     privatechatlistform,
     test1,
     addOfflineAction,
+    setChatListArrayRead,
     offlineactions,
     //setProcessing,
     fetchPrivateChatList,
@@ -62,7 +63,12 @@ const PrivateChatListScreen = ({
         if (privatechatlistform.chatlist.length < 1 && privatechatlistform.persistedchatlist.length > 0) {
             addPrivateChatList(privatechatlistform.persistedchatlist);
         }
-        //fetchPrivateChatList();
+        if (privatechatlistform.tosetreadarr.length > 0) {
+            setChatListArrayRead([() => fetchPrivateChatList(), null]);
+        } else {
+            fetchPrivateChatList();
+        }
+
         const listener = {
             componentDidAppear: () => {
                 setLoaded(true);
@@ -127,7 +133,7 @@ const PrivateChatListScreen = ({
         }
     }
     /**compoent function ends here */
-    console.warn(offlineactions);
+    //console.warn(offlineactions);
     return (
         <SafeAreaView style={styles.containerStyle}>
             <Header
@@ -140,7 +146,7 @@ const PrivateChatListScreen = ({
                 rightIconPress={righticonpress}
                 righticon2={righticon2}
             />
-            <Button
+            {/*<Button
                 title="Press"
                 onPress={() => {
                     addOfflineAction({
@@ -151,7 +157,7 @@ const PrivateChatListScreen = ({
                         persist: true,
                     })
                 }}
-            />
+            />*/}
             {renderView()}
         </SafeAreaView>
 

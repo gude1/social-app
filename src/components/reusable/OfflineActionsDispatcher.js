@@ -7,7 +7,7 @@ import { checkData } from '../../utilities/index';
  * this component listens for offline actions and dispatches them
  */
 
-const OfflineActions = ({
+const OfflineActionsDispatcher = ({
     connected,
     addOfflineAction,
     deleteOfflineAction,
@@ -43,4 +43,4 @@ const mapStateToProps = state => ({
 
 
 
-export default connect(mapStateToProps, reduceractions)(OfflineActions);
+export default connect(mapStateToProps, reduceractions)(OfflineActionsDispatcher);

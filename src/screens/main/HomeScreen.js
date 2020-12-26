@@ -14,7 +14,7 @@ import * as actions from '../../actions';
 import OnlineList from '../../components/reusable/OnlineList';
 import * as Animatable from 'react-native-animatable';
 import PostList from '../../components/reusable/PostList';
-import OfflineActions from '../../components/reusable/OfflineActions';
+import OfflineActionsDispatcher from '../../components/reusable/OfflineActionsDispatcher';
 
 const { colors } = useTheme();
 /*const getConstants = async () => {
@@ -140,7 +140,7 @@ const HomeScreen = ({ componentId,
                 righticon={righticon}
                 righticon2={righticon2}
             />
-            <OfflineActions />
+            <OfflineActionsDispatcher />
             {
                 loaded == false ? <LoaderScreen
                     animationOff={true}
