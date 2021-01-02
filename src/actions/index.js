@@ -122,6 +122,12 @@ import {
     ADD_OFFLINE_ACTION,
     DELETE_OFFLINE_ACTION,
     DELETE_OFFLINE_ACTIONS,
+    ADD_PRIVATECHATLIST_EACH_CHAT_ARR,
+    ADD_PRIVATECHAT,
+    SET_PRIVATECHAT,
+    SET_PRIVATECHATFORM,
+    SET_PRIVATECHAT_LAST_FETCH_ARR,
+    ADD_PRIVATECHAT_LAST_FETCH_ARR,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -3650,6 +3656,13 @@ export const removePrivateChatListReadArr = (data: Array) => {
     };
 };
 
+export const addPrivateChatListEachChatArr = (data: Array) => {
+    return {
+        type: ADD_PRIVATECHATLIST_EACH_CHAT_ARR,
+        payload: data,
+    };
+};
+
 export const fetchPrivateChatList = () => {
     return async (dispatch) => {
         const { user } = store.getState();
@@ -3667,6 +3680,7 @@ export const fetchPrivateChatList = () => {
                     chatlist.forEach(item => {
                         dispatch(updatePrivateChatList(item));
                     });
+                    dispatch(addPrivateChatListEachChatArr(each_related_chat_arr));
                     dispatch(setProcessing(false, 'privatechatlistloading'));
                     break;
                 case 404:
@@ -3692,14 +3706,17 @@ export const fetchPrivateChatList = () => {
             }
 
         } catch (err) {
+            console.warn(err.toString());
             dispatch(setProcessing('retry', 'privatechatlistloading'));
-            dispatch(addOfflineAction({
-                id: 'fetchpchatlist8383',
-                funcName: 'fetchPrivateChatList',
-                param: null,
-                override: true,
-                persist: true,
-            }));
+            if (err.toString().indexOf('Network Error') != -1) {
+                dispatch(addOfflineAction({
+                    id: 'fetchpchatlist8383',
+                    funcName: 'fetchPrivateChatList',
+                    param: null,
+                    override: true,
+                    persist: true,
+                }));
+            }
         }
     };
 };
@@ -3866,13 +3883,15 @@ export const setChatListArrayRead = (data) => {
             }
         } catch (err) {
             checkData(onFail) && onFail();
-            dispatch(addOfflineAction({
-                id: `setchatlistreadarr1344`,
-                funcName: 'setChatListArrayRead',
-                param: data,
-                override: true,
-                persist: true,
-            }));
+            if (err.toString().indexOf('Network Error') != -1) {
+                dispatch(addOfflineAction({
+                    id: `setchatlistreadarr1344`,
+                    funcName: 'setChatListArrayRead',
+                    param: data,
+                    override: true,
+                    persist: true,
+                }));
+            }
         }
     };
 };
@@ -3935,6 +3954,44 @@ export const delPrivateChatList = (chat) => {
     };
 };
 
+/**
+ * ACTION CREATOR FOR PRIVATECHAT REDUCER
+ * 
+ */
+export const addPrivateChat = (data: Array) => {
+    return {
+        type: ADD_PRIVATECHAT,
+        payload: data
+    };
+};
+
+export const setPrivateChatForm = (data: Object) => {
+    return {
+        type: SET_PRIVATECHATFORM,
+        payload: data
+    };
+};
+
+export const setPrivateChat = (data: Array) => {
+    return {
+        type: SET_PRIVATECHAT,
+        payload: data
+    }
+};
+
+export const setPrivateChatFetchArr = (data: Array) => {
+    return {
+        type: SET_PRIVATECHAT_LAST_FETCH_ARR,
+        payload: data
+    };
+};
+
+export const addPrivateChatFetchArr = (data:Array) => {
+    return {
+        type: ADD_PRIVATECHAT_LAST_FETCH_ARR,
+        payload: data
+    };
+}
 /**
  * ACTION CREATOR FOR FOLLOWINFO REDUCER
  * 

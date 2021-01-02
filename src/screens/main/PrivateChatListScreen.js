@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { Navigation } from 'react-native-navigation';
-import { responsiveHeight, responsiveFontSize } from 'react-native-responsive-dimensions';
+import { responsiveHeight, responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import PrivateChatList from '../../components/reusable/PrivateChatList';
 
 const { colors } = useTheme();
@@ -47,6 +47,7 @@ const PrivateChatListScreen = ({
     />;
     let righticon2press = null;
     /**compoent function goes here */
+
     useEffect(() => {
         EntypoIcon.getImageSource('chat', 100).then(e =>
             Navigation.mergeOptions(componentId, {
@@ -102,6 +103,7 @@ const PrivateChatListScreen = ({
     }
 
     const renderView = () => {
+        //console.warn(privatechatlistform.each_chat_arr);
         if (loaded == false) {
             return (
                 <LoaderScreen
@@ -172,8 +174,7 @@ PrivateChatListScreen.options = {
     },
     bottomTab: {
         text: 'Chat',
-    }
-
+    },
 };
 
 const mapStateToProps = (state) => ({

@@ -10,7 +10,8 @@ import {
     REMOVE_PRIVATECHATLIST_TOSETREADARR,
     SET_PRIVATE_CHATLIST_NEXTURL,
     PIN_PRIVATECHATLIST,
-    UNPIN_PRIVATECHATLIST
+    UNPIN_PRIVATECHATLIST,
+    ADD_PRIVATECHATLIST_EACH_CHAT_ARR
 } from '../actions/types';
 import AsyncStorage from '@react-native-community/async-storage';
 import { checkData } from '../utilities/index';
@@ -19,6 +20,7 @@ import { store } from '../store/index';
 const INITIAL_STATE = {
     chatlist: [],
     persistedchatlist: [],
+    each_chat_arr: [],
     tosetreadarr: [],
     pinnedchatarr: [],
     nexturl: null,
@@ -113,6 +115,27 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
         case PIN_PRIVATECHATLIST:
             return { ...state, pinnedchatarr: [...state.pinnedchatarr, action.payload] };
             break;
+        case ADD_PRIVATECHATLIST_EACH_CHAT_ARR:
+            let excludepayloadids = [];
+            let toaddpayloads = [];
+            reducerdata = state.each_chat_arr.map(item => {
+                let payload = action.payload.find(payloaditem => {
+                    return item.create_chatid == payloaditem.create_chatid;
+                });
+                if (checkData(payload)) {
+                    excludepayloadids.push(payload.create_chatid);
+                    //console.warn('INSIDE e', excludepayloadids);
+                    return { ...item, ...payload };
+                }
+                //console.warn('INSIDE no', excludepayloadids);
+                return item;
+            });
+            //console.warn('OUTSIDE', excludepayloadids);
+            toaddpayloads = action.payload.filter(item => {
+                return !excludepayloadids.includes(item.create_chatid);
+            })
+            return { ...state, each_chat_arr: [...reducerdata, ...toaddpayloads] };
+            break;
         case UNPIN_PRIVATECHATLIST:
             reducerdata = state.pinnedchatarr.filter(id => id != action.payload);
             return { ...state, pinnedchatarr: reducerdata };
@@ -135,7 +158,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
 export const PrivateChatListConfig = {
     key: "privatechat",
     storage: AsyncStorage,
-    whitelist: ['persistedchatlist', 'tosetreadarr', 'pinnedchatarr']
+    whitelist: ['persistedchatlist', 'tosetreadarr', 'pinnedchatarr', 'each_chat_arr']
 };
 
 export default PrivateChatListReducer;

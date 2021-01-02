@@ -280,6 +280,23 @@ class PrivateChatList extends Component {
                 item={item}
                 userprofile={this.props.userprofile}
                 leftAvatarPress={this._setAvatarNavModal}
+                onPress={() => {
+                    let partnerprofile = item.sender_profile.profile_id == this.props.userprofile.profile_id ?
+                        item.receiver_profile : item.sender_profile;
+                    let chatdata = this.props.chatlistform.each_chat_arr.find(
+                        chatitem => item.create_chatid == chatitem.create_chatid
+                    );
+                    Navigation.showModal({
+                        component: {
+                            name: 'PrivateChat',
+                            passProps: {
+                                navparent: true,
+                                privatechatobj: { ...chatdata, partnerprofile },
+                                screentype: 'modal'
+                            },
+                        }
+                    })
+                }}
                 onLongPress={() => {
                     this._setCurrentSelectedChat(item);
                     this.setState({ modallistvisible: true });

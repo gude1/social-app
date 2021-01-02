@@ -1,7 +1,7 @@
-const THEME = 'white';
+const THEME = 'black';
 export const BlackTheme = {
     colors: {
-        theme: 'rgb(1, 1, 1)',
+        theme: 'black',
         statusbar: '#000',
         chatbadge: 'seagreen',
         chatbadgetxt: 'black',

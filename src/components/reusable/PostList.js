@@ -735,7 +735,7 @@ export default class PostList extends React.Component {
             return null;
         }
 
-        if (checkData(item.known_sharers_profile[0])) {
+        if (checkData(item.known_sharers_profile) && checkData(item.known_sharers_profile[0])) {
             sharemsg = item.known_sharers_profile.length > 1 ?
                 `shared by ${item.known_sharers_profile[0].profile_name} and others`
                 : `shared by ${item.known_sharers_profile[0].profile_name}`;

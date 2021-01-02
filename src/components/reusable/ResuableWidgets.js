@@ -88,6 +88,58 @@ export class Header extends React.PureComponent {
     }
 };
 
+export const HeaderWithImage = ({ Icon1, Icon2, Icon3, title, subTitle, avatarUri, avatarStyle, }) => {
+    return (
+        <View style={styles.headerWithImageStyle}>
+            <View style={{
+                flexDirection: 'row',
+                alignItems: "center",
+                height: "100%",
+                flex: 1,
+            }}>
+                {Icon1 && Icon1}
+                <Avatar
+                    rounded
+                    size={30}
+                    source={avatarUri || null}
+                    icon={{ name: 'user', type: 'antdesign', color: 'white' }}
+                    resizeMode={'contain'}
+                    placeholderStyle={styles.headerImageContainerStyle}
+                    containerStyle={[styles.headerImageContainerStyle, { marginTop: 2 }]}
+                    overlayContainerStyle={styles.headerImageContainerStyle}
+                />
+                <View style={{ marginHorizontal: 8 }}>
+                    <Text
+                        ellipsizeMode={'tail'}
+                        numberOfLines={1}
+                        style={{
+                            color: colors.text,
+                            marginTop: 3,
+                            maxWidth: responsiveWidth(40),
+                            fontWeight: 'bold'
+                        }}>
+                        {title}
+                    </Text>
+                    {subTitle && <Text
+                        ellipsizeMode={'tail'}
+                        style={{
+                            color: colors.iconcolor,
+                            fontSize: responsiveFontSize(1.3),
+                            marginTop: 3,
+                            maxWidth: responsiveWidth(40)
+                        }}
+                        numberOfLines={1}
+                    >
+                        {subTitle}
+                    </Text>}
+                </View>
+            </View>
+            {Icon2 && Icon2}
+            {Icon3 && Icon3}
+        </View >
+    );
+};
+
 export const OverlayWithImage = ({ isVisible, onAccept,
     theme, overlaytext, overlaystyle,
     imagesource, imagesize, style, }) => {
@@ -479,7 +531,7 @@ export const ModalList = ({ optionsArr, isVisible, onBackdropPress }) => {
     );
 };
 
-export const InputBox = ({ avatar, leftIcon, showAvatar, placeholder, inputvalue, onChangeText, autoFocus, maxLength, placeholdercolor, onSubmit }) => {
+export const InputBox = ({ style, avatar, leftIcon, showAvatar, placeholder, inputvalue, onChangeText, autoFocus, maxLength, placeholdercolor, onSubmit }) => {
 
     const renderAvatar = () => {
         if (showAvatar == false) {
@@ -497,7 +549,7 @@ export const InputBox = ({ avatar, leftIcon, showAvatar, placeholder, inputvalue
         );
     };
     return (
-        <View style={styles.inputBoxCtn}>
+        <View style={[styles.inputBoxCtn, style]}>
             {renderAvatar()}
             <Input
                 placeholder={placeholder}
@@ -662,6 +714,18 @@ const styles = StyleSheet.create({
         elevation: 2,
         alignItems: 'center',
         justifyContent: "space-between",
+    },
+    headerWithImageStyle: {
+        paddingHorizontal: 13,
+        backgroundColor: colors.card,
+        height: 55,
+        alignItems: "center",
+        borderWidth: 0,
+        elevation: 1.5,
+        flexDirection: 'row',
+    },
+    headerImageContainerStyle: {
+        backgroundColor: colors.border,
     },
     overlayStyle: {
         padding: 0,

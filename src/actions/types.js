@@ -186,7 +186,17 @@ export const REMOVE_PRIVATECHATLIST_TOSETREADARR = 'remove_privatechatlist_toset
 export const DELETE_PRIVATECHATLIST = 'delete_privatechatlist';
 export const PIN_PRIVATECHATLIST = 'pin_privatechatlist';
 export const UNPIN_PRIVATECHATLIST = 'unpin_privatechatlist';
+export const ADD_PRIVATECHATLIST_EACH_CHAT_ARR = 'add_privatechatlist_each_chat_arr';
 export const SET_PRIVATE_CHATLIST_NEXTURL = 'set_private_chatlist_nexturl';
+
+/**
+ * TYPE CONSTANT FOR PRIVATECHAT REDUCER
+ */
+export const ADD_PRIVATECHAT = 'add_privatechat';
+export const SET_PRIVATECHATFORM = 'set_privatechatform';
+export const SET_PRIVATECHAT = 'set_privatechat';
+export const SET_PRIVATECHAT_LAST_FETCH_ARR = 'set_privatechat_last_fetch_arr';
+export const ADD_PRIVATECHAT_LAST_FETCH_ARR = 'add_privatechat_last_fetch_arr';
 
 /**
  * TYPE CONSTANT FOR OFFLINEACTIONS REDUCER

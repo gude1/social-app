@@ -1,5 +1,69 @@
 √√
 
+<View style={{ marginVertical: 5, alignItems: "flex-end" }}>
+                <Text
+                    style={{
+                        //borderWidth: 1,
+                        marginHorizontal: 20,
+                        fontSize: responsiveFontSize(2.1),
+                        color: this.ownerchattextcolor,
+                        textAlign: "justify",
+                        borderTopLeftRadius: 20,
+                        borderTopRightRadius: 20,
+                        borderBottomLeftRadius: 30,
+                        backgroundColor: this.ownerchatbgcolor,
+                        //marginLeft: 'auto',
+                        padding: 12,
+                        //paddingHorizontal: 15,
+                        minWidth: 50,
+                        maxWidth: responsiveWidth(70)
+                    }}
+                >
+                    {this.props.msg}
+                </Text>
+                <Text style={{
+                    marginHorizontal: 23,
+                    fontWeight: "bold",
+                    textAlign: "justify",
+                    color: "#a0a0a0",
+                    fontSize: responsiveFontSize(1.5)
+                }}> √√</Text>
+            </View >
+
+
+            <View style={{ marginVertical: 5, alignItems: "flex-start" }}>
+                <Text style={{ alignSelf: 'center', color: colors.text, marginVertical: 10 }}>
+                    Friday Nov 20 2019
+                </Text>
+                <Text
+                    style={{
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                        marginHorizontal: 20,
+                        fontSize: responsiveFontSize(2.1),
+                        color: colors.text,
+                        textAlign: "justify",
+                        borderTopLeftRadius: 20,
+                        borderTopRightRadius: 20,
+                        borderBottomRightRadius: 30,
+                        //marginLeft: 'auto',
+                        padding: 12,
+                        //paddingHorizontal: 15,
+                        minWidth: 50,
+                        maxWidth: responsiveWidth(70)
+                    }}
+                >
+                    {this.props.msg}
+                </Text>
+                <Text style={{
+                    marginHorizontal: 23,
+                    fontWeight: "bold",
+                    textAlign: "justify",
+                    color: "#a0a0a0",
+                    fontSize: responsiveFontSize(1.3)
+                }}>12:45pm</Text>
+            </View>
+
  <Animatable.View
                                     animation="pulse"
                                     iterationCount="infinite"

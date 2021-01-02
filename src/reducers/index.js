@@ -23,6 +23,7 @@ import FollowInfoReducer from './FollowInfoReducer';
 import UsersListReducer from './UsersListReducer';
 import { reducer as network } from 'react-native-offline';
 import OfflineActionsReducer, { offlineActionsListConfig } from './OfflineActionsReducer';
+import PrivateChatReducer from './PrivateChatReducer';
 
 
 export default combineReducers({
@@ -43,6 +44,7 @@ export default combineReducers({
     shareslistform: SharesListFormReducer,
     profileactionform: ProfileActionFormReducer,
     privatechatlistform: persistReducer(PrivateChatListConfig, PrivateChatListReducer),
+    privatechatform: PrivateChatReducer,
     followinfo: FollowInfoReducer,
     userslist: UsersListReducer,
     appinfo: AppInfoReducer,
