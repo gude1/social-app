@@ -11,7 +11,9 @@ import {
     SET_PRIVATE_CHATLIST_NEXTURL,
     PIN_PRIVATECHATLIST,
     UNPIN_PRIVATECHATLIST,
-    ADD_PRIVATECHATLIST_EACH_CHAT_ARR
+    ADD_PRIVATECHATLIST_EACH_CHAT_ARR,
+    UPDATE_PRIVATECHATLIST_CHATS,
+    REMOVE_PRIVATECHATLIST_CHATS
 } from '../actions/types';
 import AsyncStorage from '@react-native-community/async-storage';
 import { checkData } from '../utilities/index';
@@ -20,7 +22,7 @@ import { store } from '../store/index';
 const INITIAL_STATE = {
     chatlist: [],
     persistedchatlist: [],
-    each_chat_arr: [],
+    //each_chat_arr: [],
     tosetreadarr: [],
     pinnedchatarr: [],
     nexturl: null,
@@ -33,8 +35,16 @@ const makeList = (data: Array) => {
     if (!Array.isArray(data) || data.length < 1) {
         return data;
     }
-    return data.sort((item1, item2) => item2.id - item1.id);
+    return data.sort((item1, item2) => item2.chats[0].created_at - item1.chats[0].created_at);
 };
+
+const arrangeChats = (data: Array) => {
+    if (!Array.isArray(data) || data.length < 1) {
+        return data;
+    }
+    return data.sort((item1, item2) => item2.created_at - item1.created_at);
+}
+
 
 const arrayReduce = (data) => {
     if (!Array.isArray(data) || data.length < 1) {
@@ -48,6 +58,33 @@ const arrayReduce = (data) => {
     }
     return data;
 };
+
+const updateChats = (state, payload) => {
+    if (!checkData(state) || !checkData(payload)) {
+        return state;
+    }
+    let chatlistnewstate = state.chatlist.map(item => {
+        if (item.create_chatid == payload.create_chatid) {
+            let excludeids = [];
+            /** chat */
+            let itemchat = item.chats.map(chatitem => {
+                let payloadchatitem = payload.chats.find(loaditem => loaditem.id == chatitem.id);
+                if (checkData(payloadchatitem)) {
+                    excludeids.push(chatitem.id);
+                    return { ...chatitem, ...payloadchatitem };
+                }
+                return chatitem;
+            });
+            /**chats */
+            let newchats = payload.chats.filter(pyitem => !excludeids.includes(pyitem.id));
+            return { ...item, ...payload, chats: arrangeChats([...itemchat, ...newchats]) };
+        } else {
+            return item;
+        }
+    });
+    return chatlistnewstate;
+};
+
 const handleProcessing = (key, value, state) => {
     if (checkData(key) != true || checkData(state) != true || checkData(value) != true) {
         return state;
@@ -90,6 +127,22 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
             updatedstate.find(item => item.create_chatid == action.payload.create_chatid) == undefined ?
                 updatedstate.push({ ...action.payload }) : null;
             reducerdata = [...makeList(updatedstate)];
+            return { ...state, chatlist: reducerdata, persistedchatlist: arrayReduce(reducerdata) };
+            break;
+        case UPDATE_PRIVATECHATLIST_CHATS:
+            reducerdata = updateChats(state, action.payload);
+            reducerdata = [...makeList(reducerdata)];
+            return { ...state, chatlist: reducerdata, persistedchatlist: arrayReduce(reducerdata) };
+            break;
+        case REMOVE_PRIVATECHATLIST_CHATS:
+            reducerdata = state.chatlist.map(item => {
+                if (item.create_chatid == action.payload.create_chatid) {
+                    let newchats = item.chats.filter(chatitem => chatitem.id != action.payload.id);
+                    return { ...item, chats: newchats };
+                }
+                return item;
+            });
+            reducerdata = [...makeList(reducerdata)];
             return { ...state, chatlist: reducerdata, persistedchatlist: arrayReduce(reducerdata) };
             break;
         case UPDATE_ARRAY_PRIVATECHATLIST:
@@ -137,7 +190,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
             return { ...state, each_chat_arr: [...reducerdata, ...toaddpayloads] };
             break;
         case UNPIN_PRIVATECHATLIST:
-            reducerdata = state.pinnedchatarr.filter(id => id != action.payload);
+            reducerdata = state.pinnedchatarr.filter(create_chatid => create_chatid != action.payload);
             return { ...state, pinnedchatarr: reducerdata };
             break;
         case PROCESSING:
@@ -147,7 +200,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
             );
             break;
         case RESET:
-            return action.payload.key == "privatechatlist" ? INITIAL_STATE : state;
+            return action.payload.key == "privatechatlist" ? console.warn('yeah iw') && INITIAL_STATE : state;
             break;
         default:
             return state;
@@ -158,7 +211,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
 export const PrivateChatListConfig = {
     key: "privatechat",
     storage: AsyncStorage,
-    whitelist: ['persistedchatlist', 'tosetreadarr', 'pinnedchatarr', 'each_chat_arr']
+    whitelist: ['persistedchatlist', 'tosetreadarr', 'pinnedchatarr']
 };
 
 export default PrivateChatListReducer;

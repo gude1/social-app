@@ -346,6 +346,7 @@ export default class PostShowList extends Component {
     };
 
     renderItem = ({ item }) => {
+        console.warn(item.profile);
         let sharemsg = null;
         if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
             return (

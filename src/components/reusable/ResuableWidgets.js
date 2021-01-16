@@ -88,7 +88,7 @@ export class Header extends React.PureComponent {
     }
 };
 
-export const HeaderWithImage = ({ Icon1, Icon2, Icon3, title, subTitle, avatarUri, avatarStyle, }) => {
+export const HeaderWithImage = ({ Icon1, Icon2, Icon3, onAvatarPress, title, subTitle, avatarUri, avatarStyle, }) => {
     return (
         <View style={styles.headerWithImageStyle}>
             <View style={{
@@ -101,6 +101,7 @@ export const HeaderWithImage = ({ Icon1, Icon2, Icon3, title, subTitle, avatarUr
                 <Avatar
                     rounded
                     size={30}
+                    onPress={onAvatarPress}
                     source={avatarUri || null}
                     icon={{ name: 'user', type: 'antdesign', color: 'white' }}
                     resizeMode={'contain'}
@@ -569,6 +570,8 @@ export const InputBox = ({ style, avatar, leftIcon, showAvatar, placeholder, inp
                     flexDirection: "row",
                     flex: 1,
                 }}
+                leftIcon={leftIcon}
+                leftIconContainerStyle={{ marginHorizontal: 5 }}
                 rightIcon={{
                     onPress: onSubmit,
                     type: "evilicon",

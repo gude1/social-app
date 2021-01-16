@@ -10,6 +10,7 @@ import EntypoIcon from 'react-native-vector-icons/Entypo';
 import { Navigation } from 'react-native-navigation';
 import { responsiveHeight, responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import PrivateChatList from '../../components/reusable/PrivateChatList';
+//import OfflineActionsDispatcher from '../../components/reusable/OfflineActionsDispatcher';
 
 const { colors } = useTheme();
 
@@ -47,7 +48,14 @@ const PrivateChatListScreen = ({
     />;
     let righticon2press = null;
     /**compoent function goes here */
+    //console.warn('PERSISTED', privatechatlistform.persistedchatlist);
+    // console.warn('CHATLIST', privatechatlistform.chatlist);
 
+    useEffect(() => {
+        if (privatechatlistform.tosetreadarr.length > 0) {
+            setChatListArrayRead();
+        }
+    }, [privatechatlistform.tosetreadarr.toString()]);
     useEffect(() => {
         EntypoIcon.getImageSource('chat', 100).then(e =>
             Navigation.mergeOptions(componentId, {
@@ -60,7 +68,6 @@ const PrivateChatListScreen = ({
                 visible: true,
             }
         });
-
         if (privatechatlistform.chatlist.length < 1 && privatechatlistform.persistedchatlist.length > 0) {
             addPrivateChatList(privatechatlistform.persistedchatlist);
         }
@@ -103,7 +110,6 @@ const PrivateChatListScreen = ({
     }
 
     const renderView = () => {
-        //console.warn(privatechatlistform.each_chat_arr);
         if (loaded == false) {
             return (
                 <LoaderScreen
@@ -135,7 +141,6 @@ const PrivateChatListScreen = ({
         }
     }
     /**compoent function ends here */
-    //console.warn(offlineactions);
     return (
         <SafeAreaView style={styles.containerStyle}>
             <Header

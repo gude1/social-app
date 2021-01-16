@@ -128,6 +128,11 @@ import {
     SET_PRIVATECHATFORM,
     SET_PRIVATECHAT_LAST_FETCH_ARR,
     ADD_PRIVATECHAT_LAST_FETCH_ARR,
+    REMOVE_PRIVATECHAT_LAST_FETCH_ARR,
+    UPDATE_PRIVATECHATLIST_CHATS,
+    REMOVE_PRIVATECHAT,
+    REMOVE_PRIVATECHATLIST_CHATS,
+    SET_PRIVATECHAT_PARTNER_PROFILE,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -3656,12 +3661,26 @@ export const removePrivateChatListReadArr = (data: Array) => {
     };
 };
 
-export const addPrivateChatListEachChatArr = (data: Array) => {
+export const updatePrivateChatListChats = (data: Object) => {
+    return {
+        type: UPDATE_PRIVATECHATLIST_CHATS,
+        payload: data
+    };
+};
+
+export const removePrivateChatListChats = (data: Object) => {
+    return {
+        type: REMOVE_PRIVATECHATLIST_CHATS,
+        payload: data
+    }
+};
+
+/*export const addPrivateChatListEachChatArr = (data: Array) => {
     return {
         type: ADD_PRIVATECHATLIST_EACH_CHAT_ARR,
         payload: data,
     };
-};
+};*/
 
 export const fetchPrivateChatList = () => {
     return async (dispatch) => {
@@ -3672,7 +3691,7 @@ export const fetchPrivateChatList = () => {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
             const response = await session.post('privatechatlist', null, options);
-            const { status, chatlist, errmsg, each_related_chat_arr } = response.data;
+            const { status, chatlist, errmsg, } = response.data;
             //console.warn(response.data.chatlist);
             //console.warn(response.data.chatlist.length)
             switch (status) {
@@ -3680,7 +3699,7 @@ export const fetchPrivateChatList = () => {
                     chatlist.forEach(item => {
                         dispatch(updatePrivateChatList(item));
                     });
-                    dispatch(addPrivateChatListEachChatArr(each_related_chat_arr));
+                    //dispatch(addPrivateChatListEachChatArr(each_related_chat_arr));
                     dispatch(setProcessing(false, 'privatechatlistloading'));
                     break;
                 case 404:
@@ -3696,7 +3715,7 @@ export const fetchPrivateChatList = () => {
                         funcName: 'fetchPrivateChatList',
                         param: null,
                         override: true,
-                        persist: true,
+                        //persist: true,
                     }));
                     break;
                 default:
@@ -3714,18 +3733,21 @@ export const fetchPrivateChatList = () => {
                     funcName: 'fetchPrivateChatList',
                     param: null,
                     override: true,
-                    persist: true,
+                    //persist: true,
+                }));
+            } else if (err.indexOf('500') != -1) {
+                dispatch(addOfflineAction({
+                    id: 'fetchpchatlist8383',
+                    funcName: 'fetchPrivateChatList',
+                    param: null,
+                    override: true,
+                    //persist: true,
                 }));
             }
         }
     };
 };
 
-export const test1 = () => {
-    return async () => {
-        const { user } = store.getState();
-    }
-}
 
 export const fetchPreviousChatList = () => {
     return async (dispatch) => {
@@ -3746,7 +3768,7 @@ export const fetchPreviousChatList = () => {
                 limiter: [max_chat.id, min_chat.id],
                 black_list: blacklist
             }, options);
-            const { status, chatlist, errmsg, each_related_chat_arr } = response.data;
+            const { status, chatlist, errmsg } = response.data;
             //console.warn(response.data);
             switch (status) {
                 case 200:
@@ -3862,6 +3884,8 @@ export const setChatListArrayRead = (data) => {
             const { status, message, set_to_read_arr, errmsg } = response.data;
             switch (status) {
                 case 200:
+                    dispatch(removePrivateChatListReadArr(set_to_read_arr));
+                    //console.warn('PRIVATECHATLISTTREAD', 'worked');
                     checkData(onSuccess) && onSuccess();
                     break;
                 case 401:
@@ -3874,7 +3898,7 @@ export const setChatListArrayRead = (data) => {
                         funcName: 'setChatListArrayRead',
                         param: data,
                         override: true,
-                        persist: true,
+                        //persist: true,
                     }))
                     break;
                 default:
@@ -3889,7 +3913,15 @@ export const setChatListArrayRead = (data) => {
                     funcName: 'setChatListArrayRead',
                     param: data,
                     override: true,
-                    persist: true,
+                    //persist: true,
+                }));
+            } else if (err.indexOf('500') != -1) {
+                dispatch(addOfflineAction({
+                    id: `setchatlistreadarr1344`,
+                    funcName: 'setChatListArrayRead',
+                    param: data,
+                    override: true,
+                    //persist: true,
                 }));
             }
         }
@@ -3905,7 +3937,6 @@ export const delPrivateChatList = (chat) => {
         }
         dispatch(setProcessing(true, 'privatechatlistdeleting'));
         try {
-
             const options = {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
@@ -3958,40 +3989,307 @@ export const delPrivateChatList = (chat) => {
  * ACTION CREATOR FOR PRIVATECHAT REDUCER
  * 
  */
-export const addPrivateChat = (data: Array) => {
+export const addPrivateChat = (data: Array, create_chatid: String) => {
     return {
         type: ADD_PRIVATECHAT,
-        payload: data
+        payload: data,
+        create_chatid
     };
 };
 
-export const setPrivateChatForm = (data: Object) => {
+export const removePrivateChat = (data: Object, create_chatid: String) => {
     return {
-        type: SET_PRIVATECHATFORM,
-        payload: data
-    };
-};
-
-export const setPrivateChat = (data: Array) => {
-    return {
-        type: SET_PRIVATECHAT,
-        payload: data
+        type: REMOVE_PRIVATECHAT,
+        payload: data,
+        create_chatid
     }
 };
 
-export const setPrivateChatFetchArr = (data: Array) => {
+export const setPrivateChatForm = (data: Object, create_chatid: String) => {
     return {
-        type: SET_PRIVATECHAT_LAST_FETCH_ARR,
-        payload: data
+        type: SET_PRIVATECHATFORM,
+        payload: data,
+        create_chatid
     };
 };
 
-export const addPrivateChatFetchArr = (data:Array) => {
+export const setPrivateChat = (data: Array, create_chatid: String) => {
+    return {
+        type: SET_PRIVATECHAT,
+        payload: data,
+        create_chatid
+    }
+};
+
+export const setPrivateChatFetchArr = (data: Array, create_chatid: String) => {
+    return {
+        type: SET_PRIVATECHAT_LAST_FETCH_ARR,
+        payload: data,
+        create_chatid
+    };
+};
+
+export const addPrivateChatFetchArr = (data: Array, create_chatid: String) => {
     return {
         type: ADD_PRIVATECHAT_LAST_FETCH_ARR,
-        payload: data
+        payload: data,
+        create_chatid
     };
-}
+};
+
+export const removePrivateChatFetchArr = (data: Array, create_chatid: String) => {
+    return {
+        type: REMOVE_PRIVATECHAT_LAST_FETCH_ARR,
+        payload: data,
+        create_chatid
+    };
+};
+
+export const setPrivateChatPartnerProfile = (data: Object, create_chatid: String) => {
+    return {
+        type: SET_PRIVATECHAT_PARTNER_PROFILE,
+        payload: data,
+        create_chatid
+    }
+};
+
+export const setPrivateChatLastFetchToRead = (data: Array) => {
+    return async (dispatch) => {
+        const { user } = store.getState();
+        let onSuccess = null;
+        let onFail = null;
+        let last_fetch_arr = null;
+        let create_chatid = null;
+        if (Array.isArray(data) && data.length > 0) {
+            onSuccess = data[2];
+            onFail = data[3];
+            create_chatid = data[0];
+            last_fetch_arr = data[1];
+        }
+        if (!Array.isArray(last_fetch_arr) || last_fetch_arr.length < 1 || !checkData(create_chatid)) {
+            return;
+        }
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('setprivatechatarrread', {
+                chat_arr: last_fetch_arr
+            }, options);
+            const { status, message, set_to_read_arr, errmsg } = response.data;
+            //console.warn(response.data);
+            switch (status) {
+                case 200:
+                    dispatch(removePrivateChatListReadArr(set_to_read_arr));
+                    //console.warn('rests & agg', set_to_read_arr);
+
+                    dispatch(removePrivateChatFetchArr(set_to_read_arr, create_chatid));
+                    checkData(onSuccess) && onSuccess();
+                    break;
+                case 400:
+                    checkData(onFail) && onFail();
+                    break;
+                case 500:
+                    checkData(onFail) && onFail();
+                    dispatch(addOfflineAction({
+                        id: `setprivatechatarrread${create_chatid}`,
+                        funcName: 'setPrivateChatLastFetchToRead',
+                        param: data,
+                        override: true,
+                    }));
+                    break;
+                case 401:
+                    break;
+                default:
+                    checkData(onFail) && onFail();
+                    break;
+            }
+        } catch (err) {
+            console.warn(err.toString());
+            checkData(onFail) && onFail();
+            let errmsg = err.message;
+            if (errmsg.indexOf('Network Error') != -1) {
+                dispatch(addOfflineAction({
+                    id: `setprivatechatarrread${create_chatid}`,
+                    funcName: 'setPrivateChatLastFetchToRead',
+                    param: data,
+                    override: true,
+                }));
+            } else if (errmsg.indexOf('500') != -1) {
+                dispatch(addOfflineAction({
+                    id: `setprivatechatarrread${create_chatid}`,
+                    funcName: 'setPrivateChatLastFetchToRead',
+                    param: data,
+                    override: true,
+                }));
+            }
+        }
+    };
+};
+
+export const fetchPrivateChats = (data) => {
+    return async (dispatch) => {
+        let { user } = store.getState();//showprivatechatandupdateread
+        let createchatid = data[0];
+        if (!checkData(createchatid)) {
+            return;
+        }
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('showprivatechatandupdateread', {
+                create_chatid: createchatid
+            }, options);
+            const { status, message, partnerprofile, create_chatid, private_chats, last_fetch_arr } = response.data;
+            //console.warn(status, last_fetch_arr);
+            switch (status) {
+                case 200:
+                    dispatch(setPrivateChatPartnerProfile(partnerprofile, create_chatid));
+                    dispatch(setProcessing(`200*${create_chatid}`, 'privatechatformfetchstatus'));
+                    checkData(data[1]) && dispatch(removePrivateChatListReadArr(data[1]));
+                    dispatch(
+                        updatePrivateChatListChats({ partnerprofile, chats: private_chats, create_chatid, last_fetch_arr })
+                    );
+                    dispatch(addPrivateChat(private_chats, create_chatid));
+                    dispatch(setPrivateChatFetchArr(last_fetch_arr, create_chatid));
+                    break;
+                case 400:
+                    Toast('chats not updated');
+                    break;
+                case 404:
+                    Toast(errmsg);
+                    break;
+                case 401:
+                    break;
+                case 500:
+                    dispatch(addOfflineAction({
+                        id: `fetchprivatechat${createchatid}`,
+                        funcName: 'fetchPrivateChats',
+                        param: data,
+                        override: true,
+                    }));
+                    break;
+                default:
+                    Toast('chats not updated');
+                    break;
+            }
+        } catch (err) {
+            //console.warn(err.toString());
+            if (err.toString().indexOf('Network Error') != -1) {
+                dispatch(addOfflineAction({
+                    id: `fetchprivatechat${createchatid}`,
+                    funcName: 'fetchPrivateChats',
+                    param: data,
+                    override: true,
+                }));
+            } else if (err.toString().indexOf('500') != -1) {
+                dispatch(addOfflineAction({
+                    id: `fetchprivatechat${createchatid}`,
+                    funcName: 'fetchPrivateChats',
+                    param: data,
+                    override: true,
+                }));
+            }
+        }
+    };
+};
+
+export const sendPrivateChat = (data: Object) => {
+    return async (dispatch) => {
+        if (!checkData(data)) {
+            Toast('chat not sent');
+            return;
+        };
+        let { user } = store.getState();
+        try {
+            dispatch(addPrivateChat([data.chatSchema], data.create_chatid));
+            dispatch(updatePrivateChatListChats({
+                chats: [data.chatSchema],
+                create_chatid: data.create_chatid
+            }));
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('sendprivatechat', data.reqobj, options);
+            const { status, errmsg, create_chatid, message, partnerprofile, private_chat, warning_msg } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setPrivateChatPartnerProfile(partnerprofile, create_chatid));
+                    dispatch(removePrivateChat(data.chatSchema, create_chatid));
+                    dispatch(removePrivateChatListChats(data.chatSchema));
+                    dispatch(addPrivateChat([private_chat], create_chatid));
+                    dispatch(
+                        updatePrivateChatListChats({ partnerprofile, chats: [private_chat], create_chatid })
+                    );
+                    break;
+                case 400:
+                    Toast(errmsg);
+                    dispatch(addPrivateChat([{ ...data.chatSchema, read: 'failed' }], data.create_chatid));
+                    dispatch(updatePrivateChatListChats({
+                        chats: [{ ...data.chatSchema, read: 'failed' }],
+                        create_chatid: data.create_chatid
+                    }));
+                    break;
+                case 401:
+                    break;
+                case 412:
+                    Toast(errmsg);
+                    break;
+                case 500:
+                    dispatch(addPrivateChat([{ ...data.chatSchema, read: 'failed' }], data.create_chatid));
+                    dispatch(updatePrivateChatListChats({
+                        chats: [{ ...data.chatSchema, read: 'failed' }],
+                        create_chatid: data.create_chatid
+                    }));
+                    dispatch(addOfflineAction({
+                        id: `sendprivatechat${data.chatSchema.create_chatid}`,
+                        funcName: 'sendPrivateChat',
+                        param: data,
+                        persist: true,
+                        override: true,
+                    }));
+                    break;
+                default:
+                    dispatch(addPrivateChat([{ ...data.chatSchema, read: 'failed' }], data.create_chatid));
+                    dispatch(updatePrivateChatListChats({
+                        chats: [{ ...data.chatSchema, read: 'failed' }],
+                        create_chatid: data.create_chatid
+                    }));
+                    break;
+            }
+        } catch (err) {
+            //console.warn(err.toString());
+            dispatch(addPrivateChat([{ ...data.chatSchema, read: 'failed' }], data.create_chatid));
+            dispatch(updatePrivateChatListChats({
+                chats: [{ ...data.chatSchema, read: 'failed' }],
+                create_chatid: data.create_chatid
+            }));
+            if (err.toString().indexOf('Network Error') != -1) {
+                dispatch(addOfflineAction({
+                    id: `sendprivatechat${data.chatSchema.create_chatid}`,
+                    funcName: 'sendPrivateChat',
+                    persist: true,
+                    param: data,
+                    override: true,
+                }));
+            } else if (err.toString().indexOf('500') != -1) {
+                dispatch(addOfflineAction({
+                    id: `sendprivatechat${data.chatSchema.create_chatid}`,
+                    funcName: 'sendPrivateChat',
+                    param: data,
+                    persist: true,
+                    override: true,
+                }));
+            }
+        }
+
+    };
+
+};
+
+
+
 /**
  * ACTION CREATOR FOR FOLLOWINFO REDUCER
  * 
@@ -4016,7 +4314,7 @@ export const addFollowInfoUrl = (data: String) => {
         payload: data
     };
 };
-
+deleteOfflineAction
 
 export const fetchProfileFollowers = (profileid, initAction, okAction, failedAction) => {
     return async (dispatch) => {
@@ -4668,7 +4966,9 @@ export const deleteOfflineAction = (data: Object) => {
 export const deleteOfflineActions = (data: Array) => {
     return {
         type: DELETE_OFFLINE_ACTIONS,
-        payload: data
+        payload: {
+            ids: data
+        }
     };
 };
 

@@ -28,6 +28,7 @@ const HomeScreen = ({ componentId,
     setTimelinePostFormLinks,
     removeProfileTimeLinePost,
     removeProfileTimeLinePostForm,
+    privatechatlistform,
     setProcessing,
     muteProfileAction,
     archiveTimelinePost,
@@ -104,6 +105,13 @@ const HomeScreen = ({ componentId,
         setLoaded(true);
     }
 
+    function startOfflineDispatcher() {
+        if (privatechatlistform.chatlist.length < privatechatlistform.persistedchatlist.length) {
+            return null;
+        }
+        return <OfflineActionsDispatcher />;
+
+    };
 
     const start = () => {
         //console.warn(timelineposts);
@@ -140,7 +148,7 @@ const HomeScreen = ({ componentId,
                 righticon={righticon}
                 righticon2={righticon2}
             />
-            <OfflineActionsDispatcher />
+            {startOfflineDispatcher()}
             {
                 loaded == false ? <LoaderScreen
                     animationOff={true}
@@ -214,6 +222,7 @@ const mapStateToProps = (state) => ({
     timelineposts: state.timelineposts,
     timelinepostform: state.timelinepostform,
     profileactionform: state.profileactionform,
+    privatechatlistform: state.privatechatlistform,
     profile: state.profile
 });
 

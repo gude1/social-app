@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, View, ActivityIndicator } from "react-native";
-import { Text, Button } from "react-native-elements";
+import { Text, Button, Icon } from "react-native-elements";
 import React, { Component } from 'react';
 import { useTheme } from "../../assets/themes/index";
 import { responsiveWidth, responsiveHeight, responsiveFontSize } from "react-native-responsive-dimensions";
@@ -24,7 +24,9 @@ class PrivateChatItem extends Component {
         }
     }
     shouldComponentUpdate(nextProps, nextState, nextContext) {
-        if ((this.props.item.read != nextProps.item.read) && item.sender_id == this.props.userprofile.profile_id) {
+        if ((this.props.item.read != nextProps.item.read)
+            || this.props.item.id != nextProps.item.id
+        ) {
             return true;
         }
         return false;
@@ -60,6 +62,7 @@ class PrivateChatItem extends Component {
         if (!checkData(item) || item.sender_id != this.props.userprofile.profile_id) {
             return null;
         }
+        ///item.read = "failed";
         if (item.read == true) {
             return (
                 <Text style={{
@@ -79,6 +82,32 @@ class PrivateChatItem extends Component {
                     fontSize: responsiveFontSize(1.5),
                 }}>{item.created_at}  <Text style={{ letterSpacing: -1, }}>√√</Text>
                 </Text>
+            );
+        } else if (item.read == "sending") {
+            return (
+                <Text style={{
+                    color: "#a0a0a0",
+                    marginHorizontal: 25,
+                    textAlign: "justify",
+                    letterSpacing: -1,
+                    fontSize: responsiveFontSize(1.8),
+                }}><Text style={{ letterSpacing: -1, }}>sending...</Text>
+                </Text>
+            );
+        } else if (item.read == "failed") {
+            return (
+                <Icon
+                    type="antdesign"
+                    name="clockcircleo"
+                    iconStyle={{
+                        color: "#a0a0a0", fontWeight: "bold", textAlign: "justify"
+                    }}
+                    size={responsiveFontSize(2)}
+                    containerStyle={{
+                        marginTop: 2, marginHorizontal: 25
+                    }
+                    }
+                />
             );
         } else {
             return (
@@ -131,7 +160,9 @@ class PrivateChatItem extends Component {
     };
 
     render() {
+        //console.warn('rendered');
         let { item, userprofile } = this.props;
+        //console.warn(item);
         let privatechats = item.sender_id == userprofile.profile_id ? this.renderOwnerChat()
             : this.renderOtherChat();
         return privatechats;
@@ -143,18 +174,26 @@ class PrivateChatItem extends Component {
 class PrivateChats extends Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = { olddata: null };
     }
 
+
+
     _getItemLayout = (data, index) => {
-        []
         if (index == -1) return { index, length: 0, height: 0 };
         return { length: 75, offset: 75 * index, index }
     };
 
     _keyExtractor = (item, index) => index.toString();
 
-    _renderItem = ({ item }) => <PrivateChatItem item={item} userprofile={this.props.userprofile} />;
+    _renderItem = ({ item }) => {
+        return (
+            <PrivateChatItem
+                item={item}
+                userprofile={this.props.userprofile}
+            />
+        );
+    }
 
     _setListHeaderComponent = () => {
         if (this.props.loaded == false) {
@@ -162,16 +201,18 @@ class PrivateChats extends Component {
         }
         if (this.props.loadingmore == false) {
             return (
-                <Button
+                < Button
                     onPress={() => {
-                    }}
+                    }
+                    }
                     type="clear"
                     icon={{
                         name: 'plus',
                         type: "evilicon",
                         size: responsiveFontSize(4),
                         color: colors.text
-                    }}
+                    }
+                    }
                     titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
                     buttonStyle={{
                         alignSelf: 'center',
@@ -211,15 +252,19 @@ class PrivateChats extends Component {
     render() {
         return (
             <FlatList
-                contentContainerStyle={{ marginTop: 10, paddingBottom: 15 }}
-                data={this.props.loaded == false && [] || this.props.data}
+                ref={ref => {
+                    this.props.setFlatListRef(ref);
+                }}
+                inverted
+                style={{ height: 50 }}
+                data={this.props.loaded == false && [] || [...this.props.data].reverse()}
                 initialNumRender={10}
-                ListHeaderComponent={this._setListHeaderComponent()}
+                // ListFooterComponent={this._setListHeaderComponent()}
                 ListEmptyComponent={this._setEmptyPlaceHolder()}
                 renderItem={this._renderItem}
                 keyboardShouldPersistTaps='always'
                 keyboardDismissMode={'on-drag'}
-                getItemLayout={this._getItemLayout}
+                //getItemLayout={this._getItemLayout}
                 keyExtractor={this._keyExtractor}
             />
         );

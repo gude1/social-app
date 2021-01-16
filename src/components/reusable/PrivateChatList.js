@@ -16,7 +16,8 @@ class ChatListItem extends Component {
     }
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         if (nextProps.item.read != this.props.item.read ||
-            nextProps.item.created_at != this.props.item.created_at ||
+            //nextProps.item.id != this.props.item.id ||
+            nextProps.item.id != this.props.item.id ||
             nextProps.item.num_new_msg != this.props.item.num_new_msg
         ) {
             return true;
@@ -26,7 +27,7 @@ class ChatListItem extends Component {
 
     renderCheck = () => {
         const { item, userprofile } = this.props;
-        if (userprofile.profile_id != item.sender_profile.profile_id) {
+        if (userprofile.profile_id != item.sender_id) {
             return null;
         }
         //console.warn(item.read);
@@ -50,6 +51,28 @@ class ChatListItem extends Component {
                     fontSize: responsiveFontSize(1.8),
                     marginRight: 5
                 }}> √√</Text>
+            );
+        } else if (item.read == "sending") {
+            return (
+                <Text style={{
+                    color: "#a0a0a0",
+                    fontWeight: "bold",
+                    letterSpacing: -1,
+                    fontSize: responsiveFontSize(1.8),
+                    marginRight: 5
+                }}> sending...</Text>
+            );
+        } else if (item.read == "failed") {
+            return (
+                <Icon
+                    type="antdesign"
+                    name="clockcircleo"
+                    iconStyle={{
+                        color: "#a0a0a0", fontWeight: "bold", textAlign: "justify"
+                    }}
+                    size={responsiveFontSize(1.8)}
+                    containerStyle={{ marginRight: 5 }}
+                />
             );
         } else {
             return (
@@ -115,6 +138,7 @@ class ChatListItem extends Component {
 
     renderBadge = () => {
         const { item } = this.props;
+        //console.warn(item.num_new_msg);
         if (checkData(item.num_new_msg) && item.num_new_msg > 0) {
             return {
                 value: item.num_new_msg,
@@ -136,8 +160,7 @@ class ChatListItem extends Component {
 
     render() {
         const { item, userprofile, leftAvatarPress, checkmark, onPress, onLongPress } = this.props;
-        let profile = item.sender_profile.profile_id == userprofile.profile_id ?
-            item.receiver_profile : item.sender_profile;
+        let profile = item.partnerprofile;
         return (
             <ListItem
                 Component={TouchableScale}
@@ -277,21 +300,16 @@ class PrivateChatList extends Component {
     _renderItem = ({ item }) => {
         return (
             <ChatListItem
-                item={item}
+                item={{ partnerprofile: item.partnerprofile, ...item.chats[0] }}
                 userprofile={this.props.userprofile}
                 leftAvatarPress={this._setAvatarNavModal}
                 onPress={() => {
-                    let partnerprofile = item.sender_profile.profile_id == this.props.userprofile.profile_id ?
-                        item.receiver_profile : item.sender_profile;
-                    let chatdata = this.props.chatlistform.each_chat_arr.find(
-                        chatitem => item.create_chatid == chatitem.create_chatid
-                    );
                     Navigation.showModal({
                         component: {
                             name: 'PrivateChat',
                             passProps: {
                                 navparent: true,
-                                privatechatobj: { ...chatdata, partnerprofile },
+                                privatechatobj: item,
                                 screentype: 'modal'
                             },
                         }
@@ -316,7 +334,7 @@ class PrivateChatList extends Component {
             return (
                 <ChatListItem
                     key={index.toString()}
-                    item={item}
+                    item={{ partnerprofile: item.partnerprofile, ...item.chats[0] }}
                     checkmark={{
                         name: 'thumb-tack',
                         color: colors.iconcolor,
@@ -325,6 +343,18 @@ class PrivateChatList extends Component {
                     }}
                     userprofile={this.props.userprofile}
                     leftAvatarPress={this._setAvatarNavModal}
+                    onPress={() => {
+                        Navigation.showModal({
+                            component: {
+                                name: 'PrivateChat',
+                                passProps: {
+                                    navparent: true,
+                                    privatechatobj: item,
+                                    screentype: 'modal'
+                                },
+                            }
+                        })
+                    }}
                     onLongPress={() => {
                         this._setCurrentSelectedChat(item);
                         this.setState({ modallistvisible: true });
@@ -574,8 +604,7 @@ class PrivateChatList extends Component {
                     onPress: () => {
                         this.setState({ modallistvisible: false });
                         let item = this.currentselectedchat;
-                        let profile = this.props.userprofile.profile_id == item.sender_profile.profile_id ?
-                            item.receiver_profile : item.sender_profile;
+                        let profile = item.partnerprofile;
                         Alert.alert(
                             `Delete Chat between ${profile.profile_name} and you?`,
                             null,

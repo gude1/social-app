@@ -1,11 +1,14 @@
 import { checkData } from "../utilities/index";
 
-checkData
 const migrations = {
     0: (state) => {
         return {
             ...state,
             posts: [...state.posts],
+            privatechatlistform: {
+                ...state.privatechatlistform,
+                chatlist: []
+            }
         }
     },
     1: (state) => {

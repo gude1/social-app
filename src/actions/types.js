@@ -180,6 +180,8 @@ export const SET_SEARCH_LIST_RESET = 'set_search_list_reset'
 export const PREPEND_PRIVATECHATLIST = 'prepend_privatachatlist';
 export const ADD_PRIVATECHATLIST = 'add_privatechatlist';
 export const UPDATE_PRIVATECHATLIST = 'update_privatechatlist';
+export const UPDATE_PRIVATECHATLIST_CHATS = 'update_privatechatlist_chats';
+export const REMOVE_PRIVATECHATLIST_CHATS = 'remove_privatechatlist_chats';
 export const UPDATE_ARRAY_PRIVATECHATLIST = 'update_array_privatechatlist';
 export const ADD_PRIVATECHATLIST_TOSETREADARR = 'add_privatechatlist_tosetreadarr';
 export const REMOVE_PRIVATECHATLIST_TOSETREADARR = 'remove_privatechatlist_tosetreadarr';
@@ -193,10 +195,14 @@ export const SET_PRIVATE_CHATLIST_NEXTURL = 'set_private_chatlist_nexturl';
  * TYPE CONSTANT FOR PRIVATECHAT REDUCER
  */
 export const ADD_PRIVATECHAT = 'add_privatechat';
+export const REMOVE_PRIVATECHAT = 'remove_privatechat';
 export const SET_PRIVATECHATFORM = 'set_privatechatform';
+export const SET_PRIVATECHAT_PARTNER_PROFILE = 'set_privatechat_partner_profile';
 export const SET_PRIVATECHAT = 'set_privatechat';
+export const UPDATE_PRIVATECHATFORM_CHATS = 'update_privatechatform_chats';
 export const SET_PRIVATECHAT_LAST_FETCH_ARR = 'set_privatechat_last_fetch_arr';
 export const ADD_PRIVATECHAT_LAST_FETCH_ARR = 'add_privatechat_last_fetch_arr';
+export const REMOVE_PRIVATECHAT_LAST_FETCH_ARR = 'remove_privatechat_last_fetch_arr';
 
 /**
  * TYPE CONSTANT FOR OFFLINEACTIONS REDUCER

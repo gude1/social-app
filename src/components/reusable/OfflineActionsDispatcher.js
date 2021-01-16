@@ -25,7 +25,6 @@ const OfflineActionsDispatcher = ({
             offlineActions.forEach(offlineaction => {
                 let funcName = offlineaction.funcName;
                 if (checkData(funcName) && checkData(reduceractions[funcName])) {
-                    // availableStore.getState();
                     store.dispatch(reduceractions[funcName](offlineaction.param));
                 }
             });
