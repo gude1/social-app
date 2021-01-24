@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Navigation, } from 'react-native-navigation';
-import { StyleSheet, View, SafeAreaView } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, SafeAreaView } from 'react-native';
 import { responsiveWidth, useResponsiveWidth, responsiveFontSize, responsiveHeight } from 'react-native-responsive-dimensions';
 import * as actions from '../../actions';
 import { connect } from 'react-redux';
 import { useTheme } from '../../assets/themes/index';
 import { Icon, Avatar, Text, Button } from 'react-native-elements';
-import { HeaderWithImage, InputBox } from '../../components/reusable/ResuableWidgets';
+import { HeaderWithImage, InputBox, ScrollableListOverLay } from '../../components/reusable/ResuableWidgets';
 import PrivateChats from '../../components/reusable/PrivateChats';
-import { checkData, Toast } from '../../utilities/index';
+import { checkData, Toast, formatDate } from '../../utilities/index';
 
 const { colors } = useTheme();
 const PrivateChatScreen = ({
     componentId,
     addPrivateChat,
     sendPrivateChat,
+    deleteAPrivateChat,
     addPrivateChatListReadArr,
     deleteOfflineActions,
     setPrivateChatFetchArr,
+    getPrivateChatInfo,
     //removePrivateChatFetchArr,
     setPrivateChatForm,
     updatePrivateChatListChats,
@@ -30,9 +32,12 @@ const PrivateChatScreen = ({
     privatechatobj
     }) => {
     const [loaded, setLoaded] = useState(false);
+    const [chatinfovisible, setChatInfoVisible] = useState(false);
     const [flatlistref, setFlatListRef] = useState(null);
+    const [initialscroll, setInitialScroll] = useState(false);
     const [inputtxt, setInputTxt] = useState('');
     privatechatform = !checkData(privatechatform.partnerprofile) ? privatechatobj : privatechatform;
+
     /**component function starts here */
     Navigation.mergeOptions(componentId, {
         animations: {
@@ -82,10 +87,10 @@ const PrivateChatScreen = ({
             ]);
         };
     }, []);
-    //console.warn('outside', privatechatform.last_fetch_arr);
+
     useEffect(() => {
-        //console.warn('out here', privatechatform.fetchstatus);
-        if (privatechatform.last_fetch_arr > 0 && privatechatform.fetchstatus == '200') {
+        //console.warn('inside the effect', [privatechatform.fetchstatus, privatechatform.last_fetch_arr])
+        if (privatechatform.last_fetch_arr.length > 0 && privatechatform.fetchstatus == '200') {
             // console.warn('in here', privatechatform.last_fetch_arr)
             addPrivateChatListReadArr(privatechatform.last_fetch_arr);
             setPrivateChatLastFetchToRead([
@@ -93,7 +98,9 @@ const PrivateChatScreen = ({
                 privatechatform.last_fetch_arr
             ]);
         }
-    }, [privatechatform.last_fetch_arr.toString()])
+    }, [privatechatform.last_fetch_arr.toString()]);
+
+
     function renderView() {
         //console.warn(offlineactionslist);
         if (!checkData(privatechatobj) ||
@@ -107,16 +114,7 @@ const PrivateChatScreen = ({
         return (
             <>
             {/*<Button title="Press" onPress={() => {
-                console.warn(privatechatform.chats);
-             addPrivateChat([{
-                     id: Math.random(),
-                     partnerprofile: privatechatform.partnerprofile,
-                     sender_id: authprofile.profile_id,
-                     read: "sending",
-                     receiver_id: privatechatform.partnerprofile.profile_id,
-                     created_at: Math.round(new Date().getTime() / 1000),
-                     chat_msg: 'hahahhaha'
-                 }], privatechatform.create_chatid);
+                alert(formatDate(new Date().getTime(), 'd'));
             }} />*/}
             <HeaderWithImage
                 avatarUri={{ uri: privatechatform.partnerprofile.avatar[1] || null }}
@@ -153,7 +151,10 @@ const PrivateChatScreen = ({
                     type="antdesign"
                     name="infocirlceo"
                     color={colors.text}
-                    onPress={() => alert('You tears are delicious :)')}
+                    onPress={() => {
+                        setChatInfoVisible(true);
+                        getPrivateChatInfo(privatechatform.create_chatid)
+                    }}
                     containerStyle={{ marginTop: 3, marginHorizontal: 10 }}
                     size={responsiveFontSize(3)}
                 />}
@@ -163,12 +164,15 @@ const PrivateChatScreen = ({
             <PrivateChats
                 loaded={loaded}
                 setFlatListRef={setFlatListRef}
+                sendPrivateChat={sendPrivateChat}
+                deletePrivateChat={deleteAPrivateChat}
+                deleting={privatechatform.deleting}
+                partnerprofile={privatechatform.partnerprofile}
                 data={privatechatform.chats}
                 userprofile={authprofile}
                 loadingmore={privatechatform.loadingmore}
             />
             <InputBox
-                //style={{}}
                 showAvatar={false}
                 placeholder={'Type a message'}
                 onChangeText={setInputTxt}
@@ -177,11 +181,11 @@ const PrivateChatScreen = ({
                     if (!checkData(inputtxt)) {
                         return;
                     }
-                    flatlistref.scrollToOffset({ offset: 0 });
+                    flatlistref.scrollToOffset({ offset: responsiveHeight(100) });
                     sendPrivateChat({
                         create_chatid: privatechatform.create_chatid,
                         chatSchema: {
-                            id: 222,
+                            id: Math.round(new Date().getTime()),
                             partnerprofile: privatechatform.partnerprofile,
                             create_chatid: privatechatform.create_chatid,
                             sender_id: authprofile.profile_id,
@@ -210,17 +214,67 @@ const PrivateChatScreen = ({
                 autoFocus={false}
                 avatar={null}
             />
+            <ScrollableListOverLay
+                ListTitle={'Chat History'}
+                onBackdropPress={() => setChatInfoVisible(false)}
+                reLoad={() => getPrivateChatInfo(privatechatform.create_chatid)}
+                visible={chatinfovisible}
+                loading={privatechatform.fetchingchatinfo}
+            >
+                {showPrivateInfo()}
+            </ScrollableListOverLay>
             </>
         );
     }
-    /**component function ends here*/
-    /**CONDITIONAL STATEMENTS */
-    if (!loaded) {
-        setTimeout(() => {
-            setLoaded(true);
-            //checkData(flatlistref) && flatlistref.scrollToEnd({ animated: false });
-        }, 500);
+
+    function showPrivateInfo() {
+        let info = privatechatform.privatechatinfo;
+        if (checkData(info)) {
+            return (
+                <>
+                <Text style={{ marginVertical: 5, color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>
+                    Chat started on : {info['init_date']}
+                </Text>
+                <Text style={{ marginVertical: 5, color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>
+                    Total Chats : {info['totalchats']}
+                </Text>
+                <Text style={{ marginVertical: 5, color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>
+                    Your Chat Contribution : {info['yoursentchats'] + ' out of ' + info['totalchats']}
+                </Text>
+                <Text style={{ marginVertical: 5, color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>
+                    Partner Chat Contribution : {info['partnersentchats'] + ' out of ' + info['totalchats']}
+                </Text>
+                <Text style={{ marginVertical: 5, color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>
+                    Your % Chat Contribution : {info['peryoursentchat'] + "%"}
+                </Text>
+
+                <Text style={{ marginVertical: 5, color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>
+                    Partner % Chat Contribution : {info['perothersentchats'] + "%"}
+                </Text>
+                </>
+            )
+        }
+        return null;
     }
+
+    /**component function ends here*/
+
+    /**CONDITIONAL STATEMENTS */
+    if (loaded != true && initialscroll == true) {
+        setLoaded(true);
+    }
+
+    if (checkData(flatlistref) && initialscroll != true) {
+        let height = responsiveHeight(100);
+        setTimeout(() => {
+            flatlistref.scrollToOffset({ offset: height, animated: false });
+            setInitialScroll(true);
+        }, 2000);
+
+
+
+    }
+
     /**CONDITIONAL STATEMENTS */
 
     return (

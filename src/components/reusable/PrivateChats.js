@@ -1,10 +1,12 @@
-import { FlatList, StyleSheet, View, ActivityIndicator } from "react-native";
+import { FlatList, StyleSheet, View, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
 import { Text, Button, Icon } from "react-native-elements";
-import React, { Component } from 'react';
+import React, { PureComponent, Component } from 'react';
 import { useTheme } from "../../assets/themes/index";
 import { responsiveWidth, responsiveHeight, responsiveFontSize } from "react-native-responsive-dimensions";
 import FastImage from 'react-native-fast-image';
-import { checkData } from "../../utilities/index";
+import { checkData, formatDate } from "../../utilities/index";
+import { ModalList, ActivityOverlay } from "./ResuableWidgets";
+
 
 const { colors } = useTheme();
 
@@ -17,6 +19,7 @@ class PrivateChatItem extends Component {
         this.resheight = responsiveHeight(100);
         this.ownerchattextcolor = "#181818";
         this.ownerchatbgcolor = "rgb(237,237,237)";
+        this.item = this.props.item;
         this.otherchattextcolor = '';
         if (colors.theme == "black") {
             this.ownerchatbgcolor = colors.border;
@@ -24,38 +27,48 @@ class PrivateChatItem extends Component {
         }
     }
     shouldComponentUpdate(nextProps, nextState, nextContext) {
-        if ((this.props.item.read != nextProps.item.read)
-            || this.props.item.id != nextProps.item.id
-        ) {
-            return true;
+        console.warn('PREVIOUS_PROPS', this.props.item.id);
+        console.warn('BEW_PROPS', nextProps.item.id);
+        if (this.props.item.id != nextProps.item.id) {
+            return false;
         }
         return false;
     }
     renderOwnerChat = () => {
-        if (this.props.item.sender_id != this.props.userprofile.profile_id) {
+        if (this.item.sender_id != this.props.userprofile.profile_id) {
             return null;
         }
         return (
-            <View style={{ marginVertical: 5, alignItems: "flex-end" }}>
-                <Text
-                    style={{
-                        marginHorizontal: 20,
-                        fontSize: responsiveFontSize(2.1),
-                        color: this.ownerchattextcolor,
-                        textAlign: "justify",
-                        borderTopLeftRadius: 20,
-                        borderTopRightRadius: 20,
-                        padding: 12,
-                        borderBottomLeftRadius: 30,
-                        backgroundColor: this.ownerchatbgcolor,
-                        minWidth: 50,
-                        maxWidth: responsiveWidth(70)
-                    }}
-                >
-                    {this.props.item.chat_msg}
-                </Text>
-                {this.renderCheck(this.props.item)}
-            </View >
+            <TouchableOpacity
+                onPress={this.props.onPress}
+                onLongPress={this.props.onLongPress}
+            >
+                <View style={{ marginVertical: 5, alignItems: "flex-end" }}>
+                    {checkData(this.props.item.newdate) &&
+                        <Text style={{ alignSelf: 'center', color: colors.text, marginVertical: 10 }}>
+                            {this.props.item.newdate}
+                        </Text>}
+
+                    <Text
+                        style={{
+                            marginHorizontal: 20,
+                            fontSize: responsiveFontSize(2.1),
+                            color: this.ownerchattextcolor,
+                            textAlign: "justify",
+                            borderTopLeftRadius: 20,
+                            borderTopRightRadius: 20,
+                            padding: 12,
+                            borderBottomLeftRadius: 30,
+                            backgroundColor: this.ownerchatbgcolor,
+                            minWidth: 50,
+                            maxWidth: responsiveWidth(70)
+                        }}
+                    >
+                        {this.props.item.chat_msg}
+                    </Text>
+                    {this.renderCheck(this.item)}
+                </View >
+            </TouchableOpacity>
         );
     };
     renderCheck = (item) => {
@@ -63,7 +76,7 @@ class PrivateChatItem extends Component {
             return null;
         }
         ///item.read = "failed";
-        if (item.read == true) {
+        if (item.read == true || item.read == "true") {
             return (
                 <Text style={{
                     color: "#a0a0a0",
@@ -123,44 +136,51 @@ class PrivateChatItem extends Component {
         }
     };
     renderOtherChat = () => {
-        if (this.props.item.receiver_id != this.props.userprofile.profile_id) {
+        if (this.item.receiver_id != this.props.userprofile.profile_id) {
             return null;
         }
         return (
-            <View style={{ marginVertical: 5, alignItems: "flex-start" }}>
-                <Text
-                    style={{
-                        borderWidth: 1,
-                        borderColor: colors.border,
-                        marginHorizontal: 20,
-                        fontSize: responsiveFontSize(2.1),
-                        color: colors.text,
+            <TouchableOpacity
+                onPress={this.props.onPress}
+                onLongPress={this.props.onLongPress}
+            >
+                <View style={{ marginVertical: 5, alignItems: "flex-start" }}>
+                    {checkData(this.item.newdate) && <Text style={{ alignSelf: 'center', color: colors.text, marginVertical: 10 }}>
+                        {this.item.newdate}
+                    </Text>}
+
+                    <Text
+                        style={{
+                            borderWidth: 1,
+                            borderColor: colors.border,
+                            marginHorizontal: 20,
+                            fontSize: responsiveFontSize(2.1),
+                            color: colors.text,
+                            textAlign: "justify",
+                            borderTopLeftRadius: 20,
+                            borderTopRightRadius: 20,
+                            borderBottomRightRadius: 30,
+                            padding: 12,
+                            minWidth: 50,
+                            maxWidth: responsiveWidth(70)
+                        }}
+                    >
+                        {this.item.chat_msg}
+                    </Text>
+                    <Text style={{
+                        marginHorizontal: 25,
                         textAlign: "justify",
-                        borderTopLeftRadius: 20,
-                        borderTopRightRadius: 20,
-                        borderBottomRightRadius: 30,
-                        //marginLeft: 'auto',
-                        padding: 12,
-                        //paddingHorizontal: 15,
-                        minWidth: 50,
-                        maxWidth: responsiveWidth(70)
-                    }}
-                >
-                    {this.props.item.chat_msg}
-                </Text>
-                <Text style={{
-                    marginHorizontal: 25,
-                    textAlign: "justify",
-                    color: "#a0a0a0",
-                    fontSize: responsiveFontSize(1.5)
-                }}>{this.props.item.created_at}</Text>
-            </View>
+                        color: "#a0a0a0",
+                        fontSize: responsiveFontSize(1.5)
+                    }}>{this.item.created_at}</Text>
+                </View>
+            </TouchableOpacity>
         );
 
     };
 
     render() {
-        //console.warn('rendered');
+        console.warn('rendered');
         let { item, userprofile } = this.props;
         //console.warn(item);
         let privatechats = item.sender_id == userprofile.profile_id ? this.renderOwnerChat()
@@ -174,25 +194,10 @@ class PrivateChatItem extends Component {
 class PrivateChats extends Component {
     constructor(props) {
         super(props);
-        this.state = { olddata: null };
-    }
-
-
-
-    _getItemLayout = (data, index) => {
-        if (index == -1) return { index, length: 0, height: 0 };
-        return { length: 75, offset: 75 * index, index }
-    };
-
-    _keyExtractor = (item, index) => index.toString();
-
-    _renderItem = ({ item }) => {
-        return (
-            <PrivateChatItem
-                item={item}
-                userprofile={this.props.userprofile}
-            />
-        );
+        this.state = { modallistvisible: false };
+        this.previousdata = this.props.data.map(item => item.id);
+        this.currentselectedchatitem = null;
+        this.flatlistref = null;
     }
 
     _setListHeaderComponent = () => {
@@ -201,10 +206,8 @@ class PrivateChats extends Component {
         }
         if (this.props.loadingmore == false) {
             return (
-                < Button
-                    onPress={() => {
-                    }
-                    }
+                <Button
+                    onPress={() => { }}
                     type="clear"
                     icon={{
                         name: 'plus',
@@ -249,17 +252,73 @@ class PrivateChats extends Component {
         }
     };
 
+    _setCurrentSelectedChatItem = (chatitem) => {
+        this.currentselectedchatitem = chatitem;
+    };
+
+    _reSendChat = () => {
+        let currentselectedchatitem = this.currentselectedchatitem;
+        let chatSchema = { ...currentselectedchatitem, read: "sending" };
+        if (!checkData(currentselectedchatitem)) {
+            return;
+        } else if (checkData(currentselectedchatitem.private_chatid)) {
+            chatSchema = {
+                ...chatSchema,
+                private_chatid: null,
+                id: Math.round(new Date().getTime()),
+                sender_id: this.props.userprofile.profile_id,
+                receiver_id: this.props.partnerprofile.profile_id,
+                created_at: `${Math.round(new Date().getTime())}`,
+
+            };
+            checkData(this.flatlistref) && this.flatlistref.scrollToOffset({ offset: 0 });
+        }
+        this.props.sendPrivateChat({
+            create_chatid: this.currentselectedchatitem.create_chatid,
+            chatSchema,
+            reqobj: {
+                chat_msg: currentselectedchatitem.chat_msg,
+                setread: 'ok',
+                receiver_id: this.props.partnerprofile.profile_id,
+            }
+        });
+    };
+
+    _getItemLayout = (data, index) => {
+        if (index == -1) return { index, length: 0, height: 0 };
+        return { length: 75, offset: 75 * index, index }
+    };
+
+    _keyExtractor = (item, index) => index.toString();
+
+    _renderItem = ({ item, index }) => {
+        return (
+            <PrivateChatItem
+                item={item}
+                onPress={() => {
+                    this._setCurrentSelectedChatItem(item);
+                    this.setState({ modallistvisible: true });
+                }}
+                userprofile={this.props.userprofile}
+            />
+        );
+    }
+
     render() {
         return (
+            <>
             <FlatList
                 ref={ref => {
+                    this.flatlistref = ref;
                     this.props.setFlatListRef(ref);
                 }}
-                inverted
                 style={{ height: 50 }}
                 data={this.props.loaded == false && [] || [...this.props.data].reverse()}
-                initialNumRender={10}
-                // ListFooterComponent={this._setListHeaderComponent()}
+                maxToRenderPerBatch={1}
+                inverted
+                updateCellsBatchingPeriod={1}
+                initialNumRender={5}
+                //ListFooterComponent={this._setListHeaderComponent()}
                 ListEmptyComponent={this._setEmptyPlaceHolder()}
                 renderItem={this._renderItem}
                 keyboardShouldPersistTaps='always'
@@ -267,6 +326,58 @@ class PrivateChats extends Component {
                 //getItemLayout={this._getItemLayout}
                 keyExtractor={this._keyExtractor}
             />
+
+            <ActivityOverlay
+                isVisible={this.props.deleting == "true" ? true : false}
+                text={'Deleting Chat'}
+            />
+
+            <ModalList
+                isVisible={this.state.modallistvisible}
+                onBackdropPress={() => this.setState({ modallistvisible: false })}
+                optionsArr={[{
+                    title: "Resend Message",
+                    onPress: () => {
+                        this.setState({ modallistvisible: false });
+                        this._reSendChat();
+                    },
+                    icon: {
+                        name: 'arrow-up',
+                        color: colors.text,
+                        size: responsiveFontSize(3),
+                        type: "evilicon"
+                    }
+                },
+                {
+                    title: "Delete Message",
+                    onPress: () => {
+                        this.setState({ modallistvisible: false });
+                        Alert.alert(
+                            `Delete Message ?`,
+                            null,
+                            [
+                                {
+                                    text: "Yes",
+                                    onPress: () => this.props.deletePrivateChat(this.currentselectedchatitem),
+                                },
+                                {
+                                    text: "No",
+                                    style: "cancel"
+                                },
+                            ]
+                        );
+
+                    },
+                    icon: {
+                        name: 'close-o',
+                        color: colors.text,
+                        size: responsiveFontSize(3),
+                        type: "evilicon"
+                    }
+                }
+                ]}
+            />
+            </>
         );
     }
 }

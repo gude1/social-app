@@ -1,8 +1,8 @@
 import React, { Component, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useTheme } from '../../assets/themes';
-import { Icon, Avatar, Overlay, Image, Input, Button } from 'react-native-elements';
+import { Icon, Avatar, Text, Overlay, Image, Input, Button } from 'react-native-elements';
 import { checkData } from '../../utilities';
 import { responsiveFontSize, responsiveWidth, responsiveScreenWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import Toast, { DURATION } from 'react-native-easy-toast';
@@ -87,59 +87,77 @@ export class Header extends React.PureComponent {
         );
     }
 };
+export class HeaderWithImage extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+    }
 
-export const HeaderWithImage = ({ Icon1, Icon2, Icon3, onAvatarPress, title, subTitle, avatarUri, avatarStyle, }) => {
-    return (
-        <View style={styles.headerWithImageStyle}>
-            <View style={{
-                flexDirection: 'row',
-                alignItems: "center",
-                height: "100%",
-                flex: 1,
-            }}>
-                {Icon1 && Icon1}
-                <Avatar
-                    rounded
-                    size={30}
-                    onPress={onAvatarPress}
-                    source={avatarUri || null}
-                    icon={{ name: 'user', type: 'antdesign', color: 'white' }}
-                    resizeMode={'contain'}
-                    placeholderStyle={styles.headerImageContainerStyle}
-                    containerStyle={[styles.headerImageContainerStyle, { marginTop: 2 }]}
-                    overlayContainerStyle={styles.headerImageContainerStyle}
-                />
-                <View style={{ marginHorizontal: 8 }}>
-                    <Text
-                        ellipsizeMode={'tail'}
-                        numberOfLines={1}
-                        style={{
-                            color: colors.text,
-                            marginTop: 3,
-                            maxWidth: responsiveWidth(40),
-                            fontWeight: 'bold'
-                        }}>
-                        {title}
-                    </Text>
-                    {subTitle && <Text
-                        ellipsizeMode={'tail'}
-                        style={{
-                            color: colors.iconcolor,
-                            fontSize: responsiveFontSize(1.3),
-                            marginTop: 3,
-                            maxWidth: responsiveWidth(40)
-                        }}
-                        numberOfLines={1}
-                    >
-                        {subTitle}
-                    </Text>}
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        if (this.props.avatarUri != nextProps.avatarUri ||
+            this.props.title != nextProps.title ||
+            this.props.subTitle != nextProps.subTitle
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    render() {
+        const { Icon1, Icon2, Icon3, onAvatarPress, title, subTitle, avatarUri, avatarStyle } = this.props;
+        return (
+            <View style={styles.headerWithImageStyle}>
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: "center",
+                    height: "100%",
+                    flex: 1,
+                }}>
+                    {Icon1 && Icon1}
+                    <Avatar
+                        rounded
+                        size={30}
+                        onPress={onAvatarPress}
+                        source={avatarUri || null}
+                        icon={{ name: 'user', type: 'antdesign', color: 'white' }}
+                        resizeMode={'contain'}
+                        placeholderStyle={styles.headerImageContainerStyle}
+                        containerStyle={[styles.headerImageContainerStyle, { marginTop: 2 }]}
+                        overlayContainerStyle={styles.headerImageContainerStyle}
+                    />
+                    <View style={{ marginHorizontal: 8 }}>
+                        <Text
+                            ellipsizeMode={'tail'}
+                            numberOfLines={1}
+                            style={{
+                                color: colors.text,
+                                marginTop: 3,
+                                maxWidth: responsiveWidth(40),
+                                fontWeight: 'bold'
+                            }}>
+                            {title}
+                        </Text>
+                        {subTitle && <Text
+                            ellipsizeMode={'tail'}
+                            style={{
+                                color: colors.iconcolor,
+                                fontSize: responsiveFontSize(1.3),
+                                marginTop: 3,
+                                maxWidth: responsiveWidth(40)
+                            }}
+                            numberOfLines={1}
+                        >
+                            {subTitle}
+                        </Text>}
+                    </View>
                 </View>
-            </View>
-            {Icon2 && Icon2}
-            {Icon3 && Icon3}
-        </View >
-    );
+                {Icon2 && Icon2}
+                {Icon3 && Icon3}
+            </View >
+        );
+    }
 };
+
 
 export const OverlayWithImage = ({ isVisible, onAccept,
     theme, overlaytext, overlaystyle,
@@ -383,6 +401,102 @@ export class BottomListModal extends Component {
     }
 
 };
+export class ScrollableListOverLay extends Component {
+    constructor(props) {
+        super(props);
+    }
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        if (this.props.visible != nextProps.visible || this.props.loading != nextProps.loading)
+            return true;
+        else
+            return false;
+    }
+
+    _render = () => {
+        let { loading, children, reLoad } = this.props;
+        if (loading == 'true' || loading == true) {
+            return (
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <ActivityIndicator size={30} color={'silver'} />
+                </View>
+            )
+        } else if (loading == "retry") {
+            return (
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <Text style={{
+                        color: colors.text,
+                        textAlign: "center",
+                        fontWeight: "bold",
+                    }}>
+                        Failed to load
+                    </Text>
+                    <Button
+                        type="outline"
+                        onPress={() => checkData(reLoad) ? reLoad() : null}
+                        icon={{
+                            name: 'sync',
+                            type: "antdesign",
+                            size: responsiveFontSize(2.7),
+                            color: colors.text
+                        }}
+                        title="Tap to retry"
+                        titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                        buttonStyle={{
+                            marginTop: 40,
+                            borderColor: colors.iconcolor,
+                            borderRadius: 15,
+                            width: 150,
+                            padding: 10
+                        }}
+                    />
+                </View>
+            );
+        } else {
+            return (
+                <ScrollView showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ marginLeft: 40 }}
+                    keyboardShouldPersistTaps='always'
+                    keyboardDismissMode={'on-drag'}
+                >
+                    {children || <Text style={{
+                        fontSize: responsiveFontSize(3),
+                        marginLeft: 60,
+                        fontWeight: "bold",
+                        marginVertical: 100,
+                        color: colors.iconcolor
+                    }}>List is Empty</Text>}
+                </ScrollView>
+            );
+        }
+    };
+
+    render() {
+        let { visible, ListTitle, onBackdropPress } = this.props;
+        return (
+            <Overlay
+                fullScreen={false}
+                onBackdropPress={onBackdropPress}
+                onRequestClose={onBackdropPress}
+                animationType="slide"
+                isVisible={visible || false}
+                overlayStyle={{ opacity: 0.9, padding: 0, borderRadius: 10, backgroundColor: colors.background }}
+            >
+                <View
+                    style={{ width: 300, borderRadius: 10, height: 300, backgroundColor: colors.card }}>
+                    <Text h4 style={{
+                        margin: 5, marginTop: 15, alignSelf: "center",
+                        color: colors.text
+                    }}>
+                        {ListTitle}
+                    </Text>
+                    {this._render()}
+                </View>
+            </Overlay>
+        );
+    }
+}
+
+
 
 
 export const ConfirmModal = ({ isVisible, acceptText, acceptAction, rejectAction, rejectText, confirmMsg, }) => {
@@ -419,7 +533,7 @@ export const ConfirmModal = ({ isVisible, acceptText, acceptAction, rejectAction
 };
 
 export const AvatarNavModal = ({
-    navBarItemArr,
+                        navBarItemArr,
     avatar,
     onAvatarPress,
     isVisible,
@@ -683,8 +797,13 @@ export class ListItem extends Component {
         );
     }
 };
-
-export class ActivityOverlay extends React.PureComponent {
+export class ActivityOverlay extends Component {
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        if (this.props.isVisible != nextProps.isVisible) {
+            return true;
+        }
+        return false;
+    }
     render() {
         const { isVisible, text } = this.props;
         return (

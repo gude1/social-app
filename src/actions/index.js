@@ -133,6 +133,7 @@ import {
     REMOVE_PRIVATECHAT,
     REMOVE_PRIVATECHATLIST_CHATS,
     SET_PRIVATECHAT_PARTNER_PROFILE,
+    SET_PRIVATECHAT_INFO,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -4045,6 +4046,14 @@ export const removePrivateChatFetchArr = (data: Array, create_chatid: String) =>
     };
 };
 
+export const setPrivateChatInfo = (data: Object, create_chatid: String) => {
+    return {
+        type: SET_PRIVATECHAT_INFO,
+        payload: data,
+        create_chatid
+    };
+};
+
 export const setPrivateChatPartnerProfile = (data: Object, create_chatid: String) => {
     return {
         type: SET_PRIVATECHAT_PARTNER_PROFILE,
@@ -4203,6 +4212,7 @@ export const sendPrivateChat = (data: Object) => {
         };
         let { user } = store.getState();
         try {
+            dispatch(deleteOfflineAction({ id: `sendprivatechat${data.chatSchema.id}` }));
             dispatch(addPrivateChat([data.chatSchema], data.create_chatid));
             dispatch(updatePrivateChatListChats({
                 chats: [data.chatSchema],
@@ -4243,7 +4253,7 @@ export const sendPrivateChat = (data: Object) => {
                         create_chatid: data.create_chatid
                     }));
                     dispatch(addOfflineAction({
-                        id: `sendprivatechat${data.chatSchema.create_chatid}`,
+                        id: `sendprivatechat${data.chatSchema.id}`,
                         funcName: 'sendPrivateChat',
                         param: data,
                         persist: true,
@@ -4267,7 +4277,7 @@ export const sendPrivateChat = (data: Object) => {
             }));
             if (err.toString().indexOf('Network Error') != -1) {
                 dispatch(addOfflineAction({
-                    id: `sendprivatechat${data.chatSchema.create_chatid}`,
+                    id: `sendprivatechat${data.chatSchema.id}`,
                     funcName: 'sendPrivateChat',
                     persist: true,
                     param: data,
@@ -4275,7 +4285,7 @@ export const sendPrivateChat = (data: Object) => {
                 }));
             } else if (err.toString().indexOf('500') != -1) {
                 dispatch(addOfflineAction({
-                    id: `sendprivatechat${data.chatSchema.create_chatid}`,
+                    id: `sendprivatechat${data.chatSchema.id}`,
                     funcName: 'sendPrivateChat',
                     param: data,
                     persist: true,
@@ -4288,6 +4298,85 @@ export const sendPrivateChat = (data: Object) => {
 
 };
 
+export const getPrivateChatInfo = (create_chatid: String) => {
+    return async (dispatch) => {
+        if (!checkData(create_chatid)) {
+            return;
+        }
+        try {
+            const { user } = store.getState();
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            dispatch(setProcessing(true + `*${create_chatid}`, 'privatechatformfetchchatinfo'));
+            //console.warn('moving');
+            const response = await session.post('getaprivatechatinfo', { create_chatid }, options);
+            const { status, message, errmsg, private_chatinfo } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setPrivateChatInfo(private_chatinfo, create_chatid));
+                    dispatch(setProcessing(false + `*${create_chatid}`, 'privatechatformfetchchatinfo'));
+                    break;
+                case 401:
+                    dispatch(setProcessing(false + `*${create_chatid}`, 'privatechatformfetchchatinfo'));
+                    break;
+                default:
+                    dispatch(setProcessing(`retry*${create_chatid}`, 'privatechatformfetchchatinfo'));
+                    break;
+            }
+        } catch (err) {
+            // console.warn(err.toString())
+            dispatch(setProcessing(`retry*${create_chatid}`, 'privatechatformfetchchatinfo'));
+        }
+    };
+};
+
+export const deleteAPrivateChat = (chatitem: Object) => {
+    return async (dispatch) => {
+        if (!checkData(chatitem) || !checkData(chatitem.create_chatid)) {
+            Toast('chat not deleted missing values to continue');
+        }
+        try {
+            const { user } = store.getState();
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            if (chatitem.read == "failed") {
+                dispatch(removePrivateChat(chatitem, chatitem.create_chatid));
+                dispatch(removePrivateChatListChats(chatitem));
+                dispatch(deleteOfflineAction({ id: `sendprivatechat${chatitem.id}` }));
+                return;
+            }
+            dispatch(setProcessing(true + `*${chatitem.create_chatid}`, 'privatechatformdeleting'));
+            const response = await session.post('deleteaprivatechat',
+                { chatid: chatitem.private_chatid }, options);
+            const { status, errmsg, message } = response.data;
+            dispatch(setProcessing(false + `*${chatitem.create_chatid}`, 'privatechatformdeleting'));
+            switch (status) {
+                case 200:
+                    dispatch(removePrivateChat(chatitem, chatitem.create_chatid));
+                    dispatch(removePrivateChatListChats(chatitem));
+                    dispatch(deleteOfflineAction({ id: `sendprivatechat${chatitem.id}` }));
+                    break;
+                case 401:
+                    break;
+                case 400:
+                    Toast('Chat not deleted please try again');
+                    break;
+                case 500:
+                    Toast('Chat not deleted please try again');
+                    break;
+                default:
+                    Toast('Chat not deleted please try again');
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false + `*${chatitem.create_chatid}`, 'privatechatformdeleting'));
+            Toast('Chat not deleted please try again');
+        }
+
+    };
+};
 
 
 /**

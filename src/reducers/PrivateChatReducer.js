@@ -2,13 +2,16 @@ import {
     SET_PRIVATECHATFORM, ADD_PRIVATECHAT, SET_PRIVATECHAT,
     SET_PRIVATECHAT_LAST_FETCH_ARR, ADD_PRIVATECHAT_LAST_FETCH_ARR,
     RESET, PROCESSING, REMOVE_PRIVATECHAT_LAST_FETCH_ARR,
-    UPDATE_PRIVATECHATFORM_CHATS, REMOVE_PRIVATECHAT, SET_PRIVATECHAT_PARTNER_PROFILE,
+    UPDATE_PRIVATECHATFORM_CHATS, REMOVE_PRIVATECHAT, SET_PRIVATECHAT_PARTNER_PROFILE, SET_PRIVATECHAT_INFO,
 } from "../actions/types";
-import { checkData } from "../utilities/index";
+import { checkData, formatDate } from "../utilities/index";
 
 const INITIAL_STATE = {
     partnerprofile: null,
     fetchstatus: 0,
+    privatechatinfo: null,
+    fetchingchatinfo: 'false',
+    deleting: false,
     create_chatid: null,
     loadingmore: false,
     chats: [],
@@ -20,6 +23,21 @@ const arrangeChat = (data) => {
         return data;
     }
     return data.sort((item1, item2) => item1.created_at - item2.created_at);
+    /*return data.map((item, index) => {
+        let preceeddata = data[index - 1];
+        let itemdate = formatDate(item.created_at * 1000, 'd,m,md,y');
+        if (checkData(preceeddata) && checkData(preceeddata.private_chatid) && checkData(item.private_chatid)) {
+            let preceeddate = formatDate(preceeddata.created_at * 1000, 'd,m,md,y');
+            if (preceeddate != itemdate) {
+                return { ...item, newdate: itemdate };
+            }
+            return item;
+        } else if (!checkData(preceeddata) && checkData(item.private_chatid)) {
+            return { ...item, newdate: itemdate };
+        } else {
+            return item;
+        }
+    });*/
 };
 
 const updateChats = (state, payload) => {
@@ -53,6 +71,14 @@ const handleProcessing = (key, value, state) => {
             break;
         case 'privatechatformfetchstatus':
             return { ...state, fetchstatus: values[0] };
+            break;
+        case 'privatechatformdeleting':
+            //console.warn('DELETING', values);
+            return { ...state, deleting: values[0] };
+            break;
+        case 'privatechatformfetchchatinfo':
+            // console.warn('FETCHING', values);
+            return { ...state, fetchingchatinfo: values[0] };
             break;
         default:
             return state;
@@ -115,6 +141,10 @@ const PrivateChatReducer = (state = INITIAL_STATE, action) => {
         case SET_PRIVATECHAT_PARTNER_PROFILE:
             confirmId(state, action.create_chatid);
             return { ...state, partnerprofile: { ...state.partnerprofile, ...action.payload } };
+            break;
+        case SET_PRIVATECHAT_INFO:
+            confirmId(state, action.create_chatid);
+            return { ...state, privatechatinfo: { ...state.privatechatinfo, ...action.payload } };
             break;
         case PROCESSING:
             return handleProcessing(action.payload.key,

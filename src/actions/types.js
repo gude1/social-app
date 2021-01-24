@@ -199,6 +199,7 @@ export const REMOVE_PRIVATECHAT = 'remove_privatechat';
 export const SET_PRIVATECHATFORM = 'set_privatechatform';
 export const SET_PRIVATECHAT_PARTNER_PROFILE = 'set_privatechat_partner_profile';
 export const SET_PRIVATECHAT = 'set_privatechat';
+export const SET_PRIVATECHAT_INFO = 'set_privatechat_info';
 export const UPDATE_PRIVATECHATFORM_CHATS = 'update_privatechatform_chats';
 export const SET_PRIVATECHAT_LAST_FETCH_ARR = 'set_privatechat_last_fetch_arr';
 export const ADD_PRIVATECHAT_LAST_FETCH_ARR = 'add_privatechat_last_fetch_arr';
