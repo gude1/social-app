@@ -4,7 +4,7 @@ import { Navigation } from 'react-native-navigation';
 import { AUTHROUTE, SETUPPROFILEROUTE, SETUPPOSTROUTE, MAINTABSROUTE } from '../routes';
 import ImageResizer from 'react-native-image-resizer';
 import { persistor } from '../store/index';
-import { labeledStatement } from '@babel/types';
+
 export const deleteFile = (data) => {
     if (data != null && data != '' && data != undefined) {
         RNFetchBlob.fs.unlink(data)
@@ -130,6 +130,43 @@ export const logOut = (after) => {
     });
 };
 
+export const convertByteToKbMb = (data) => {
+    //1mb == 1000000bytes
+    //1kb == 1000bytes
+    if (!checkData(data)) {
+        return data;
+    }
+    let tokb = Math.floor(data / 1000);
+    let tomb = Math.floor(data / 1000000);
+    if (tokb >= 1000) {
+        return `${tomb}mb`;
+    } else {
+        return `${tokb}kb`;
+    }
+
+}
+
+/**
+ * this function return info about a file
+ */
+export const getFileInfo = async (file) => {
+    if (!checkData(file)) {
+        return false;
+    }
+
+    const { fs } = RNFetchBlob;
+    try {
+        //let fileinfo = await fs.stat(`${fs.dirs.DownloadDir}/yo.jpeg`);
+        //alert(JSON.stringify(fileinfo));
+        //alert(JSON.stringify(fs.dirs.DownloadDir));
+        let fileinfo = await fs.stat(file);
+        return fileinfo;
+    } catch (error) {
+        return false;
+        console.warn(error.toString());
+    }
+
+};
 
 export const rnPath = (data) => {
     if (Platform.OS == 'android') {
@@ -169,8 +206,27 @@ export const setRoute = (store) => {
         //console.warn(posts);
 
     }
+};
 
-}
+export const cpFile = async (from: String, to: String, del: Boolean) => {
+    const { fs } = RNFetchBlob;
+    if (!checkData(from) || !checkData(to)) {
+        console.warn('incorrect input');
+        return false;
+    }
+    try {
+        let c = await fs.cp(from, to);
+        if (del == true) {
+            deleteFile(from);
+        }
+        return true;
+    } catch (err) {
+        console.warn('err', err.toString());
+        return false
+    }
+};
+
+
 export const shouldNav = (componentId, store, name) => {
     let info = setUpInfo(store);
     return info == 'completed' ?
@@ -257,6 +313,8 @@ export function checkData(data) {
     }
     return false;
 }
+
+
 //function to navigate to a screen
 export const toNav = (navigator, componentId, componentName, props) => {
     if (checkData(navigator) == false || checkData(componentId) == false || checkData(componentName) == false) {
@@ -338,7 +396,7 @@ export const resizeImage = async (uri, width, height, compressFormat, quality, r
         );
         return res.uri;
     } catch (e) {
-        //alert(e.toString());
+        alert(e.toString());
         return false;
     }
 };

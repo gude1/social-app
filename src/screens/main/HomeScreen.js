@@ -15,12 +15,17 @@ import OnlineList from '../../components/reusable/OnlineList';
 import * as Animatable from 'react-native-animatable';
 import PostList from '../../components/reusable/PostList';
 import OfflineActionsDispatcher from '../../components/reusable/OfflineActionsDispatcher';
+import { getFileInfo, rnPath, cpFile } from '../../utilities/index';
+import RNFetchBlob from 'rn-fetch-blob';
+
 
 const { colors } = useTheme();
 /*const getConstants = async () => {
     return { statusBarHeight, topBarHeight, bottomTabsHeight } = await Navigation.constants();
 }*/
-const HomeScreen = ({ componentId,
+const HomeScreen = ({
+    componentId,
+    setChatPics,
     timelineposts,
     blackListTimelinePost,
     fetchMoreTimelinePost,
@@ -79,7 +84,9 @@ const HomeScreen = ({ componentId,
             }
         });
         const listener = {
-            componentDidAppear: () => {
+            componentDidAppear: async () => {
+                const { fs } = RNFetchBlob;
+                //console.warn(await setChatPics([{ chatpic: `${fs.dirs.DownloadDir}/h.jpeg` }]));
                 Navigation.mergeOptions('POST_HOME_SCREEN', {
                     bottomTabs: {
                         visible: true
@@ -135,6 +142,8 @@ const HomeScreen = ({ componentId,
 
     /**compoent function ends here */
     return (
+        <>
+        {startOfflineDispatcher()}
         <SafeAreaView style={styles.containerStyle}>
             <Header
                 headercolor={colors.card}
@@ -148,7 +157,6 @@ const HomeScreen = ({ componentId,
                 righticon={righticon}
                 righticon2={righticon2}
             />
-            {startOfflineDispatcher()}
             {
                 loaded == false ? <LoaderScreen
                     animationOff={true}
@@ -164,7 +172,19 @@ const HomeScreen = ({ componentId,
 
                     <View style={styles.contentContainerStyle}>
                         <View style={styles.onlineListContainer}>
-                            <OnlineList status="pending" num={4} />
+                            <OnlineList
+                                status="pending"
+                                onPress={() => Navigation.showModal({
+                                    component: {
+                                        name: 'FindUser',
+                                        passProps: {
+                                            navparent: true,
+                                            screentype: 'modal'
+                                        },
+                                    }
+                                })}
+                                num={4}
+                            />
                         </View>
                         <View style={styles.middleContainer}>
                             <PostList
@@ -204,6 +224,7 @@ const HomeScreen = ({ componentId,
                     </View>
             }
         </SafeAreaView >
+        </>
     );
 };
 HomeScreen.options = {

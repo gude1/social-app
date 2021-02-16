@@ -67,6 +67,20 @@ export default class PostCommentReplyList extends Component {
                         visible: false,
                     }
                 });
+
+                Navigation.showModal({
+                    component: {
+                        name: 'PrivateChat',
+                        passProps: {
+                            navparent: true,
+                            propfindpartnerchat: true,
+                            privatechatobj: {
+                                partnerprofile: this.state.avatarnavmodal.profile
+                            },
+                            screentype: 'modal'
+                        },
+                    }
+                });
             }
         }];
 

@@ -22,6 +22,7 @@ const OfflineActionsDispatcher = ({
     const executeOfflineActions = () => {
         let offlineActions = [...offlineactions.persistedActionsQueue, ...offlineactions.actionsQueue];
         if (offlineActions.length >= 1 && connected == true) {
+            //alert(connected)
             offlineActions.forEach(offlineaction => {
                 let funcName = offlineaction.funcName;
                 if (checkData(funcName) && checkData(reduceractions[funcName])) {

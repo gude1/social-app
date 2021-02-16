@@ -47,10 +47,12 @@ const PrivateChatListScreen = ({
         size={responsiveFontSize(3.5)}
     />;
     let righticon2press = null;
+
     /**compoent function goes here */
+
+
     //console.warn('PERSISTED', privatechatlistform.persistedchatlist);
     // console.warn('CHATLIST', privatechatlistform.chatlist);
-
     useEffect(() => {
         if (privatechatlistform.tosetreadarr.length > 0) {
             setChatListArrayRead();
@@ -76,7 +78,6 @@ const PrivateChatListScreen = ({
         } else {
             fetchPrivateChatList();
         }
-
         const listener = {
             componentDidAppear: () => {
                 setLoaded(true);
@@ -101,6 +102,7 @@ const PrivateChatListScreen = ({
             unsubscribe.remove();
         };
     }, []);
+
     //function to determine dismiss of navigation based on screentype
     function setDismissNav() {
         if (screentype == "modal")
@@ -153,18 +155,9 @@ const PrivateChatListScreen = ({
                 rightIconPress={righticonpress}
                 righticon2={righticon2}
             />
-            {/*<Button
-                title="Press"
-                onPress={() => {
-                    addOfflineAction({
-                        id: 'setchatlistreadarr1344',
-                        funcName: 'test1',
-                        param: [],
-                        override: true,
-                        persist: true,
-                    })
-                }}
-            />*/}
+            {/*<Button title="Press" onPress={() => {
+                console.warn(offlineactions);
+            }} />*/}
             {renderView()}
         </SafeAreaView>
 

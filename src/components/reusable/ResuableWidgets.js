@@ -213,7 +213,7 @@ export class PanelMsg extends Component {
     render() {
         return (
             <View style={{
-                flex: 1, flexDirection: 'row', padding: 10, justifyContent: "space-between", alignItems: "center", marginVertical: 5,
+                width: "100%", flexDirection: 'row', padding: 10, justifyContent: "space-between", alignItems: "center", marginVertical: 5,
                 backgroundColor: colors.background,
             }}>
                 <Text style={{ color: colors.iconcolor }}>
@@ -646,9 +646,33 @@ export const ModalList = ({ optionsArr, isVisible, onBackdropPress }) => {
     );
 };
 
-export const InputBox = ({ style, avatar, leftIcon, showAvatar, placeholder, inputvalue, onChangeText, autoFocus, maxLength, placeholdercolor, onSubmit }) => {
+export class InputBox extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+    }
 
-    const renderAvatar = () => {
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        if (this.props.inputvalue != nextProps.inputvalue || this.props.update != nextProps.update) {
+            return true;
+        }
+        return false;
+    }
+
+    renderAvatar = () => {
+        const {
+            style,
+            avatar,
+            leftIcon,
+            showAvatar,
+            placeholder,
+            inputvalue,
+            onChangeText,
+            autoFocus,
+            maxLength,
+            placeholdercolor,
+            onSubmit
+         } = this.props;
         if (showAvatar == false) {
             return null;
         }
@@ -663,40 +687,56 @@ export const InputBox = ({ style, avatar, leftIcon, showAvatar, placeholder, inp
             />
         );
     };
-    return (
-        <View style={[styles.inputBoxCtn, style]}>
-            {renderAvatar()}
-            <Input
-                placeholder={placeholder}
-                maxLength={maxLength}
-                placeholderTextColor={placeholdercolor || colors.placeholder}
-                inputStyle={{ color: colors.text }}
-                disableFullscreenUI={true}
-                leftIcon={leftIcon}
-                onChangeText={onChangeText}
-                value={inputvalue}
-                maxLength={maxLength}
-                selectionColor='#2196F3'
-                autoFocus={autoFocus}
-                multiline={true}
-                containerStyle={{
-                    backgroundColor: colors.background,
-                    flexDirection: "row",
-                    flex: 1,
-                }}
-                leftIcon={leftIcon}
-                leftIconContainerStyle={{ marginHorizontal: 5 }}
-                rightIcon={{
-                    onPress: onSubmit,
-                    type: "evilicon",
-                    name: "sc-telegram",
-                    color: colors.text,
-                    size: responsiveFontSize(6)
-                }}
-                inputContainerStyle={{ borderBottomWidth: 0, width: '100%' }}
-            />
-        </View>
-    );
+    render() {
+        const {
+            style,
+            avatar,
+            leftIcon,
+            showAvatar,
+            placeholder,
+            backgroundColor,
+            inputvalue,
+            onChangeText,
+            autoFocus,
+            maxLength,
+            placeholdercolor,
+            onSubmit
+         } = this.props;
+        return (
+            <View style={[styles.inputBoxCtn, style]}>
+                {this.renderAvatar()}
+                <Input
+                    placeholder={placeholder}
+                    maxLength={maxLength}
+                    placeholderTextColor={placeholdercolor || colors.placeholder}
+                    inputStyle={{ color: colors.text }}
+                    disableFullscreenUI={true}
+                    leftIcon={leftIcon}
+                    onChangeText={onChangeText}
+                    value={inputvalue}
+                    maxLength={maxLength}
+                    selectionColor='#2196F3'
+                    autoFocus={autoFocus}
+                    multiline={true}
+                    containerStyle={{
+                        backgroundColor: backgroundColor || colors.background,
+                        flexDirection: "row",
+                        flex: 1,
+                    }}
+                    leftIcon={leftIcon}
+                    leftIconContainerStyle={{ marginHorizontal: 5 }}
+                    rightIcon={{
+                        onPress: onSubmit,
+                        type: "evilicon",
+                        name: "sc-telegram",
+                        color: colors.text,
+                        size: responsiveFontSize(7)
+                    }}
+                    inputContainerStyle={{ borderBottomWidth: 0, width: '100%' }}
+                />
+            </View>
+        );
+    }
 };
 
 export class ListItem extends Component {

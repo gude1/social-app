@@ -13,7 +13,7 @@ import { image_exists, checkData, Toast } from '../../utilities/index';
 const { colors } = useTheme();
 
 
-const PhotoViewerScreen = ({ componentId, navparent, photos, onSubmit }) => {
+const PhotoViewerScreen = ({ componentId, navparent, photos, onSubmit, showinput }) => {
     let lefticon = navparent == true ? <Icon
         type="antdesign"
         name="arrowleft"
@@ -46,7 +46,6 @@ const PhotoViewerScreen = ({ componentId, navparent, photos, onSubmit }) => {
         iconStyle={{ color: "red", fontWeight: "bold" }}
         size={responsiveFontSize(4.5)}
     /> : null;
-
 
     /**
      * functions
@@ -103,6 +102,7 @@ const PhotoViewerScreen = ({ componentId, navparent, photos, onSubmit }) => {
         <SafeAreaView style={[styles.containerStyle, {}]}>
             <PhotoViewer
                 photos={photos}
+                showinput={showinput || false}
                 headerIcons={{
                     lefticon,
                     righticon,

@@ -183,11 +183,11 @@ const FindUserScreen = ({
                     onChangeText={(text) => {
                         setSearchText(text);
                         setProcessing(false, 'searchlistfetching');
-                        if (text.length > 0) {
-                            viewpager.setPage(1)
-                        } else {
-                            viewpager.setPage(0)
-                        }
+                        /* if (text.length > 0) {
+                            checkData(view) viewpager.setPage(1)
+                         } else {
+                             viewpager.setPage(0)
+                         }*/
                     }}
                     inputvalue={searchText}
                     placeholder="Search for people"
@@ -199,6 +199,7 @@ const FindUserScreen = ({
                     }}
                     onSubmit={() => {
                         fetchSearchList(searchText);
+                        viewpager.setPage(1);
                     }}
                 />
                 <ViewPager

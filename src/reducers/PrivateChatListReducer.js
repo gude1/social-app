@@ -35,7 +35,7 @@ const makeList = (data: Array) => {
     if (!Array.isArray(data) || data.length < 1) {
         return data;
     }
-    return data.sort((item1, item2) => item2.chats[0].created_at - item1.chats[0].created_at);
+    return data.sort((item1, item2) => item1.chats[0].created_at - item2.chats[0].created_at);
 };
 
 const arrangeChats = (data: Array) => {
@@ -135,10 +135,14 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
             return { ...state, chatlist: reducerdata, persistedchatlist: arrayReduce(reducerdata) };
             break;
         case REMOVE_PRIVATECHATLIST_CHATS:
+            // console.warn('out out', action.payload);
             reducerdata = state.chatlist.map(item => {
+                //console.warn('out', action.payload);
                 if (item.create_chatid == action.payload.create_chatid) {
+                    //console.warn('in', action.payload);
                     let newchats = item.chats.filter(chatitem => chatitem.id != action.payload.id);
-                    return { ...item, chats: newchats };
+                    //console.warn('newchats', newchats);
+                    return { ...item, chats: arrangeChats(newchats), renderid: Math.round(new Date().getTime()) };
                 }
                 return item;
             });

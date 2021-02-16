@@ -118,6 +118,20 @@ class ProfileList2 extends React.PureComponent {
                         visible: false,
                     }
                 });
+
+                Navigation.showModal({
+                    component: {
+                        name: 'PrivateChat',
+                        passProps: {
+                            navparent: true,
+                            propfindpartnerchat: true,
+                            privatechatobj: {
+                                partnerprofile: this.state.avatarnavmodal.profile
+                            },
+                            screentype: 'modal'
+                        },
+                    }
+                });
             }
         }];
     }

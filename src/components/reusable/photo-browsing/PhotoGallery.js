@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import {
     SafeAreaView,
     FlatList,
@@ -17,7 +17,16 @@ import { checkData } from '../../../utilities';
 //import { RecyclerListView, DataProvider, LayoutProvider } from 'recyclerlistview';
 import { responsiveHeight, responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 
-class MyListHeader extends React.PureComponent {
+class MyListHeader extends Component {
+
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        if (this.props.isnumselect != nextProps.isnumselect ||
+            this.props.itemsselected.size != nextProps.itemsselected.size) {
+            return true;
+        }
+        return false;
+    }
+
     _passSelectedData = (param) => {
         if (checkData(param) == true) {
             //console.warn([...param.keys()]);
@@ -104,7 +113,9 @@ class MyListItem extends React.Component {
             this.props.onClick({
                 navparent: true,
                 photos: [photo],
-                onSubmit: this.props.onDisplayedProps.onSubmit
+                onSubmit: this.props.onDisplayedProps.onSubmit,
+                showinput: this.props.showinput || false
+
             })
             : onPressItem(item.photo);
 
@@ -161,7 +172,7 @@ export default class PhotoGallery extends React.PureComponent {
             minimumViewTime: 4000,
             viewAreaCoveragePercentThreshold: 0
         }
-        this._renderItem = this._renderItem.bind(this);
+        //this._renderItem = this._renderItem.bind(this);
         this.state = {
             selected: new Map(),
             isnumselect: false,
@@ -200,7 +211,7 @@ export default class PhotoGallery extends React.PureComponent {
     _getState = () => {
         return this.state;
     };
-    _renderItem({ item }) {
+    _renderItem = ({ item }) => {
         return (
             <MyListItem
                 item={item}
@@ -209,6 +220,7 @@ export default class PhotoGallery extends React.PureComponent {
                     onSubmit: this.props.onSubmit
                 }}
                 colors={this.props.colors}
+                showinput={this.props.showinput}
                 getParentState={this._getState}
                 dimensions={this.props.dimensions}
                 onPressItem={this._onPressItem}

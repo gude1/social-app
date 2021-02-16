@@ -11,9 +11,9 @@ export default class OnlineList extends Component {
     constructor(props) {
         super(props);
     }
-    /*shouldComponentUpdate() {
-
-    }*/
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        return false;
+    }
 
     makePlacholders = (num) => {
         if (isNaN(num)) {
@@ -53,7 +53,7 @@ export default class OnlineList extends Component {
             <View style={styles.onlineList}>
                 <Avatar
                     rounded
-                    onPress={() => { }}
+                    onPress={() => this.props.onPress()}
                     size={60}
                     icon={{ name: 'users', type: 'entypo', size: 30, color: colors.tabiconcolor }}
                     containerStyle={[styles.placeholderAvatar, { marginHorizontal: 5, }]}

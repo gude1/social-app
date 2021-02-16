@@ -1,81 +1,220 @@
 import { FlatList, StyleSheet, View, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
-import { Text, Button, Icon } from "react-native-elements";
+import { Text, Button, Image, Avatar, Icon } from "react-native-elements";
 import React, { PureComponent, Component } from 'react';
 import { useTheme } from "../../assets/themes/index";
 import { responsiveWidth, responsiveHeight, responsiveFontSize } from "react-native-responsive-dimensions";
 import FastImage from 'react-native-fast-image';
-import { checkData, formatDate } from "../../utilities/index";
+import { checkData, formatDate, rnPath, convertByteToKbMb } from "../../utilities/index";
 import { ModalList, ActivityOverlay } from "./ResuableWidgets";
-
+import RNFetchBlob from "rn-fetch-blob";
+import { Navigation } from "react-native-navigation";
 
 const { colors } = useTheme();
 
+const ShowChat = ({ data, userprofile, onLongPress, onPress }) => {
+    if (!Array.isArray(data) || data.length < 1) {
+        return null;
+    }
+    return (
+        data.map((item, index) =>
+            <PrivateChatItem
+                item={item}
+                key={index}
+                onLongPress={() => item.read == "sending" ? {} : onLongPress(item)}
+                userprofile={userprofile}
+            />
+        ).reverse()
+    );
+};
 
 class PrivateChatItem extends Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = { chatimageuri: this.returnChatImageUri() };
         this.reswidth = responsiveWidth(100);
         this.resheight = responsiveHeight(100);
         this.ownerchattextcolor = "#181818";
         this.ownerchatbgcolor = "rgb(237,237,237)";
-        this.item = this.props.item;
-        this.otherchattextcolor = '';
+
         if (colors.theme == "black") {
             this.ownerchatbgcolor = colors.border;
             this.ownerchattextcolor = colors.text;
         }
+        //let t = this.setImageUri();
     }
+
     shouldComponentUpdate(nextProps, nextState, nextContext) {
-        console.warn('PREVIOUS_PROPS', this.props.item.id);
-        console.warn('BEW_PROPS', nextProps.item.id);
-        if (this.props.item.id != nextProps.item.id) {
-            return false;
+        if (
+            (this.props.item.sender_id == this.props.userprofile.profile_id &&
+                (
+                    this.props.item.read != nextProps.item.read ||
+                    this.props.item.deleted != nextProps.item.deleted
+                )
+            )
+
+            ||
+
+            (
+                this.state.update != nextState.update
+            )
+        ) {
+            //console.warn(`${this.props.item.read}`, nextProps.item.read);
+            return true;
         }
         return false;
     }
+
+    returnChatImageUri = () => {
+        let data = this.props.item.chat_pics;
+        if (!Array.isArray(data) || data.length < 1) {
+            return '';
+        } else if (!checkData(this.props.item.private_chatid)) {
+            return this.props.item.chat_pics[0].chatpic;
+        }
+
+        let imageuri = data[0].chatpic.split('/')[6];
+        return imageuri = rnPath(`/storage/emulated/0/CampusMeetup/ChatImages/${imageuri}`);
+    };
+
+    _onImageLoadErr = (isowner) => {
+        let data = this.props.item.chat_pics[0];
+        if (isowner == true) {
+            this.setState({
+                update: Math.random() * 100000,
+                chatimageuri: data.thumbchatpic
+            });
+        } else if (isowner == false) {
+            //console.warn('was here')
+            this.setState({
+                update: Math.random() * 100000,
+                chatimageuri: data.thumbchatpic,
+                imageloaded: 'false',
+            });
+        }
+    }
+
     renderOwnerChat = () => {
+        this.item = this.props.item;
         if (this.item.sender_id != this.props.userprofile.profile_id) {
             return null;
         }
-        return (
-            <TouchableOpacity
-                onPress={this.props.onPress}
-                onLongPress={this.props.onLongPress}
-            >
-                <View style={{ marginVertical: 5, alignItems: "flex-end" }}>
-                    {checkData(this.props.item.newdate) &&
-                        <Text style={{ alignSelf: 'center', color: colors.text, marginVertical: 10 }}>
-                            {this.props.item.newdate}
-                        </Text>}
+        if (checkData(this.item.chat_msg) &&
+            (!Array.isArray(this.item.chat_pics) || this.item.chat_pics.length < 1)
+        ) {
+            return (
+                <TouchableOpacity
+                    onPress={this.props.onPress}
+                    onLongPress={this.props.onLongPress}
+                >
+                    <View style={{ marginVertical: 5, alignItems: "flex-end" }}>
+                        {checkData(this.props.item.newdate) &&
+                            <Text style={{ alignSelf: 'center', color: colors.text, marginVertical: 10 }}>
+                                {this.props.item.newdate}
+                            </Text>}
 
-                    <Text
-                        style={{
-                            marginHorizontal: 20,
-                            fontSize: responsiveFontSize(2.1),
+                        <Text style={[styles.ownerChatText, {
                             color: this.ownerchattextcolor,
-                            textAlign: "justify",
-                            borderTopLeftRadius: 20,
-                            borderTopRightRadius: 20,
-                            padding: 12,
-                            borderBottomLeftRadius: 30,
-                            backgroundColor: this.ownerchatbgcolor,
-                            minWidth: 50,
-                            maxWidth: responsiveWidth(70)
-                        }}
-                    >
-                        {this.props.item.chat_msg}
-                    </Text>
-                    {this.renderCheck(this.item)}
-                </View >
-            </TouchableOpacity>
-        );
+                            backgroundColor: this.ownerchatbgcolor
+                        }]}>
+                            {this.props.item.chat_msg}
+                        </Text>
+                        {this.renderCheck(this.item)}
+                    </View >
+                </TouchableOpacity>
+            );
+        } else if (Array.isArray(this.item.chat_pics) || this.item.chat_pics.length > 0) {
+            return (
+                this.renderOwnerChatImages(this.item.chat_pics)
+            )
+        } else {
+            return null;
+        }
+
     };
+
+    renderOwnerChatImages = (chatimages) => {
+        if (!Array.isArray(chatimages) || chatimages.length < 1) {
+            return null;
+        }
+        return chatimages.map((item, index) => {
+            return (
+                <TouchableOpacity
+                    key={index}
+                    onLongPress={this.props.onLongPress}
+                >
+                    <View style={{ marginVertical: 5, alignItems: "flex-end" }}>
+                        <TouchableOpacity
+                            onPress={() => {
+                                Navigation.showModal({
+                                    component: {
+                                        name: 'PhotoViewer',
+                                        passProps: {
+                                            navparent: true,
+                                            photos: [this.state.chatimageuri]
+                                        },
+                                    }
+                                })
+                            }}
+                            onLongPress={this.props.onLongPress}
+                        >
+                            <Image
+                                containerStyle={[styles.ownerChatImageContainer, {
+                                    borderColor: this.ownerchatbgcolor
+                                }]}
+                                onLongPress={this.props.onLongPress}
+                                onPress={() => {
+                                    Navigation.showModal({
+                                        component: {
+                                            name: 'PhotoViewer',
+                                            passProps: {
+                                                navparent: true,
+                                                photos: [this.state.chatimageuri]
+                                            },
+                                        }
+                                    })
+                                }}
+                                onError={() => this._onImageLoadErr(true)}
+                                placeholderStyle={styles.ownerChatImagePlaceholder}
+                                PlaceholderContent={
+                                    <Icon
+                                        type="feather"
+                                        name="image"
+                                        color={'white'}
+                                        size={responsiveFontSize(4)}
+                                    />
+                                }
+                                resizeMode='cover'
+                                source={{ uri: this.state.chatimageuri }}
+                            >
+                                {checkData(this.item.chat_msg) &&
+                                    <View style={{ height: "100%", justifyContent: "flex-end", alignItems: "flex-end" }}>
+                                        <Icon
+                                            type="antdesign"
+                                            name="edit"
+                                            color={'white'}
+                                            iconStyle={{
+                                                fontWeight: "bold",
+                                                padding: 5,
+                                                backgroundColor: 'rgba(0,0,0,0.2)'
+                                            }}
+                                            size={responsiveFontSize(3)}
+                                        />
+                                    </View>
+                                }
+                            </Image>
+                        </TouchableOpacity>
+                        {this.renderCheck(this.item)}
+                    </View>
+                </TouchableOpacity>
+            );
+        });
+    };
+
     renderCheck = (item) => {
         if (!checkData(item) || item.sender_id != this.props.userprofile.profile_id) {
             return null;
         }
-        ///item.read = "failed";
+
         if (item.read == true || item.read == "true") {
             return (
                 <Text style={{
@@ -135,54 +274,202 @@ class PrivateChatItem extends Component {
             );
         }
     };
+
     renderOtherChat = () => {
+        this.item = this.props.item;
         if (this.item.receiver_id != this.props.userprofile.profile_id) {
             return null;
         }
-        return (
-            <TouchableOpacity
-                onPress={this.props.onPress}
-                onLongPress={this.props.onLongPress}
-            >
-                <View style={{ marginVertical: 5, alignItems: "flex-start" }}>
-                    {checkData(this.item.newdate) && <Text style={{ alignSelf: 'center', color: colors.text, marginVertical: 10 }}>
-                        {this.item.newdate}
-                    </Text>}
+        if (checkData(this.item.chat_msg) &&
+            (!Array.isArray(this.item.chat_pics) || this.item.chat_pics.length < 1)
+        ) {
+            return (
+                <TouchableOpacity
+                    onPress={this.props.onPress}
+                    onLongPress={this.props.onLongPress}
+                >
+                    <View style={{ marginVertical: 5, alignItems: "flex-start" }}>
+                        <Text style={styles.othersChatText}>
+                            {this.item.chat_msg}
+                        </Text>
+                        <Text style={styles.othersChatTime}>{this.item.created_at}</Text>
+                    </View>
+                </TouchableOpacity>
+            );
+        } else if (Array.isArray(this.item.chat_pics) || this.item.chat_pics.length > 0) {
+            return (
+                this.renderOtherChatImages(this.item.chat_pics)
+            )
+        } else {
+            return null;
+        }
+    };
 
-                    <Text
-                        style={{
-                            borderWidth: 1,
-                            borderColor: colors.border,
-                            marginHorizontal: 20,
-                            fontSize: responsiveFontSize(2.1),
-                            color: colors.text,
-                            textAlign: "justify",
-                            borderTopLeftRadius: 20,
-                            borderTopRightRadius: 20,
-                            borderBottomRightRadius: 30,
-                            padding: 12,
-                            minWidth: 50,
-                            maxWidth: responsiveWidth(70)
-                        }}
-                    >
-                        {this.item.chat_msg}
-                    </Text>
-                    <Text style={{
-                        marginHorizontal: 25,
-                        textAlign: "justify",
-                        color: "#a0a0a0",
-                        fontSize: responsiveFontSize(1.5)
-                    }}>{this.item.created_at}</Text>
-                </View>
-            </TouchableOpacity>
-        );
+    showImageDownloadBtn = (size) => {
+        //console.warn('download', this.state.imageloaded);
+        if (!checkData(size)) {
+            return null;
+        }
+        switch (this.state.imageloaded) {
+            case 'false':
+                return (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: "center" }}>
+                        <Button
+                            onPress={() => this.downloadOtherChatImage()}
+                            type="clear"
+                            icon={{
+                                name: 'download',
+                                type: "antdesign",
+                                size: responsiveFontSize(3),
+                                color: "white",
+                            }
+                            }
+                            title={convertByteToKbMb(size)}
+                            titleStyle={{ color: 'white', fontSize: responsiveFontSize(2) }}
+                            buttonStyle={{
+                                borderColor: colors.iconcolor,
+                                backgroundColor: 'rgba(0,0,0,0.7)',
+                                borderRadius: 15,
+                                padding: 10
+                            }}
+                        />
+                    </View>
+                );
+                break;
+            case 'downloading':
+                return (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: "center" }}>
+                        <View style={{
+                            width: 40, height: 40, justifyContent: 'center', alignItems: "center",
+                            backgroundColor: 'rgba(0,0,0,0.3)',
+                        }}>
+                            <ActivityIndicator size={30} color={'silver'} />
+                        </View>
+                    </View>
+                );
+                break;
+            default:
+                return null;
+                break;
+        }
+    };
 
+    downloadOtherChatImage = () => {
+        let arrchatpics = this.props.item.chat_pics;
+        let imagename = arrchatpics[0].chatpic.split('/')[6];
+        this.setState({
+            update: Math.random() * 100000,
+            imageloaded: "downloading"
+        });
+        RNFetchBlob
+            .config({
+                path: `/storage/emulated/0/CampusMeetup/ChatImages/${imagename}`
+            })
+            .fetch('GET', arrchatpics[0].chatpic)
+            .then(res => {
+                //console.warn('downloader', res.path());
+                this.setState({
+                    update: Math.random() * 100000,
+                    chatimageuri: rnPath(res.path()),
+                    imageloaded: null
+                });
+            })
+            .catch(err => {
+                this.setState({
+                    update: Math.random() * 100000,
+                    imageloaded: "false"
+                });
+                // console.warn('downloader err', err.toString());
+            });
+    }
+
+    renderOtherChatImages = (chatimages) => {
+        if (!Array.isArray(chatimages) || chatimages.length < 1) {
+            return null;
+        }
+        return chatimages.map((item, index) => {
+            //console.warn(this.state.chatimageuri);
+            return (
+                <TouchableOpacity
+                    key={index}
+                    //onPress={this.props.onPress}
+                    onLongPress={this.props.onLongPress}
+                >
+                    <View style={{ marginVertical: 5, alignItems: "flex-start" }}>
+                        <TouchableOpacity
+                            onPress={() => {
+                                Navigation.showModal({
+                                    component: {
+                                        name: 'PhotoViewer',
+                                        passProps: {
+                                            navparent: true,
+                                            photos: [this.state.chatimageuri]
+                                        },
+                                    }
+                                })
+                            }}
+                            onLongPress={this.props.onLongPress}
+                        >
+                            <Image
+                                onError={() => this._onImageLoadErr(false)}
+                                containerStyle={styles.othersChatImageContainer}
+                                placeholderStyle={styles.othersChatImagePlaceholder}
+                                onPress={() => {
+                                    Navigation.showModal({
+                                        component: {
+                                            name: 'PhotoViewer',
+                                            passProps: {
+                                                navparent: true,
+                                                photos: [this.state.chatimageuri]
+                                            },
+                                        }
+                                    })
+                                }}
+                                PlaceholderContent={
+                                    <Icon
+                                        type="feather"
+                                        name="image"
+                                        color={'white'}
+                                        size={responsiveFontSize(4)}
+                                    />
+                                }
+                                resizeMode='cover'
+                                source={{ uri: this.state.chatimageuri }}
+                            >
+                                <View style={{ height: "100%" }}>
+                                    {this.showImageDownloadBtn(item.size)}
+                                    {checkData(this.item.chat_msg) &&
+                                        <View style={{ flex: 1, justifyContent: "flex-end", alignItems: "flex-end" }}>
+                                            <Icon
+                                                type="antdesign"
+                                                name="edit"
+                                                color={'white'}
+                                                iconStyle={{
+                                                    fontWeight: "bold",
+                                                    padding: 5,
+                                                    backgroundColor: 'rgba(0,0,0,0.2)'
+                                                }}
+                                                size={responsiveFontSize(3)}
+                                            />
+                                        </View>}
+
+                                </View>
+                            </Image>
+                        </TouchableOpacity>
+                        <Text style={styles.othersChatTime}>{this.item.created_at}</Text>
+                    </View>
+                </TouchableOpacity>
+            );
+        });
     };
 
     render() {
-        console.warn('rendered');
         let { item, userprofile } = this.props;
-        //console.warn(item);
+
+        /**/
+        if (item.deleted == true) {
+            return null;
+        }
         let privatechats = item.sender_id == userprofile.profile_id ? this.renderOwnerChat()
             : this.renderOtherChat();
         return privatechats;
@@ -198,13 +485,30 @@ class PrivateChats extends Component {
         this.previousdata = this.props.data.map(item => item.id);
         this.currentselectedchatitem = null;
         this.flatlistref = null;
+        this.viewabilityConfig = {
+            waitForInteraction: true,
+            minimumViewTime: 4000,
+            viewAreaCoveragePercentThreshold: 0
+        };
     }
 
     _setListHeaderComponent = () => {
-        if (this.props.loaded == false) {
+        if (this.props.loaded == false || !Array.isArray(this.props.data) || this.props.data.length < 1) {
             return null;
         }
-        if (this.props.loadingmore == false) {
+
+        if (this.props.loadingmore == true) {
+            return (
+                <View style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    marginTop: 15,
+                    alignItems: "center"
+                }}>
+                    <ActivityIndicator size={30} color={'silver'} />
+                </View>
+            );
+        } else if (this.props.loadingmore == false) {
             return (
                 <Button
                     onPress={() => { }}
@@ -225,18 +529,8 @@ class PrivateChats extends Component {
                     }}
                 />
             );
-        } else if (this.props.loadingmore == true) {
-            return (
-                <View style={{
-                    flex: 1,
-                    justifyContent: "center",
-                    marginTop: 15,
-                    alignItems: "center"
-                }}>
-                    <ActivityIndicator size={30} color={'silver'} />
-                </View>
-            );
         } else {
+            //console.warn(this.props.loadingmore);
             return null;
         }
     };
@@ -257,14 +551,19 @@ class PrivateChats extends Component {
     };
 
     _reSendChat = () => {
-        let currentselectedchatitem = this.currentselectedchatitem;
-        let chatSchema = { ...currentselectedchatitem, read: "sending" };
-        if (!checkData(currentselectedchatitem)) {
+        let tosendchatdata = this.currentselectedchatitem;
+        if (!checkData(tosendchatdata)) {
+            alert('Can not resend');
             return;
-        } else if (checkData(currentselectedchatitem.private_chatid)) {
+        }
+        let chatSchema = { ...tosendchatdata, read: "sending" };
+        if (checkData(tosendchatdata.private_chatid)) {
+            /*alert(JSON.stringify(tosendchatdata));
+            return;*/
             chatSchema = {
                 ...chatSchema,
                 private_chatid: null,
+                imagehandled: null,
                 id: Math.round(new Date().getTime()),
                 sender_id: this.props.userprofile.profile_id,
                 receiver_id: this.props.partnerprofile.profile_id,
@@ -274,10 +573,11 @@ class PrivateChats extends Component {
             checkData(this.flatlistref) && this.flatlistref.scrollToOffset({ offset: 0 });
         }
         this.props.sendPrivateChat({
-            create_chatid: this.currentselectedchatitem.create_chatid,
+            create_chatid: tosendchatdata.create_chatid,
             chatSchema,
             reqobj: {
-                chat_msg: currentselectedchatitem.chat_msg,
+                chat_msg: tosendchatdata.chat_msg,
+                chat_pics: tosendchatdata.chat_pics,
                 setread: 'ok',
                 receiver_id: this.props.partnerprofile.profile_id,
             }
@@ -286,20 +586,30 @@ class PrivateChats extends Component {
 
     _getItemLayout = (data, index) => {
         if (index == -1) return { index, length: 0, height: 0 };
-        return { length: 75, offset: 75 * index, index }
+        return { length: 150, offset: 150 * index, index }
     };
 
     _keyExtractor = (item, index) => index.toString();
 
     _renderItem = ({ item, index }) => {
         return (
-            <PrivateChatItem
-                item={item}
-                onPress={() => {
-                    this._setCurrentSelectedChatItem(item);
+            <ShowChat
+                data={this.props.data}
+                // data={[]}
+                userprofile={this.props.userprofile}
+                onLongPress={(data) => {
+                    let imagearr = data.chat_pics;
+                    if (checkData(data.private_chatid) && Array.isArray(imagearr) && imagearr.length > 0) {
+                        imagearr = data.chat_pics.map(item => {
+                            let imageuri = item.chatpic.split('/')[6];
+                            return {
+                                chatpic: rnPath(`/storage/emulated/0/CampusMeetup/ChatImages/${imageuri}`)
+                            };
+                        });
+                    }
+                    this._setCurrentSelectedChatItem({ ...data, chat_pics: imagearr });
                     this.setState({ modallistvisible: true });
                 }}
-                userprofile={this.props.userprofile}
             />
         );
     }
@@ -312,18 +622,23 @@ class PrivateChats extends Component {
                     this.flatlistref = ref;
                     this.props.setFlatListRef(ref);
                 }}
-                style={{ height: 50 }}
-                data={this.props.loaded == false && [] || [...this.props.data].reverse()}
-                maxToRenderPerBatch={1}
+                // style={{ height: 50 }}
+                viewabilityConfig={this.viewabilityConfig}
+                windowSize={50}
+                updateCellsBatchingPeriod={0}
+                initialNumRender={1}
+                getItemLayout={this._getItemLayout}
+                //data={this.props.loaded == false && [] || [...this.props.data].reverse()}
+                data={this.props.loaded == false && [] || [1]}
+                //maxToRenderPerBatch={1}
                 inverted
-                updateCellsBatchingPeriod={1}
+                //updateCellsBatchingPeriod={0}
                 initialNumRender={5}
-                //ListFooterComponent={this._setListHeaderComponent()}
+                ListFooterComponent={this._setListHeaderComponent()}
                 ListEmptyComponent={this._setEmptyPlaceHolder()}
                 renderItem={this._renderItem}
                 keyboardShouldPersistTaps='always'
                 keyboardDismissMode={'on-drag'}
-                //getItemLayout={this._getItemLayout}
                 keyExtractor={this._keyExtractor}
             />
 
@@ -381,8 +696,74 @@ class PrivateChats extends Component {
         );
     }
 }
-const styles = StyleSheet.create({
 
+const styles = StyleSheet.create({
+    othersChatImageContainer: {
+        marginHorizontal: 20,
+        width: responsiveWidth(60),
+        height: responsiveWidth(60),
+        margin: 0,
+        padding: 0,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderBottomRightRadius: 30,
+        borderColor: colors.border,
+        borderWidth: 1.5,
+    },
+    othersChatImagePlaceholder: {
+        width: responsiveWidth(60),
+        backgroundColor: colors.background,
+        height: responsiveWidth(60),
+
+    },
+    othersChatText: {
+        borderWidth: 1,
+        borderColor: colors.border,
+        marginHorizontal: 20,
+        fontSize: responsiveFontSize(2.1),
+        color: colors.text,
+        textAlign: "justify",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        borderBottomRightRadius: 30,
+        padding: 12,
+        minWidth: 50,
+        maxWidth: responsiveWidth(70)
+    },
+    othersChatTime: {
+        marginHorizontal: 25,
+        textAlign: "justify",
+        color: "#a0a0a0",
+        fontSize: responsiveFontSize(1.5)
+    },
+    ownerChatImagePlaceholder: {
+        width: responsiveWidth(60),
+        backgroundColor: colors.background,
+        height: responsiveWidth(60),
+    },
+    ownerChatImageContainer: {
+        marginHorizontal: 20,
+        width: responsiveWidth(60),
+        height: responsiveWidth(60),
+        borderColor: colors.border,
+        margin: 0,
+        padding: 0,
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 20,
+        borderWidth: 4,
+        borderBottomLeftRadius: 30,
+    },
+    ownerChatText: {
+        marginHorizontal: 20,
+        fontSize: responsiveFontSize(2.1),
+        textAlign: "justify",
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        padding: 12,
+        borderBottomLeftRadius: 30,
+        minWidth: 50,
+        maxWidth: responsiveWidth(70)
+    }
 });
 
 export default PrivateChats;

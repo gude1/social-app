@@ -362,6 +362,20 @@ export default class PostList extends React.Component {
                         visible: false,
                     }
                 });
+
+                Navigation.showModal({
+                    component: {
+                        name: 'PrivateChat',
+                        passProps: {
+                            navparent: true,
+                            propfindpartnerchat: true,
+                            privatechatobj: {
+                                partnerprofile: this.state.avatarnavmodal.profile
+                            },
+                            screentype: 'modal'
+                        },
+                    }
+                });
             }
         }];
         this.bottomodallistowneroptions = [

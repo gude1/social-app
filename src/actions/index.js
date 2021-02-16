@@ -154,7 +154,10 @@ import {
     resizeImage,
     image_exists,
     Toast,
-    logOut
+    logOut,
+    getFileInfo,
+    mvFile,
+    cpFile
 } from '../utilities';
 import CameraRoll from "@react-native-community/cameraroll";
 
@@ -531,6 +534,7 @@ export const blockProfileAction = (profileid, initAction, okAction, failedAction
                     break;
             }
         } catch (err) {
+            alert(err.toString());
             dispatch(setProcessing(false, 'profileactionblocking'));
             if (err.toString().indexOf('Network Error') > -1) {
                 Toast('action failed please check your internet connection', ToastAndroid.LONG);
@@ -3804,7 +3808,6 @@ export const fetchPreviousChatList = () => {
     };
 }
 
-
 export const pinPrivateChatList = (create_chatid) => {
     return async (dispatch) => {
         try {
@@ -4006,11 +4009,11 @@ export const removePrivateChat = (data: Object, create_chatid: String) => {
     }
 };
 
-export const setPrivateChatForm = (data: Object, create_chatid: String) => {
+export const setPrivateChatForm = (data: Object) => {
     return {
         type: SET_PRIVATECHATFORM,
         payload: data,
-        create_chatid
+        // create_chatid
     };
 };
 
@@ -4148,7 +4151,9 @@ export const fetchPrivateChats = (data) => {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
             const response = await session.post('showprivatechatandupdateread', {
-                create_chatid: createchatid
+                create_chatid: createchatid,
+                partner_id: data[2],
+                findpartnerchat: data[3]
             }, options);
             const { status, message, partnerprofile, create_chatid, private_chats, last_fetch_arr } = response.data;
             //console.warn(status, last_fetch_arr);
@@ -4204,9 +4209,50 @@ export const fetchPrivateChats = (data) => {
     };
 };
 
+const setChatPics = async (chatpics: Array) => {
+    //return async (dispatch) => {
+    if (!Array.isArray(chatpics) || chatpics.length < 1) {
+        return [];
+    }
+    let { fs } = RNFetchBlob;
+    return chatpics = await Promise.all(
+        chatpics.map(async (item, index) => {
+            let { type, size, path, filename, } = await getFileInfo(item.chatpic);
+            let thumbchatpic = await resizeImage(item.chatpic, 50, 50);
+            //console.warn(size);
+            if (size >= 8000000) {
+                item.chatpic = await resizeImage(item.chatpic, 500, 500);
+            } else {
+                let newpath = `${fs.dirs.MainBundleDir}/${Math.floor(Math.random() * 10000)}.jpg`
+                let moved = await cpFile(item.chatpic, newpath);
+                if (moved == true) {
+                    item.chatpic = newpath;
+                }
+            }
+            return { chatpic: rnPath(item.chatpic), thumbchatpic };
+        })
+    );
+    //}    
+};
+
+const saveChatPics = async (from: String, to: String) => {
+    let { fs } = RNFetchBlob;
+    //console.warn('directory',fs.dirs);
+    let chatimagedir = `/storage/emulated/0/CampusMeetup/ChatImages/`;
+    try {
+        let isdir = await fs.isDir(chatimagedir);
+        if (!isdir) {
+            await fs.mkdir(chatimagedir)
+        }
+        cpFile(from, to, true);
+    } catch (err) {
+        console.warn('save pics', err.toString());
+    }
+};
+
 export const sendPrivateChat = (data: Object) => {
     return async (dispatch) => {
-        if (!checkData(data)) {
+        if (!checkData(data) || !checkData(data.reqobj) || !checkData(data.chatSchema)) {
             Toast('chat not sent');
             return;
         };
@@ -4221,11 +4267,46 @@ export const sendPrivateChat = (data: Object) => {
             const options = {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
-            const response = await session.post('sendprivatechat', data.reqobj, options);
+            let formData = new FormData();
+            if (checkData(data.reqobj.chat_msg)) {
+                formData.append('chat_msg', data.reqobj.chat_msg);
+            }
+            formData.append('receiver_id', data.reqobj.receiver_id);
+            if (Array.isArray(data.reqobj.chat_pics)
+                && data.reqobj.chat_pics.length > 0
+            ) {
+                //console.warn('e reach b=here')
+                if (data.chatSchema.imagehandled != 'yes') {
+                    data.reqobj.chat_pics = await setChatPics(data.reqobj.chat_pics);
+                }
+                data.reqobj.chat_pics.forEach(imageObj => {
+                    formData.append('chat_pics[]', {
+                        uri: imageObj.chatpic,
+                        type: 'image/jpeg',
+                        name: imageObj.chatpic
+                    });
+                    formData.append('thumb_chat_pics[]', {
+                        uri: imageObj.thumbchatpic,
+                        type: 'image/jpeg',
+                        name: imageObj.thumbchatpic
+                    });
+                });
+                data.chatSchema.imagehandled = 'yes';
+                data.chatSchema.chat_pics = data.reqobj.chat_pics;
+            }
+            const response = await session.post('sendprivatechat', formData, options);
             const { status, errmsg, create_chatid, message, partnerprofile, private_chat, warning_msg } = response.data;
             switch (status) {
                 case 200:
+                    if (Array.isArray(private_chat.chat_pics) && private_chat.chat_pics.length > 0) {
+                        let { fs } = RNFetchBlob;
+                        let dbimgname = private_chat.chat_pics[0].chatpic.split('/')[6];
+                        dbimgname = `/storage/emulated/0/CampusMeetup/ChatImages/${dbimgname}`;
+                        await saveChatPics(data.reqobj.chat_pics[0].chatpic, dbimgname);
+                    }
+                    // if (partnerprofile.profileblockedu != true) {
                     dispatch(setPrivateChatPartnerProfile(partnerprofile, create_chatid));
+                    //}
                     dispatch(removePrivateChat(data.chatSchema, create_chatid));
                     dispatch(removePrivateChatListChats(data.chatSchema));
                     dispatch(addPrivateChat([private_chat], create_chatid));
@@ -4235,9 +4316,12 @@ export const sendPrivateChat = (data: Object) => {
                     break;
                 case 400:
                     Toast(errmsg);
-                    dispatch(addPrivateChat([{ ...data.chatSchema, read: 'failed' }], data.create_chatid));
+                    dispatch(addPrivateChat([{
+                        ...data.chatSchema, chat_pics: data.reqobj.chat_pics,
+                        read: 'failed'
+                    }], data.create_chatid));
                     dispatch(updatePrivateChatListChats({
-                        chats: [{ ...data.chatSchema, read: 'failed' }],
+                        chats: [{ ...data.chatSchema, chat_pics: data.reqobj.chat_pics, read: 'failed' }],
                         create_chatid: data.create_chatid
                     }));
                     break;
@@ -4247,9 +4331,9 @@ export const sendPrivateChat = (data: Object) => {
                     Toast(errmsg);
                     break;
                 case 500:
-                    dispatch(addPrivateChat([{ ...data.chatSchema, read: 'failed' }], data.create_chatid));
+                    dispatch(addPrivateChat([{ ...data.chatSchema, chat_pics: data.reqobj.chat_pics, read: 'failed' }], data.create_chatid));
                     dispatch(updatePrivateChatListChats({
-                        chats: [{ ...data.chatSchema, read: 'failed' }],
+                        chats: [{ ...data.chatSchema, chat_pics: data.reqobj.chat_pics, read: 'failed' }],
                         create_chatid: data.create_chatid
                     }));
                     dispatch(addOfflineAction({
@@ -4261,18 +4345,18 @@ export const sendPrivateChat = (data: Object) => {
                     }));
                     break;
                 default:
-                    dispatch(addPrivateChat([{ ...data.chatSchema, read: 'failed' }], data.create_chatid));
+                    dispatch(addPrivateChat([{ ...data.chatSchema, chat_pics: data.reqobj.chat_pics, read: 'failed' }], data.create_chatid));
                     dispatch(updatePrivateChatListChats({
-                        chats: [{ ...data.chatSchema, read: 'failed' }],
+                        chats: [{ ...data.chatSchema, chat_pics: data.reqobj.chat_pics, read: 'failed' }],
                         create_chatid: data.create_chatid
                     }));
                     break;
             }
         } catch (err) {
-            //console.warn(err.toString());
-            dispatch(addPrivateChat([{ ...data.chatSchema, read: 'failed' }], data.create_chatid));
+            console.warn('sendchat', err.toString());
+            dispatch(addPrivateChat([{ ...data.chatSchema, chat_pics: data.reqobj.chat_pics, read: 'failed' }], data.create_chatid));
             dispatch(updatePrivateChatListChats({
-                chats: [{ ...data.chatSchema, read: 'failed' }],
+                chats: [{ ...data.chatSchema, chat_pics: data.reqobj.chat_pics, read: 'failed' }],
                 create_chatid: data.create_chatid
             }));
             if (err.toString().indexOf('Network Error') != -1) {
@@ -4331,6 +4415,65 @@ export const getPrivateChatInfo = (create_chatid: String) => {
     };
 };
 
+export const clearAPrivateChat = (initAction, okAction, failedAction) => {
+    return async (dispatch) => {
+
+        try {
+            const { user, privatechatform } = store.getState();
+            if (!checkData(privatechatform) ||
+                !checkData(privatechatform.chats) ||
+                !Array.isArray(privatechatform.chats) ||
+                privatechatform.chats.length < 1
+            ) {
+                alert(`No chat to clear`);
+                return;
+            }
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            checkData(initAction) && initAction();
+            const response = await session.post('deleteprivatechat', {
+                create_chatid: privatechatform.create_chatid,
+                limit_id: privatechatform.chats[privatechatform.chats.length - 1].id,
+            }, options);
+            const { status, errmsg, message } = response.data;
+            switch (status) {
+                case 200:
+                    checkData(okAction) && okAction();
+                    break;
+                case 500:
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    checkData(failedAction) && failedAction();
+                    break;
+                case 400:
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    checkData(failedAction) && failedAction();
+                    break;
+                default:
+                    Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+                    checkData(failedAction) && failedAction();
+                    break;
+            }
+        } catch (e) {
+            console.warn(`${e.toString()}`);
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast(
+                    'chat not cleared please check your network',
+                    null,
+                    ToastAndroid.CENTER
+                );
+            } else {
+                Toast(
+                    'chat not cleared something went wrong please try again',
+                    null,
+                    ToastAndroid.CENTER
+                );
+            }
+            checkData(failedAction) && failedAction();
+        }
+    }
+};
+
 export const deleteAPrivateChat = (chatitem: Object) => {
     return async (dispatch) => {
         if (!checkData(chatitem) || !checkData(chatitem.create_chatid)) {
@@ -4342,11 +4485,18 @@ export const deleteAPrivateChat = (chatitem: Object) => {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
             if (chatitem.read == "failed") {
-                dispatch(removePrivateChat(chatitem, chatitem.create_chatid));
+                dispatch(addPrivateChat([{ ...chatitem, deleted: true }], chatitem.create_chatid));
+                //dispatch(removePrivateChat(chatitem, chatitem.create_chatid));
                 dispatch(removePrivateChatListChats(chatitem));
                 dispatch(deleteOfflineAction({ id: `sendprivatechat${chatitem.id}` }));
+                if (Array.isArray(chatitem.chat_pics) && chatitem.chat_pics.length > 0) {
+                    chatitem.chat_pics.forEach(item => {
+                        deleteFile(`${item.chatpic}`);
+                    });
+                }
                 return;
             }
+            //console.warn('Inside function', chatitem);
             dispatch(setProcessing(true + `*${chatitem.create_chatid}`, 'privatechatformdeleting'));
             const response = await session.post('deleteaprivatechat',
                 { chatid: chatitem.private_chatid }, options);
@@ -4354,9 +4504,16 @@ export const deleteAPrivateChat = (chatitem: Object) => {
             dispatch(setProcessing(false + `*${chatitem.create_chatid}`, 'privatechatformdeleting'));
             switch (status) {
                 case 200:
-                    dispatch(removePrivateChat(chatitem, chatitem.create_chatid));
+                    dispatch(addPrivateChat([{ ...chatitem, deleted: true }], chatitem.create_chatid));
                     dispatch(removePrivateChatListChats(chatitem));
                     dispatch(deleteOfflineAction({ id: `sendprivatechat${chatitem.id}` }));
+                    if (Array.isArray(chatitem.chat_pics) && chatitem.chat_pics.length > 0) {
+                        chatitem.chat_pics.forEach(item => {
+                            let imageuri = item.chatpic.split('/');
+                            imageuri = imageuri[imageuri.length - 1];
+                            deleteFile(`/storage/emulated/0/CampusMeetup/ChatImages/${imageuri}`);
+                        });
+                    }
                     break;
                 case 401:
                     break;
@@ -4371,6 +4528,7 @@ export const deleteAPrivateChat = (chatitem: Object) => {
                     break;
             }
         } catch (err) {
+            console.warn(err.toString());
             dispatch(setProcessing(false + `*${chatitem.create_chatid}`, 'privatechatformdeleting'));
             Toast('Chat not deleted please try again');
         }
@@ -4403,7 +4561,7 @@ export const addFollowInfoUrl = (data: String) => {
         payload: data
     };
 };
-deleteOfflineAction
+
 
 export const fetchProfileFollowers = (profileid, initAction, okAction, failedAction) => {
     return async (dispatch) => {

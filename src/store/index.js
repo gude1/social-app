@@ -32,8 +32,7 @@ const persistConfig = {
         'privatechatform',
         'followinfo',
         'userslist',
-        'offlineactionslist',
-        'network'
+        'offlineactionslist'
     ]
 };
 
@@ -41,4 +40,4 @@ const pReducer = persistReducer(persistConfig, reducers);
 export const store = createStore(pReducer, applyMiddleware(thunk));
 export const persistor = persistStore(store);
 //export { store, persistor };
-//persistor.purge();
+persistor.purge();

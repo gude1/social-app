@@ -127,9 +127,10 @@ const CreatePostScreen = ({
     };
 
     const setPostImages = (imagearr) => {
-        if (checkData(imagearr) == false || imagearr.length < 1) {
+        if (!Array.isArray(imagearr) || imagearr.length < 1) {
             return;
         }
+        imagearr = imagearr.map(item => item.imageuri);
         setUpdatedPostFormImage(imagearr);
         Navigation.dismissAllModals();
     }

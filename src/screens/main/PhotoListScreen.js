@@ -19,10 +19,12 @@ import { Image, Icon, } from 'react-native-elements';
 import CameraRoll from "@react-native-community/cameraroll";
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
+import { LoaderScreen } from '../../components/reusable/ResuableWidgets';
 
 const { colors } = useTheme();
 
-const PhotoListScreen = ({ navparent, photogalleryform, componentId, getGalleryPhotos, onSubmit, setSelected, setReset }) => {
+const PhotoListScreen = ({ navparent, photogalleryform, showinput, maxselect, componentId, getGalleryPhotos, onSubmit, setSelected, setReset }) => {
+
     const responsive = {
         resheight: responsiveHeight(50),
         reswidth: responsiveWidth(50),
@@ -30,7 +32,8 @@ const PhotoListScreen = ({ navparent, photogalleryform, componentId, getGalleryP
         num: 3
     };
     const { reswidth, resheight } = responsive;
-    const [show, setShow] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+    //const [show, setShow] = useState(false);
     let { photos, numphotos, selected, error } = photogalleryform;
     /**
      * functions
@@ -38,9 +41,10 @@ const PhotoListScreen = ({ navparent, photogalleryform, componentId, getGalleryP
     useEffect(() => {
         const listener = {
             componentDidAppear: () => {
-                //if (photos.length == 0) {
-                getGalleryPhotos();
-                //}
+                // getGalleryPhotos();
+                if (!loaded) {
+                    setLoaded(true);
+                }
             },
             componentDidDisappear: () => {
             }
@@ -66,10 +70,12 @@ const PhotoListScreen = ({ navparent, photogalleryform, componentId, getGalleryP
         Navigation.showModal({
             component: {
                 name: 'PhotoViewer',
+                id: "PHOTO_VIEWER",
                 options: {
                 },
                 passProps: {
-                    ...data
+                    ...data,
+                    showinput: showinput || false
                 }
             }
         });
@@ -80,17 +86,29 @@ const PhotoListScreen = ({ navparent, photogalleryform, componentId, getGalleryP
      */
     return (
         <SafeAreaView style={[styles.containerStyle, { backgroundColor: colors.background }]}>
-            <PhotoGallery
-                photoList={photos}
-                maxSelect={7}
-                colors={colors}
-                componentId={componentId}
-                dimensions={responsive}
-                onCancel={() => Navigation.dismissModal(componentId)}
-                onItemClick={itemClicked}
-                onSubmit={onSubmit}
-                onDisplayImages={itemClicked}
-            />
+            {loaded == false ?
+                <LoaderScreen
+                    loaderIcon={<Icon
+                        type="entypo"
+                        name="images"
+                        color={colors.text}
+                        size={responsiveFontSize(10)}
+                    />}
+                    animationType={'zoomIn'}
+                /> :
+                <PhotoGallery
+                    photoList={photos}
+                    maxSelect={maxselect || 7}
+                    showinput={showinput}
+                    colors={colors}
+                    componentId={componentId}
+                    dimensions={responsive}
+                    onCancel={() => Navigation.dismissModal(componentId)}
+                    onItemClick={itemClicked}
+                    onSubmit={onSubmit}
+                    onDisplayImages={itemClicked}
+                />
+            }
 
         </SafeAreaView>
     );
