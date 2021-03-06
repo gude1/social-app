@@ -8,8 +8,11 @@ import Icon from 'react-native-vector-icons/Entypo';
 import { Navigation } from 'react-native-navigation';
 import asyncStorage from '@react-native-community/async-storage';
 import { store } from '../../store/index';
-const { colors } = useTheme();
+import Echo from 'laravel-echo';
+import socketio from 'socket.io-client';
 
+
+const { colors } = useTheme();
 const GistScreen = ({ componentId, fetchPrivateChatList, setTimelinePostRefresh, offlineactions, connected }) => {
     const [loaded, setLoaded] = useState(false);
     /**compoent function goes here */
@@ -21,6 +24,22 @@ const GistScreen = ({ componentId, fetchPrivateChatList, setTimelinePostRefresh,
                 }
             }));
         setLoaded(true);
+
+       /* try {
+            let { user } = store.getState();
+            let echoinstance = new Echo({
+                //host: "http://192.168.43.30:6001",
+                host: "http://192.168.43.30:6001",
+                broadcaster: 'socket.io',
+                client: socketio,
+            });
+            alert(echoinstance.toString())
+            echoinstance.channel('notifyMan')
+                .listen('NotifyEvent', e => alert(e.toString()));
+
+        } catch (e) {
+            alert(e.toString() + ' outsisde')
+        }*/
 
     }, []);
     /**component function ends here */

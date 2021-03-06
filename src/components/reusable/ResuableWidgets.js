@@ -692,6 +692,7 @@ export class InputBox extends Component {
             style,
             avatar,
             leftIcon,
+            rightIcon,
             showAvatar,
             placeholder,
             backgroundColor,
@@ -730,7 +731,8 @@ export class InputBox extends Component {
                         type: "evilicon",
                         name: "sc-telegram",
                         color: colors.text,
-                        size: responsiveFontSize(7)
+                        size: responsiveFontSize(7),
+                        ...rightIcon
                     }}
                     inputContainerStyle={{ borderBottomWidth: 0, width: '100%' }}
                 />

@@ -467,7 +467,10 @@ class PrivateChatItem extends Component {
         let { item, userprofile } = this.props;
 
         /**/
-        if (item.deleted == true) {
+        if (item.deleted == true ||
+            (item.sender_deleted == true && item.sender_id == userprofile.profile_id) ||
+            (item.receiver_deleted == true && item.receiver_id == userprofile.profile_id)
+        ) {
             return null;
         }
         let privatechats = item.sender_id == userprofile.profile_id ? this.renderOwnerChat()
@@ -493,7 +496,8 @@ class PrivateChats extends Component {
     }
 
     _setListHeaderComponent = () => {
-        if (this.props.loaded == false || !Array.isArray(this.props.data) || this.props.data.length < 1) {
+        let data = this.props.data.filter(item => item.deleted != true);
+        if (this.props.loaded == false || !Array.isArray(data) || data.length < 1) {
             return null;
         }
 
@@ -556,7 +560,7 @@ class PrivateChats extends Component {
             alert('Can not resend');
             return;
         }
-        let chatSchema = { ...tosendchatdata, read: "sending" };
+        let chatSchema = { ...tosendchatdata, read: "sending", partnerprofile: this.props.partnerprofile, };
         if (checkData(tosendchatdata.private_chatid)) {
             /*alert(JSON.stringify(tosendchatdata));
             return;*/
@@ -668,7 +672,7 @@ class PrivateChats extends Component {
                     onPress: () => {
                         this.setState({ modallistvisible: false });
                         Alert.alert(
-                            `Delete Message ?`,
+                            `Delete message for you ?`,
                             null,
                             [
                                 {

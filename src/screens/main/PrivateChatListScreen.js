@@ -22,6 +22,7 @@ const PrivateChatListScreen = ({
     setChatListArrayRead,
     offlineactions,
     //setProcessing,
+    updatePrivateChatList,
     fetchPrivateChatList,
     fetchPreviousChatList,
     pinPrivateChatList,
@@ -39,14 +40,30 @@ const PrivateChatListScreen = ({
         color={colors.text}
         size={responsiveFontSize(2.5)}
     />;
-    let righticonpress = null;
+    let righticonpress = () => Navigation.showModal({
+        component: {
+            name: 'FindUser',
+            passProps: {
+                navparent: true,
+                screentype: 'modal'
+            },
+        }
+    });
     let righticon2 = <Icon
         type="antdesign"
         name="search1"
         color={colors.text}
         size={responsiveFontSize(3.5)}
     />;
-    let righticon2press = null;
+    let righticon2press = () => Navigation.showModal({
+        component: {
+            name: 'SearchPrivateChatList',
+            passProps: {
+                navparent: true,
+                screentype: 'modal'
+            },
+        }
+    });
 
     /**compoent function goes here */
 
@@ -71,7 +88,10 @@ const PrivateChatListScreen = ({
             }
         });
         if (privatechatlistform.chatlist.length < 1 && privatechatlistform.persistedchatlist.length > 0) {
-            addPrivateChatList(privatechatlistform.persistedchatlist);
+            let chatlist = privatechatlistform.persistedchatlist.filter(item => item.deleted != true);
+            chatlist.forEach(item => {
+                updatePrivateChatList(item);
+            })
         }
         if (privatechatlistform.tosetreadarr.length > 0) {
             setChatListArrayRead([() => fetchPrivateChatList(), null]);
@@ -86,8 +106,6 @@ const PrivateChatListScreen = ({
                         visible: true,
                     }
                 });
-
-                //console.warn(privatechatlistform);
 
             },
             componentDidDisappear: () => {
@@ -154,9 +172,15 @@ const PrivateChatListScreen = ({
                 righticon={righticon}
                 rightIconPress={righticonpress}
                 righticon2={righticon2}
+                rightIcon2Press={righticon2press}
             />
             {/*<Button title="Press" onPress={() => {
-                console.warn(offlineactions);
+                console.warn(`chatlist ${privatechatlistform.chatlist.length}`, privatechatlistform.chatlist);
+                console.warn(`persistedchatlist ${privatechatlistform.persistedchatlist.length}`, privatechatlistform.persistedchatlist);
+                privatechatlistform.chatlist.forEach((item, index) => {
+                    console.warn(index, item.chats)
+                });
+                console.warn(privatechatlistform.chatlist.length);
             }} />*/}
             {renderView()}
         </SafeAreaView>

@@ -279,6 +279,7 @@ class ProfileList2 extends React.PureComponent {
     }
 
     _renderItem = ({ item }) => {
+        // return <Text>{item}</Text>
         if (item.profile.ublockedprofile == true && item.allowblockpass != true) {
             return (
                 <PanelMsg
@@ -310,7 +311,7 @@ class ProfileList2 extends React.PureComponent {
                 gender={item.profile.user.gender}
                 leftAvatarPress={() => this._setAvatarNavModal(item)}
                 rightTitle={this._setFollowMsg(item)}
-                // onPress={() => this._followProfileAction(item)}
+                onPress={() => checkData(this.props.onPress) ? this.props.onPress(item) : this._setAvatarNavModal(item)}
                 bio={item.profile.user.username}
                 textStyle={{ color: colors.text }}
                 containerStyle={{ padding: 5, backgroundColor: colors.background }}

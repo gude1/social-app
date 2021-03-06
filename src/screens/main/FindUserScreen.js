@@ -9,6 +9,7 @@ import { Navigation } from 'react-native-navigation';
 import { responsiveHeight, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { ViewPager } from '../../components/reusable/viewpager';
 import ProfileList2 from '../../components/reusable/ProfileList2';
+import { checkData } from '../../utilities/index';
 
 
 const { colors } = useTheme();
@@ -198,6 +199,9 @@ const FindUserScreen = ({
                         type: 'entypo'
                     }}
                     onSubmit={() => {
+                        if (!checkData(searchText)) {
+                            return;
+                        }
                         fetchSearchList(searchText);
                         viewpager.setPage(1);
                     }}

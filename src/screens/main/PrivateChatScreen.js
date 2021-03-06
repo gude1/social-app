@@ -17,7 +17,6 @@ const PrivateChatScreen = ({
     connected,
     addPrivateChat,
     sendPrivateChat,
-    propfindpartnerchat,
     setPrivateChat,
     deleteAPrivateChat,
     clearAPrivateChat,
@@ -41,17 +40,26 @@ const PrivateChatScreen = ({
     privatechatobj
 }) => {
 
+    /**CONDITIONAL STATEMENT STARTS HERE */
+    privatechatform = !checkData(privatechatform.partnerprofile) ? { ...privatechatform, ...privatechatobj } : privatechatform;
+    if (!checkData(startScreen())) {
+        Navigation.dismissModal(componentId);
+        return null;
+    }
+    /**CONDITIONAL STATEMENT ENDS HERE */
+    let findchatonline = false;
     const [loaded, setLoaded] = useState(false);
     const [chatinfovisible, setChatInfoVisible] = useState(false);
     const [flatlistref, setFlatListRef] = useState(null);
     const [inputtxt, setInputTxt] = useState('');
     const [showactivitymodal, setShowActivityModal] = useState(false);
     const [chatlistoptionsmodalvisible, setChatListOptionsModalVisible] = useState(false);
-    privatechatform = !checkData(privatechatform.partnerprofile) ? privatechatobj : privatechatform;
-    startScreen();
+    privatechatform = !checkData(privatechatform.partnerprofile) ? {
+        ...privatechatform,
+        ...privatechatobj
+    } : privatechatform;
 
     /**component function starts here */
-
     Navigation.mergeOptions(componentId, {
         animations: {
             showModal: {
@@ -66,40 +74,33 @@ const PrivateChatScreen = ({
     });
 
     useEffect(() => {
-        setReset('privatechatform');
-        if (propfindpartnerchat != true &&
-            (
-                !checkData(privatechatobj) ||
-                !Array.isArray(privatechatobj.chats) ||
-                !Array.isArray(privatechatobj.last_fetch_arr) ||
-                !checkData(privatechatobj.partnerprofile)
-            )
-        ) {
-            Toast('chat not found');
-            //Navigation.dismissModal(componentId);
-            return null;
-        }
-        if (privatechatobj.chats.length > 0) {
+        if (checkData(privatechatobj.chats) && privatechatobj.chats.length > 0) {
+            //console.warn('privatechatlength', privatechatobj.chats.length);
+            // return null;
             updatePrivateChatListChats({
                 create_chatid: privatechatobj.create_chatid,
+                partnerprofile: privatechatobj.partnerprofile,
                 chats: [{ id: privatechatobj.chats[0].id, num_new_msg: null }]
             });
         }
-        if (propfindpartnerchat == true) {
-            let chatobj = privatechatlistform.chatlist.find(item => {
-                return item.partnerprofile.profile_id == privatechatobj.partnerprofile.profile_id
-            });
-            if (checkData(chatobj)) {
-                privatechatobj = chatobj;
-            }
+        let chatobj = privatechatlistform.chatlist.find(item => {
+            return item.partnerprofile.profile_id == privatechatobj.partnerprofile.profile_id ||
+                item.create_chatid == privatechatobj.create_chatid;
+        });
+        if (checkData(chatobj) && chatobj.deleted != true) {
+            let chats = chatobj.chats.filter(item => item.deleted != true);
+            privatechatform = { ...privatechatform, ...chatobj, chats };
+            setPrivateChatForm({ ...chatobj, chats });
+        } else {
+            findchatonline = true;
+            setPrivateChatForm({ ...privatechatform });
         }
-        setPrivateChatForm(privatechatobj, privatechatobj.create_chatid);
 
         fetchPrivateChats([
-            privatechatobj.create_chatid,
-            privatechatobj.last_fetch_arr,
-            privatechatobj.partnerprofile,
-            propfindpartnerchat,
+            privatechatform.create_chatid,
+            privatechatform.last_fetch_arr,
+            privatechatform.partnerprofile.profile_id,
+            findchatonline
         ]);
 
         const listener = {
@@ -117,9 +118,10 @@ const PrivateChatScreen = ({
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
             deleteOfflineActions([
-                `fetchprivatechat${privatechatform.create_chatid}`,
-                `setprivatechatarrread${privatechatform.create_chatid}`
+                `fetchprivatechat${privatechatform.create_chatid || privatechatform.partnerprofile.profile_id}`,
+                `setprivatechatarrread${privatechatform.create_chatid || privatechatform.partnerprofile.profile_id}`
             ]);
+            setReset('privatechatform');
         };
     }, []);
 
@@ -136,24 +138,13 @@ const PrivateChatScreen = ({
     }, [privatechatform.last_fetch_arr.toString()]);
 
     function startScreen() {
-        if (
-            propfindpartnerchat != true &&
-            (
-                !checkData(privatechatobj) ||
-                !Array.isArray(privatechatobj.chats) ||
-                !Array.isArray(privatechatobj.last_fetch_arr) ||
-                !checkData(privatechatobj.partnerprofile)
-            )
+        if (!checkData(privatechatobj.partnerprofile) ||
+            privatechatobj.partnerprofile.profile_id == authprofile.profile_id
         ) {
-            Toast('chat not found');
-            //console.warn(checkData(privatechatobj.chats), privatechatobj.chats);
-            //Navigation.dismissModal(componentId);
-            return null;
-        } else if (propfindpartnerchat == true && !checkData(privatechatobj.partnerprofile)) {
             Toast('chat not found');
             return null;
         }
-
+        return true;
     }
 
     function sendChatImages() {
@@ -162,18 +153,17 @@ const PrivateChatScreen = ({
                 return;
             }
             data.map(item => {
-                //console.warn('inout', item.inputtxt);
                 sendPrivateChat({
                     create_chatid: privatechatform.create_chatid,
                     chatSchema: {
-                        id: Math.round(new Date().getTime()),
+                        id: Math.round(new Date().getTime() / 1000) - 30,
                         partnerprofile: privatechatform.partnerprofile,
                         create_chatid: privatechatform.create_chatid,
                         sender_id: authprofile.profile_id,
                         read: "sending",
                         chat_pics: [{ chatpic: item.imageuri }],
                         receiver_id: privatechatform.partnerprofile.profile_id,
-                        created_at: `${Math.round(new Date().getTime())}`,
+                        created_at: `${Math.round(new Date().getTime() / 1000) - 30}`,
                         chat_msg: item.inputtxt
                     },
                     reqobj: {
@@ -186,6 +176,7 @@ const PrivateChatScreen = ({
             });
             checkData(flatlistref) && flatlistref.scrollToOffset({ offset: 0 });
         }
+
         Navigation.showModal({
             component: {
                 name: 'PhotoList',
@@ -220,6 +211,8 @@ const PrivateChatScreen = ({
                     onChangeText={setInputTxt}
                     inputvalue={inputtxt}
                     onSubmit={() => {
+                        //console.warn('inout', privatechatform.create_chatid);
+                        //return;
                         if (!checkData(inputtxt)) {
                             return;
                         }
@@ -227,13 +220,13 @@ const PrivateChatScreen = ({
                         sendPrivateChat({
                             create_chatid: privatechatform.create_chatid,
                             chatSchema: {
-                                id: Math.round(new Date().getTime()),
+                                id: Math.round(new Date().getTime() / 1000) - 30,
                                 partnerprofile: privatechatform.partnerprofile,
                                 create_chatid: privatechatform.create_chatid,
                                 sender_id: authprofile.profile_id,
                                 read: "sending",
                                 receiver_id: privatechatform.partnerprofile.profile_id,
-                                created_at: `${Math.round(new Date().getTime())}`,
+                                created_at: `${Math.round(new Date().getTime() / 1000) - 30}`,
                                 chat_msg: inputtxt
                             },
                             reqobj: {
@@ -264,7 +257,9 @@ const PrivateChatScreen = ({
         return (
             <>
             {/*<Button title="Press" onPress={() => {
-                console.warn(privatechatform, privatechatform.loadingmore);
+                console.warn(privatechatform.create_chatid)
+                let c = privatechatlistform.chatlist.find(item => item.partnerprofile.profile_id == privatechatform.partnerprofile.profile_id);
+                console.warn(c.chats, privatechatlistform.chatlist.length);
             }} />*/}
             <HeaderWithImage
                 avatarUri={{ uri: getPartnerProfile().avatar[1] || null }}
@@ -316,6 +311,7 @@ const PrivateChatScreen = ({
                 setFlatListRef={setFlatListRef}
                 sendPrivateChat={sendPrivateChat}
                 deletePrivateChat={deleteAPrivateChat}
+                updatePrivateChatList={updatePrivateChatList}
                 deleting={privatechatform.deleting}
                 partnerprofile={privatechatform.partnerprofile}
                 data={privatechatform.chats}
@@ -363,7 +359,7 @@ const PrivateChatScreen = ({
                                                 setPrivateChatPartnerProfile({
                                                     ...privatechatform.partnerprofile,
                                                     ublockedprofile: !privatechatform.partnerprofile.ublockedprofile,
-                                                }, privatechatform.create_chatid);
+                                                }, privatechatform.create_chatid || privatechatform.partnerprofile.profile_id);
 
                                                 updatePrivateChatList({
                                                     partnerprofile: {
@@ -397,16 +393,22 @@ const PrivateChatScreen = ({
                                 {
                                     text: "Yes",
                                     onPress: () => {
+                                        let updatedchats = privatechatform.chats.map(item => {
+                                            return { ...item, deleted: true };
+                                        });
                                         clearAPrivateChat(
                                             () => {
                                                 setShowActivityModal(true);
                                             },
                                             () => {
                                                 setShowActivityModal(false);
-                                                setPrivateChat([], privatechatform.create_chatid);
+                                                setPrivateChat([],
+                                                    privatechatform.create_chatid || privatechatform.partnerprofile.profile_id
+                                                );
                                                 updatePrivateChatList({
                                                     create_chatid: privatechatform.create_chatid,
-                                                    chats: []
+                                                    partnerprofile: privatechatform.partnerprofile,
+                                                    chats: updatedchats,
                                                 });
                                                 Toast(`Chat cleared`);
                                             },
@@ -474,7 +476,6 @@ const PrivateChatScreen = ({
     };
 
     /**component function ends here*/
-
     return (
         <SafeAreaView style={styles.containerStyle}>
             {renderView()}

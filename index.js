@@ -30,12 +30,14 @@ import PostSettingScreen from './src/screens/main/PostSettingScreen';
 import FollowInfoScreen from './src/screens/main/FollowInfoScreen';
 import FindUserScreen from './src/screens/main/FindUserScreen';
 import PrivateChatScreen from './src/screens/main/PrivateChatScreen';
+import SearchPrivateChatListScreen from './src/screens/main/SearchPrivateChatListScreen';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
 import { setRoute } from './src/utilities';
 import { getGalleryPhotos } from './src/actions/index';
 import { ReduxNetworkProvider } from 'react-native-offline';
+
 
 const { colors } = useTheme();
 const setTheDefault = () => {
@@ -268,6 +270,14 @@ Navigation.events().registerAppLaunchedListener(async () => {
                             <PrivateChatScreen {...props} />
                         </Provider>,
                         () => PrivateChatScreen
+                    );
+                    break;
+                case 'SearchPrivateChatList':
+                    Navigation.registerComponent('SearchPrivateChatList', () => (props) =>
+                        <Provider store={store}>
+                            <SearchPrivateChatListScreen {...props} />
+                        </Provider>,
+                        () => SearchPrivateChatListScreen
                     );
                     break;
                 default:

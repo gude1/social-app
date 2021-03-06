@@ -2,7 +2,7 @@ import {
     SET_PRIVATECHATFORM, ADD_PRIVATECHAT, SET_PRIVATECHAT,
     SET_PRIVATECHAT_LAST_FETCH_ARR, ADD_PRIVATECHAT_LAST_FETCH_ARR,
     RESET, PROCESSING, REMOVE_PRIVATECHAT_LAST_FETCH_ARR,
-    UPDATE_PRIVATECHATFORM_CHATS, REMOVE_PRIVATECHAT, SET_PRIVATECHAT_PARTNER_PROFILE, SET_PRIVATECHAT_INFO,
+    UPDATE_PRIVATECHATFORM_CHATS, REMOVE_PRIVATECHAT, SET_PRIVATECHAT_PARTNER_PROFILE, SET_PRIVATECHAT_INFO, SET_PRIVATE_CHAT_CREATE_CHATID,
 } from "../actions/types";
 import { checkData, formatDate } from "../utilities/index";
 
@@ -17,27 +17,12 @@ const INITIAL_STATE = {
     chats: [],
     last_fetch_arr: []
 };
-
 const arrangeChat = (data) => {
     if (!Array.isArray(data) || data.length < 1) {
         return data;
     }
+    data = [...data];
     return data.sort((item1, item2) => item1.created_at - item2.created_at);
-    /*return data.map((item, index) => {
-        let preceeddata = data[index - 1];
-        let itemdate = formatDate(item.created_at * 1000, 'd,m,md,y');
-        if (checkData(preceeddata) && checkData(preceeddata.private_chatid) && checkData(item.private_chatid)) {
-            let preceeddate = formatDate(preceeddata.created_at * 1000, 'd,m,md,y');
-            if (preceeddate != itemdate) {
-                return { ...item, newdate: itemdate };
-            }
-            return item;
-        } else if (!checkData(preceeddata) && checkData(item.private_chatid)) {
-            return { ...item, newdate: itemdate };
-        } else {
-            return item;
-        }
-    });*/
 };
 
 const updateChats = (state, payload) => {
@@ -73,7 +58,7 @@ const handleProcessing = (key, value, state) => {
             return { ...state, fetchstatus: values[0] };
             break;
         case 'privatechatformdeleting':
-            //console.warn('DELETING', values);
+            console.warn('DELETING', values);
             return { ...state, deleting: values[0] };
             break;
         case 'privatechatformfetchchatinfo':
@@ -87,7 +72,10 @@ const handleProcessing = (key, value, state) => {
 };
 
 const confirmId = (state, id) => {
-    if (!checkData(state) || state.create_chatid != id) {
+    if (!checkData(state) ||
+        (!checkData(state.partnerprofile)) ||
+        (state.create_chatid != id && state.partnerprofile.profile_id != id)) {
+        console.warn('yeah fucked');
         return state;
     }
 }
@@ -137,6 +125,10 @@ const PrivateChatReducer = (state = INITIAL_STATE, action) => {
             confirmId(state, action.create_chatid);
             reducerdata = state.last_fetch_arr.filter(id => !action.payload.includes(id));
             return { ...state, last_fetch_arr: reducerdata };
+            break;
+        case SET_PRIVATE_CHAT_CREATE_CHATID:
+            confirmId(state, action.create_chatid);
+            return { ...state, create_chatid: action.payload };
             break;
         case SET_PRIVATECHAT_PARTNER_PROFILE:
             confirmId(state, action.create_chatid);

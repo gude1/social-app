@@ -192,12 +192,21 @@ export const ADD_PRIVATECHATLIST_EACH_CHAT_ARR = 'add_privatechatlist_each_chat_
 export const SET_PRIVATE_CHATLIST_NEXTURL = 'set_private_chatlist_nexturl';
 
 /**
+ * TYPE CONSTANT FOR SEARCHPRIVATECHATLIST REDUCER
+ */
+export const UPDATE_SEARCH_PRIVATE_CHATLIST = 'update_search_private_chatlist';
+export const SET_SEARCH_PRIVATE_CHATLIST_NEXTURL = 'set_search_private_chatlist_nexturl';
+export const SET_SEARCH_PRIVATE_CHATLIST_SEARCHWORD = 'set_search_private_chatlist_searchword';
+
+
+/**
  * TYPE CONSTANT FOR PRIVATECHAT REDUCER
  */
 export const ADD_PRIVATECHAT = 'add_privatechat';
 export const REMOVE_PRIVATECHAT = 'remove_privatechat';
 export const SET_PRIVATECHATFORM = 'set_privatechatform';
 export const SET_PRIVATECHAT_PARTNER_PROFILE = 'set_privatechat_partner_profile';
+export const SET_PRIVATE_CHAT_CREATE_CHATID = 'set_private_chat_create_chatid';
 export const SET_PRIVATECHAT = 'set_privatechat';
 export const SET_PRIVATECHAT_INFO = 'set_privatechat_info';
 export const UPDATE_PRIVATECHATFORM_CHATS = 'update_privatechatform_chats';

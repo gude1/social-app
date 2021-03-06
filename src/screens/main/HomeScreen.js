@@ -147,7 +147,7 @@ const HomeScreen = ({
         <SafeAreaView style={styles.containerStyle}>
             <Header
                 headercolor={colors.card}
-                headertext="Campusmeetup"
+                headertext="CampusMeet"
                 headerTextStyle={{
                     fontFamily: 'cursive',
                     fontWeight: 'bold'

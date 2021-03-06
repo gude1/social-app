@@ -9,6 +9,7 @@ import autoMergeLevel1 from 'redux-persist/lib/stateReconciler/autoMergeLevel1';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import migrations from '../migrations';
 //import storage from 'redux-persist/es/storage';
+
 const persistConfig = {
     key: 'campusmeetup',
     version: 0,
@@ -32,7 +33,8 @@ const persistConfig = {
         'privatechatform',
         'followinfo',
         'userslist',
-        'offlineactionslist'
+        'offlineactionslist',
+        'searchprivatechatlist'
     ]
 };
 
@@ -40,4 +42,4 @@ const pReducer = persistReducer(persistConfig, reducers);
 export const store = createStore(pReducer, applyMiddleware(thunk));
 export const persistor = persistStore(store);
 //export { store, persistor };
-persistor.purge();
+//persistor.purge();
