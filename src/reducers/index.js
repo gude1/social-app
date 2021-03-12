@@ -25,6 +25,7 @@ import { reducer as network } from 'react-native-offline';
 import OfflineActionsReducer, { offlineActionsListConfig } from './OfflineActionsReducer';
 import PrivateChatReducer from './PrivateChatReducer';
 import SearchPrivateChatListReducer from './SearchPrivateChatListReducer';
+import MeetupFormReducer from './MeetupFormReducer';
 
 export default combineReducers({
     user: userReducer,
@@ -45,6 +46,7 @@ export default combineReducers({
     profileactionform: ProfileActionFormReducer,
     privatechatlistform: persistReducer(PrivateChatListConfig, PrivateChatListReducer),
     searchprivatechatlist: SearchPrivateChatListReducer,
+    meetupform: MeetupFormReducer,
     //privatechatlistform: PrivateChatListReducer,
     privatechatform: PrivateChatReducer,
     followinfo: FollowInfoReducer,

@@ -19,6 +19,9 @@ import {
 } from "react-native-responsive-dimensions";
 //import { persistStore, persistReducer } from 'redux-persist';
 import * as actions from '../actions';
+import { checkData } from '../utilities/index';
+
+
 const { colors } = useTheme();
 const iconsColor = "black";
 const SigninScreen = ({
@@ -72,7 +75,7 @@ const SigninScreen = ({
             <View style={[screenstyle.containerStyle, { backgroundColor: colors.background }]}>
                 <AuthForm
                     imageTitle='CM'
-                    appName='Campus Meetup'
+                    appName='CampusMeet'
                     formInstructions='Please login to continue using this app'
                     descText="Don't have an account?"
                     descLink='Sign Up'
@@ -84,72 +87,151 @@ const SigninScreen = ({
                     btnDisabled={disabled}
                     marginVertical={30}
                     forgotPassText="Forgot Password?"
-                    inputs={{
-                        'Email': {
-                            type: 'email-address',
-                            maxLength: 50,
-                            inputstyle: emailinputstyle,
-                            autoCompleteType: 'email',
-                            onFocus: () => {
-                                setStyles({
-                                    ...styles,
-                                    //emailiconcolor: "#2196F3",
-                                    emailinputstyle: {
-                                        borderBottomWidth: 2,
-                                        borderColor: "#2196F3",
-                                    }
-                                })
-                            },
-                            onBlur: () => {
-                                setStyles({
-                                    ...styles,
-                                    //emailiconcolor: colors.text,
-                                    emailinputstyle: null
-                                })
-                            },
-                            //autoFocus: true,
-                            value: email,
-                            function: (data) => { setEmail(data, 'login'); },
-                            errmsg: inputerrors.emailerr,
-                            lefticon: { type: 'font-awesome', name: 'envelope-o', color: emailiconcolor, size: fontsize }
+                    inputs={[{
+                        type: 'email-address',
+                        key: "Email",
+                        maxLength: 50,
+                        inputstyle: emailinputstyle,
+                        autoCompleteType: 'email',
+                        returnKeyType: "next",
+                        onFocus: () => {
+                            setStyles({
+                                ...styles,
+                                //emailiconcolor: "#2196F3",
+                                emailinputstyle: {
+                                    borderBottomWidth: 2,
+                                    borderColor: "#2196F3",
+                                }
+                            })
                         },
+                        onBlur: () => {
+                            setStyles({
+                                ...styles,
+                                //emailiconcolor: colors.text,
+                                emailinputstyle: null
+                            })
+                        },
+                        //autoFocus: true,
+                        value: email,
+                        function: (data) => { setEmail(data, 'login'); },
+                        errmsg: inputerrors.emailerr,
+                        lefticon: { type: 'font-awesome', name: 'envelope-o', color: emailiconcolor, size: fontsize }
+                    },
+                    {
+                        type: 'password',
+                        key: "Password",
+                        autoCompleteType: 'password',
+                        returnKeyType: "done",
+                        inputstyle: passwordinputstyle,
+                        onSubmitEditing: (inputref) => {
+                            checkData(inputref) && inputref.blur();
+                            logIn({ email, password, Navigation, componentId });
+                        },
+                        onFocus: () => {
+                            setStyles({
+                                ...styles,
+                                // passwordiconcolor: "#2196F3",
+                                passwordinputstyle: {
+                                    borderBottomWidth: 2,
+                                    borderColor: "#2196F3",
+                                }
+                            })
+                        },
+                        onBlur: () => {
+                            setStyles({
+                                ...styles,
+                                //passwordiconcolor: colors.text,
+                                passwordinputstyle: null
+                            })
+                        },
+                        value: password,
+                        secureTextEntry: secure,
+                        function: (data) => { setPassword(data, 'login'); },
+                        errmsg: inputerrors.passworderr,
+                        lefticon: (
+                            <TouchableOpacity onPress={checkSecure}>
+                                <Icon
+                                    name={securefont}
+                                    size={fontsize}
+                                    color={passwordiconcolor}
+                                />
+                            </TouchableOpacity>
+                        )
+                    }]}
+                /* inputs={{
+                     'Email': {
+                         type: 'email-address',
+                         maxLength: 50,
+                         inputstyle: emailinputstyle,
+                         autoCompleteType: 'email',
+                         returnKeyType: "next",
+                         onSubmitEditing: (input) => {
+                             console.warn(input);
+                         },
+                         onFocus: () => {
+                             setStyles({
+                                 ...styles,
+                                 //emailiconcolor: "#2196F3",
+                                 emailinputstyle: {
+                                     borderBottomWidth: 2,
+                                     borderColor: "#2196F3",
+                                 }
+                             })
+                         },
+                         onBlur: () => {
+                             setStyles({
+                                 ...styles,
+                                 //emailiconcolor: colors.text,
+                                 emailinputstyle: null
+                             })
+                         },
+                         //autoFocus: true,
+                         value: email,
+                         function: (data) => { setEmail(data, 'login'); },
+                         errmsg: inputerrors.emailerr,
+                         lefticon: { type: 'font-awesome', name: 'envelope-o', color: emailiconcolor, size: fontsize }
+                     },
 
-                        'Password': {
-                            type: 'password',
-                            autoCompleteType: 'password',
-                            inputstyle: passwordinputstyle,
-                            onFocus: () => {
-                                setStyles({
-                                    ...styles,
-                                    // passwordiconcolor: "#2196F3",
-                                    passwordinputstyle: {
-                                        borderBottomWidth: 2,
-                                        borderColor: "#2196F3",
-                                    }
-                                })
-                            },
-                            onBlur: () => {
-                                setStyles({
-                                    ...styles,
-                                    //passwordiconcolor: colors.text,
-                                    passwordinputstyle: null
-                                })
-                            },
-                            value: password,
-                            secureTextEntry: secure,
-                            function: (data) => { setPassword(data, 'login'); },
-                            errmsg: inputerrors.passworderr,
-                            lefticon: (
-                                <TouchableOpacity onPress={checkSecure}>
-                                    <Icon
-                                        name={securefont}
-                                        size={fontsize}
-                                        color={passwordiconcolor}
-                                    />
-                                </TouchableOpacity>
-                            )
-                        },
-                    }}
+                     'Password': {
+                         type: 'password',
+                         autoCompleteType: 'password',
+                         returnKeyType: "next",
+                         inputstyle: passwordinputstyle,
+                         onSubmitEditing: (input) => {
+                             console.warn(input);
+                         },
+                         onFocus: () => {
+                             setStyles({
+                                 ...styles,
+                                 // passwordiconcolor: "#2196F3",
+                                 passwordinputstyle: {
+                                     borderBottomWidth: 2,
+                                     borderColor: "#2196F3",
+                                 }
+                             })
+                         },
+                         onBlur: () => {
+                             setStyles({
+                                 ...styles,
+                                 //passwordiconcolor: colors.text,
+                                 passwordinputstyle: null
+                             })
+                         },
+                         value: password,
+                         secureTextEntry: secure,
+                         function: (data) => { setPassword(data, 'login'); },
+                         errmsg: inputerrors.passworderr,
+                         lefticon: (
+                             <TouchableOpacity onPress={checkSecure}>
+                                 <Icon
+                                     name={securefont}
+                                     size={fontsize}
+                                     color={passwordiconcolor}
+                                 />
+                             </TouchableOpacity>
+                         )
+                     },
+                 }}*/
                 />
             </View>
         </SafeAreaView>

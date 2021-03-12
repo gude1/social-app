@@ -71,7 +71,7 @@ class ChatListItem extends Component {
         }
         //console.warn(item.read);
 
-        if (item.read == true) {
+        if (item.read == true || item.read == "true") {
             return (
                 <Text style={{
                     color: "#2196F3",

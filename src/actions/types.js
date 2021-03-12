@@ -221,8 +221,6 @@ export const ADD_OFFLINE_ACTION = 'add_offline_action';
 export const DELETE_OFFLINE_ACTION = 'delete_offline_action';
 export const DELETE_OFFLINE_ACTIONS = 'delete_offline_actions';
 
-
-
 /**
  * TYPE CONSTANT FOR FOLLOWINFO REDUCER
  */
@@ -230,6 +228,11 @@ export const ADD_FOLLOWINFO_LIST = 'add_followinfo_list';
 export const UPDATE_FOLLOWINFO_LIST = 'update_followinfo_list';
 export const ADD_FOLLOWINFO_URL = 'add_followinfo_url';
 
+/**
+ * TYPE CONSTANT FOR MEETUP REDUCER
+ */
+export const UPDATE_MEETUP_FORM = 'update_meetup_form';
+export const UPDATE_MEETUP_FORM_ERRORS = 'update_meetup_form_errors';
 
 
 /**

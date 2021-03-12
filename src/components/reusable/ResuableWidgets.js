@@ -1,5 +1,5 @@
 import React, { Component, useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Modal, FlatList } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useTheme } from '../../assets/themes';
 import { Icon, Avatar, Text, Overlay, Image, Input, Button } from 'react-native-elements';
@@ -695,9 +695,13 @@ export class InputBox extends Component {
             rightIcon,
             showAvatar,
             placeholder,
+            returnKeyType,
+            returnKeyLabel,
             backgroundColor,
             inputvalue,
             onChangeText,
+            onSubmitEditing,
+            multiline,
             autoFocus,
             maxLength,
             placeholdercolor,
@@ -712,13 +716,15 @@ export class InputBox extends Component {
                     placeholderTextColor={placeholdercolor || colors.placeholder}
                     inputStyle={{ color: colors.text }}
                     disableFullscreenUI={true}
+                    returnKeyType={returnKeyType}
                     leftIcon={leftIcon}
                     onChangeText={onChangeText}
+                    onSubmitEditing={onSubmitEditing}
                     value={inputvalue}
                     maxLength={maxLength}
                     selectionColor='#2196F3'
                     autoFocus={autoFocus}
-                    multiline={true}
+                    multiline={checkData(multiline) ? multiline : true}
                     containerStyle={{
                         backgroundColor: backgroundColor || colors.background,
                         flexDirection: "row",
@@ -839,6 +845,7 @@ export class ListItem extends Component {
         );
     }
 };
+
 export class ActivityOverlay extends Component {
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         if (this.props.isVisible != nextProps.isVisible) {
@@ -861,6 +868,95 @@ export class ActivityOverlay extends Component {
                         color={colors.border} />
                 </View>
             </Overlay>
+        );
+    }
+}
+
+export class ImageGalleryItem extends Component {
+    constructor(prop) {
+        super(prop);
+        let reswidth = this.props.width || 100;
+        let resheight = this.props.height || 100;
+    }
+
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        if (nextProps.avatar != this.props.avatar) {
+            return true;
+        }
+        return false;
+    }
+
+    render() {
+        let { avatar } = this.props;
+        return (
+            <TouchableOpacity
+                activeOpacity={0.7}
+                style={{ margin: 5 }}
+            >
+                <Image
+                    source={avatar}
+                    style={{ width: reswidth, height: resheight }}
+                    placeholderStyle={{ backgroundColor: colors.border }}
+                    PlaceholderContent={
+                        <Icon
+                            type="feather"
+                            name="image"
+                            color={'white'}
+                            size={responsiveFontSize(3)}
+                        />
+                    }
+                />
+            </TouchableOpacity>
+        );
+    }
+}
+
+
+export class ImageGallery extends Component {
+
+    constructor(props) {
+        super(props);
+        this.viewabilityConfig = {
+            waitForInteraction: true,
+            minimumViewTime: 4000,
+            viewAreaCoveragePercentThreshold: 0
+        }
+    }
+
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        return true;
+    }
+
+    _keyExtractor = (item, index) => index.toString();
+
+    _getItemLayout = (data, index) => {
+        if (index == -1) return { index, length: 0, height: 0 };
+        return { length: this.props.height, offset: this.props.height * index, index }
+    };
+
+    _renderItem = (item) => {
+        return (
+            <ImageGalleryItem
+                avatar={item.avatar}
+                width={this.props.width}
+                height={this.props.height}
+            />
+        );
+    }
+    render() {
+        let { photos } = this.props;
+        return (
+            <FlatList
+                viewabilityConfig={this.viewabilityConfig}
+                windowSize={50}
+                updateCellsBatchingPeriod={0}
+                numColumns={2}
+                getItemLayout={this._}
+                data={photos}
+                initialNumRender={5}
+                keyExtractor={this._keyExtractor}
+                renderItem={this._renderItem}
+            />
         );
     }
 }

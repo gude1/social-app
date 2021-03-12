@@ -82,6 +82,7 @@ export default class PostShowList extends Component {
                 });
             }
         }];
+        console
         this.bottomodallistowneroptions = [
             {
                 listtext: 'Archive Post',
@@ -360,7 +361,13 @@ export default class PostShowList extends Component {
     };
 
     renderItem = ({ item }) => {
-        console.warn(item.profile);
+        if (!checkData(item) || !checkData(item.profile)) {
+            return (
+                <PanelMsg
+                    message={'Post is unavailable'}
+                />
+            );
+        }
         let sharemsg = null;
         if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
             return (

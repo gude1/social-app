@@ -17,7 +17,7 @@ import PhotoListScreen from './src/screens/main/PhotoListScreen';
 import PhotoViewerScreen from './src/screens/main/PhotoViewerScreen';
 import RouterScreen from './src/screens/RouterScreen';
 import HomeScreen from './src/screens/main/HomeScreen';
-import GistScreen from './src/screens/main/GistScreen';
+import MeetupScreen from './src/screens/main/MeetupScreen';
 import ViewProfileScreen from './src/screens/main/ViewProfileScreen';
 import ExploreScreen from './src/screens/main/ExploreScreen';
 import PostCommentScreen from './src/screens/main/PostCommentScreen';
@@ -41,6 +41,7 @@ import { ReduxNetworkProvider } from 'react-native-offline';
 
 const { colors } = useTheme();
 const setTheDefault = () => {
+
     Navigation.setDefaultOptions({
         layout: {
             fitSystemWindows: true,
@@ -59,7 +60,8 @@ const setTheDefault = () => {
         },
         bottomTab: {
             fontSize: 14,
-            textColor: '#606060',
+            //textColor: '#606060',
+            textColor: colors.text,
             selectedFontSize: 15,
             iconColor: colors.tabiconcolor,
             fontWeight: "bold",
@@ -130,11 +132,11 @@ Navigation.events().registerAppLaunchedListener(async () => {
             </Provider>,
             () => HomeScreen
         );
-        Navigation.registerComponent('Gist', () => (props) =>
+        Navigation.registerComponent('Meetup', () => (props) =>
             <Provider store={store}>
-                <GistScreen {...props} />
+                <MeetupScreen {...props} />
             </Provider>,
-            () => GistScreen
+            () => MeetupScreen
         );
         Navigation.registerComponent('Chat', () => (props) =>
             <Provider store={store}>
@@ -285,7 +287,7 @@ Navigation.events().registerAppLaunchedListener(async () => {
             }
         });
         store.dispatch(getGalleryPhotos());
-        setTheDefault();
+        setTheDefault(store);
         setRoute(store.getState());
     });
     /* persistStore(store, null, () => {

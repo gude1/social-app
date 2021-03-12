@@ -234,10 +234,10 @@ const EditProfileScreen = ({ navigation,
                 headertextsize={responsiveFontSize(2.9)}
                 lefticon={lefticon}
                 righticon={<Icon
-                    type="antdesign"
-                    name="adduser"
+                    type="feather"
+                    name="user-check"
                     color={colors.text}
-                    size={responsiveFontSize(4.5)}
+                    size={responsiveFontSize(4)}
                 />
                 }
                 righticon2={righticon2}

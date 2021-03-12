@@ -716,6 +716,13 @@ export default class PostList extends React.Component {
     };
 
     _renderItem = ({ item }) => {
+        if (!checkData(item) || !checkData(item.profile)) {
+            return (
+                <PanelMsg
+                    message={'Post is unavailable'}
+                />
+            );
+        }
         let sharemsg = null;
         if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
             return (

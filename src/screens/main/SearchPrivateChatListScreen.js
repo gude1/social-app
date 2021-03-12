@@ -161,7 +161,13 @@ const SearchPrivateChatListScreen = ({
         <View style={styles.containerStyle}>
             <InputBox
                 style={{ borderTopWidth: 0 }}
+                onSubmitEditing={() => {
+                    setReset('searchprivatechatlist');
+                    searchPrivateChatList(inputtxt);
+                }}
                 showAvatar={false}
+                returnKeyType={'search'}
+                multiline={false}
                 inputvalue={inputtxt}
                 autoFocus={true}
                 onChangeText={setInputTxt}

@@ -1,4 +1,4 @@
-const THEME = 'light';
+const THEME = 'black';
 export const BlackTheme = {
     colors: {
         theme: 'black',

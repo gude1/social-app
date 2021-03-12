@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, } from 'react';
 import {
     View,
     ScrollView,
@@ -23,6 +23,9 @@ import {
     Text,
     Button
 } from 'react-native-elements';
+import { checkData } from '../../utilities/index';
+
+
 const { colors } = useTheme();
 let resheight = responsiveHeight(80) >= 350 ? 350 : responsiveHeight(80);
 let reswidth = responsiveWidth(80) >= 350 ? 350 : responsiveWidth(80);
@@ -44,55 +47,61 @@ const AuthForm = ({
     marginHorizontal,
     forgotPassText
 }) => {
+    //const [inputrefs, setInputRefs] = useState({});
+    let inputrefs = [];
+    const getInputRefs = () => {
+        return inputrefs;
+    };
+    const focusNextInput = (index) => {
+        let input = getInputRefs()[index];
+        checkData(input) && input.focus()
+    }
     const displayInputs = () => {
         if (inputs != undefined) {
-            let Inputs = [];
-            for (let key in inputs) {
-                let keyboardType = inputs[key].type;
-                let func = inputs[key].function;
-                let errMsg = inputs[key].errmsg;
-                let lefticon = inputs[key].lefticon;
+            return inputs.map((item, index) => {
+                let keyboardType = item.type;
                 let passwordtype = false;
-                let length = inputs[key].maxLength;
-                let value = inputs[key].value;
-                let onFocus = inputs[key].onFocus;
-                let onBlur = inputs[key].onBlur;
-                let focus = inputs[key].autoFocus;
-                let inputstyle = inputs[key].inputstyle;
-                let maxlength = inputs[key].maxLength;
-                let autocompletetype = inputs[key].autoCompleteType;
                 if (keyboardType == 'password') {
-                    passwordtype = inputs[key].secureTextEntry;
+                    passwordtype = item.secureTextEntry;
                     keyboardType = 'default';
                 }
-                Inputs.push(
-                    <Input placeholder={key}
+                return (
+                    <Input
+                        placeholder={item.key}
+                        ref={(ref) => {
+                            if (checkData(ref)) {
+                                inputrefs[index] = ref;
+                            }
+                        }}
+                        blurOnSubmit={false}
+                        onSubmitEditing={() => {
+                            checkData(item.onSubmitEditing) ? item.onSubmitEditing(inputrefs[index]) : focusNextInput(index + 1);
+                        }}
                         autoCorrect={false}
-                        key={key}
-                        autoFocus={focus}
-                        onFocus={onFocus}
-                        onBlur={onBlur}
-                        maxLength={maxlength}
-                        autoCompleteType={autocompletetype}
+                        key={item.key}
+                        autoFocus={item.autoFocus}
+                        returnKeyType={item.returnKeyType}
+                        onFocus={item.onFocus}
+                        onBlur={item.onBlur}
+                        maxLength={item.maxLength}
+                        autoCompleteType={item.autoCompleteType}
                         disableFullscreenUI={true}
                         selectionColor='#2196F3'
                         inputContainerStyle={[styles.inputContainerStyle,
-                        { borderColor: colors.border }, inputstyle]}
+                        { borderColor: colors.border }, item.inputstyle]}
                         inputStyle={[colors.text, { fontSize: 20, color: colors.text }]}
-                        leftIcon={lefticon}
+                        leftIcon={item.lefticon}
                         leftIconContainerStyle={{ margin: 15, marginRight: 12, }}
                         keyboardType={keyboardType}
-                        onChangeText={func}
-                        errorMessage={errMsg}
-                        value={value}
+                        onChangeText={item.function}
+                        errorMessage={item.errmsg}
+                        value={item.value}
                         errorStyle={styles.errorStyle}
                         placeholderTextColor={colors.border}
                         secureTextEntry={passwordtype}
                     />
                 );
-
-            }
-            return Inputs;
+            });
         }
         return <Text h5 style={{ alignSelf: "center" }}>No input field specified</Text>;
     };

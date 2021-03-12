@@ -100,7 +100,7 @@ const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
             });
             if (action.payload.add == true) {
                 updatedstate.find(item => item.postid == action.payload.data.postid) == undefined ?
-                    updatedstate.push({ ...action.payload }) : null;
+                    updatedstate.push({ ...action.payload.data }) : null;
             }
             return { ...state, timelineposts: updatedstate };
             break;

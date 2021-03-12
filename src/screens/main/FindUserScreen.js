@@ -190,6 +190,14 @@ const FindUserScreen = ({
                              viewpager.setPage(0)
                          }*/
                     }}
+                    returnKeyType={'search'}
+                    onSubmitEditing={() => {
+                        if (!checkData(searchText)) {
+                            return;
+                        }
+                        fetchSearchList(searchText);
+                        viewpager.setPage(1);
+                    }}
                     inputvalue={searchText}
                     placeholder="Search for people"
                     leftIcon={{

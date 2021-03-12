@@ -19,6 +19,9 @@ import {
     responsiveFontSize,
     responsiveWidth
 } from "react-native-responsive-dimensions";
+import { checkData } from '../utilities/index';
+
+
 const iconsColor = "black";
 const { colors } = useTheme();
 
@@ -104,11 +107,13 @@ const SignupScreen = ({
                 btnDisabled={disabled}
                 buttonFunc={() => { signUp({ email, username, name, phone, password, Navigation, componentId }) }}
                 marginVertical={40}
-                inputs={{
-                    'FullName': {
+                inputs={[
+                    {
                         type: 'default',
+                        key: "FullName",
                         //autoFocus: true,
                         inputstyle: nameinputstyle,
+                        returnKeyType: 'next',
                         autoCompleteType: 'name',
                         maxLength: 50,
                         onFocus: () => {
@@ -133,8 +138,10 @@ const SignupScreen = ({
                         errmsg: inputerrors.nameerr,
                         lefticon: { type: 'feather', name: 'user', color: 'dimgray', size: fontsize }
                     },
-                    'Username': {
+                    {
                         type: 'default',
+                        key: "Username",
+                        returnKeyType: 'next',
                         value: username,
                         autoCompleteType: 'username',
                         maxLength: 15,
@@ -160,10 +167,12 @@ const SignupScreen = ({
                         errmsg: inputerrors.usernameerr,
                         lefticon: { type: 'font-awesome', name: 'user-o', color: 'dimgray', size: fontsize }
                     },
-                    'Email': {
+                    {
                         type: 'email-address',
+                        key: "Email",
                         autoCompleteType: 'email',
                         value: email,
+                        returnKeyType: 'next',
                         inputstyle: emailinputstyle,
                         maxLength: 50,
                         onFocus: () => {
@@ -187,9 +196,11 @@ const SignupScreen = ({
                         errmsg: inputerrors.emailerr,
                         lefticon: { type: 'font-awesome', name: 'envelope-o', color: 'dimgray', size: fontsize }
                     },
-                    'Phone': {
+                    {
                         type: 'phone-pad',
+                        key: "Phone",
                         autoCompleteType: 'tel',
+                        returnKeyType: 'next',
                         value: phone,
                         maxLength: 11,
                         inputstyle: phoneinputstyle,
@@ -214,12 +225,18 @@ const SignupScreen = ({
                         errmsg: inputerrors.phoneerr,
                         lefticon: { type: 'feather', name: 'phone', color: 'dimgray', size: fontsize }
                     },
-                    'Password': {
+                    {
                         type: 'password',
+                        key: "Password",
                         value: password,
+                        returnKeyType: 'done',
                         maxLength: 15,
                         autoCompleteType: 'password',
                         inputstyle: passwordinputstyle,
+                        onSubmitEditing: (inputref) => {
+                            checkData(inputref) && inputref.blur();
+                            signUp({ email, username, name, phone, password, Navigation, componentId });
+                        },
                         onFocus: () => {
                             setStyles({
                                 ...styles,
@@ -249,7 +266,153 @@ const SignupScreen = ({
                             </TouchableOpacity>
                         )
                     }
-                }}
+                ]}
+            /*inputs={{
+                'FullName': {
+                    type: 'default',
+                    //autoFocus: true,
+                    inputstyle: nameinputstyle,
+                    autoCompleteType: 'name',
+                    maxLength: 50,
+                    onFocus: () => {
+                        setStyles({
+                            ...styles,
+                            //emailiconcolor: "#2196F3",
+                            nameinputstyle: {
+                                borderBottomWidth: 2,
+                                borderColor: "#2196F3",
+                            }
+                        })
+                    },
+                    onBlur: () => {
+                        setStyles({
+                            ...styles,
+                            //emailiconcolor: colors.text,
+                            nameinputstyle: null
+                        })
+                    },
+                    value: name,
+                    function: (data) => { setName(data, 'signup'); },
+                    errmsg: inputerrors.nameerr,
+                    lefticon: { type: 'feather', name: 'user', color: 'dimgray', size: fontsize }
+                },
+                'Username': {
+                    type: 'default',
+                    value: username,
+                    autoCompleteType: 'username',
+                    maxLength: 15,
+                    inputstyle: usernameinputstyle,
+                    onFocus: () => {
+                        setStyles({
+                            ...styles,
+                            //emailiconcolor: "#2196F3",
+                            usernameinputstyle: {
+                                borderBottomWidth: 2,
+                                borderColor: "#2196F3",
+                            }
+                        })
+                    },
+                    onBlur: () => {
+                        setStyles({
+                            ...styles,
+                            //emailiconcolor: colors.text,
+                            usernameinputstyle: null
+                        })
+                    },
+                    function: (data) => { setUsername(data, 'signup'); },
+                    errmsg: inputerrors.usernameerr,
+                    lefticon: { type: 'font-awesome', name: 'user-o', color: 'dimgray', size: fontsize }
+                },
+                'Email': {
+                    type: 'email-address',
+                    autoCompleteType: 'email',
+                    value: email,
+                    inputstyle: emailinputstyle,
+                    maxLength: 50,
+                    onFocus: () => {
+                        setStyles({
+                            ...styles,
+                            //emailiconcolor: "#2196F3",
+                            emailinputstyle: {
+                                borderBottomWidth: 2,
+                                borderColor: "#2196F3",
+                            }
+                        })
+                    },
+                    onBlur: () => {
+                        setStyles({
+                            ...styles,
+                            //emailiconcolor: colors.text,
+                            emailinputstyle: null
+                        })
+                    },
+                    function: (data) => { setEmail(data, 'signup'); },
+                    errmsg: inputerrors.emailerr,
+                    lefticon: { type: 'font-awesome', name: 'envelope-o', color: 'dimgray', size: fontsize }
+                },
+                'Phone': {
+                    type: 'phone-pad',
+                    autoCompleteType: 'tel',
+                    value: phone,
+                    maxLength: 11,
+                    inputstyle: phoneinputstyle,
+                    onFocus: () => {
+                        setStyles({
+                            ...styles,
+                            //emailiconcolor: "#2196F3",
+                            phoneinputstyle: {
+                                borderBottomWidth: 2,
+                                borderColor: "#2196F3",
+                            }
+                        })
+                    },
+                    onBlur: () => {
+                        setStyles({
+                            ...styles,
+                            //emailiconcolor: colors.text,
+                            phoneinputstyle: null
+                        })
+                    },
+                    function: (data) => { setPhone(data, 'signup'); },
+                    errmsg: inputerrors.phoneerr,
+                    lefticon: { type: 'feather', name: 'phone', color: 'dimgray', size: fontsize }
+                },
+                'Password': {
+                    type: 'password',
+                    value: password,
+                    maxLength: 15,
+                    autoCompleteType: 'password',
+                    inputstyle: passwordinputstyle,
+                    onFocus: () => {
+                        setStyles({
+                            ...styles,
+                            //emailiconcolor: "#2196F3",
+                            passwordinputstyle: {
+                                borderBottomWidth: 2,
+                                borderColor: "#2196F3",
+                            }
+                        })
+                    },
+                    onBlur: () => {
+                        setStyles({
+                            ...styles,
+                            //emailiconcolor: colors.text,
+                            passwordinputstyle: null
+                        })
+                    },
+                    secureTextEntry: secure,
+                    function: (data) => { setPassword(data, 'signup'); },
+                    errmsg: inputerrors.passworderr,
+                    lefticon: (
+                        <TouchableOpacity onPress={checkSecure}>
+                            <Icon
+                                name={securefont}
+                                size={fontsize}
+                                color={'dimgray'} />
+                        </TouchableOpacity>
+                    )
+                }
+            }}*/
             />
         </SafeAreaView >
     );

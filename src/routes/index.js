@@ -61,8 +61,8 @@ export const MAINTABSROUTE = {
                         children: [
                             {
                                 component: {
-                                    id: 'GIST_SCREEN',
-                                    name: 'Gist'
+                                    id: 'MEETUP_SCREEN',
+                                    name: 'Meetup'
                                 }
                             }
                         ]

@@ -138,6 +138,8 @@ import {
     UPDATE_SEARCH_PRIVATE_CHATLIST,
     SET_SEARCH_PRIVATE_CHATLIST_NEXTURL,
     SET_SEARCH_PRIVATE_CHATLIST_SEARCHWORD,
+    UPDATE_MEETUP_FORM,
+    UPDATE_MEETUP_FORM_ERRORS,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -4126,7 +4128,7 @@ export const searchMorePrivateChatList = () => {
             const response = await session.post(nexturl, {
                 name: searchprivatechatlist.searchword
             }, options);
-            const { status, lists, next_url,errmsg, message } = response.data;
+            const { status, lists, next_url, errmsg, message } = response.data;
             switch (status) {
                 case 200:
                     lists.forEach(searchitem => {
@@ -4137,23 +4139,23 @@ export const searchMorePrivateChatList = () => {
                     dispatch(setProcessing(false, 'searchprivatechatlistfetching'));
                     break;
                 case 404:
-                    Toast(errmsg);  
+                    Toast(errmsg);
                     dispatch(setProcessing(false, 'searchprivatechatlistloadingmore'));
                     break;
                 case 401:
                     break;
                 default:
-                   Toast('Something went wrong,please try again');  
+                    Toast('Something went wrong,please try again');
                     dispatch(setProcessing(false, 'searchprivatechatlistloadingmore'));
                     break;
             }
         } catch (err) {
             dispatch(setProcessing(false, 'searchprivatechatlistloadingmore'));
             if (err.toString().indexOf('Network Error') != -1) {
-                Toast('Network error');  
+                Toast('Network error');
             } else {
-                Toast('Something went wrong, please try again');  
-             }
+                Toast('Something went wrong, please try again');
+            }
         }
 
     };
@@ -5390,6 +5392,91 @@ export const fetchMoreSearchList = () => {
         }
     };
 };
+
+/**
+ * ACTION CREATOR FOR MEETUP REDUCER
+ * 
+ */
+export const updateMeetForm = (data: Object) => {
+    return {
+        type: UPDATE_MEETUP_FORM,
+        payload: data
+    };
+};
+
+export const updateMeetFormErrors = (data: Object) => {
+    return {
+        type: UPDATE_MEETUP_FORM_ERRORS,
+        payload: data
+    };
+};
+
+
+export const saveMeetupDetails = (data:Array, okAction, failedAction) => {
+    return async (dispatch) => {
+        let meetupname = data[0];
+        let meetupavatar = data[1];
+        let avatarname = data[2];
+        if (!checkData(data) ) {
+            Toast('Missing values to continue');
+            return;
+        }
+        let reqdata = new FormData();
+        if (checkData(meetupname)) {
+            reqdata.append('meetup_name', meetupname);
+        } else if (checkData(avatarname)) {
+            reqdata.append('avatar_name', avatarname);
+        } else if (checkData(meetupavatar)) {
+            reqdata.append('meetup_avatar', {
+                uri: meetupavatar,
+                type: 'image/jpeg',
+                name: meetupavatar
+            });
+        } else {
+            Toast('Missing values to continue');
+            return;
+        }
+        dispatch(setProcessing(true, 'meetupform'));
+
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('updatemeetupsetting', reqdata, options);
+            const { status, errors, errmsg, meetup_setting, message } = response.data;
+            dispatch(setProcessing(false, 'meetupform'));
+            switch (status) {
+                case 200:
+                    dispatch(updateMeetForm(meetup_setting));
+                    Toast('Meet details updated');
+                    checkData(okAction) && okAction();
+                    break;
+                case 400:
+                    dispatch(updateMeetFormErrors(errors));
+                    checkData(failedAction) && failedAction();
+                    break;
+                case 401:
+                    checkData(failedAction) && failedAction();
+                    break;
+                case 500:
+                    Toast(errmsg);
+                    checkData(failedAction) && failedAction();
+                    break;
+                default:
+                    Toast('something went wrong please try again');
+                    checkData(failedAction) && failedAction();
+                    break;
+            }
+        } catch (err) {
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!', null, ToastAndroid.CENTER);
+            } else {
+                Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+        }
+    };
+};
+
 
 
 /**
