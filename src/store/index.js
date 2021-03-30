@@ -34,7 +34,8 @@ const persistConfig = {
         'followinfo',
         'userslist',
         'offlineactionslist',
-        'searchprivatechatlist'
+        'searchprivatechatlist',
+        'giphygallery'
     ]
 };
 

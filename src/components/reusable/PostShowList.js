@@ -7,8 +7,9 @@ import { ConfirmModal, ActivityOverlay, BottomListModal, PanelMsg, AvatarNavModa
 import {
     responsiveFontSize, responsiveHeight, responsiveWidth
 } from 'react-native-responsive-dimensions';
-import { checkData } from '../../utilities/index';
+import { checkData, handleTime } from '../../utilities/index';
 import { Navigation } from 'react-native-navigation';
+
 
 const { colors } = useTheme();
 export default class PostShowList extends Component {
@@ -255,7 +256,9 @@ export default class PostShowList extends Component {
             return postimages;
         }
     };
-    _keyExtractor = (item, index) => item.postid;
+
+    _keyExtractor = (item, index) => index.toString();
+
     _getItemLayout = (data, index) => {
         if (index == -1) return { index, length: 0, height: 0 };
         return { length: this.resheight, offset: this.resheight * index, index }
@@ -420,45 +423,46 @@ export default class PostShowList extends Component {
             </Text >
         }
 
-        return (<PostItem
-            posterusername={item.profile.profile_name}
-            posteravatar={item.profile.avatar[1]}
-            sharemsg={sharemsg}
-            postimages={this._arrangePostImage(item.post_image)}
-            postliked={item.postliked}
-            profileid={item.profile.profile_id}
-            created_at={item.created_at}
-            onAvatarPress={() => {
-                this.setState({
-                    avatarnavmodal: {
-                        ...this.state.avatarnavmodal,
-                        headername: item.profile.user.username,
-                        profile: item.profile,
-                        avatar: item.profile.avatar[1],
-                        visible: true
-                    }
-                });
-            }}
-            postid={item.postid}
-            onOthersPostOption={() => {
-                this._setSelected(item.postid, item.profile.profile_id, item);
-            }}
-            onUserPostOption={() => {
-                this._setSelected(item.postid, item.profile.profile_id, item);
-            }}
-            postshared={item.postshared}
-            posttext={item.post_text}
-            numlikes={item.num_post_likes}
-            numcomments={item.num_post_comments}
-            numshares={item.num_post_shares}
-            onLikePress={this._likePostItem}
-            onViewLikesPress={() => this._navShowLikes(item.postid)}
-            onSharePress={this._sharePostItem}
-            onViewSharesPress={() => this._navShowShares(item.postid)}
-            onCommentPress={() => {
-                this._openComments(item);
-            }}
-        />)
+        return (
+            <PostItem
+                posterusername={item.profile.profile_name}
+                posteravatar={item.profile.avatar[1]}
+                sharemsg={sharemsg}
+                postimages={this._arrangePostImage(item.post_image)}
+                postliked={item.postliked}
+                profileid={item.profile.profile_id}
+                created_at={handleTime(Math.floor(item.created_at * 1000))}
+                onAvatarPress={() => {
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            headername: item.profile.user.username,
+                            profile: item.profile,
+                            avatar: item.profile.avatar[1],
+                            visible: true
+                        }
+                    });
+                }}
+                postid={item.postid}
+                onOthersPostOption={() => {
+                    this._setSelected(item.postid, item.profile.profile_id, item);
+                }}
+                onUserPostOption={() => {
+                    this._setSelected(item.postid, item.profile.profile_id, item);
+                }}
+                postshared={item.postshared}
+                posttext={item.post_text}
+                numlikes={item.num_post_likes}
+                numcomments={item.num_post_comments}
+                numshares={item.num_post_shares}
+                onLikePress={this._likePostItem}
+                onViewLikesPress={() => this._navShowLikes(item.postid)}
+                onSharePress={this._sharePostItem}
+                onViewSharesPress={() => this._navShowShares(item.postid)}
+                onCommentPress={() => {
+                    this._openComments(item);
+                }}
+            />)
     }
     render() {
         let refreshing = this.props.refreshing == 'failed' ? false : this.props.refreshing;
@@ -468,7 +472,7 @@ export default class PostShowList extends Component {
             <>
             <FlatList
                 data={this.props.data}
-                keyExtractor={this.keyExtractor}
+                keyExtractor={this._keyExtractor}
                 getItemLayout={this._getItemLayout}
                 onRefresh={onRefresh}
                 refreshing={refreshing}

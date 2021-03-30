@@ -79,6 +79,7 @@ const PhotoViewerScreen = ({ componentId, navparent, photos, onSubmit, showinput
         }
         await Promise.all(
             photos.map(async (img, index) => {
+                console.warn('exists', img);
                 let exists = await image_exists(img);
                 if (!exists) {
                     Toast(

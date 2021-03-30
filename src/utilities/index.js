@@ -4,6 +4,7 @@ import { Navigation } from 'react-native-navigation';
 import { AUTHROUTE, SETUPPROFILEROUTE, SETUPPOSTROUTE, MAINTABSROUTE } from '../routes';
 import ImageResizer from 'react-native-image-resizer';
 import { persistor } from '../store/index';
+import moment from 'moment';
 
 export const deleteFile = (data) => {
     if (data != null && data != '' && data != undefined) {
@@ -24,73 +25,6 @@ export const test = async () => {
     );
 
 }
-
-
-const timeDifference = (current, previous) => {
-
-    var msPerMinute = 60 * 1000;
-    var msPerHour = msPerMinute * 60;
-    var msPerDay = msPerHour * 24;
-    var msPerMonth = msPerDay * 30;
-    var msPerYear = msPerDay * 365;
-
-    var elapsed = current - previous;
-
-    if (elapsed < msPerMinute) {
-        return Math.round(elapsed / 1000) + ' seconds ago';
-    }
-
-    else if (elapsed < msPerHour) {
-        return Math.round(elapsed / msPerMinute) + ' minutes ago';
-    }
-
-    else if (elapsed < msPerDay) {
-        return Math.round(elapsed / msPerHour) + ' hours ago';
-    }
-
-    else if (elapsed < msPerMonth) {
-        return 'approximately ' + Math.round(elapsed / msPerDay) + ' days ago';
-    }
-
-}
-export const formatDate = (data: Number, format: string) => {
-    let days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thurs', 'Fri', 'Sat'];
-    let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    if (!checkData(data)) {
-        return data;
-    }
-    let formatarr = format.split(',');
-    if (formatarr.length < 1) {
-        return data;
-    }
-    let formattedstring = '';
-    formatarr.forEach(element => {
-        formattedstring += ` ${timeFormat(element)}`;
-    });
-    return formattedstring;
-    function timeFormat(format) {
-        let data = null;
-        switch (format) {
-            case 'd':
-                return ` ${new Date(data).getUTCDay()}`;
-                break;
-            case 'm':
-                return months[new Date(data).getUTCMonth()];
-            case 'D':
-                return new Date().getUTCDay();
-                break;
-            case 'md':
-                return new Date(data).getUTCDate();
-            case 'y':
-                return new Date(data).getUTCFullYear();
-                break;
-            default:
-                return new Date(data).getUTCFullYear();
-                break;
-        }
-    }
-};
-
 
 
 /**
@@ -208,6 +142,27 @@ export const setRoute = (store) => {
     }
 };
 
+export const downloadFile = (todownloadpath, todownloadfrompath, okAction, failedAction) => {
+    if (!checkData(todownloadpath) || !checkData(todownloadfrompath)) {
+        Toast(`Missing values to continue`);
+        return;
+    }
+    RNFetchBlob
+        .config({
+            path: todownloadpath
+        })
+        .fetch('GET', todownloadfrompath)
+        .then(res => {
+            checkData(okAction) && okAction(res);
+        })
+        .catch(err => {
+            Toast(`Error: ${err.message}`);
+            checkData(failedAction) && failedAction(err);
+        });
+
+
+};
+
 export const cpFile = async (from: String, to: String, del: Boolean) => {
     const { fs } = RNFetchBlob;
     if (!checkData(from) || !checkData(to)) {
@@ -305,6 +260,32 @@ export const getAppInfo = (data, name) => {
             break;
     }
 }
+
+export const handleTime = (data) => {
+    let rightnow = moment();
+    if (!checkData(data)) {
+        return data;
+    }
+    let toparsedata = moment(data);
+    let diffsec = Math.floor(rightnow.diff(data, 'seconds', true));
+    let diffmin = Math.floor(rightnow.diff(data, 'minutes', true));
+    let diffhour = Math.floor(rightnow.diff(data, 'hours', true));
+    let diffday = Math.floor(rightnow.diff(data, 'days', true));
+    let diffweek = Math.floor(rightnow.diff(data, 'weeks', true));
+    if (diffsec < 60) {
+        return `${diffsec}s`;
+    } else if (diffmin < 60) {
+        return `${diffmin}m`;
+    } else if (diffhour < 24) {
+        return `${diffhour}h`;
+    } else if (diffday < 7) {
+        return `${diffday}d`;
+    } else if (diffweek < 7) {
+        return `${diffweek}w`;
+    } else {
+        return toparsedata.format('MMM D YYYY');
+    }
+};
 
 //function to determine if data has valid values
 export function checkData(data) {

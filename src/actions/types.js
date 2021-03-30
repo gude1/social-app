@@ -229,11 +229,25 @@ export const UPDATE_FOLLOWINFO_LIST = 'update_followinfo_list';
 export const ADD_FOLLOWINFO_URL = 'add_followinfo_url';
 
 /**
- * TYPE CONSTANT FOR MEETUP REDUCER
+ * TYPE CONSTANT FOR MEETUPFORM REDUCER
  */
 export const UPDATE_MEETUP_FORM = 'update_meetup_form';
 export const UPDATE_MEETUP_FORM_ERRORS = 'update_meetup_form_errors';
 
+/**
+ * TYPE CONSTANT FOR MEETUPMAIN REDUCER
+ */
+export const ADD_MEETUPMAIN_REQUESTS = 'add_meetupmain_requests';
+export const UPDATE_MEETUPMAIN_REQUEST = 'update_meetupmain_request';
+
+
+/**
+ * TYPE CONSTANT FOR GIPHYGALLERY REDUCER
+ */
+export const APPEND_GIPHY_GALLERY_RESULTS = 'append_giphy_gallery_results';
+export const PREPEND_GIPHY_GALLERY_RESULTS = 'prepend_giphy_gallery_results';
+export const SET_GIPHY_GALLERY = 'set_giphy_gallery';
+export const UPDATE_GIPHY_GALLERY = 'update_giphy_gallery';
 
 /**
  * TYPE CONSTANT FOR BOOKMARKS REDUCER

@@ -152,6 +152,7 @@ class MyListItem extends React.Component {
                     placeholderStyle={{ backgroundColor: colors.border }}
                     containerStyle={{
                         margin: 0.5,
+                        backgroundColor: colors.border,
                     }}
                     style={{ height: reswidth - 2, width: reswidth }}
                 >
@@ -261,7 +262,7 @@ export default class PhotoGallery extends React.PureComponent {
                         viewabilityConfig={this.viewabilityConfig}
                         windowSize={50}
                         updateCellsBatchingPeriod={0}
-                        numColumns={2}
+                        numColumns={4}
                         initialNumRender={5}
                         getItemLayout={this._getItemLayout}
                         ListEmptyComponent={<ActivityIndicator size="large" color="#2196F3" />}

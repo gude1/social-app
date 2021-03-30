@@ -26,6 +26,8 @@ import OfflineActionsReducer, { offlineActionsListConfig } from './OfflineAction
 import PrivateChatReducer from './PrivateChatReducer';
 import SearchPrivateChatListReducer from './SearchPrivateChatListReducer';
 import MeetupFormReducer from './MeetupFormReducer';
+import GiphyGalleryReducer from './GiphyGalleryReducer';
+
 
 export default combineReducers({
     user: userReducer,
@@ -47,6 +49,7 @@ export default combineReducers({
     privatechatlistform: persistReducer(PrivateChatListConfig, PrivateChatListReducer),
     searchprivatechatlist: SearchPrivateChatListReducer,
     meetupform: MeetupFormReducer,
+    giphygallery: GiphyGalleryReducer,
     //privatechatlistform: PrivateChatListReducer,
     privatechatform: PrivateChatReducer,
     followinfo: FollowInfoReducer,

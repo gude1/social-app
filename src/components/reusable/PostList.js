@@ -7,14 +7,135 @@ import { Icon, Avatar, Image, Overlay, Button } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
 //import { ViewPager, IndicatorViewPager, PagerDotIndicator } from '';
 import * as  Animatable from 'react-native-animatable';
-import { checkData, toHumanReadableTime } from '../../utilities/index';
+import { checkData, toHumanReadableTime, handleTime } from '../../utilities/index';
 import { Navigation } from 'react-native-navigation';
 import { store } from '../../store/index';
 import TouchableScale from 'react-native-touchable-scale';
 import { ViewPager, IndicatorViewPager, PagerDotIndicator } from './viewpager';
 
-
 const { colors } = useTheme();
+
+const ShowPost = ({
+     data,
+    arrangePostImage,
+    onOthersPostOption,
+    onUserPostOption,
+    onAvatarPress,
+    onLikePress,
+    onViewLikesPress,
+    onSharePress,
+    onViewSharesPress,
+    onCommentPress
+}) => {
+    let sharemsg = null;
+    if (!Array.isArray(data) || data.length < 1) {
+        return null;
+    }
+    return data.map((item, index) => {
+        if (!checkData(item) || !checkData(item.profile)) {
+            return (
+                <PanelMsg
+                    message={'Post is unavailable'}
+                />
+            );
+        }
+        if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
+            return (
+                <PanelMsg
+                    message={'This post is from someone you have muted'}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updatePostItem({
+                        postid: item.postid,
+                        showpost: true
+                    })}
+                />
+            );
+        } else if (item.profile.ublockedprofile == true && checkData(item.showpost) == false) {
+            return (
+                <PanelMsg
+                    message={'postowner is blocked by you'}
+                    buttonTitle={'View'}
+                    buttonPress={() => this.props.updatePostItem({
+                        postid: item.postid,
+                        showpost: true
+                    })}
+                />
+            )
+        } else if (item.profile.profileblockedu == true && checkData(item.showpost) == false) {
+            return (
+                <PanelMsg
+                    message={'You are blocked by postowner'}
+                />
+            )
+        } else if (item.profile.user.approved != true || item.profile.user.deleted == true) {
+            return null;
+        }
+
+        if (checkData(item.known_sharers_profile) && checkData(item.known_sharers_profile[0])) {
+            sharemsg = item.known_sharers_profile.length > 1 ?
+                `shared by ${item.known_sharers_profile[0].profile_name} and others`
+                : `shared by ${item.known_sharers_profile[0].profile_name}`;
+            sharemsg = <Text
+                onPress={() => {
+                    Navigation.showModal({
+                        component: {
+                            name: 'ViewProfile',
+                            passProps: {
+                                navparent: true,
+                                reqprofile: item.known_sharers_profile[0],
+                                screentype: 'modal'
+                            },
+                        }
+                    })
+                }}>
+                {sharemsg}
+            </Text >
+        }
+
+        return (
+            <PostItem
+                key={index}
+                posterusername={item.profile.profile_name}
+                posteravatar={item.profile.avatar[1]}
+                sharemsg={sharemsg}
+                postimages={checkData(arrangePostImage) && arrangePostImage(item.post_image)}
+                postliked={item.postliked}
+                profileid={item.profile.profile_id}
+                created_at={item.created_at}
+                postid={item.postid}
+                onOthersPostOption={() => {
+                    checkData(onOthersPostOption) && onOthersPostOption(item);
+                }}
+                onUserPostOption={() => {
+                    checkData(onUserPostOption) && onUserPostOption(item);
+                }}
+                postshared={item.postshared}
+                onAvatarPress={() => {
+                    checkData(onAvatarPress) && onAvatarPress(item);
+                }}
+                deleted={item.deleted}
+                profile={item.profile}
+                posttext={item.post_text}
+                numlikes={item.num_post_likes}
+                numcomments={item.num_post_comments}
+                numshares={item.num_post_shares}
+                onLikePress={onLikePress}
+                onViewLikesPress={() => {
+                    checkData(onViewLikesPress) && onViewLikesPress(item);
+                }}
+                onSharePress={onSharePress}
+                onViewSharesPress={() => {
+                    checkData(onViewSharesPress) && onViewSharesPress(item);
+                }}
+                onCommentPress={() => {
+                    checkData(onCommentPress) && onCommentPress(item);
+                }}
+            />
+        );
+
+    });
+};
+
 const postwidth = responsiveWidth(94) > 1024 ? 1024 : responsiveWidth(94);
 const postheight = responsiveWidth(94) > 1024 ? 1024 : responsiveWidth(94);
 
@@ -97,7 +218,6 @@ class PostImageViewPager extends Component {
     };
 
     render() {
-
         return (
             <IndicatorViewPager
                 ref={viewpager => this.viewpager = viewpager}
@@ -118,8 +238,6 @@ class PostImageViewPager extends Component {
     }
 }
 
-
-
 export class PostItem extends Component {
     constructor(prop) {
         super(prop);
@@ -132,6 +250,7 @@ export class PostItem extends Component {
         if (nextProps.postliked != this.props.postliked ||
             nextProps.posterusername != this.props.posterusername ||
             nextProps.postshared != this.props.postshared ||
+            nextProps.deleted != this.props.deleted ||
             nextProps.numlikes != this.props.numlikes ||
             nextProps.numshares != this.props.numshares ||
             nextProps.numcomments != this.props.numcomments ||
@@ -175,7 +294,10 @@ export class PostItem extends Component {
     };
 
     render() {
-        //console.warn('uo');
+        // console.warn('hha');
+        if (this.props.deleted == true) {
+            return null;
+        }
         return (
             <View style={styles.postListItemContainer}>
                 <View style={styles.postListItemTopBar}>
@@ -190,7 +312,7 @@ export class PostItem extends Component {
                                 {this.props.posterusername}
                             </Text>
                             <Text style={styles.postTimeStyle}>
-                                {toHumanReadableTime(this.props.created_at)}
+                                {this.props.created_at}
                             </Text>
                         </View>
                     </View>
@@ -301,7 +423,6 @@ export class PostItem extends Component {
         );
     }
 }
-
 
 export default class PostList extends React.Component {
     constructor(prop) {
@@ -570,7 +691,6 @@ export default class PostList extends React.Component {
         }
     };
 
-
     _onDeletePress = () => {
         this.setState({ confirmdeletevisible: false });
         this.props.onDeletePress(
@@ -586,7 +706,6 @@ export default class PostList extends React.Component {
             this.currentselectedpostownerid
         );
     };
-
 
     _onBlackListPress = () => {
         this.setState({ confirmblacklistvisible: false });
@@ -716,6 +835,36 @@ export default class PostList extends React.Component {
     };
 
     _renderItem = ({ item }) => {
+        /* return (
+             <ShowPost
+                 data={this.props.data}
+                 arrangePostImage={this._arrangePostImage}
+                 onOthersPostOption={(item) => {
+                     this._setSelected(item.postid, item.profile.profile_id, item);
+                 }}
+                 onUserPostOption={(item) => {
+                     this._setSelected(item.postid, item.profile.profile_id, item);
+                 }}
+                 onAvatarPress={(item) => {
+                     this.setState({
+                         avatarnavmodal: {
+                             ...this.state.avatarnavmodal,
+                             headername: item.profile.user.username,
+                             profile: item.profile,
+                             avatar: item.profile.avatar[1],
+                             visible: true
+                         }
+                     });
+                 }}
+                 onLikePress={this._likePostItem}
+                 onViewLikesPress={(item) => this._navShowLikes(item.postid)}
+                 onSharePress={this._sharePostItem}
+                 onViewSharesPress={(item) => this._navShowShares(item.postid)}
+                 onCommentPress={(item) => {
+                     this._openComments(item);
+                 }}
+             />
+         )*/
         if (!checkData(item) || !checkData(item.profile)) {
             return (
                 <PanelMsg
@@ -775,46 +924,49 @@ export default class PostList extends React.Component {
             </Text >
         }
 
-        return (<PostItem
-            posterusername={item.profile.profile_name}
-            posteravatar={item.profile.avatar[1]}
-            sharemsg={sharemsg}
-            postimages={this._arrangePostImage(item.post_image)}
-            postliked={item.postliked}
-            profileid={item.profile.profile_id}
-            created_at={item.created_at}
-            postid={item.postid}
-            onOthersPostOption={() => {
-                this._setSelected(item.postid, item.profile.profile_id, item);
-            }}
-            onUserPostOption={() => {
-                this._setSelected(item.postid, item.profile.profile_id, item);
-            }}
-            postshared={item.postshared}
-            onAvatarPress={() => {
-                this.setState({
-                    avatarnavmodal: {
-                        ...this.state.avatarnavmodal,
-                        headername: item.profile.user.username,
-                        profile: item.profile,
-                        avatar: item.profile.avatar[1],
-                        visible: true
-                    }
-                });
-            }}
-            profile={item.profile}
-            posttext={item.post_text}
-            numlikes={item.num_post_likes}
-            numcomments={item.num_post_comments}
-            numshares={item.num_post_shares}
-            onLikePress={this._likePostItem}
-            onViewLikesPress={() => this._navShowLikes(item.postid)}
-            onSharePress={this._sharePostItem}
-            onViewSharesPress={() => this._navShowShares(item.postid)}
-            onCommentPress={() => {
-                this._openComments(item);
-            }}
-        />);
+        return (
+            <PostItem
+                posterusername={item.profile.profile_name}
+                posteravatar={item.profile.avatar[1]}
+                sharemsg={sharemsg}
+                postimages={this._arrangePostImage(item.post_image)}
+                postliked={item.postliked}
+                profileid={item.profile.profile_id}
+                created_at={handleTime(Math.floor(item.created_at * 1000))}
+                postid={item.postid}
+                onOthersPostOption={() => {
+                    this._setSelected(item.postid, item.profile.profile_id, item);
+                }}
+                onUserPostOption={() => {
+                    this._setSelected(item.postid, item.profile.profile_id, item);
+                }}
+                postshared={item.postshared}
+                onAvatarPress={() => {
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            headername: item.profile.user.username,
+                            profile: item.profile,
+                            avatar: item.profile.avatar[1],
+                            visible: true
+                        }
+                    });
+                }}
+                deleted={item.deleted}
+                profile={item.profile}
+                posttext={item.post_text}
+                numlikes={item.num_post_likes}
+                numcomments={item.num_post_comments}
+                numshares={item.num_post_shares}
+                onLikePress={this._likePostItem}
+                onViewLikesPress={() => this._navShowLikes(item.postid)}
+                onSharePress={this._sharePostItem}
+                onViewSharesPress={() => this._navShowShares(item.postid)}
+                onCommentPress={() => {
+                    this._openComments(item);
+                }}
+            />
+        );
     };
 
     _keyExtractor = (item, index) => item.postid;
@@ -956,8 +1108,8 @@ export default class PostList extends React.Component {
                     windowSize={50}
                     refreshing={refreshing}
                     onRefresh={onRefresh}
+                    //data={this.props.data.length > 0 ? [1] : []}
                     data={this.props.data}
-                    //extraData={this.props.extraData}
                     getItemLayout={this._getItemLayout}
                     renderItem={this._renderItem}
                     keyExtractor={this._keyExtractor}
@@ -1137,6 +1289,11 @@ const styles = StyleSheet.create({
         height: postheight
     },
     postListItemContainerAvatar: {
+        backgroundColor: colors.border,
+        borderTopLeftRadius: 15,
+        borderTopRightRadius: 15,
+        width: postwidth,
+        height: postheight
     },
     postListItemBottomBarIcon: {
         marginHorizontal: 1,

@@ -26,8 +26,8 @@ const { colors } = useTheme();
 const PhotoListScreen = ({ navparent, photogalleryform, showinput, maxselect, componentId, getGalleryPhotos, onSubmit, setSelected, setReset }) => {
 
     const responsive = {
-        resheight: responsiveHeight(50),
-        reswidth: responsiveWidth(50),
+        resheight: responsiveHeight(100) / 3,
+        reswidth: responsiveWidth(100) / 3,
         fontsize: responsiveFontSize(4.5),
         num: 3
     };

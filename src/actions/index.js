@@ -140,6 +140,12 @@ import {
     SET_SEARCH_PRIVATE_CHATLIST_SEARCHWORD,
     UPDATE_MEETUP_FORM,
     UPDATE_MEETUP_FORM_ERRORS,
+    APPEND_GIPHY_GALLERY_RESULTS,
+    PREPEND_GIPHY_GALLERY_RESULTS,
+    SET_GIPHY_GALLERY,
+    UPDATE_GIPHY_GALLERY,
+    ADD_MEETUPMAIN_REQUESTS,
+    UPDATE_MEETUPMAIN_REQUEST,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -166,6 +172,8 @@ import {
     cpFile
 } from '../utilities';
 import CameraRoll from "@react-native-community/cameraroll";
+import { GIPHY_API_KEY1, GIPHY_API_KEY2 } from '../env';
+import { SEARCH_INITIAL_STATE } from '../reducers/GiphyGalleryReducer';
 
 /**
  * GENERAL ACTION CREATORS
@@ -2544,13 +2552,15 @@ export const retryPostComment = (postid, commentid, comment_text) => {
         const { user } = store.getState();
         let onretryschema = {
             commentid,
-            created_at: 'Tap to retry',
+            created_at: new Date().getTime(),
+            sendingmsg: 'Tap to retry',
             onRetry: () => dispatch(retryPostComment(postid, commentid, comment_text))
         };
         dispatch(updatePostCommentForm({
             onRetry: () => { },
             commentid: commentid,
-            created_at: 'posting...',
+            created_at: new Date().getTime(),
+            sendingmsg: 'posting...',
         }));
 
         try {
@@ -2610,7 +2620,8 @@ export const makePostComment = (postid, comment_text) => {
         let tempid = String(Math.floor(Math.random() * 1000000));
         let onretryschema = {
             commentid: tempid,
-            created_at: 'Tap to retry',
+            created_at: new Date().getTime(),
+            sendingmsg: 'Tap to retry',
             onRetry: () => dispatch(retryPostComment(postid, tempid, comment_text))
         };
 
@@ -2619,7 +2630,8 @@ export const makePostComment = (postid, comment_text) => {
             comment_text,
             onRetry: () => { },
             commentid: tempid,
-            created_at: 'posting...',
+            created_at: new Date().getTime(),
+            sendingmsg: 'posting...',
             profile: {
                 ...profile,
                 user: { ...user }
@@ -3280,7 +3292,8 @@ export const makePostCommentReply = (originid, reply_text) => {
         let tempid = String(Math.floor(Math.random() * 1000000));
         let onretryschema = {
             replyid: tempid,
-            created_at: 'Tap to retry',
+            created_at: new Date().getTime(),
+            sendingmsg: 'Tap to retry',
             onRetry: () => dispatch(retryPostComment(originid, tempid, reply_text))
         };
 
@@ -3289,7 +3302,8 @@ export const makePostCommentReply = (originid, reply_text) => {
             reply_text,
             onRetry: () => { },
             replyid: tempid,
-            created_at: 'posting...',
+            sendingmsg: 'posting...',
+            created_at: new Date().getTime(),
             profile: {
                 ...profile,
                 user: { ...user }
@@ -5412,59 +5426,142 @@ export const updateMeetFormErrors = (data: Object) => {
 };
 
 
-export const saveMeetupDetails = (data:Array, okAction, failedAction) => {
+export const saveMeetupDetails = (data: Array, okAction, failedAction) => {
     return async (dispatch) => {
+        const { user } = store.getState();
         let meetupname = data[0];
         let meetupavatar = data[1];
         let avatarname = data[2];
-        if (!checkData(data) ) {
+        if (!checkData(data)) {
             Toast('Missing values to continue');
             return;
         }
-        let reqdata = new FormData();
-        if (checkData(meetupname)) {
-            reqdata.append('meetup_name', meetupname);
-        } else if (checkData(avatarname)) {
-            reqdata.append('avatar_name', avatarname);
-        } else if (checkData(meetupavatar)) {
-            reqdata.append('meetup_avatar', {
-                uri: meetupavatar,
-                type: 'image/jpeg',
-                name: meetupavatar
-            });
-        } else {
-            Toast('Missing values to continue');
-            return;
-        }
-        dispatch(setProcessing(true, 'meetupform'));
+        dispatch(setProcessing(true, 'meetupformprocessing'));
+        dispatch(updateMeetFormErrors({
+            meetup_name_err: null,
+            avatar_name_err: null,
+            meetup_avatar_err: null,
+        }));
+        setTimeout(async () => {
+            let reqdata = new FormData();
+            if (checkData(meetupname)) {
+                reqdata.append('meetup_name', meetupname);
+            } else if (checkData(avatarname)) {
+                reqdata.append('avatar_name', avatarname);
+            } else if (checkData(meetupavatar)) {
+                reqdata.append('meetup_avatar', {
+                    uri: meetupavatar,
+                    type: 'image/gif',
+                    name: meetupavatar
+                });
+            } else {
+                Toast('Missing values to continue');
+                return;
+            }
 
+            try {
+                const options = {
+                    headers: { 'Authorization': `Bearer ${user.token}` }
+                };
+                const response = await session.post('updatemeetupsetting', reqdata, options);
+                const { status, errors, errmsg, meetup_setting, message } = response.data;
+                //console.warn('responsedata', response.data);
+                dispatch(setProcessing(false, 'meetupformprocessing'));
+                switch (status) {
+                    case 200:
+                        dispatch(updateMeetForm(meetup_setting));
+                        Toast('Meet details updated');
+                        checkData(okAction) && okAction();
+                        break;
+                    case 400:
+                        dispatch(updateMeetFormErrors(errors));
+                        checkData(failedAction) && failedAction();
+                        break;
+                    case 401:
+                        checkData(failedAction) && failedAction();
+                        break;
+                    case 500:
+                        Toast(errmsg);
+                        checkData(failedAction) && failedAction();
+                        break;
+                    default:
+                        Toast('something went wrong please try again');
+                        checkData(failedAction) && failedAction();
+                        break;
+                }
+            } catch (err) {
+                dispatch(setProcessing(false, 'meetupformprocessing'));
+                console.warn(err.toString());
+                if (err.toString().indexOf('Network Error') != -1) {
+                    Toast('network error!', null, ToastAndroid.CENTER);
+                } else {
+                    Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+                }
+            }
+        }, 300);
+
+    };
+};
+
+/**
+ * ACTION CREATOR FOR GIPHYGALLERY REDUCER
+ * 
+ */
+export const appendGiphyGalleryResults = (data: Array) => {
+    return {
+        type: APPEND_GIPHY_GALLERY_RESULTS,
+        payload: data
+    };
+};
+
+export const prependGiphyGalleryResults = (data: Array) => {
+    return {
+        type: PREPEND_GIPHY_GALLERY_RESULTS,
+        payload: data,
+    };
+};
+
+export const setGiphyGallery = (data: Object) => {
+    return {
+        type: SET_GIPHY_GALLERY,
+        payload: data
+    };
+};
+
+export const updateGiphyGallery = (data: Object) => {
+    return {
+        type: UPDATE_GIPHY_GALLERY,
+        payload: data
+    }
+};
+
+export const fetchGiphyGifs = () => {
+    return async (dispatch) => {
+        const { giphygallery, profile } = store.getState();
+        dispatch(setProcessing(true, 'giphygalleryfetching'));
         try {
-            const options = {
-                headers: { 'Authorization': `Bearer ${user.token}` }
-            };
-            const response = await session.post('updatemeetupsetting', reqdata, options);
-            const { status, errors, errmsg, meetup_setting, message } = response.data;
-            dispatch(setProcessing(false, 'meetupform'));
-            switch (status) {
+            const response = await axios.get(`https://api.giphy.com/v1/gifs/search?q=cartoon&api_key=${GIPHY_API_KEY2}&limit=50&rating=g`)
+            const { pagination, meta, data } = response.data;
+            //console.warn(pagination);
+            switch (meta.status) {
                 case 200:
-                    dispatch(updateMeetForm(meetup_setting));
-                    Toast('Meet details updated');
-                    checkData(okAction) && okAction();
-                    break;
-                case 400:
-                    dispatch(updateMeetFormErrors(errors));
-                    checkData(failedAction) && failedAction();
-                    break;
-                case 401:
-                    checkData(failedAction) && failedAction();
-                    break;
-                case 500:
-                    Toast(errmsg);
-                    checkData(failedAction) && failedAction();
+                    let results = data.map((item, index) => {
+                        return {
+                            fixed_width: item.images.fixed_width,
+                            preview_gif: item.images.preview_gif
+                        };
+                    });
+                    dispatch(setGiphyGallery({
+                        results,
+                        offset: pagination.count + giphygallery.offset,
+                    }))
+                    if (checkData(pagination.total_count) && pagination.total_count < 1) {
+                        dispatch(updateGiphyGallery({ loadingmore: 'done' }));
+                    }
                     break;
                 default:
-                    Toast('something went wrong please try again');
-                    checkData(failedAction) && failedAction();
+                    Toast('Could not fetch giphy gifs', null, ToastAndroid.CENTER);
+                    dispatch(setProcessing('retry', 'giphygalleryfetching'));
                     break;
             }
         } catch (err) {
@@ -5473,9 +5570,121 @@ export const saveMeetupDetails = (data:Array, okAction, failedAction) => {
             } else {
                 Toast('something went wrong please try again', null, ToastAndroid.CENTER);
             }
+            dispatch(setProcessing('retry', 'giphygalleryfetching'));
         }
+
     };
 };
+
+export const fetchMoreGiphyGifs = () => {
+    return async (dispatch) => {
+        const { giphygallery, profile } = store.getState();
+        dispatch(setProcessing(true, 'giphygalleryloadingmore'));
+        //console.warn('offset', giphygallery.offset);
+        try {
+            const response = await axios.get(`https://api.giphy.com/v1/gifs/search?q=cartoon&api_key=${GIPHY_API_KEY2}&limit=50&offset=${giphygallery.offset}&rating=g`)
+            const { pagination, meta, data } = response.data;
+            // console.warn(pagination);
+            switch (meta.status) {
+                case 200:
+                    let results = data.map((item, index) => {
+                        return {
+                            fixed_width: item.images.fixed_width,
+                            preview_gif: item.images.preview_gif
+                        };
+                    });
+                    dispatch(prependGiphyGalleryResults(results));
+                    dispatch(updateGiphyGallery({ offset: pagination.count + giphygallery.offset }));
+                    if (checkData(pagination.total_count) && pagination.total_count < 1) {
+                        dispatch(updateGiphyGallery({ loadingmore: 'done' }));
+                    }
+                    dispatch(setProcessing(false, 'giphygalleryloadingmore'));
+                    break;
+                default:
+                    Toast('Could not fetch giphy gifs', null, ToastAndroid.CENTER);
+                    dispatch(setProcessing(false, 'giphygalleryloadingmore'));
+                    break;
+            }
+        } catch (err) {
+            console.warn(err.toString())
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!', null, ToastAndroid.CENTER);
+            } else {
+                Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+            dispatch(setProcessing(false, 'giphygalleryloadingmore'));
+        }
+
+    };
+}
+
+export const searchGiphyGifs = (searchtxt) => {
+    return async (dispatch) => {
+        if (!checkData(searchtxt)) {
+            return;
+        }
+        const { giphygallery, profile } = store.getState();
+        dispatch(
+            updateGiphyGallery({
+                searchobj: SEARCH_INITIAL_STATE
+            })
+        );
+        dispatch(setProcessing(true, 'giphysearchgalleryfetching'));
+        try {
+            const response = await axios.get(`https://api.giphy.com/v1/gifs/search?q=${searchtxt}&api_key=${GIPHY_API_KEY2}&limit=200&rating=g`)
+            const { pagination, meta, data } = response.data;
+            console.warn(pagination);
+            switch (meta.status) {
+                case 200:
+                    let results = data.map((item, index) => {
+                        return {
+                            fixed_width: item.images.fixed_width,
+                            preview_gif: item.images.preview_gif
+                        };
+                    });
+                    dispatch(
+                        updateGiphyGallery({
+                            searchobj: { ...giphygallery.searchobj, results: results, fetching: false }
+                        })
+                    );
+                    break;
+                default:
+                    Toast('search results failed', null, ToastAndroid.CENTER);
+                    dispatch(setProcessing('retry', 'giphysearchgalleryfetching'));
+                    break;
+            }
+        } catch (err) {
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!', null, ToastAndroid.CENTER);
+            } else {
+                Toast('search results failed', null, ToastAndroid.CENTER);
+            }
+            dispatch(setProcessing('retry', 'giphysearchgalleryfetching'));
+        }
+
+    };
+};
+
+/**
+ * ACTION CREATOR FOR MEETUPMAIN REDUCER 
+ * 
+ */
+export const addMeetupMainRequests = (data: Array) => {
+    return {
+        type: ADD_MEETUPMAIN_REQUESTS,
+        payload: data,
+    };
+};
+
+export const updateMeetupMainRequest = (data: Object) => {
+    return {
+        type: UPDATE_MEETUPMAIN_REQUEST,
+        payload: data
+    };
+};
+
+
+
 
 
 
@@ -5517,7 +5726,7 @@ export const deleteOfflineActions = (data: Array) => {
     };
 };
 
-/**
+/** 
  * ACTION CREATOR FOR PHOTO GALLERY REDUCER
  * 
  */

@@ -83,8 +83,10 @@ class ViewerImage extends Component {
     }
 
     render() {
-        const { imageuri, imageindex, total, headerIcons, headerIconsActions, updatePhotos, photolist } = this.props;
+        let { imageuri, imageindex, total, headerIcons, headerIconsActions, updatePhotos, photolist } = this.props;
         const { lefticon, righticon, righticon2 } = headerIcons;
+        imageuri = typeof imageuri == "string" ? { uri: imageuri } : imageuri;
+        //console.warn(imageuri);
         const { righticonpress, lefticonpress, righticon2press } = headerIconsActions;
         _righticon2press = () => righticon2press(imageindex);
         _righticonpress = () => righticonpress();
@@ -102,7 +104,7 @@ class ViewerImage extends Component {
                     // onError={this._onError}
                     //containerStyle={{}}
                     resizeMode='contain'
-                    source={{ uri: imageuri }}
+                    source={imageuri}
                 >
                     <Header
                         headerStyle={{ opacity: 0.7, marginTop: 35 }}
@@ -141,7 +143,7 @@ export default class PhotoViewer extends Component {
         this.headerIconsActions = {
             ...this.props.headerIconsActions,
             righticonpress: () => {
-                this.props.headerIconsActions.righticonpress(this.state.photos, 'yo');
+                this.props.headerIconsActions.righticonpress(this.state.photos);
             },
             righticon2press: this._removePage
         };

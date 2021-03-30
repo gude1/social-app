@@ -25,6 +25,15 @@ const arrayReduce = (data = []) => {
     return data;
 };
 
+const arrangePost = (data: Array) => {
+    if (!Array.isArray(data) || data.length < 1) {
+        return data;
+    }
+    data = [...data];
+    return data.sort((item1, item2) => item2.created_at - item1.created_at);
+};
+
+
 //to handle deleteing/removing a post
 const handleDelete = (state, data) => {
     if (checkData(state) != true || checkData(data) != true) {
@@ -50,24 +59,39 @@ const TimelinePostReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case ADD_TIMELINE_POST:
             let addedstate = { ...state, timelineposts: [...state.timelineposts, ...action.payload] };
-            return { ...addedstate, timelineposts: arrayReduce(addedstate.timelineposts) };
+            return {
+                ...addedstate,
+                timelineposts: arrayReduce(
+                    arrangePost(addedstate.timelineposts)
+                )
+            };
             break;
         case SET_TIMELINE_POST:
-            return { ...state, timelineposts: arrayReduce(action.payload) };
+            return {
+                ...state,
+                timelineposts: arrayReduce(
+                    arrangePost(action.payload)
+                )
+            };
             break;
         case PREPEND_TIMELINE_POST:
             let addedstate2 = { ...state, timelineposts: [...action.payload, ...state.timelineposts] };
-            return { ...addedstate2, timelineposts: arrayReduce(addedstate2.timelineposts) };
+            return {
+                ...addedstate2,
+                timelineposts: arrayReduce(
+                    arrangePost(addedstate2.timelineposts)
+                )
+            };
             break;
         case UPDATE_TIMELINE_POST:
             let updatedstate = state.timelineposts.map(item => {
                 return item.postid == action.payload.postid ? { ...item, ...action.payload } : item;
             });
-            return { ...state, timelineposts: updatedstate };
+            return { ...state, timelineposts: arrangePost(updatedstate) };
             break;
         case REMOVE_PROFILE_TIMELINE_POST:
             let newstate = state.timelineposts.filter(item => item.profile.profile_id != action.payload);
-            return { ...state, timelineposts: newstate };
+            return { ...state, timelineposts: arrangePost(newstate) };
             break;
         case SET_TIMELINE_POST_LINKS:
             return { ...state, links: [...action.payload] };

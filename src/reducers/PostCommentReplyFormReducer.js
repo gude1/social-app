@@ -28,6 +28,8 @@ const INITIAL_STATE = {
     refreshing: false,
     nexturl: null
 };
+
+
 const handleProcessing = (key, value, state) => {
     if (checkData(key) != true || checkData(state) != true || checkData(value) != true) {
         return state;
@@ -54,6 +56,14 @@ const handleProcessing = (key, value, state) => {
     }
 };
 
+const arrangePostCommentReply = (data: Array) => {
+    if (!Array.isArray(data) || data.length < 1) {
+        return data;
+    }
+    data = [...data];
+    return data.sort((item1, item2) => item2.created_at - item1.created_at);
+};
+
 const handleReset = (action, state) => {
     if (!checkData(action) || !checkData(state)) {
         return state;
@@ -62,7 +72,7 @@ const handleReset = (action, state) => {
         return INITIAL_STATE;
     } else if (action.payload.key == 'postcommentreplyform' && checkData(action.payload.value) == true) {
         let postcommentreplies = state.postcommentreplies.filter(item => item.replyid != action.payload.value);
-        return { ...state, postcommentreplies };
+        return { ...state, postcommentreplies: arrangePostCommentReply(postcommentreplies) };
     } else {
         return state;
     }
@@ -84,13 +94,19 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
             return { ...state, ownercomment: { ...state.ownercomment, ...action.payload } };
             break;
         case ADD_POST_COMMENT_REPLY_FORM:
-            return { ...state, postcommentreplies: [...state.postcommentreplies, ...action.payload] };
+            return {
+                ...state,
+                postcommentreplies: arrangePostCommentReply([...state.postcommentreplies, ...action.payload])
+            };
             break;
         case SET_POST_COMMENT_REPLY_FORM:
-            return { ...state, postcommentreplies: action.payload };
+            return { ...state, postcommentreplies: arrangePostCommentReply(action.payload) };
             break;
         case PREPEND_POST_COMMENT_REPLY_FORM:
-            return { ...state, postcommentreplies: [...action.payload, ...state.postcommentreplies] };
+            return {
+                ...state,
+                postcommentreplies: arrangePostCommentReply([...action.payload, ...state.postcommentreplies])
+            };
             break;
         case UPDATE_POST_COMMENT_REPLY_FORM:
             let updatedstate = state.postcommentreplies.map(item => {
@@ -98,7 +114,7 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
             });
             updatedstate.find(item => item.replyid == action.payload.replyid) == undefined ?
                 updatedstate.push({ ...action.payload }) : null;
-            return { ...state, postcommentreplies: updatedstate };
+            return { ...state, postcommentreplies: arrangePostCommentReply(updatedstate) };
             break;
         case SET_POST_COMMENT_REPLY_FORM_LINK:
             return { ...state, nexturl: action.payload };
@@ -118,8 +134,13 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
             return { ...state, profileschanges: updatedprofilestate };
             break;
         case REMOVE_POST_COMMENT_REPLY_FORM:
-            let newstate = state.postcommentreplies.filter(item => item.replyid != action.payload);
-            return { ...state, postcommentreplies: newstate };
+            let newstate = state.postcommentreplies.map(item => {
+                if (item.replyid == action.payload) {
+                    return { ...item, deleted: true };
+                }
+                return item;
+            });
+            return { ...state, postcommentreplies: arrangePostCommentReply(newstate) };
             break;
         default:
             return state;

@@ -29,17 +29,35 @@ const INITIAL_STATE = {
     links: []
 };
 
+const arrangePost = (data: Array) => {
+    if (!Array.isArray(data) || data.length < 1) {
+        return data;
+    }
+    data = [...data];
+    return data.sort((item1, item2) => item2.created_at - item1.created_at);
+};
+
 //to handle deleteing/removing a post
 const handleDelete = (state, data) => {
     if (checkData(state) != true || checkData(data) != true) {
         return state;
     }
     if (Array.isArray(data)) {
-        let updatestate = state.timelineposts.filter(item => !data.includes(item.postid));
-        return { ...state, timelineposts: updatestate };
+        let updatestate = state.timelineposts.map(item => {
+            if (data.includes(item.postid)) {
+                return { ...item, deleted: true };
+            }
+            return item;
+        });
+        return { ...state, timelineposts: arrangePost(updatestate) };
     } else {
-        let updatestate = state.timelineposts.filter(item => item.postid != data)
-        return { ...state, timelineposts: updatestate };
+        let updatestate = state.timelineposts.map(item => {
+            if (item.postid == data) {
+                return { ...item, deleted: true };
+            }
+            return item;
+        });
+        return { ...state, timelineposts: arrangePost(updatestate) };
     }
 };
 
@@ -86,13 +104,16 @@ const timeSort = (data) => {
 const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case ADD_TIMELINE_POST_FORM:
-            return { ...state, timelineposts: [...state.timelineposts, ...action.payload] };
+            return {
+                ...state,
+                timelineposts: arrangePost([...state.timelineposts, ...action.payload])
+            };
             break;
         case SET_TIMELINE_POST_FORM:
-            return { ...state, timelineposts: [...action.payload] };
+            return { ...state, timelineposts: arrangePost([...action.payload]) };
             break;
         case PREPEND_TIMELINE_POST_FORM:
-            return { ...state, timelineposts: [...action.payload, ...state.timelineposts] };
+            return { ...state, timelineposts: arrangePost([...action.payload, ...state.timelineposts]) };
             break;
         case UPDATE_TIMELINE_POST_FORM:
             let updatedstate = state.timelineposts.map(item => {
@@ -102,7 +123,7 @@ const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
                 updatedstate.find(item => item.postid == action.payload.data.postid) == undefined ?
                     updatedstate.push({ ...action.payload.data }) : null;
             }
-            return { ...state, timelineposts: updatedstate };
+            return { ...state, timelineposts: arrangePost(updatedstate) };
             break;
         case SET_TIMELINE_POST_FORM_LINKS:
             return { ...state, links: [...action.payload] };
@@ -119,7 +140,7 @@ const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
             break;
         case REMOVE_PROFILE_TIMELINE_POST_FORM:
             let newstate = state.timelineposts.filter(item => item.profile.profile_id != action.payload);
-            return { ...state, timelineposts: newstate };
+            return { ...state, timelineposts: arrangePost(newstate) };
             break;
         case SET_TIMELINE_POST_FORM_PROFILE_CHANGES:
             return { ...state, profileschanges: action.payload };

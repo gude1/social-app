@@ -4,12 +4,21 @@ import {
     PROCESSING,
     RESET
 } from '../actions/types';
-import { checkData } from '../utilities'
+import { checkData } from '../utilities';
+
 const INITIAL_STATE = {
     isprocessing: false,
     toposttext: '',
     postshow: false,
     topostimages: [],
+};
+
+const arrangePost = (data: Array) => {
+    if (!Array.isArray(data) || data.length < 1) {
+        return data;
+    }
+    data = [...data];
+    return data.sort((item1, item2) => item1.created_at - item2.created_at);
 };
 
 
@@ -41,7 +50,7 @@ const PostFormReducer = (state = INITIAL_STATE, action) => {
             return { ...state, toposttext: action.payload };
             break;
         case UPDATE_POST_FORM_IMAGE_CHANGED:
-            return { ...state, topostimages: [...action.payload] };
+            return { ...state, topostimages: arrangePost([...action.payload]) };
             break;
         case PROCESSING:
             return handleProcessing(action.payload.key,

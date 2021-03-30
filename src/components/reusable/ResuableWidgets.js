@@ -653,6 +653,7 @@ export class InputBox extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
+        return true;
         if (this.props.inputvalue != nextProps.inputvalue || this.props.update != nextProps.update) {
             return true;
         }
@@ -662,6 +663,7 @@ export class InputBox extends Component {
     renderAvatar = () => {
         const {
             style,
+            inputStyle,
             avatar,
             leftIcon,
             showAvatar,
@@ -694,6 +696,7 @@ export class InputBox extends Component {
             leftIcon,
             rightIcon,
             showAvatar,
+            inputStyle,
             placeholder,
             returnKeyType,
             returnKeyLabel,
@@ -714,7 +717,7 @@ export class InputBox extends Component {
                     placeholder={placeholder}
                     maxLength={maxLength}
                     placeholderTextColor={placeholdercolor || colors.placeholder}
-                    inputStyle={{ color: colors.text }}
+                    inputStyle={[{ color: colors.text }, inputStyle]}
                     disableFullscreenUI={true}
                     returnKeyType={returnKeyType}
                     leftIcon={leftIcon}
@@ -724,7 +727,7 @@ export class InputBox extends Component {
                     maxLength={maxLength}
                     selectionColor='#2196F3'
                     autoFocus={autoFocus}
-                    multiline={checkData(multiline) ? multiline : true}
+                    multiline={checkData(multiline) ? multiline : false}
                     containerStyle={{
                         backgroundColor: backgroundColor || colors.background,
                         flexDirection: "row",
@@ -756,6 +759,7 @@ export class ListItem extends Component {
             nextProps.title != this.props.title ||
             nextProps.replies != this.props.replies ||
             nextProps.likes != this.props.likes ||
+            nextProps.deleted != this.props.deleted ||
             nextProps.time != this.props.time ||
             nextProps.BottomContainerItem != this.props.BottomContainerItem ||
             nextProps.profilemuted != this.props.profilemuted ||
@@ -805,7 +809,9 @@ export class ListItem extends Component {
         } else {
             longpress = onLongPress
         }
-
+        if (this.props.deleted == true) {
+            return null;
+        }
         return (
             <TouchableScale
                 friction={90}
@@ -875,8 +881,8 @@ export class ActivityOverlay extends Component {
 export class ImageGalleryItem extends Component {
     constructor(prop) {
         super(prop);
-        let reswidth = this.props.width || 100;
-        let resheight = this.props.height || 100;
+        this.reswidth = this.props.width || 100;
+        this.resheight = this.props.height || 100;
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
@@ -887,16 +893,34 @@ export class ImageGalleryItem extends Component {
     }
 
     render() {
-        let { avatar } = this.props;
+        let { smallavatar, avatar, onItemClicked } = this.props;
+        let smallavataruri = typeof smallavatar == "string" ? { uri: smallavatar } : smallavatar;
+        avatar = checkData(avatar) ? avatar : smallavatar;
+        let onPress = checkData(onItemClicked) ?
+            () => this.props.onItemClicked(smallavatar, avatar)
+            :
+            () => Navigation.showModal({
+                component: {
+                    name: 'PhotoViewer',
+                    id: "PHOTO_VIEWER",
+                    passProps: {
+                        navparent: true,
+                        onSubmit: this.props.onSubmit,
+                        photos: [avatar]
+                    },
+                }
+            });
         return (
             <TouchableOpacity
                 activeOpacity={0.7}
-                style={{ margin: 5 }}
+                style={{ margin: 1 }}
+                onPress={() => onPress()}
             >
                 <Image
-                    source={avatar}
-                    style={{ width: reswidth, height: resheight }}
+                    source={smallavataruri}
+                    style={{ width: this.reswidth, height: this.resheight }}
                     placeholderStyle={{ backgroundColor: colors.border }}
+                    containerStyle={{ backgroundColor: colors.border }}
                     PlaceholderContent={
                         <Icon
                             type="feather"
@@ -916,6 +940,8 @@ export class ImageGallery extends Component {
 
     constructor(props) {
         super(props);
+        this.resheight = checkData(this.props.height) ? this.props.height : 100;
+        this.reswidth = checkData(this.props.reswidth) ? this.props.reswidth : 100;
         this.viewabilityConfig = {
             waitForInteraction: true,
             minimumViewTime: 4000,
@@ -927,17 +953,126 @@ export class ImageGallery extends Component {
         return true;
     }
 
-    _keyExtractor = (item, index) => index.toString();
+    _keyExtractor = (item, index) => item.avatar;
 
     _getItemLayout = (data, index) => {
         if (index == -1) return { index, length: 0, height: 0 };
-        return { length: this.props.height, offset: this.props.height * index, index }
+        return { length: this.resheight, offset: this.resheight * index, index }
     };
 
-    _renderItem = (item) => {
+    _setEmptyPlaceHolder = () => {
+        if (this.props.loading == true) {
+            return (
+                <View style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
+                    <ActivityIndicator size="large" color={'silver'} />
+                </View>);
+        } else if (this.props.loading == 'retry') {
+            return (
+                <View style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
+                    <Button
+                        onPress={() => {
+                            checkData(this.props.Fetch) && this.props.Fetch();
+                        }}
+                        type="clear"
+                        icon={{
+                            name: 'sync',
+                            type: "antdesign",
+                            size: responsiveFontSize(4),
+                            color: colors.text
+                        }}
+                        titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                        buttonStyle={{
+                            alignSelf: 'center',
+                            marginTop: 10,
+                            borderColor: colors.iconcolor,
+                            padding: 10
+                        }}
+                    />
+                </View>
+            );
+        } else {
+            return (
+                <View style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
+                    <Icon
+                        name="meh"
+                        type={"antdesign"}
+                        color={colors.iconcolor}
+                        size={responsiveFontSize(5)}
+                    />
+                    <Text style={{ margin: 5, color: colors.iconcolor }}>Nothing to show</Text>
+                </View>
+            )
+        }
+    };
+
+    _setFlatlistFooter = () => {
+        if (this.props.photos.length < 1) {
+            return null;
+        }
+        if (this.props.loadingmore == true) {
+            return (
+                <View style={{ flex: 1, justifyContent: "center", marginTop: 15, alignItems: "center" }}>
+                    <ActivityIndicator size={30} color={'silver'} />
+                </View>
+            );
+        } else if (this.props.loadingmore == 'retry') {
+            return (
+                <Button
+                    onPress={() => {
+                        checkData(this.props.loadMore) && this.props.loadMore();
+                    }}
+                    type="clear"
+                    icon={{
+                        name: 'plus',
+                        type: "evilicon",
+                        size: responsiveFontSize(6),
+                        color: colors.text
+                    }}
+                    titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                    buttonStyle={{
+                        alignSelf: 'center',
+                        marginTop: 10,
+                        borderColor: colors.iconcolor,
+                        borderRadius: 15,
+                        padding: 10
+                    }}
+                />
+            );
+        } else if (this.props.loadingmore == false) {
+            return (
+                <Button
+                    onPress={() => {
+                        checkData(this.props.loadMore) && this.props.loadMore();
+                    }}
+                    type="clear"
+                    icon={{
+                        name: 'plus',
+                        type: "evilicon",
+                        size: responsiveFontSize(6),
+                        color: colors.text
+                    }}
+                    titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                    buttonStyle={{
+                        alignSelf: 'center',
+                        marginTop: 10,
+                        borderColor: colors.iconcolor,
+                        borderRadius: 15,
+                        padding: 10
+                    }}
+                />
+            );
+        } else {
+            return null;
+        }
+    };
+
+    _renderItem = ({ item }) => {
         return (
             <ImageGalleryItem
+                smallavatar={item.smallavatar}
+                onItemClicked={this.props.onItemClicked}
                 avatar={item.avatar}
+                onSubmit={this.props.onSubmit}
                 width={this.props.width}
                 height={this.props.height}
             />
@@ -950,8 +1085,11 @@ export class ImageGallery extends Component {
                 viewabilityConfig={this.viewabilityConfig}
                 windowSize={50}
                 updateCellsBatchingPeriod={0}
-                numColumns={2}
-                getItemLayout={this._}
+                numColumns={this.props.numColumns || 3}
+                style={{ flex: 1 }}
+                getItemLayout={this._getItemLayout}
+                ListEmptyComponent={this._setEmptyPlaceHolder()}
+                ListFooterComponent={this._setFlatlistFooter()}
                 data={photos}
                 initialNumRender={5}
                 keyExtractor={this._keyExtractor}

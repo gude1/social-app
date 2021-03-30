@@ -1,4 +1,5 @@
-const THEME = 'black';
+const THEME = 'white';
+
 export const BlackTheme = {
     colors: {
         theme: 'black',
@@ -19,7 +20,6 @@ export const BlackTheme = {
         text: "rgb(229, 229, 231)",
         iconcolor: 'dimgray',
         tabiconcolor: '#E0E0E0'
-
     }
 };
 

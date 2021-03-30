@@ -3,11 +3,88 @@ import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { ListItem, ConfirmModal, BottomListModal, PanelMsg, ActivityOverlay, AvatarNavModal } from './ResuableWidgets';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes';
-import { checkData } from '../../utilities';
+import { checkData, handleTime } from '../../utilities';
 import { Icon, Overlay, Text, Button } from 'react-native-elements';
 import { Navigation } from 'react-native-navigation';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
 const { colors } = useTheme();
+
+
+const ShowPostReplyComments = ({ data, updateReply, onLongPress, onAvatarPress, likePress, numLikesPress }) => {
+    if (!Array.isArray(data) || data.length < 1) {
+        return null;
+    }
+    return data.map((item, index) => {
+        if (item.profile.profilemuted == true && item.muted != false) {
+            return (
+                <PanelMsg
+                    message={'This reply is from someone you have muted '}
+                    buttonTitle={'View'}
+                    buttonPress={() => {
+                        checkData(updateReply) &&
+                            updateReply({
+                                replyid: item.replyid,
+                                muted: false
+                            });
+                    }}
+                />
+            );
+        } else if (item.profile.ublockedprofile == true) {
+            return (
+                <PanelMsg
+                    message={'This reply is from someone you blocked '}
+                    buttonTitle={'View'}
+                    buttonPress={() => {
+                        checkData(updateReply) &&
+                            updateReply({
+                                replyid: item.replyid,
+                                muted: false
+                            });
+                    }}
+                />
+            );
+        } else if (item.profile.profileblockedu == true) {
+            return (
+                <PanelMsg
+                    message={'This reply is from someone you blocked '}
+                    buttonTitle={'Learn More'}
+                />
+            )
+        } else if (item.profile.user.approved != true || item.profile.user.deleted == true) {
+            return null;
+        }
+        return (
+            <ListItem
+                key={index}
+                time={checkData(item.sendingmsg) ? item.sendingmsg : handleTime(Math.floor(item.created_at * 1000))}
+                onRetryPress={item.onRetry}
+                onLongPress={() => {
+                    checkData(onLongPress) && onLongPress(item);
+                }}
+                //replyPress={}
+                leftAvatar={{ uri: item.profile.avatar[1] }}
+                title={item.profile.profile_name}
+                onAvatarPress={() => {
+                    checkData(onAvatarPress) && onAvatarPress(item);
+                }}
+                subtitle={item.reply_text}
+                deleted={item.deleted}
+                profilemuted={item.profile.profilemuted}
+                likes={item.num_likes}
+                hide={item.hidden}
+                numLikesPress={() => {
+                    checkData(numLikesPress) && numLikesPress(item);
+                }}
+                likebtn
+                likePress={() => {
+                    checkData(likePress) && likePress(item);
+                }}
+                liked={item.replyliked}
+            />
+        );
+    });
+};
+
 
 export default class PostCommentReplyList extends Component {
     constructor(props) {
@@ -137,6 +214,7 @@ export default class PostCommentReplyList extends Component {
             this.props.onFetch(this.props.origin.commentid || this.props.origin.replyid);
         }*/
     }
+
     _setSelected = (replyid, ownerid, item) => {
         if (checkData(replyid) && checkData(ownerid) && checkData(item.profile)) {
             this.currentreplyid = replyid;
@@ -150,6 +228,7 @@ export default class PostCommentReplyList extends Component {
             this._openOthersBottomModal();
         }
     };
+
     _setOthersModalList = (item) => {
         if (!checkData(item) || !checkData(item.profile)) {
             return;
@@ -228,6 +307,7 @@ export default class PostCommentReplyList extends Component {
             });
         }
     };
+
     _muteProfile = () => {
         let initaction = () => this.props.setProcessing(true, 'postcommentreplyformmuting');
         let failedaction = () => this.props.setProcessing(false, 'postcommentreplyformmuting');
@@ -250,10 +330,12 @@ export default class PostCommentReplyList extends Component {
             failedaction
         );
     };
+
     _onDeletePress = () => {
         this.setState({ confirmdeletevisible: false });
         this.props.onDelete(this.currentreplyid, this.currentreplyownerid);
     };
+
     _onItemLiked = (replyid, likestatus, numlikes) => {
         if (checkData(replyid) != true ||
             checkData(likestatus) != true ||
@@ -269,12 +351,15 @@ export default class PostCommentReplyList extends Component {
         }
         this.props.onItemLike(replyid, likestatus, numlikes);
     };
+
     _openOthersBottomModal = () => {
         this.setState({ othersreplymodal: true })
     };
+
     _openUserBottomModal = () => {
         this.setState({ userreplymodal: true })
     };
+
     _navShowLikes = (replyid) => {
         if (checkData(replyid) != true) {
             return;
@@ -290,6 +375,7 @@ export default class PostCommentReplyList extends Component {
             }
         });
     };
+
     _navShowReplies = (reply) => {
         if (checkData(reply) != true) {
             return;
@@ -309,7 +395,9 @@ export default class PostCommentReplyList extends Component {
         if (index == -1) return { index, length: 0, height: 0 };
         return { length: 100, offset: 100 * index, index }
     };
+
     _keyExtractor = (item, index) => item.replyid;
+
     _setEmptyPlaceholder = () => {
         if (this.props.fetching == true) {
             return (<View style={{
@@ -334,11 +422,12 @@ export default class PostCommentReplyList extends Component {
         }
         return null;
     };
+
     _setHeaderComponent = () => {
         return checkData(this.props.origin) == true ?
             <View style={styles.postTextContainer}>
                 {<ListItem
-                    time={this.props.origin.created_at}
+                    time={handleTime(Math.floor(this.props.origin.created_at * 1000))}
                     likes={this.props.origin.num_likes}
                     numLikesPress={() => Navigation.showModal({
                         component: {
@@ -382,6 +471,7 @@ export default class PostCommentReplyList extends Component {
                 }
             </View> : null;
     };
+
     _setFooterComponent = () => {
         if (this.props.loadingmore == true) {
             return (<View style={{
@@ -429,8 +519,31 @@ export default class PostCommentReplyList extends Component {
             return null;
         }
     };
+
     _renderItem = ({ item }) => {
-        //console.warn(item.hidden);
+        /*return (
+            <ShowPostReplyComments
+                data={this.props.data}
+                onLongPress={(item) => this._setSelected(
+                    item.replyid,
+                    item.profile.profile_id,
+                    item
+                )}
+                onAvatarPress={(item) => {
+                    this.setState({
+                        avatarnavmodal: {
+                            ...this.state.avatarnavmodal,
+                            headername: item.profile.user.username,
+                            profile: item.profile,
+                            avatar: item.profile.avatar[1],
+                            visible: true
+                        }
+                    });
+                }}
+                numLikesPress={(item) => this._navShowLikes(item.replyid)}
+                likePress={(item) => this._onItemLiked(item.replyid, item.replyliked, item.num_likes)}
+            />
+        );*/
         if (item.profile.profilemuted == true && item.muted != false) {
             return (
                 <PanelMsg
@@ -466,7 +579,7 @@ export default class PostCommentReplyList extends Component {
 
         return (
             <ListItem
-                time={item.created_at}
+                time={checkData(item.sendingmsg) ? item.sendingmsg : handleTime(Math.floor(item.created_at * 1000))}
                 onRetryPress={item.onRetry}
                 onLongPress={() => this._setSelected(
                     item.replyid,
@@ -487,6 +600,7 @@ export default class PostCommentReplyList extends Component {
                         }
                     });
                 }}
+                deleted={item.deleted}
                 subtitle={item.reply_text}
                 profilemuted={item.profile.profilemuted}
                 likes={item.num_likes}
@@ -495,7 +609,8 @@ export default class PostCommentReplyList extends Component {
                 likebtn
                 likePress={() => this._onItemLiked(item.replyid, item.replyliked, item.num_likes)}
                 liked={item.replyliked}
-            />)
+            />
+        )
     }
 
     render() {
@@ -508,6 +623,7 @@ export default class PostCommentReplyList extends Component {
                 ref={ref => {
                     this.props.setFlatlistRef(ref)
                 }}
+                //data={this.props.data.length > 0 ? [1] : []}
                 data={this.props.data}
                 getItemLayout={this._getItemLayout}
                 refreshing={this.props.refreshing}

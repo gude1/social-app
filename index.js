@@ -31,6 +31,9 @@ import FollowInfoScreen from './src/screens/main/FollowInfoScreen';
 import FindUserScreen from './src/screens/main/FindUserScreen';
 import PrivateChatScreen from './src/screens/main/PrivateChatScreen';
 import SearchPrivateChatListScreen from './src/screens/main/SearchPrivateChatListScreen';
+import GiphyGalleryScreen from './src/screens/main/GiphyGalleryScreen';
+import GiphyViewerScreen from './src/screens/main/GiphyViewerScreen';
+import MeetupMainScreen from './src/screens/main/MeetupMainScreen';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
@@ -45,7 +48,7 @@ const setTheDefault = () => {
     Navigation.setDefaultOptions({
         layout: {
             fitSystemWindows: true,
-            //orientation: ['landscape']
+            orientation: ['portrait']
         },
         statusBar: {
             animate: false,
@@ -280,6 +283,30 @@ Navigation.events().registerAppLaunchedListener(async () => {
                             <SearchPrivateChatListScreen {...props} />
                         </Provider>,
                         () => SearchPrivateChatListScreen
+                    );
+                    break;
+                case 'GiphyGallery':
+                    Navigation.registerComponent('GiphyGallery', () => (props) =>
+                        <Provider store={store}>
+                            <GiphyGalleryScreen {...props} />
+                        </Provider>,
+                        () => GiphyGalleryScreen
+                    );
+                    break;
+                case 'GiphyViewer':
+                    Navigation.registerComponent('GiphyViewer', () => (props) =>
+                        <Provider store={store}>
+                            <GiphyViewerScreen {...props} />
+                        </Provider>,
+                        () => GiphyViewerScreen
+                    );
+                    break;
+                case 'MeetupMain':
+                    Navigation.registerComponent('MeetupMain', () => (props) =>
+                        <Provider store={store}>
+                            <MeetupMainScreen {...props} />
+                        </Provider>,
+                        () => MeetupMainScreen
                     );
                     break;
                 default:
