@@ -3,12 +3,14 @@ import { StyleSheet, SafeAreaView, View } from 'react-native';
 import { Text, Icon, Image, Avatar, ListItem } from 'react-native-elements';
 import * as actions from '../../actions';
 import { connect } from 'react-redux';
-import { LoaderScreen, InputBox } from '../../components/reusable/ResuableWidgets';
+import { LoaderScreen, InputBox, Header } from '../../components/reusable/ResuableWidgets';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveHeight, responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import { Navigation } from 'react-native-navigation';
 import { IndicatorViewPager, PagerTabIndicator } from '../../components/reusable/viewpager/index';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
+import EmojiData from '../../assets/static/EmojiList.json'
+import { checkData } from '../../utilities/index';
 
 const { colors } = useTheme();
 let backgroundgif = colors.theme == "white" ? require('../../assets/meetupscreen/meetupmain/bluehi.gif') : require('../../assets/meetupscreen/meetupmain/blackhi.gif');
@@ -17,7 +19,7 @@ let statusbarstyle = colors.theme == "white" ? 'light' : colors.statusbartext;
 
 const MeetupMainScreen = ({ componentId, catName }) => {
     const [loaded, setLoaded] = useState(false);
-
+    catName = checkData(catName) ? catName : 'Music';
     /**COMPONENT FUNCTION STARTS HERE */
 
     useEffect(() => {
@@ -104,7 +106,7 @@ const MeetupMainScreen = ({ componentId, catName }) => {
                             width: responsiveWidth(100)
                         }}
                         placeholderStyle={{ backgroundColor: backgroundgifcolor, }}
-                        containerStyle={{ backgroundColor: backgroundgifcolor, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 }}
+                        containerStyle={{ alignSelf: "center", backgroundColor: backgroundgifcolor, borderBottomLeftRadius: 30, borderBottomRightRadius: 30 }}
                     >
                         <View style={{ alignItems: "flex-start", flex: 1 }}>
                             <Icon
@@ -117,35 +119,32 @@ const MeetupMainScreen = ({ componentId, catName }) => {
                             />
                         </View>
                     </Image>
-                    <InputBox
-                        placeholder={'search here...'}
-                        showAvatar={false}
-                        returnKeyType={'search'}
-                        style={{
+                    <Header
+                        headertext={`${catName} Requests`}
+                        headerTextStyle={{
+                            fontFamily: "cursive",
+                            marginVertical: 10,
+                            textAlign: "center",
+                            color: colors.placeholder,
+                            fontSize: responsiveFontSize(3)
+                        }}
+                        headerStyle={{
                             alignSelf: 'center',
                             width: '95%',
-                            padding: 8,
-                            borderTopWidth: 0,
-                            borderBottomWidth: 0,
+                            maxWidth: 500
                         }}
-                        inputStyle={{
-                            borderBottomWidth: 0.6,
-                            borderColor: colors.border
-                        }}
-                        leftIcon={{
-                            type: "entypo",
-                            name: "dots-three-vertical",
-                            color: colors.iconcolor,
-                            size: responsiveFontSize(3),
-                        }}
-                        rightIcon={{
-                            size: responsiveFontSize(4.2),
-                            type: 'evilicon',
-                            color: colors.iconcolor,
-                            name: 'search',
-                        }}
+                        righticon={
+                            <Icon
+                                type="antdesign"
+                                name="plus"
+                                style={{ borderWidth: 2, padding: 2, borderRadius: 10, borderColor: colors.text }}
+                                color={colors.text}
+                                size={responsiveFontSize(2.5)}
+                            />
+                        }
                     />
-                    <View style={{ width: "100%", height: responsiveHeight(45) }}>
+
+                    <View style={{ flex: 1 }}>
                         <IndicatorViewPager
                             initialPage={0}
                             style={{ flex: 1, borderBottomWidth: 0 }}
@@ -160,6 +159,8 @@ const MeetupMainScreen = ({ componentId, catName }) => {
                                     leftAvatar={{ source: require('../../assets/meetupscreen/requestcat/sport.jpeg') }}
                                     title={'Debola'}
                                     titleStyle={{ color: colors.text }}
+                                    rightTitle={EmojiData[0].value}
+                                    rightTitleStyle={{ color: colors.text, fontSize: responsiveFontSize(3) }}
                                     subtitle={'Need help with ecn 403 please i dont have any idea'}
                                     subtitleStyle={{ color: colors.placeholder }}
                                 />
@@ -169,6 +170,8 @@ const MeetupMainScreen = ({ componentId, catName }) => {
                                     leftAvatar={{ source: require('../../assets/meetupscreen/requestcat/gaming.jpeg') }}
                                     title={'Dekunle'}
                                     titleStyle={{ color: colors.text }}
+                                    rightTitle={EmojiData[8].value}
+                                    rightTitleStyle={{ color: colors.text, fontSize: responsiveFontSize(3) }}
                                     subtitle={'Anyone wanna play cod?'}
                                     subtitleStyle={{ color: colors.placeholder }}
                                 />

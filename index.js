@@ -48,7 +48,7 @@ const setTheDefault = () => {
     Navigation.setDefaultOptions({
         layout: {
             fitSystemWindows: true,
-            orientation: ['portrait']
+            //orientation: ['portrait']
         },
         statusBar: {
             animate: false,

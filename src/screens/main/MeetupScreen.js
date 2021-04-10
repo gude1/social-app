@@ -32,6 +32,7 @@ const RequestCategoryItem = ({ onClick, icon, avatar, catName }) => {
                         id: 'MEETUP_MAIN',
                         passProps: {
                             screentype: 'modal',
+                            catName
                         }
                     }
                 });
@@ -354,6 +355,7 @@ const styles = StyleSheet.create({
     },
     requestCatCtn: {
         flexDirection: "row",
+        justifyContent: "center",
         backgroundColor: colors.background,
         flexWrap: 'wrap',
     }
