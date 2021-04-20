@@ -27,6 +27,7 @@ import PrivateChatReducer from './PrivateChatReducer';
 import SearchPrivateChatListReducer from './SearchPrivateChatListReducer';
 import MeetupFormReducer from './MeetupFormReducer';
 import GiphyGalleryReducer from './GiphyGalleryReducer';
+import MeetupMainReducer from './MeetupMainReducer';
 
 
 export default combineReducers({
@@ -49,8 +50,8 @@ export default combineReducers({
     privatechatlistform: persistReducer(PrivateChatListConfig, PrivateChatListReducer),
     searchprivatechatlist: SearchPrivateChatListReducer,
     meetupform: MeetupFormReducer,
+    meetupmain: MeetupMainReducer,
     giphygallery: GiphyGalleryReducer,
-    //privatechatlistform: PrivateChatListReducer,
     privatechatform: PrivateChatReducer,
     followinfo: FollowInfoReducer,
     userslist: UsersListReducer,

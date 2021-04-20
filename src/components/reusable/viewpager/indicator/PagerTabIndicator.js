@@ -62,10 +62,6 @@ export default class PagerTabIndicator extends Component {
                         tab.iconClick && tab.iconClick();//optional prop to call when tab is clicked
                     }}
                 >
-                    {/*<Image
-                        style={[styles.image, isSelected ? selectedIconStyle : iconStyle]}
-                        source={isSelected ? tab.selectedIconSource : tab.iconSource}
-                    />*/}
                     {
                         tab.iconSource && <Icon
                             name={tab.iconSource}

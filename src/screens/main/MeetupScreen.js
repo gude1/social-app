@@ -39,7 +39,7 @@ const RequestCategoryItem = ({ onClick, icon, avatar, catName }) => {
             }}
         >
             <EImage
-                style={{ width, height, }}
+                style={{ width, height, maxWidth: 300, maxHeight: 300 }}
                 containerStyle={{ elevation: 3, marginVertical: 10, marginHorizontal: 10, backgroundColor: colors.border }}
                 placeholderStyle={{ backgroundColor: colors.border }}
                 resizeMode="cover"

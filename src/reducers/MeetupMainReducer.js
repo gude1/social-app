@@ -1,7 +1,15 @@
-import { RESET, ADD_MEETUPMAIN_REQUESTS, UPDATE_MEETUPMAIN_REQUEST, PROCESSING } from "../actions/types";
+import { RESET, ADD_MEETUPMAIN_REQUESTS, UPDATE_MEETUPMAIN_REQUEST, PROCESSING, SET_MEETUPMAIN_URL, SET_MEETUPMAIN, SET_MEETUPMAIN_ERRORS, ADD_MEETUPMAIN_MY_REQUESTS } from "../actions/types";
+
+const ERRORS = {
+};
 
 const INITIAL_STATE = {
     requests: [],
+    myrequests: [],
+    next_url: null,
+    errors: ERRORS,
+    creating: false,
+    deleting: false,
     fetching: false,
     loadingmore: false,
 };
@@ -11,7 +19,7 @@ const arrangeRequests = (data: Array) => {
         return data;
     }
     data = [...data];
-    return data.sort((item1, item2) => item1.id - item2.id);
+    return data.sort((item1, item2) => item2.id - item1.id);
 };
 
 const handleProcessing = (key, value, state) => {
@@ -22,16 +30,20 @@ const handleProcessing = (key, value, state) => {
         case 'meetupmainfetching':
             return { ...state, fetching: value };
             break;
-            case 'meetupmainloadingmore':
+        case 'meetupmainloadingmore':
             return { ...state, loadingmore: value };
+            break;
+        case 'meetupmaincreating':
+            return { ...state, loadingmore: value };
+            break;
+        case 'meetupmaindeleting':
+            return { ...state, deleting: value };
             break;
         default:
             return state;
             break;
     }
 };
-
-
 
 
 const MeetupMainReducer = (state = INITIAL_STATE, action) => {
@@ -48,8 +60,21 @@ const MeetupMainReducer = (state = INITIAL_STATE, action) => {
                 updatedstate.push(action.payload);
             return { ...state, requests: arrangeRequests(updatedstate) };
             break;
+        case SET_MEETUPMAIN_ERRORS:
+            return { ...state, errors: { ...state.errors, ...action.payload } };
+            break;
+        case ADD_MEETUPMAIN_MY_REQUESTS:
+            return { ...state, myrequests: [...state.myrequests, ...action.payload] };
+            break;
+        case SET_MEETUPMAIN:
+            return { ...state, ...action.payload };
+            break;
+        case SET_MEETUPMAIN_URL:
+            return { ...state, next_url: action.payload };
+            break;
         case PROCESSING:
-            return handleProcessing(action.payload.key,
+            return handleProcessing(
+                action.payload.key,
                 action.payload.value,
                 state
             );

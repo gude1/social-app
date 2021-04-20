@@ -316,18 +316,18 @@ export class PostItem extends Component {
                             </Text>
                         </View>
                     </View>
-                    <TouchableScale
+                    <Icon
+                        type="antdesign"
+                        name="ellipsis1"
+                        Component={TouchableScale}
+                        onPress={
+                            this.profileid == this.props.profileid ?
+                                this.props.onUserPostOption : this.props.onOthersPostOption
+                        }
                         activeScale={0.7}
-                        onPress={this.profileid == this.props.profileid ?
-                            this.props.onUserPostOption : this.props.onOthersPostOption}
-                    >
-                        <Icon
-                            type="antdesign"
-                            name="ellipsis1"
-                            color={colors.text}
-                            size={30}
-                        />
-                    </TouchableScale>
+                        color={colors.text}
+                        size={30}
+                    />
                 </View>
 
                 <View style={styles.postImageViewPagerContainer}>

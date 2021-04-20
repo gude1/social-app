@@ -146,6 +146,10 @@ import {
     UPDATE_GIPHY_GALLERY,
     ADD_MEETUPMAIN_REQUESTS,
     UPDATE_MEETUPMAIN_REQUEST,
+    SET_MEETUPMAIN_URL,
+    SET_MEETUPMAIN,
+    SET_MEETUPMAIN_ERRORS,
+    SET_MEETUPMAIN_MY_REQUESTS,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -5669,19 +5673,272 @@ export const searchGiphyGifs = (searchtxt) => {
  * ACTION CREATOR FOR MEETUPMAIN REDUCER 
  * 
  */
-export const addMeetupMainRequests = (data: Array) => {
+export const addMeetupMainRequests = (data = []) => {
     return {
         type: ADD_MEETUPMAIN_REQUESTS,
         payload: data,
     };
 };
 
-export const updateMeetupMainRequest = (data: Object) => {
+export const setMeetupMain = (data = {}) => {
+    return {
+        type: SET_MEETUPMAIN,
+        payload: data
+    };
+};
+
+export const setMeetupMainRequestErrors = (data = {}) => {
+    return {
+        type: SET_MEETUPMAIN_ERRORS,
+        payload: data  
+    };
+};
+
+export const addMeetupMainMyRequests = (data = []) => {
+    return {
+        type: ADD_MEETUPMAIN_MY_REQUESTS,
+        payload:data   
+    };
+};
+
+export const updateMeetupMainRequest = (data = {}) => {
     return {
         type: UPDATE_MEETUPMAIN_REQUEST,
         payload: data
     };
 };
+
+export const setMeetupMainUrl = (data = "") => {
+    return {
+        type: SET_MEETUPMAIN_URL,
+        payload: data
+    };
+};
+
+export const fetchMeetRequests = (data = []) => {
+    return async (dispatch) => {
+        dispatch(deleteOfflineAction({ id: `fetchmeetreq` }));
+        if (!Array.isArray(data) || data.length < 1 || !checkData(data[0])) {
+            Toast('Request incomplete!');
+            return;
+        }
+        const { user } = store.getState();
+        let reqobj = { campus: data[0] };
+        if (checkData(data[1])) {
+            regobj['request_category'] = data[1];
+        }
+        if (checkData(data[2])) {
+            regobj['request_mood'] = data[2];
+        }
+        dispatch(setProcessing(true, 'meetupmainfetching'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('meetupreqlist', reqobj, options);
+            const { status, errmsg, message, meetup_list, my_num_req_left, next_url } = response.data;
+            //alert(JSON.stringify(response.data));
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'meetupmainfetching'));
+                    dispatch(addMeetupMainRequests(meetup_list));
+                    dispatch(setMeetupMainUrl(next_url));
+                    break;
+                case 404:
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    dispatch(setProcessing('retry', 'meetupmainfetching'));
+                    break;
+                case 500:
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    dispatch(setProcessing('retry', 'meetupmainfetching'));
+                    dispatch(addOfflineAction({
+                        id: `fetchmeetreq`,
+                        funcName: 'fetchMeetRequests',
+                        param: data,
+                        override: true,
+                    }));
+                    break;
+                default:
+                    Toast('Request failed please try again', null, ToastAndroid.CENTER);
+                    dispatch(setProcessing('retry', 'meetupmainfetching'));
+                    break;
+            }
+
+        } catch (err) {
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!', null, ToastAndroid.CENTER);
+                dispatch(addOfflineAction({
+                    id: `fetchmeetreq`,
+                    funcName: 'fetchMeetRequests',
+                    param: data,
+                    override: true,
+                }));
+            } else {
+                Toast('fetch request failed', null, ToastAndroid.CENTER);
+            }
+        }
+
+    };
+};
+
+export const fetchMoreMeetRequests = (data: Array) => {
+    return async (dispatch) => {
+        if (!Array.isArray(data) || data.length < 1 || !checkData(data[0])) {
+            Toast('Request incomplete!');
+            return;
+        }
+        const { user, meetupmain } = store.getState();
+        let reqobj = { campus: data[0] };
+        if (checkData(data[1])) {
+            regobj['request_category'] = data[1];
+        }
+        if (checkData(data[2])) {
+            regobj['request_mood'] = data[2];
+        }
+        dispatch(setProcessing(true, 'meetupmainloadingmore'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post(meetupmain.next_url, reqobj, options);
+            const { status, errmsg, message, meetup_list, my_num_req_left, next_url } = response.data;
+            //alert(JSON.stringify(response.data));
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'meetupmainloadingmore'));
+                    dispatch(addMeetupMainRequests(meetup_list));
+                    dispatch(setMeetupMainUrl(next_url));
+                    break;
+                case 404:
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    dispatch(setProcessing('retry', 'meetupmainloadingmore'));
+                    break;
+                case 500:
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    dispatch(setProcessing('retry', 'meetupmainloadingmore'));
+                    break;
+                default:
+                    Toast('Request failed please try again', null, ToastAndroid.CENTER);
+                    dispatch(setProcessing('retry', 'meetupmainloadingmore'));
+                    break;
+            }
+
+        } catch (err) {
+            dispatch(setProcessing('retry', 'meetupmainloadingmore'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!', null, ToastAndroid.CENTER);
+            } else {
+                Toast('fetch request failed', null, ToastAndroid.CENTER);
+            }
+        }
+    };
+};
+
+export const createMeetRequest = (data) => {
+    return async (dispatch) => {
+        if (!Array.isArray(data) || data.length < 3) {
+            Toast('Missing values to continue', null, ToastAndroid.CENTER);
+            return;
+        } else if (data[0].length < 3 || data[0].length > 100) {
+            Toast('Request message must be between 3-100 characters', null, ToastAndroid.CENTER);
+            return;
+        }
+        let reqobj = {
+            request_msg: data[0],
+            request_category: data[1],
+            request_mood: data[2]
+        };
+        if (checkData(data[3])) {
+            reobj['request_addr'] = data[3];
+        } else if (checkData(data[4])) {
+            reqobj['request_location'] = data[4];
+        }
+        dispatch(setProcessing(true, 'meetupmaincreating'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('addmeetupreq', reqobj, options);
+            const { status, errors, errmsg, meetup_req, num_req_left, message } = response.data;
+            switch (status) {
+                case 200:
+                    Toast(message);
+                    dispatch(addMeetupMainMyRequests([meetup_req]));
+                    dispatch(setProcessing(false, 'meetupmaincreating'));
+                    break;
+                case 500:
+                    Toast(errmsg);
+                    dispatch(setProcessing(false, 'meetupmaincreating'));
+                    break;  
+                case 400:
+                    dispatch(setProcessing(false, 'meetupmaincreating'));
+                    dispatch(setMeetupMainRequestErrors(errors));
+                    break;    
+                default:
+                  Toast(errmsg);
+                  dispatch(setProcessing(false, 'meetupmaincreating'));    
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'meetupmaincreating')); 
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!', null, ToastAndroid.CENTER);
+            } else {
+                Toast('something went wrong please try again', null, ToastAndroid.CENTER);
+            }
+        }
+    }
+};
+
+export const deleteMeetRequest = (meetreqid) => {
+    return async (dispatch) => {
+        if (!checkData(meetreqid)) {
+            Toast('network error!', null, ToastAndroid.CENTER);
+            return;
+        }
+        const { user, profile, meetupmain } = store.getState();
+        let todelmeetreq = [...meetupmain.requests, ...meetupmain.myrequests].find(item => item.request_id == meetreqid);
+        if (!checkData(todelmeetreq)) {
+            Toast('Meet request to delete not found', null, ToastAndroid.CENTER);
+            return;
+        } else if (todelmeetreq.requester_id != profile.profile_id) {
+            Toast('You cannot delete this meet request', null, ToastAndroid.CENTER);
+            return;
+        }
+        dispatch(setProcessing(true, 'meetupmaindeleting'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('deletemeetupreq', { meetup_reqid: meetreqid }, options);
+            const { status, errmsg, message } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'meetupmaindeleting'));
+                    dispatch(updateMeetupMainRequest({ ...todelmeetreq, deleted: true }));
+                    Toast(message, null, ToastAndroid.CENTER);
+                    break;
+                case 500:
+                    dispatch(setProcessing(false, 'meetupmaindeleting'));
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'meetupmaindeleting'));
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'meetupmaindeleting'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!, failed to delete', null, ToastAndroid.CENTER);
+            } else {
+                Toast('could not delete, something went wrong', null, ToastAndroid.CENTER);
+            }
+        }
+
+    };
+};
+
 
 
 

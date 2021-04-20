@@ -1,33 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, View } from 'react-native';
-import { Text, Icon, Image, Avatar, ListItem } from 'react-native-elements';
+import { Text, Icon, Image, Avatar } from 'react-native-elements';
 import * as actions from '../../actions';
 import { connect } from 'react-redux';
-import { LoaderScreen, InputBox, Header } from '../../components/reusable/ResuableWidgets';
+import { LoaderScreen, Header } from '../../components/reusable/ResuableWidgets';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveHeight, responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import { Navigation } from 'react-native-navigation';
 import { IndicatorViewPager, PagerTabIndicator } from '../../components/reusable/viewpager/index';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
-import EmojiData from '../../assets/static/EmojiList.json'
 import { checkData } from '../../utilities/index';
+import MeetRequestList from '../../components/MeetRequestList';
 
 const { colors } = useTheme();
-let backgroundgif = colors.theme == "white" ? require('../../assets/meetupscreen/meetupmain/bluehi.gif') : require('../../assets/meetupscreen/meetupmain/blackhi.gif');
-let backgroundgifcolor = colors.theme == "white" ? colors.blue : colors.background;
-let statusbarstyle = colors.theme == "white" ? 'light' : colors.statusbartext;
 
-const MeetupMainScreen = ({ componentId, catName }) => {
+const MeetupMainScreen = ({
+    componentId,
+    meetupmain,
+    catName = "Music",
+    fetchMeetRequests,
+    setMeetupMain,
+}) => {
     const [loaded, setLoaded] = useState(false);
-    catName = checkData(catName) ? catName : 'Music';
-    /**COMPONENT FUNCTION STARTS HERE */
+    let backgroundgif = colors.theme == "white" ?
+        require('../../assets/meetupscreen/meetupmain/bluehi.gif') : require('../../assets/meetupscreen/meetupmain/blackhi.gif');
+    let backgroundgifcolor = colors.theme == "white" ? colors.blue : colors.background;
+    let statusbarstyle = colors.theme == "white" ? 'light' : colors.statusbartext;
 
+    /** COMPONENT FUNCTION STARTS HERE */
     useEffect(() => {
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
                     setLoaded(true);
                 }
+                setScreenInfo();
             },
             componentDidDisappear: () => {
             }
@@ -41,6 +48,23 @@ const MeetupMainScreen = ({ componentId, catName }) => {
         };
     }, []);
 
+    const setScreenInfo = () => {
+        let current = Math.round(new Date().getTime() / 1000);
+        let requests = meetupmain.requests.filter(item => {
+            if (item.deleted != true && item.expires_at > current) {
+                return true;
+            }
+            return false;
+        });
+        let myrequests = meetupmain.myrequests.filter(item => {
+            if (item.deleted != true && item.expires_at > current) {
+                return true;
+            }
+            return false;
+        });
+        setMeetupMain({ requests, myrequests });
+    };
+
     const renderTabIndicator = () => {
         const TABS = [
             {
@@ -48,8 +72,6 @@ const MeetupMainScreen = ({ componentId, catName }) => {
             },
             {
                 text: "Conversations"
-            }, {
-                text: "Setting"
             }
         ];
         return (
@@ -60,14 +82,12 @@ const MeetupMainScreen = ({ componentId, catName }) => {
                 style={{
                     borderColor: colors.border,
                     backgroundColor: colors.background,
-                    // borderBottomWidth: 0.25
                 }}
                 itemStyle={{
                     paddingVertical: 10
                 }}
                 selectedItemStyle={{
                     paddingVertical: 10,
-                    //borderBottomWidth: 1,
                     borderColor: colors.text,
                 }}
                 tabs={TABS}
@@ -153,36 +173,13 @@ const MeetupMainScreen = ({ componentId, catName }) => {
                             keyboardDismissMode='none'
                         >
                             <View key={0} style={{ flex: 1, alignItems: "center" }}>
-                                <ListItem
-                                    Component={TouchableScale}
-                                    containerStyle={{ margin: 10, width: responsiveWidth(90), maxWidth: 500, padding: 15, backgroundColor: colors.card, elevation: 3, borderRadius: 20 }}
-                                    leftAvatar={{ source: require('../../assets/meetupscreen/requestcat/sport.jpeg') }}
-                                    title={'Debola'}
-                                    titleStyle={{ color: colors.text }}
-                                    rightTitle={EmojiData[0].value}
-                                    rightTitleStyle={{ color: colors.text, fontSize: responsiveFontSize(3) }}
-                                    subtitle={'Need help with ecn 403 please i dont have any idea'}
-                                    subtitleStyle={{ color: colors.placeholder }}
-                                />
-                                <ListItem
-                                    Component={TouchableScale}
-                                    containerStyle={{ margin: 10, width: responsiveWidth(90), maxWidth: 500, padding: 15, backgroundColor: colors.card, elevation: 3, borderRadius: 20 }}
-                                    leftAvatar={{ source: require('../../assets/meetupscreen/requestcat/gaming.jpeg') }}
-                                    title={'Dekunle'}
-                                    titleStyle={{ color: colors.text }}
-                                    rightTitle={EmojiData[8].value}
-                                    rightTitleStyle={{ color: colors.text, fontSize: responsiveFontSize(3) }}
-                                    subtitle={'Anyone wanna play cod?'}
-                                    subtitleStyle={{ color: colors.placeholder }}
+                                <MeetRequestList
+                                    data={[]}
                                 />
                             </View>
 
                             <View key={1} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
                                 <Text style={{ color: colors.text }}>Conversations</Text>
-                            </View>
-
-                            <View key={2} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                                <Text style={{ color: colors.text }}>Setting</Text>
                             </View>
                         </IndicatorViewPager>
                     </View>
@@ -190,12 +187,15 @@ const MeetupMainScreen = ({ componentId, catName }) => {
             );
         }
     }
-    /**COMPONENT FUNCTION ENDS HERE */
+    /** COMPONENT FUNCTION ENDS HERE */
+
     return (
         <SafeAreaView
             style={styles.containerStyle}
         >
-            {renderView()}
+            <View style={styles.contentContainerStyle}>
+                {renderView()}
+            </View>
         </SafeAreaView>
     );
 };
@@ -206,6 +206,7 @@ MeetupMainScreen.options = {
 
 const mapStateToProps = state => ({
     connected: state.network.isConnected,
+    meetupmain: state.meetupmain
 });
 
 const styles = StyleSheet.create({
@@ -213,6 +214,10 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background
     },
+    contentContainerStyle: {
+        flex: 1,
+        marginBottom: 50
+    }
 });
 
 export default connect(mapStateToProps, actions)(MeetupMainScreen);

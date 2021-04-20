@@ -147,7 +147,13 @@ class ChatListItem extends Component {
                     <Text
                         ellipsizeMode={'tail'}
                         numberOfLines={1}
-                        style={{ color: colors.iconcolor, fontSize: responsiveFontSize(2) }}>{item.chat_msg}</Text>
+                        style={{
+                            color: colors.iconcolor,
+                            fontSize: responsiveFontSize(2)
+                        }}
+                    >
+                        {item.chat_msg}
+                    </Text>
                 </View>
             );
         } else if (checkData(item.chat_msg)) {

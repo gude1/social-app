@@ -218,25 +218,29 @@ export default class PostCommentList extends React.Component {
     }
     _setEmptyPlaceholder = () => {
         if (this.props.fetching == true) {
-            return (<View style={{
-                alignItems: "center",
-                height: 200,
-                justifyContent: 'center'
-            }}>
-                <ActivityIndicator size="large" color={'silver'} />
-            </View>);
+            return (
+                <View style={{
+                    alignItems: "center",
+                    height: 200,
+                    justifyContent: 'center'
+                }}>
+                    <ActivityIndicator size="large" color={'silver'} />
+                </View>
+            );
         } else if (this.props.fetching == 'retry') {
-            return (<View
-                style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
-                <Icon
-                    onPress={() => this.props.onFetch(this.props.parentpost.postid)}
-                    color={colors.text}
-                    size={responsiveFontSize(4)}
-                    name="sync"
-                    type="antdesign"
-                />
-                <Text style={{ color: colors.text }}>Tap to retry </Text>
-            </View>);
+            return (
+                <View
+                    style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
+                    <Icon
+                        onPress={() => this.props.onFetch(this.props.parentpost.postid)}
+                        color={colors.text}
+                        size={responsiveFontSize(4)}
+                        name="sync"
+                        type="antdesign"
+                    />
+                    <Text style={{ color: colors.text }}>Tap to retry </Text>
+                </View>
+            );
         }
         return null;
     };
@@ -401,6 +405,7 @@ export default class PostCommentList extends React.Component {
             }
         });
     };
+
     _navShowReplies = (comment) => {
         if (checkData(comment) != true) {
             return;
