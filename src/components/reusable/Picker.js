@@ -25,7 +25,11 @@ const CustomPicker = ({
     const createOptions = () => {
         let items = [];
         options.forEach(element => {
-            items.push(<Picker.Item key={element.key} label={element.key} value={element.value} />);
+            items.push(
+                <Picker.Item
+                    key={element.key || element.value}
+                    label={element.key || element.value}
+                    value={element.value} />);
         });
         return (items);
     };

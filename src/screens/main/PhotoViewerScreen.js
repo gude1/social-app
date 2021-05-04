@@ -79,7 +79,7 @@ const PhotoViewerScreen = ({ componentId, navparent, photos, onSubmit, showinput
         }
         await Promise.all(
             photos.map(async (img, index) => {
-                console.warn('exists', img);
+                // console.warn('exists', img);
                 let exists = await image_exists(img);
                 if (!exists) {
                     Toast(
@@ -130,6 +130,10 @@ PhotoViewerScreen.options = {
         visible: false,
         backgroundColor: 'black',
         style: 'light'
+    },
+    navigationBar: {
+        visible: true,
+        backgroundColor: "#000",
     },
 };
 

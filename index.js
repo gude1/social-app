@@ -1,7 +1,6 @@
 /**
  * @format
  */
-
 import { Navigation } from 'react-native-navigation';
 //import { gestureHandlerRootHOC } from 'react-native-gesture-handler'
 import React from 'react';
@@ -50,6 +49,10 @@ const setTheDefault = () => {
             fitSystemWindows: true,
             //orientation: ['portrait']
         },
+        navigationBar: {
+            visible: true,
+            backgroundColor: colors.background,
+        },
         statusBar: {
             animate: false,
         },
@@ -67,7 +70,7 @@ const setTheDefault = () => {
             textColor: colors.text,
             selectedFontSize: 15,
             iconColor: colors.tabiconcolor,
-            fontWeight: "bold",
+            fontWeight: "200",
             selectedTextColor: "#2196F3",
             selectedIconColor: "#2196F3"
         },

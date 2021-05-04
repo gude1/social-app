@@ -5690,14 +5690,14 @@ export const setMeetupMain = (data = {}) => {
 export const setMeetupMainRequestErrors = (data = {}) => {
     return {
         type: SET_MEETUPMAIN_ERRORS,
-        payload: data  
+        payload: data
     };
 };
 
 export const addMeetupMainMyRequests = (data = []) => {
     return {
         type: ADD_MEETUPMAIN_MY_REQUESTS,
-        payload:data   
+        payload: data
     };
 };
 
@@ -5869,18 +5869,18 @@ export const createMeetRequest = (data) => {
                 case 500:
                     Toast(errmsg);
                     dispatch(setProcessing(false, 'meetupmaincreating'));
-                    break;  
+                    break;
                 case 400:
                     dispatch(setProcessing(false, 'meetupmaincreating'));
                     dispatch(setMeetupMainRequestErrors(errors));
-                    break;    
+                    break;
                 default:
-                  Toast(errmsg);
-                  dispatch(setProcessing(false, 'meetupmaincreating'));    
+                    Toast(errmsg);
+                    dispatch(setProcessing(false, 'meetupmaincreating'));
                     break;
             }
         } catch (err) {
-            dispatch(setProcessing(false, 'meetupmaincreating')); 
+            dispatch(setProcessing(false, 'meetupmaincreating'));
             if (err.toString().indexOf('Network Error') != -1) {
                 Toast('network error!', null, ToastAndroid.CENTER);
             } else {
@@ -5938,6 +5938,48 @@ export const deleteMeetRequest = (meetreqid) => {
 
     };
 };
+
+
+export const blackListMeetProfile = (req_profile_id) => {
+    return async (dispatch) => {
+        if (checkData(req_profile_id)) {
+            Toast('Missing values to continue');
+            return;
+        }
+        const { user } = store.getState();
+        dispatch(setProcessing(true, 'meetupmainblacklisting'));
+
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('deletemeetupreq', { meetup_reqid: meetreqid }, options);
+            const { status, errmsg, message } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'meetupmainblacklisting'));
+                    Toast(message, null, ToastAndroid.CENTER);
+                    break;
+                case 500:
+                    dispatch(setProcessing(false, 'meetupmainblacklisting'));
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'meetupmainblacklisting'));;
+                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'meetupmainblacklisting'));
+            if (err.toString().indexOf('Network Error') != -1) {
+                Toast('network error!, failed to perform action', null, ToastAndroid.CENTER);
+            } else {
+                Toast('could not perform action, something went wrong', null, ToastAndroid.CENTER);
+            }
+        }
+
+    };
+}
 
 
 

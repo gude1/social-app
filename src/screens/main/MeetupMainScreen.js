@@ -1,33 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, View } from 'react-native';
-import { Text, Icon, Image, Avatar } from 'react-native-elements';
+import { Text, Icon, Image, Avatar, CheckBox } from 'react-native-elements';
 import * as actions from '../../actions';
 import { connect } from 'react-redux';
-import { LoaderScreen, Header } from '../../components/reusable/ResuableWidgets';
+import { LoaderScreen, Header, ScrollableListOverLay } from '../../components/reusable/ResuableWidgets';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveHeight, responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import { Navigation } from 'react-native-navigation';
+import { checkData } from '../../utilities/index';
 import { IndicatorViewPager, PagerTabIndicator } from '../../components/reusable/viewpager/index';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
-import { checkData } from '../../utilities/index';
-import MeetRequestList from '../../components/MeetRequestList';
+import MeetRequestList from '../../components/reusable/MeetRequestList';
+import CustomPicker from '../../components/reusable/Picker';
+import EmojiList from '../../assets/static/EmojiList.json';
+import CampusList from '../../assets/static/CampusList.json';
+
 
 const { colors } = useTheme();
 
 const MeetupMainScreen = ({
     componentId,
-    meetupmain,
+    meetupreqobj,
     catName = "Music",
     fetchMeetRequests,
     setMeetupMain,
 }) => {
+
     const [loaded, setLoaded] = useState(false);
+    const [showsetting, setShowSetting] = useState(false);
+
     let backgroundgif = colors.theme == "white" ?
-        require('../../assets/meetupscreen/meetupmain/bluehi.gif') : require('../../assets/meetupscreen/meetupmain/blackhi.gif');
+        require('../../assets/meetupscreen/meetupmain/bluehi.gif') :
+        require('../../assets/meetupscreen/meetupmain/blackhi.gif');
     let backgroundgifcolor = colors.theme == "white" ? colors.blue : colors.background;
     let statusbarstyle = colors.theme == "white" ? 'light' : colors.statusbartext;
 
     /** COMPONENT FUNCTION STARTS HERE */
+
     useEffect(() => {
         const listener = {
             componentDidAppear: () => {
@@ -50,18 +59,22 @@ const MeetupMainScreen = ({
 
     const setScreenInfo = () => {
         let current = Math.round(new Date().getTime() / 1000);
-        let requests = meetupmain.requests.filter(item => {
+        let requests = meetupreqobj.requests.filter(item => {
+
+            if (item.deleted != true && item.expires_at > current) {
+                return true;
+            }
+
+            return false;
+        });
+
+        let myrequests = meetupreqobj.myrequests.filter(item => {
             if (item.deleted != true && item.expires_at > current) {
                 return true;
             }
             return false;
         });
-        let myrequests = meetupmain.myrequests.filter(item => {
-            if (item.deleted != true && item.expires_at > current) {
-                return true;
-            }
-            return false;
-        });
+
         setMeetupMain({ requests, myrequests });
     };
 
@@ -139,6 +152,7 @@ const MeetupMainScreen = ({
                             />
                         </View>
                     </Image>
+
                     <Header
                         headertext={`${catName} Requests`}
                         headerTextStyle={{
@@ -153,6 +167,15 @@ const MeetupMainScreen = ({
                             width: '95%',
                             maxWidth: 500
                         }}
+                        lefticon={
+                            <Icon
+                                type="antdesign"
+                                name="setting"
+                                color={colors.text}
+                                size={responsiveFontSize(4)}
+                            />
+                        }
+                        leftIconPress={() => setShowSetting(true)}
                         righticon={
                             <Icon
                                 type="antdesign"
@@ -174,7 +197,7 @@ const MeetupMainScreen = ({
                         >
                             <View key={0} style={{ flex: 1, alignItems: "center" }}>
                                 <MeetRequestList
-                                    data={[]}
+                                    meetupreqobj={meetupreqobj}
                                 />
                             </View>
 
@@ -183,6 +206,78 @@ const MeetupMainScreen = ({
                             </View>
                         </IndicatorViewPager>
                     </View>
+
+                    <ScrollableListOverLay
+                        onBackdropPress={() => setShowSetting(false)}
+                        visible={showsetting}
+                        ListTitle={'Request Filter'}
+                        loading={false}
+                        contentContainerStyle={{
+                            marginLeft: 0,
+                            flex: 1,
+                        }}
+                    >
+                        <View style={{
+                            marginLeft: 10,
+                            marginTop: 5,
+                            marginRight: 5,
+                            flex: 1,
+                        }}>
+                            <CustomPicker
+                                containerPickerStyle={{ width: "100%" }}
+                                pickerContainerStyle={{ width: "100%" }}
+                                onValueChange={(itemValue, itemIndex) => {
+                                    setMeetupMain({
+                                        options: {
+                                            ...meetupreqobj.options,
+                                            mood: itemValue
+                                        }
+                                    });
+                                }}
+                                mode="dialog"
+                                options={EmojiList}
+                                selectedValue={meetupreqobj.options.mood}
+                                labelText="Filter by mood"
+                                borderColor={colors.border}
+                                labelStyle={{ color: colors.text }}
+                                placeholderColor={colors.placeholder}
+                                backgroundColor={colors.card}
+                                icon={{
+                                    type: 'antdesign',
+                                    name: 'smileo',
+                                    color: colors.iconcolor,
+                                    size: 28
+                                }}
+                            />
+                            <CustomPicker
+                                containerPickerStyle={{ width: "100%" }}
+                                pickerContainerStyle={{ width: "100%" }}
+                                onValueChange={(itemValue, itemIndex) => {
+                                    setMeetupMain({
+                                        options: {
+                                            ...meetupreqobj.options,
+                                            campus: itemValue
+                                        }
+                                    });
+                                }}
+                                mode="dialog"
+                                selectedValue={meetupreqobj.options.campus}
+                                options={CampusList}
+                                labelText="Filter by campus"
+                                borderColor={colors.border}
+                                labelStyle={{ color: colors.text }}
+                                placeholderColor={colors.placeholder}
+                                backgroundColor={colors.card}
+                                icon={{
+                                    type: 'antdesign',
+                                    name: 'book',
+                                    color: colors.iconcolor,
+                                    size: 28
+                                }}
+                            />
+
+                        </View>
+                    </ScrollableListOverLay>
                 </View>
             );
         }
@@ -201,12 +296,15 @@ const MeetupMainScreen = ({
 };
 
 MeetupMainScreen.options = {
-
+    navigationBar: {
+        visible: true,
+        backgroundColor: colors.background,
+    },
 };
 
 const mapStateToProps = state => ({
     connected: state.network.isConnected,
-    meetupmain: state.meetupmain
+    meetupreqobj: state.meetupmain
 });
 
 const styles = StyleSheet.create({
@@ -216,7 +314,11 @@ const styles = StyleSheet.create({
     },
     contentContainerStyle: {
         flex: 1,
-        marginBottom: 50
+    },
+    checkBoxCtn: {
+        backgroundColor: colors.background,
+        borderColor: colors.iconcolor,
+        borderRadius: 10
     }
 });
 

@@ -1,4 +1,6 @@
 import { RESET, ADD_MEETUPMAIN_REQUESTS, UPDATE_MEETUPMAIN_REQUEST, PROCESSING, SET_MEETUPMAIN_URL, SET_MEETUPMAIN, SET_MEETUPMAIN_ERRORS, ADD_MEETUPMAIN_MY_REQUESTS } from "../actions/types";
+import { checkData } from "../utilities/index";
+
 
 const ERRORS = {
 };
@@ -6,10 +8,15 @@ const ERRORS = {
 const INITIAL_STATE = {
     requests: [],
     myrequests: [],
+    options: {
+        campus: null,
+        mood: null,
+    },
     next_url: null,
     errors: ERRORS,
     creating: false,
     deleting: false,
+    blacklisting: false,
     fetching: false,
     loadingmore: false,
 };
@@ -38,6 +45,9 @@ const handleProcessing = (key, value, state) => {
             break;
         case 'meetupmaindeleting':
             return { ...state, deleting: value };
+            break;
+        case 'meetupmainblacklisting':
+            return { ...state, blacklisting: value };
             break;
         default:
             return state;

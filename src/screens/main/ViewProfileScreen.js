@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, RefreshControl, ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, BackHandler, SafeAreaView, RefreshControl, ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Text, Avatar, Icon, Button, Image } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
@@ -416,6 +416,7 @@ const ViewProfileScreen = ({
     fetchAProfile,
     updateUser,
 }) => {
+
     const [loaded, setLoaded] = useState(false);
     const [hideparallax, setHideParallax] = useState(false);
     const [youblockedpass, setYouBlockedPass] = useState(false);
@@ -429,6 +430,7 @@ const ViewProfileScreen = ({
         visible: false,
         msg: null
     });
+
     let listModalOptions = [{
         title: 'Copy Profile Link'
     }, {
@@ -450,18 +452,16 @@ const ViewProfileScreen = ({
         : null;
     let righticonpress = hideparallax == true ? () => setHideParallax(false) : () => setListModalVisible(true);
     let righticon = hideparallax == true ?
-        <Text
-            style={{ color: colors.blue }}
-        >Restore</Text> : <Icon
+        <Text style={{ color: colors.blue }}>
+            Restore
+        </Text> : <Icon
             type="entypo"
             name="dots-three-vertical"
             color={colors.text}
             size={responsiveFontSize(2.5)}
         />;
 
-    /**
-     * component function starts here
-     */
+    /**COMPONENT FUNCTION STARTS HERE */
 
     Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
         bottomTabs: {
@@ -503,6 +503,21 @@ const ViewProfileScreen = ({
             }
         };
     }, []);
+
+    //to handle backbutton press
+    function backButtonHandler() {
+        if (hideparallax) {
+            setHideParallax(false);
+            return true;
+        }
+        return false;
+    }
+    useEffect(() => {
+        BackHandler.addEventListener('hardwareBackPress', backButtonHandler);
+        return () => {
+            BackHandler.removeEventListener('hardwareBackPress', backButtonHandler);
+        }
+    }, [backButtonHandler]);
 
     //handles fetching of profiles data 
     function handleFecthViewProfile() {
@@ -756,7 +771,6 @@ const ViewProfileScreen = ({
     //function to setListModalOptions
     function setListModalOptions() {
         let list = [];
-        //console.warn(toshowprofile);
         if (!checkData(toshowprofile) || useowner == true) {
             return list;
         }
@@ -851,9 +865,7 @@ const ViewProfileScreen = ({
 
     //handle hiding of topsection onces tabs flatlist scroll starts
     function onTabsVerticalScroll() {
-        //if (!hideparallax) {
         setHideParallax(true);
-        //}
     };
 
     //renders viewprofile view
@@ -964,7 +976,8 @@ const ViewProfileScreen = ({
 
         return torenderview;
     };
-    /**compoent function ends here */
+
+    /**COMPONENT FUNCTION ENDS HERE */
 
     return (
         <SafeAreaView style={styles.containerStyle}>
@@ -1026,8 +1039,8 @@ const styles = StyleSheet.create({
         borderColor: colors.border
     },
     buttonStyle: {
-        width: 80,
-        padding: 3,
+        maxWidth: 150,
+        padding: 10,
         borderColor: "dimgray",
         borderRadius: 20,
         marginVertical: 5,

@@ -406,6 +406,7 @@ export class ScrollableListOverLay extends Component {
         super(props);
     }
     shouldComponentUpdate(nextProps, nextState, nextContext) {
+        return true;
         if (this.props.visible != nextProps.visible || this.props.loading != nextProps.loading)
             return true;
         else
@@ -454,7 +455,7 @@ export class ScrollableListOverLay extends Component {
         } else {
             return (
                 <ScrollView showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ marginLeft: 40 }}
+                    contentContainerStyle={{ marginLeft: 40, ...this.props.contentContainerStyle }}
                     keyboardShouldPersistTaps='always'
                     keyboardDismissMode={'on-drag'}
                 >
@@ -471,7 +472,7 @@ export class ScrollableListOverLay extends Component {
     };
 
     render() {
-        let { visible, ListTitle, onBackdropPress } = this.props;
+        let { visible, width, height, ListTitle, onBackdropPress } = this.props;
         return (
             <Overlay
                 fullScreen={false}
@@ -479,10 +480,10 @@ export class ScrollableListOverLay extends Component {
                 onRequestClose={onBackdropPress}
                 animationType="slide"
                 isVisible={visible || false}
-                overlayStyle={{ opacity: 0.9, padding: 0, borderRadius: 10, backgroundColor: colors.background }}
+                overlayStyle={{ opacity: 0.9, padding: 0, borderRadius: 10, backgroundColor: colors.card }}
             >
                 <View
-                    style={{ width: 300, borderRadius: 10, height: 300, backgroundColor: colors.card }}>
+                    style={{ width: width || 300, borderRadius: 10, height: height || 300, backgroundColor: colors.card }}>
                     <Text h4 style={{
                         margin: 5, marginTop: 15, alignSelf: "center",
                         color: colors.text
@@ -533,7 +534,7 @@ export const ConfirmModal = ({ isVisible, acceptText, acceptAction, rejectAction
 };
 
 export const AvatarNavModal = ({
-                        navBarItemArr,
+    navBarItemArr,
     avatar,
     onAvatarPress,
     isVisible,

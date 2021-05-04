@@ -14,138 +14,18 @@ import TouchableScale from 'react-native-touchable-scale';
 import { ViewPager, IndicatorViewPager, PagerDotIndicator } from './viewpager';
 
 const { colors } = useTheme();
-
-const ShowPost = ({
-     data,
-    arrangePostImage,
-    onOthersPostOption,
-    onUserPostOption,
-    onAvatarPress,
-    onLikePress,
-    onViewLikesPress,
-    onSharePress,
-    onViewSharesPress,
-    onCommentPress
-}) => {
-    let sharemsg = null;
-    if (!Array.isArray(data) || data.length < 1) {
-        return null;
-    }
-    return data.map((item, index) => {
-        if (!checkData(item) || !checkData(item.profile)) {
-            return (
-                <PanelMsg
-                    message={'Post is unavailable'}
-                />
-            );
-        }
-        if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
-            return (
-                <PanelMsg
-                    message={'This post is from someone you have muted'}
-                    buttonTitle={'View'}
-                    buttonPress={() => this.props.updatePostItem({
-                        postid: item.postid,
-                        showpost: true
-                    })}
-                />
-            );
-        } else if (item.profile.ublockedprofile == true && checkData(item.showpost) == false) {
-            return (
-                <PanelMsg
-                    message={'postowner is blocked by you'}
-                    buttonTitle={'View'}
-                    buttonPress={() => this.props.updatePostItem({
-                        postid: item.postid,
-                        showpost: true
-                    })}
-                />
-            )
-        } else if (item.profile.profileblockedu == true && checkData(item.showpost) == false) {
-            return (
-                <PanelMsg
-                    message={'You are blocked by postowner'}
-                />
-            )
-        } else if (item.profile.user.approved != true || item.profile.user.deleted == true) {
-            return null;
-        }
-
-        if (checkData(item.known_sharers_profile) && checkData(item.known_sharers_profile[0])) {
-            sharemsg = item.known_sharers_profile.length > 1 ?
-                `shared by ${item.known_sharers_profile[0].profile_name} and others`
-                : `shared by ${item.known_sharers_profile[0].profile_name}`;
-            sharemsg = <Text
-                onPress={() => {
-                    Navigation.showModal({
-                        component: {
-                            name: 'ViewProfile',
-                            passProps: {
-                                navparent: true,
-                                reqprofile: item.known_sharers_profile[0],
-                                screentype: 'modal'
-                            },
-                        }
-                    })
-                }}>
-                {sharemsg}
-            </Text >
-        }
-
-        return (
-            <PostItem
-                key={index}
-                posterusername={item.profile.profile_name}
-                posteravatar={item.profile.avatar[1]}
-                sharemsg={sharemsg}
-                postimages={checkData(arrangePostImage) && arrangePostImage(item.post_image)}
-                postliked={item.postliked}
-                profileid={item.profile.profile_id}
-                created_at={item.created_at}
-                postid={item.postid}
-                onOthersPostOption={() => {
-                    checkData(onOthersPostOption) && onOthersPostOption(item);
-                }}
-                onUserPostOption={() => {
-                    checkData(onUserPostOption) && onUserPostOption(item);
-                }}
-                postshared={item.postshared}
-                onAvatarPress={() => {
-                    checkData(onAvatarPress) && onAvatarPress(item);
-                }}
-                deleted={item.deleted}
-                profile={item.profile}
-                posttext={item.post_text}
-                numlikes={item.num_post_likes}
-                numcomments={item.num_post_comments}
-                numshares={item.num_post_shares}
-                onLikePress={onLikePress}
-                onViewLikesPress={() => {
-                    checkData(onViewLikesPress) && onViewLikesPress(item);
-                }}
-                onSharePress={onSharePress}
-                onViewSharesPress={() => {
-                    checkData(onViewSharesPress) && onViewSharesPress(item);
-                }}
-                onCommentPress={() => {
-                    checkData(onCommentPress) && onCommentPress(item);
-                }}
-            />
-        );
-
-    });
-};
-
 const postwidth = responsiveWidth(94) > 1024 ? 1024 : responsiveWidth(94);
 const postheight = responsiveWidth(94) > 1024 ? 1024 : responsiveWidth(94);
 
 class PostImageViewPager extends Component {
     constructor(prop) {
         super(prop)
-        this.pagerItems = this._createPagers(this.props.images,
+        this.pagerItems = this._createPagers(
+            this.props.images,
             <ActivityIndicator
                 size="large"
-                color={'#B0B0B0'} />
+                color={'#B0B0B0'}
+            />
         );
         this.viewpager = null;
     }
@@ -154,12 +34,13 @@ class PostImageViewPager extends Component {
         return false;
     }
 
-    _renderTitleIndicator = () => <PagerDotIndicator
-        pageCount={this.props.images.length}
-        dotStyle={{ width: 5, height: 5, borderRadius: 50 }}
-        selectedDotStyle={{ backgroundColor: colors.blue, width: 10, height: 10, borderRadius: 50 }}
-        hideSingle
-    />;
+    _renderTitleIndicator = () =>
+        <PagerDotIndicator
+            pageCount={this.props.images.length}
+            dotStyle={{ width: 5, height: 5, borderRadius: 50 }}
+            selectedDotStyle={{ backgroundColor: colors.blue, width: 10, height: 10, borderRadius: 50 }}
+            hideSingle
+        />;
 
     _viewImage = (data) => {
         Navigation.showModal({
@@ -224,7 +105,7 @@ class PostImageViewPager extends Component {
                 indicator={this._renderTitleIndicator()}
                 orientation='horizontal'
                 style={{
-                    width: postwidth + 1,
+                    width: postwidth,
                     height: postheight,
                     backgroundColor: colors.background,
                 }}
@@ -1290,6 +1171,7 @@ const styles = StyleSheet.create({
     },
     postListItemContainerAvatar: {
         backgroundColor: colors.border,
+        //marginHorizontal: 15,
         borderTopLeftRadius: 15,
         borderTopRightRadius: 15,
         width: postwidth,

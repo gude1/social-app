@@ -23,12 +23,13 @@ import { Navigation } from 'react-native-navigation';
 import * as Animatable from 'react-native-animatable';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions'
 import { useTheme } from '../../assets/themes';
+
+
 const { colors } = useTheme();
 let inputwidth = responsiveWidth(85);
 let containerinputwidth = responsiveWidth(90);
 inputwidth = inputwidth > 450 ? 450 : inputwidth;
 containerinputwidth = containerinputwidth > 550 ? 550 : containerinputwidth;
-
 
 const EditProfileScreen = ({ navigation,
     user,

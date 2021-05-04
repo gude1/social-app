@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { Text, Icon, ListItem } from 'react-native-elements';
-import { PostItem } from './PostList';
 import { useTheme } from '../../assets/themes/index';
 import { ConfirmModal, ActivityOverlay, BottomListModal, PanelMsg, AvatarNavModal } from './ResuableWidgets';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from 'react-native-responsive-dimensions';
-import { checkData, handleTime } from '../../utilities/index';
+import { checkData, handleTime } from '../../utilities';
 import EmojiData from '../../assets/static/EmojiList.json';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
 
@@ -22,7 +21,7 @@ class MeetRequestList extends Component {
         return true;
     }
 
-    _setEmptyPlaceHolder = () => {
+    _setEmptyPlaceholder = () => {
         if (this.props.meetupreqobj.fetching == true) {
             return (
                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -62,8 +61,8 @@ class MeetRequestList extends Component {
             );
         } else {
             return (
-                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <Text style={{ textAlign: "center", color: colors.iconcolor }}>
+                <View style={{ flex: 1, boderWidth: 3, justifyContent: "center", alignItems: "center" }}>
+                    <Text style={{ color: colors.iconcolor }}>
                         No meet request yet on this category,please change category or update meet settings for wider options
                     </Text>
                 </View>
@@ -101,7 +100,7 @@ class MeetRequestList extends Component {
                 subtitle={'Need help with ecn 403 please i dont have any idea'}
                 subtitleProps={{
                     ellipsizeMode: 'tail',
-                    numberOfLines: 1
+                    numberOfLines: 4
                 }}
                 subtitleStyle={styles.requestItemLeftSubtitle}
             />
@@ -112,7 +111,7 @@ class MeetRequestList extends Component {
     render() {
         return (
             <FlatList
-                data={this.props.meetupmain.data}
+                data={[1, 3, 5]}
                 keyExtractor={this._keyExtractor}
                 //getItemLayout={this._getItemLayout}
                 //onRefresh={onRefresh}
