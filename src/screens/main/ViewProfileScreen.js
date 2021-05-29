@@ -898,24 +898,25 @@ const ViewProfileScreen = ({
         if (loaded == true) {
             torenderview =
                 <View style={[styles.contentContainerStyle, tabcalled && { marginBottom: 55 }]}>
-                    {hideparallax ? null : <TopSection
-                        profile={toshowprofile}
-                        profileform={viewprofileform}
-                        isprofileowner={useowner}
-                        profileActions={{
-                            followProfile,
-                            muteProfile,
-                            blockProfile,
-                            handleProfilePostsFetch,
-                            fetchProfileFollowers,
-                            fetchProfilesFollowing,
-                            fetchMoreProfileFollowers,
-                            setRefresh,
-                            fetchMoreProfilesFollowing,
-                            fetchKnownProfileFollowers,
-                            fetchMoreKnownProfileFollowers
-                        }}
-                    />}
+                    {hideparallax ? null :
+                        <TopSection
+                            profile={toshowprofile}
+                            profileform={viewprofileform}
+                            isprofileowner={useowner}
+                            profileActions={{
+                                followProfile,
+                                muteProfile,
+                                blockProfile,
+                                handleProfilePostsFetch,
+                                fetchProfileFollowers,
+                                fetchProfilesFollowing,
+                                fetchMoreProfileFollowers,
+                                setRefresh,
+                                fetchMoreProfilesFollowing,
+                                fetchKnownProfileFollowers,
+                                fetchMoreKnownProfileFollowers
+                            }}
+                        />}
                     <BottomSection
                         viewprofileform={viewprofileform}
                         fetchPost={handleProfilePostsFetch}
@@ -950,21 +951,26 @@ const ViewProfileScreen = ({
                     />
                 </View>;
         } else if (loaded == 'retry') {
-            torenderview = <View
-                style={{ alignItems: "center", height: 200, justifyContent: 'center' }}>
-                <Icon
-                    onPress={handleFecthViewProfile}
-                    color={colors.text}
-                    size={responsiveFontSize(4)}
-                    name="sync"
-                    type="antdesign"
-                />
-                <Text style={{ color: colors.text }}>Tap to retry </Text>
-            </View>;
+            torenderview =
+                <View
+                    style={{ alignItems: "center", height: 200, justifyContent: 'center' }}
+                >
+                    <Icon
+                        onPress={handleFecthViewProfile}
+                        color={colors.text}
+                        size={responsiveFontSize(4)}
+                        name="sync"
+                        type="antdesign"
+                    />
+                    <Text style={{ color: colors.text }}>
+                        Tap to retry
+                    </Text>
+                </View>;
         } else if (loaded == false || loaded == 'pending') {
-            torenderview = <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color={'silver'} />
-            </View>;
+            torenderview =
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <ActivityIndicator size="large" color={'silver'} />
+                </View>;
         } else {
             torenderview =
                 <View style={{ flex: 1, alignItems: "center" }}>

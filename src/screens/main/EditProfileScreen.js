@@ -230,7 +230,7 @@ const EditProfileScreen = ({ navigation,
         <SafeAreaView style={[styles.containerStyle, { backgroundColor: colors.background }]}>
             <Header
                 headercolor={colors.card}
-                headertext="EditProfile"
+                headertext="Edit Profile"
                 headertextcolor={colors.text}
                 headertextsize={responsiveFontSize(2.9)}
                 lefticon={lefticon}

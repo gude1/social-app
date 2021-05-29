@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
-import { Text, Icon, ListItem } from 'react-native-elements';
+import { Text, Icon, ListItem, Button } from 'react-native-elements';
 import { useTheme } from '../../assets/themes/index';
 import { ConfirmModal, ActivityOverlay, BottomListModal, PanelMsg, AvatarNavModal } from './ResuableWidgets';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from 'react-native-responsive-dimensions';
@@ -24,36 +24,46 @@ class MeetRequestList extends Component {
     _setEmptyPlaceholder = () => {
         if (this.props.meetupreqobj.fetching == true) {
             return (
-                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                <View style={{ height: 300, width: '100%', justifyContent: "center", alignItems: "center" }}>
                     <ActivityIndicator size="large" color={'silver'} />
                 </View>
             );
         } else if (this.props.meetupreqobj.fetching == 'retry') {
             return (
-                <View style={{ alignItems: "center", justifyContent: "center" }}>
+                <View style={{
+                    alignItems: "center",
+                    justifyContent: "center",
+                    //borderColor: "red",
+                    //borderWidth: 3,
+                    height: 300,
+                    width: 300,
+                }}>
                     <Text style={{
-                        color: colors.text,
+                        color: colors.iconcolor,
                         textAlign: "center",
-                        fontWeight: "bold", fontSize: responsiveFontSize(3)
                     }}>
                         Meet Request not fetched ,something went wrong
-                        </Text>
+                    </Text>
                     <Button
                         type="outline"
-                        onPress={() => this.props.fetchList()}
+                        onPress={() => this.props.fetchReqs()}
                         icon={{
                             name: 'sync',
                             type: "antdesign",
-                            size: responsiveFontSize(2.7),
-                            color: colors.text
+                            size: responsiveFontSize(2),
+                            color: colors.iconcolor
                         }}
                         title="Tap to retry"
-                        titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                        titleStyle={{
+                            color: colors.iconcolor,
+                            textAlign: "center",
+                            fontSize: responsiveFontSize(1.4)
+                        }}
+                        containerStyle={{ marginTop: 20 }}
                         buttonStyle={{
-                            marginTop: 40,
                             borderColor: colors.iconcolor,
                             borderRadius: 15,
-                            width: 150,
+                            width: 100,
                             padding: 10
                         }}
                     />
@@ -61,14 +71,83 @@ class MeetRequestList extends Component {
             );
         } else {
             return (
-                <View style={{ flex: 1, boderWidth: 3, justifyContent: "center", alignItems: "center" }}>
-                    <Text style={{ color: colors.iconcolor }}>
-                        No meet request yet on this category,please change category or update meet settings for wider options
+                <View style={{
+                    height: 300,
+                    width: 300,
+                    justifyContent: "center",
+                    alignItems: "center"
+                }}>
+                    <Icon
+                        name="meh"
+                        type={"antdesign"}
+                        color={colors.iconcolor}
+                        iconStyle={{ marginVertical: 5 }}
+                        size={responsiveFontSize(5)}
+                    />
+                    <Text style={{ color: colors.iconcolor, textAlign: "center" }}>
+                        No request yet,you can adjust your request setting for a wider range
                     </Text>
                 </View>
             );
         }
 
+    };
+
+    _setFooterComponent = () => {
+        if (this.props.meetupreqobj.requests.length < 1) {
+            return null;
+        }
+        if (this.props.meetupreqobj.loadingmore == true) {
+            return (
+                <View style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    margin: 6,
+                    alignItems: "center"
+                }}>
+                    <ActivityIndicator
+                        size={30}
+                        color={colors.border} />
+                </View>
+            );
+        } else if (this.props.meetupreqobj.loadingmore == 'retry') {
+            return (
+                <View style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    margin: 6,
+                    alignItems: "center"
+                }}>
+                    <Icon
+                        color={colors.text}
+                        size={responsiveFontSize(4)}
+                        onPress={() => this.props.fetchMoreReqs()}
+                        name="sync"
+                        type="antdesign"
+                    />
+                    <Text style={{ color: colors.border, fontSize: responsiveFontSize(1.5) }}>Tap to retry</Text>
+                </View>
+            );
+        } else if (this.props.meetupreqobj.loadingmore == false) {
+            return (
+                <View style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    margin: 10,
+                    alignItems: "center"
+                }}>
+                    <Icon
+                        color={colors.text}
+                        size={responsiveFontSize(5)}
+                        onPress={() => this.props.fetchMoreReqs()}
+                        name="plus"
+                        type="evilicon"
+                    />
+                </View>
+            );
+        } else {
+            return null;
+        }
     };
 
     _keyExtractor = (item, index) => index.toString();
@@ -82,8 +161,10 @@ class MeetRequestList extends Component {
         return (
             <ListItem
                 containerStyle={styles.requestItemCtn}
-                leftAvatar={{ source: require('../../assets/meetupscreen/requestcat/sport.jpeg') }}
-                title={'Debola'}
+                leftAvatar={{
+                    source: { uri: item.requester_meet_profile.meetup_avatar }
+                }}
+                title={item.requester_meet_profile.meetup_name}
                 titleStyle={{ color: colors.text }}
                 rightTitle={
                     <Icon
@@ -95,9 +176,9 @@ class MeetRequestList extends Component {
                         color={colors.text}
                     />
                 }
-                rightSubtitle={EmojiData[index].value}
+                rightSubtitle={item.request_mood}
                 rightSubtitleStyle={styles.requestItemRightSubtitle}
-                subtitle={'Need help with ecn 403 please i dont have any idea'}
+                subtitle={item.request_msg}
                 subtitleProps={{
                     ellipsizeMode: 'tail',
                     numberOfLines: 4
@@ -111,7 +192,7 @@ class MeetRequestList extends Component {
     render() {
         return (
             <FlatList
-                data={[1, 3, 5]}
+                data={this.props.meetupreqobj.requests}
                 keyExtractor={this._keyExtractor}
                 //getItemLayout={this._getItemLayout}
                 //onRefresh={onRefresh}
@@ -119,6 +200,7 @@ class MeetRequestList extends Component {
                 showsVerticalScrollIndicator={false}
                 renderItem={this.renderItem}
                 ListEmptyComponent={this._setEmptyPlaceholder()}
+                ListFooterComponent={this._setFooterComponent()}
             />
         );
     }

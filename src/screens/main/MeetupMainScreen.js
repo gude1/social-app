@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, View } from 'react-native';
-import { Text, Icon, Image, Avatar, CheckBox } from 'react-native-elements';
+import { Text, Icon, Image, Avatar, CheckBox, Input } from 'react-native-elements';
 import * as actions from '../../actions';
 import { connect } from 'react-redux';
-import { LoaderScreen, Header, ScrollableListOverLay } from '../../components/reusable/ResuableWidgets';
+import { LoaderScreen, Header, ScrollableListOverLay, InputBox, ActivityOverlay } from '../../components/reusable/ResuableWidgets';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveHeight, responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import { Navigation } from 'react-native-navigation';
@@ -13,6 +13,7 @@ import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
 import MeetRequestList from '../../components/reusable/MeetRequestList';
 import CustomPicker from '../../components/reusable/Picker';
 import EmojiList from '../../assets/static/EmojiList.json';
+import HoursList from '../../assets/static/HoursList.json';
 import CampusList from '../../assets/static/CampusList.json';
 
 
@@ -23,11 +24,22 @@ const MeetupMainScreen = ({
     meetupreqobj,
     catName = "Music",
     fetchMeetRequests,
+    setReset,
+    fetchMoreMeetRequests,
+    createMeetRequest,
     setMeetupMain,
 }) => {
 
+    const REQUEST_SCHEMA = {
+        expires_at: 24,
+        request_msg: '',
+        request_mood: '😀',
+    };
     const [loaded, setLoaded] = useState(false);
     const [showsetting, setShowSetting] = useState(false);
+    const [createReq, setCreateReq] = useState(REQUEST_SCHEMA);
+    const [reqoptions, setReqOptions] = useState(meetupreqobj.options);
+    const [showmakereqmodal, setShowMakeReqModal] = useState(false);
 
     let backgroundgif = colors.theme == "white" ?
         require('../../assets/meetupscreen/meetupmain/bluehi.gif') :
@@ -36,19 +48,19 @@ const MeetupMainScreen = ({
     let statusbarstyle = colors.theme == "white" ? 'light' : colors.statusbartext;
 
     /** COMPONENT FUNCTION STARTS HERE */
-
     useEffect(() => {
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
                     setLoaded(true);
                 }
+                fetchMeetRequests();
                 setScreenInfo();
             },
             componentDidDisappear: () => {
+                // setReset('meetupmain');
             }
         };
-
         // Register the listener to all events related to our component
         const unsubscribe = Navigation.events().bindComponent(listener, componentId);
         return () => {
@@ -60,11 +72,9 @@ const MeetupMainScreen = ({
     const setScreenInfo = () => {
         let current = Math.round(new Date().getTime() / 1000);
         let requests = meetupreqobj.requests.filter(item => {
-
             if (item.deleted != true && item.expires_at > current) {
                 return true;
             }
-
             return false;
         });
 
@@ -74,7 +84,6 @@ const MeetupMainScreen = ({
             }
             return false;
         });
-
         setMeetupMain({ requests, myrequests });
     };
 
@@ -185,6 +194,7 @@ const MeetupMainScreen = ({
                                 size={responsiveFontSize(2.5)}
                             />
                         }
+                        rightIconPress={() => setShowMakeReqModal(true)}
                     />
 
                     <View style={{ flex: 1 }}>
@@ -198,6 +208,8 @@ const MeetupMainScreen = ({
                             <View key={0} style={{ flex: 1, alignItems: "center" }}>
                                 <MeetRequestList
                                     meetupreqobj={meetupreqobj}
+                                    fetchReqs={fetchMeetRequests}
+                                    fetchMoreReqs={fetchMoreMeetRequests}
                                 />
                             </View>
 
@@ -208,7 +220,20 @@ const MeetupMainScreen = ({
                     </View>
 
                     <ScrollableListOverLay
-                        onBackdropPress={() => setShowSetting(false)}
+                        submitAction={() => {
+                            setMeetupMain({
+                                options: {
+                                    ...meetupreqobj.options,
+                                    ...reqoptions
+                                }
+                            });
+                            setShowSetting(false);
+                        }}
+                        submitactiontxt={'Save'}
+                        onBackdropPress={() => {
+                            setShowSetting(false);
+                            setReqOptions(meetupreqobj.options);
+                        }}
                         visible={showsetting}
                         ListTitle={'Request Filter'}
                         loading={false}
@@ -227,16 +252,14 @@ const MeetupMainScreen = ({
                                 containerPickerStyle={{ width: "100%" }}
                                 pickerContainerStyle={{ width: "100%" }}
                                 onValueChange={(itemValue, itemIndex) => {
-                                    setMeetupMain({
-                                        options: {
-                                            ...meetupreqobj.options,
-                                            mood: itemValue
-                                        }
+                                    setReqOptions({
+                                        ...reqoptions,
+                                        request_mood: itemValue
                                     });
                                 }}
                                 mode="dialog"
                                 options={EmojiList}
-                                selectedValue={meetupreqobj.options.mood}
+                                selectedValue={reqoptions.request_mood}
                                 labelText="Filter by mood"
                                 borderColor={colors.border}
                                 labelStyle={{ color: colors.text }}
@@ -253,15 +276,13 @@ const MeetupMainScreen = ({
                                 containerPickerStyle={{ width: "100%" }}
                                 pickerContainerStyle={{ width: "100%" }}
                                 onValueChange={(itemValue, itemIndex) => {
-                                    setMeetupMain({
-                                        options: {
-                                            ...meetupreqobj.options,
-                                            campus: itemValue
-                                        }
+                                    setReqOptions({
+                                        ...reqoptions,
+                                        campus: itemValue
                                     });
                                 }}
                                 mode="dialog"
-                                selectedValue={meetupreqobj.options.campus}
+                                selectedValue={reqoptions.campus}
                                 options={CampusList}
                                 labelText="Filter by campus"
                                 borderColor={colors.border}
@@ -278,10 +299,125 @@ const MeetupMainScreen = ({
 
                         </View>
                     </ScrollableListOverLay>
-                </View>
+
+                    <ScrollableListOverLay
+                        submitAction={() => {
+                            createMeetRequest([
+                                createReq.request_msg,
+                                catName,
+                                createReq.request_mood,
+                                createReq.expires_at
+                            ]);
+                            setShowMakeReqModal(false);
+                            setCreateReq(REQUEST_SCHEMA);
+                        }}
+                        height={400}
+                        submitactiontxt={'Create'}
+                        onBackdropPress={() => {
+                            setShowMakeReqModal(false);
+                            setCreateReq(REQUEST_SCHEMA);
+                        }}
+                        visible={showmakereqmodal}
+                        ListTitle={'Create Meet Req'}
+                        loading={false}
+                        contentContainerStyle={{ marginLeft: 0 }}
+                    >
+                        <View style={{
+                            marginLeft: 10,
+                            marginTop: 5,
+                            marginRight: 5,
+                            flex: 1,
+                        }}>
+
+                            <CustomPicker
+                                containerPickerStyle={{ width: "100%" }}
+                                pickerContainerStyle={{ width: "100%" }}
+                                onValueChange={(itemValue, itemIndex) => {
+                                    setCreateReq({
+                                        ...createReq,
+                                        request_mood: itemValue
+                                    });
+                                }}
+                                mode="dialog"
+                                options={EmojiList}
+                                selectedValue={createReq.request_mood}
+                                labelText="What's your mood"
+                                borderColor={colors.border}
+                                labelStyle={{ color: colors.text }}
+                                placeholderColor={colors.placeholder}
+                                backgroundColor={colors.card}
+                                icon={{
+                                    type: 'antdesign',
+                                    name: 'smileo',
+                                    color: colors.iconcolor,
+                                    size: 25
+                                }}
+                            />
+                            <Input
+                                containerStyle={{
+                                    marginVertical: 0,
+                                    marginHorizontal: 0,
+                                    paddingVertical: 0,
+                                    paddingHorizontal: 0,
+                                }}
+                                onChangeText={(text) => {
+                                    setCreateReq({
+                                        ...createReq,
+                                        request_msg: text
+                                    });
+                                }}
+                                multiline={true}
+                                label="Meet Req text (<=200)"
+                                placeholderTextColor={colors.placeholder}
+                                placeholder={'Write your request'}
+                                labelStyle={{ color: colors.text }}
+                                inputStyle={{
+                                    borderBottomWidth: 1,
+                                    color: colors.text,
+                                    borderColor: colors.border,
+                                }}
+                                inputContainerStyle={{
+                                    borderBottomWidth: 0,
+                                    width: '100%',
+                                }}
+                            />
+
+                            <CustomPicker
+                                containerPickerStyle={{ width: "100%" }}
+                                pickerContainerStyle={{ width: "100%" }}
+                                onValueChange={(itemValue, itemIndex) => {
+                                    setCreateReq({
+                                        ...createReq,
+                                        expires_at: itemValue
+                                    });
+                                }}
+                                mode="dialog"
+                                selectedValue={createReq.expires_at}
+                                options={HoursList}
+                                labelText="Expries after"
+                                borderColor={colors.border}
+                                labelStyle={{ color: colors.text }}
+                                placeholderColor={colors.placeholder}
+                                backgroundColor={colors.card}
+                                icon={{
+                                    type: 'antdesign',
+                                    name: 'clockcircleo',
+                                    color: colors.iconcolor,
+                                    size: 25
+                                }}
+                            />
+                        </View>
+                    </ScrollableListOverLay>
+
+                    <ActivityOverlay
+                        text="Creating"
+                        isVisible={meetupreqobj.creating}
+                    />
+                </View >
             );
         }
     }
+
     /** COMPONENT FUNCTION ENDS HERE */
 
     return (

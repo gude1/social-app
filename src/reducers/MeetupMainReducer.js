@@ -9,8 +9,9 @@ const INITIAL_STATE = {
     requests: [],
     myrequests: [],
     options: {
+        request_category: null,
+        request_mood: null,
         campus: null,
-        mood: null,
     },
     next_url: null,
     errors: ERRORS,
@@ -41,7 +42,7 @@ const handleProcessing = (key, value, state) => {
             return { ...state, loadingmore: value };
             break;
         case 'meetupmaincreating':
-            return { ...state, loadingmore: value };
+            return { ...state, creating: value };
             break;
         case 'meetupmaindeleting':
             return { ...state, deleting: value };

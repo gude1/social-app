@@ -210,6 +210,7 @@ const PrivateChatScreen = ({
                     placeholder={'Type a message'}
                     onChangeText={setInputTxt}
                     inputvalue={inputtxt}
+                    multiline={true}
                     onSubmit={() => {
                         //console.warn('inout', privatechatform.create_chatid);
                         //return;
@@ -321,6 +322,7 @@ const PrivateChatScreen = ({
             {showInputBox()}
 
             <ScrollableListOverLay
+                contentContainerStyle={{ marginLeft: 5 }}
                 ListTitle={'Chat History'}
                 onBackdropPress={() => setChatInfoVisible(false)}
                 reLoad={() => getPrivateChatInfo(privatechatform.create_chatid)}

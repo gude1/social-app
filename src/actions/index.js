@@ -150,6 +150,7 @@ import {
     SET_MEETUPMAIN,
     SET_MEETUPMAIN_ERRORS,
     SET_MEETUPMAIN_MY_REQUESTS,
+    ADD_MEETUPMAIN_MY_REQUESTS,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -5715,21 +5716,12 @@ export const setMeetupMainUrl = (data = "") => {
     };
 };
 
-export const fetchMeetRequests = (data = []) => {
+export const fetchMeetRequests = () => {
     return async (dispatch) => {
         dispatch(deleteOfflineAction({ id: `fetchmeetreq` }));
-        if (!Array.isArray(data) || data.length < 1 || !checkData(data[0])) {
-            Toast('Request incomplete!');
-            return;
-        }
-        const { user } = store.getState();
-        let reqobj = { campus: data[0] };
-        if (checkData(data[1])) {
-            regobj['request_category'] = data[1];
-        }
-        if (checkData(data[2])) {
-            regobj['request_mood'] = data[2];
-        }
+
+        const { user, meetupmain } = store.getState();
+        let reqobj = { ...reqobj, ...meetupmain.options };
         dispatch(setProcessing(true, 'meetupmainfetching'));
         try {
             const options = {
@@ -5737,7 +5729,7 @@ export const fetchMeetRequests = (data = []) => {
             };
             const response = await session.post('meetupreqlist', reqobj, options);
             const { status, errmsg, message, meetup_list, my_num_req_left, next_url } = response.data;
-            //alert(JSON.stringify(response.data));
+
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'meetupmainfetching'));
@@ -5745,16 +5737,16 @@ export const fetchMeetRequests = (data = []) => {
                     dispatch(setMeetupMainUrl(next_url));
                     break;
                 case 404:
-                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    Toast(errmsg, ToastAndroid.LONG, ToastAndroid.CENTER);
                     dispatch(setProcessing('retry', 'meetupmainfetching'));
                     break;
                 case 500:
-                    Toast(errmsg, null, ToastAndroid.CENTER);
+                    Toasst(errmsg, ToastAndroid.LONG, ToastAndroid.CENTER);
                     dispatch(setProcessing('retry', 'meetupmainfetching'));
                     dispatch(addOfflineAction({
                         id: `fetchmeetreq`,
                         funcName: 'fetchMeetRequests',
-                        param: data,
+                        param: [],
                         override: true,
                     }));
                     break;
@@ -5765,12 +5757,18 @@ export const fetchMeetRequests = (data = []) => {
             }
 
         } catch (err) {
+            console.warn(`${err.toString()}  from meetrequest`);
+            dispatch(setProcessing('retry', 'meetupmainfetching'));
             if (err.toString().indexOf('Network Error') != -1) {
-                Toast('network error!', null, ToastAndroid.CENTER);
+                Toast(
+                    'seems like their is no network connectivity meet requests will be fetched once network returns',
+                    null,
+                    ToastAndroid.CENTER
+                );
                 dispatch(addOfflineAction({
                     id: `fetchmeetreq`,
                     funcName: 'fetchMeetRequests',
-                    param: data,
+                    param: [],
                     override: true,
                 }));
             } else {
@@ -5781,28 +5779,22 @@ export const fetchMeetRequests = (data = []) => {
     };
 };
 
-export const fetchMoreMeetRequests = (data: Array) => {
+export const fetchMoreMeetRequests = () => {
     return async (dispatch) => {
-        if (!Array.isArray(data) || data.length < 1 || !checkData(data[0])) {
-            Toast('Request incomplete!');
-            return;
-        }
         const { user, meetupmain } = store.getState();
-        let reqobj = { campus: data[0] };
-        if (checkData(data[1])) {
-            regobj['request_category'] = data[1];
-        }
-        if (checkData(data[2])) {
-            regobj['request_mood'] = data[2];
-        }
+        let reqobj = { ...reqobj, ...meetupmain.options };
         dispatch(setProcessing(true, 'meetupmainloadingmore'));
         try {
             const options = {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
+            if (!meetupmain.next_url) {
+                dispatch(setProcessing(false, 'meetupmainloadingmore'));
+                Toast('No request yet under this category', null, ToastAndroid.CENTER);
+                return;
+            }
             const response = await session.post(meetupmain.next_url, reqobj, options);
             const { status, errmsg, message, meetup_list, my_num_req_left, next_url } = response.data;
-            //alert(JSON.stringify(response.data));
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'meetupmainloadingmore'));
@@ -5811,20 +5803,21 @@ export const fetchMoreMeetRequests = (data: Array) => {
                     break;
                 case 404:
                     Toast(errmsg, null, ToastAndroid.CENTER);
-                    dispatch(setProcessing('retry', 'meetupmainloadingmore'));
+                    dispatch(setProcessing(false, 'meetupmainloadingmore'));
                     break;
                 case 500:
                     Toast(errmsg, null, ToastAndroid.CENTER);
-                    dispatch(setProcessing('retry', 'meetupmainloadingmore'));
+                    dispatch(setProcessing(false, 'meetupmainloadingmore'));
                     break;
                 default:
                     Toast('Request failed please try again', null, ToastAndroid.CENTER);
-                    dispatch(setProcessing('retry', 'meetupmainloadingmore'));
+                    dispatch(setProcessing(false, 'meetupmainloadingmore'));
                     break;
             }
 
         } catch (err) {
-            dispatch(setProcessing('retry', 'meetupmainloadingmore'));
+            console.warn(`${err.toString()}  from fetchmoremeetrequest`);
+            dispatch(setProcessing(false, 'meetupmainloadingmore'));
             if (err.toString().indexOf('Network Error') != -1) {
                 Toast('network error!', null, ToastAndroid.CENTER);
             } else {
@@ -5836,11 +5829,12 @@ export const fetchMoreMeetRequests = (data: Array) => {
 
 export const createMeetRequest = (data) => {
     return async (dispatch) => {
+        const { user, meetupmain } = store.getState();
         if (!Array.isArray(data) || data.length < 3) {
             Toast('Missing values to continue', null, ToastAndroid.CENTER);
             return;
-        } else if (data[0].length < 3 || data[0].length > 100) {
-            Toast('Request message must be between 3-100 characters', null, ToastAndroid.CENTER);
+        } else if (data[0].length < 3 || data[0].length > 200) {
+            Toast('Request message must be between 3-200 characters', null, ToastAndroid.CENTER);
             return;
         }
         let reqobj = {
@@ -5849,9 +5843,11 @@ export const createMeetRequest = (data) => {
             request_mood: data[2]
         };
         if (checkData(data[3])) {
-            reobj['request_addr'] = data[3];
+            reqobj['expires_at'] = data[3];
         } else if (checkData(data[4])) {
-            reqobj['request_location'] = data[4];
+            reobj['request_addr'] = data[4];
+        } else if (checkData(data[5])) {
+            reqobj['request_location'] = data[5];
         }
         dispatch(setProcessing(true, 'meetupmaincreating'));
         try {
@@ -5862,15 +5858,16 @@ export const createMeetRequest = (data) => {
             const { status, errors, errmsg, meetup_req, num_req_left, message } = response.data;
             switch (status) {
                 case 200:
-                    Toast(message);
+                    Toast(message, null, ToastAndroid.CENTER);
                     dispatch(addMeetupMainMyRequests([meetup_req]));
                     dispatch(setProcessing(false, 'meetupmaincreating'));
                     break;
                 case 500:
-                    Toast(errmsg);
+                    Toast(errmsg, null, ToastAndroid.CENTER);
                     dispatch(setProcessing(false, 'meetupmaincreating'));
                     break;
                 case 400:
+                    Toast(errmsg, null, ToastAndroid.CENTER);
                     dispatch(setProcessing(false, 'meetupmaincreating'));
                     dispatch(setMeetupMainRequestErrors(errors));
                     break;
@@ -5884,6 +5881,7 @@ export const createMeetRequest = (data) => {
             if (err.toString().indexOf('Network Error') != -1) {
                 Toast('network error!', null, ToastAndroid.CENTER);
             } else {
+                console.warn(`${err.toString()}`);
                 Toast('something went wrong please try again', null, ToastAndroid.CENTER);
             }
         }
@@ -5984,9 +5982,6 @@ export const blackListMeetProfile = (req_profile_id) => {
 
 
 
-
-
-
 /**
  * ACTION CREATOR FOR BOOKMARKS REDUCER
  * 
@@ -6050,7 +6045,6 @@ export const setSelected = (data) => {
         payload: data
     };
 };
-
 
 export const getGalleryPhotos = () => {
     return async (dispatch) => {

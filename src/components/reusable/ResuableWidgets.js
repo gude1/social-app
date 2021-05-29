@@ -402,9 +402,11 @@ export class BottomListModal extends Component {
 
 };
 export class ScrollableListOverLay extends Component {
+
     constructor(props) {
         super(props);
     }
+
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         return true;
         if (this.props.visible != nextProps.visible || this.props.loading != nextProps.loading)
@@ -454,7 +456,8 @@ export class ScrollableListOverLay extends Component {
             );
         } else {
             return (
-                <ScrollView showsVerticalScrollIndicator={false}
+                <ScrollView
+                    //showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ marginLeft: 40, ...this.props.contentContainerStyle }}
                     keyboardShouldPersistTaps='always'
                     keyboardDismissMode={'on-drag'}
@@ -472,7 +475,7 @@ export class ScrollableListOverLay extends Component {
     };
 
     render() {
-        let { visible, width, height, ListTitle, onBackdropPress } = this.props;
+        let { visible, width, height, submitAction, submitactiontxt, ListTitle, onBackdropPress } = this.props;
         return (
             <Overlay
                 fullScreen={false}
@@ -480,16 +483,43 @@ export class ScrollableListOverLay extends Component {
                 onRequestClose={onBackdropPress}
                 animationType="slide"
                 isVisible={visible || false}
-                overlayStyle={{ opacity: 0.9, padding: 0, borderRadius: 10, backgroundColor: colors.card }}
+                overlayStyle={{
+                    opacity: 0.9,
+                    padding: 0,
+                    borderRadius: 10,
+                    backgroundColor: colors.card
+                }}
             >
                 <View
-                    style={{ width: width || 300, borderRadius: 10, height: height || 300, backgroundColor: colors.card }}>
-                    <Text h4 style={{
-                        margin: 5, marginTop: 15, alignSelf: "center",
-                        color: colors.text
+                    style={{
+                        width: width || 300,
+                        borderRadius: 10,
+                        height: height || 300,
+                        backgroundColor: colors.card
                     }}>
-                        {ListTitle}
-                    </Text>
+                    <Header
+                        headertext={ListTitle}
+                        headerStyle={{ elevation: 0 }}
+                        headerTextStyle={{
+                            margin: 5,
+                            marginTop: 15,
+                            fontWeight: "bold",
+                            fontSize: responsiveFontSize(2.5),
+                            alignSelf: "center",
+                            color: colors.text
+                        }}
+                        righticon={
+                            submitAction ?
+                                <Text style={{
+                                    fontSize: responsiveFontSize(2),
+                                    color: colors.blue
+                                }}>
+                                    {submitactiontxt || 'Save'}
+                                </Text>
+                                : null
+                        }
+                        rightIconPress={submitAction}
+                    />
                     {this._render()}
                 </View>
             </Overlay>
@@ -654,7 +684,7 @@ export class InputBox extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
-        return true;
+        //return true;
         if (this.props.inputvalue != nextProps.inputvalue || this.props.update != nextProps.update) {
             return true;
         }
@@ -1310,7 +1340,7 @@ const styles = StyleSheet.create({
         flex: 1
     },
     activityOverlay: {
-        width: 100,
+        width: 150,
         backgroundColor: colors.background,
         flexDirection: 'row',
         height: 70,
