@@ -5764,6 +5764,7 @@ export const fetchMeetRequests = (data) => {
             };
             const response = await session.post('meetupreqlist', reqobj, options);
             const { status, errmsg, message, meetup_list, my_num_req_left, next_url } = response.data;
+            alert(JSON.stringify(next_url));
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'meetupmainfetching'));

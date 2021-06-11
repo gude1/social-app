@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { useTheme } from '../../assets/themes/index';
 import { Header } from '../../components/reusable/ResuableWidgets';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
-import { IndicatorViewPager, PagerTabIndicator } from '../../components/reusable/viewpager/index';
+import { IndicatorViewPager, PagerTabIndicator, PagerDotIndicator } from '../../components/reusable/viewpager/index';
 import { Navigation } from 'react-native-navigation';
 import MeetRequestList from '../../components/reusable/MeetRequestList';
 
