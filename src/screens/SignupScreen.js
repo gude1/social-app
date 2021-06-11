@@ -8,9 +8,8 @@ import {
     TouchableOpacity,
     StyleSheet
 } from 'react-native';
-import AuthForm from '../components/reusable/AuthForm';
 import auth from '../api/auth';
-import { connect } from 'react-redux';
+import { connect } from 'react-redux'
 import Icon from "react-native-vector-icons/Feather";
 import * as actions from '../actions';
 import { useTheme } from '../assets/themes';
@@ -20,6 +19,7 @@ import {
     responsiveWidth
 } from "react-native-responsive-dimensions";
 import { checkData } from '../utilities/index';
+import AuthForm from '../components/reusable/AuthForm';
 
 
 const iconsColor = "black";

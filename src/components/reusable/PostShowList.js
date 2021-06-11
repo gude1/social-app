@@ -7,7 +7,7 @@ import { ConfirmModal, ActivityOverlay, BottomListModal, PanelMsg, AvatarNavModa
 import {
     responsiveFontSize, responsiveHeight, responsiveWidth
 } from 'react-native-responsive-dimensions';
-import { checkData, handleTime } from '../../utilities/index';
+import { checkData, handleTime, hasProperty } from '../../utilities/index';
 import { Navigation } from 'react-native-navigation';
 
 
@@ -372,15 +372,14 @@ export default class PostShowList extends Component {
     };
 
     renderItem = ({ item }) => {
-        if (!checkData(item) || !checkData(item.profile)) {
+        let sharemsg = null;
+        if (!hasProperty(item, ['profile']) || !hasProperty(item.profile, ['user'])) {
             return (
                 <PanelMsg
                     message={'Post is unavailable'}
                 />
             );
-        }
-        let sharemsg = null;
-        if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
+        } else if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
             return (
                 <PanelMsg
                     message={'This post is from someone you have muted'}

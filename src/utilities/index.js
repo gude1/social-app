@@ -287,6 +287,17 @@ export const handleTime = (data) => {
     }
 };
 
+//function to check if object contains property specified
+export const hasProperty = (obj = {}, props = []) => {
+    if (!checkData(obj) || !Array.isArray(props)) {
+        return false;
+    }
+    let check = props.filter(propname => {
+        return obj[propname] ? true : false;
+    });
+    return check.length == props.length;
+};
+
 //function to determine if data has valid values
 export function checkData(data) {
     if ((data != null && data != undefined && data != '') || data == '0') {

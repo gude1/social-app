@@ -3,7 +3,7 @@ import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { ListItem, ConfirmModal, BottomListModal, PanelMsg, ActivityOverlay, AvatarNavModal } from './ResuableWidgets';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes';
-import { checkData, handleTime } from '../../utilities';
+import { checkData, handleTime, hasProperty } from '../../utilities';
 import { Icon, Overlay, Text, Button } from 'react-native-elements';
 import { Navigation } from 'react-native-navigation';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
@@ -544,7 +544,13 @@ export default class PostCommentReplyList extends Component {
                 likePress={(item) => this._onItemLiked(item.replyid, item.replyliked, item.num_likes)}
             />
         );*/
-        if (item.profile.profilemuted == true && item.muted != false) {
+        if (!hasProperty(item, ['profile']) || !hasProperty(item.profile, ['user'])) {
+            return (
+                <PanelMsg
+                    message={'Reply is unavailable'}
+                />
+            );
+        } else if (item.profile.profilemuted == true && item.muted != false) {
             return (
                 <PanelMsg
                     message={'This reply is from someone you have muted '}

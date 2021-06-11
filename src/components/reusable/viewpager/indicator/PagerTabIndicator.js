@@ -5,7 +5,7 @@
 'use strict'
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import { StyleSheet, View, ViewPropTypes, TextPropTypes, Image, Text, TouchableOpacity } from 'react-native'
+import { StyleSheet, View, ViewPropTypes, TextPropTypes, Image, Animated, TouchableOpacity } from 'react-native'
 import IndicatorViewPager from '../IndicatorViewPager'
 import { Icon } from 'react-native-elements';
 
@@ -23,10 +23,10 @@ export default class PagerTabIndicator extends Component {
         })).isRequired,
         itemStyle: ViewPropTypes.style,//
         selectedItemStyle: ViewPropTypes.style,
-        iconStyle: Text.propTypes.style,//
-        selectedIconStyle: Text.propTypes.style,//
-        textStyle: Text.propTypes.style,
-        selectedTextStyle: Text.propTypes.style,
+        iconStyle: Animated.Text.propTypes.style,//
+        selectedIconStyle: Animated.Text.propTypes.style,//
+        textStyle: Animated.Text.propTypes.style,
+        selectedTextStyle: Animated.Text.propTypes.style,
         changePageWithAnimation: PropTypes.bool,
     }
 
@@ -63,25 +63,26 @@ export default class PagerTabIndicator extends Component {
                     }}
                 >
                     {
-                        tab.iconSource && <Icon
+                        tab.iconSource &&
+                        <Icon
                             name={tab.iconSource}
                             type={tab.iconType || 'feather'}
                             iconStyle={isSelected ? selectedIconStyle : iconStyle}
                         />
                     }
                     {tab.text &&
-                        <Text
+                        <Animated.Text
                             style={[isSelected ? styles.textSelected : styles.text, isSelected ? selectedTextStyle : textStyle]}
                         >
                             {tab.text}
-                        </Text>}
+                        </Animated.Text>}
                 </TouchableOpacity>
             )
         })
         return (
-            <View style={[styles.container, style]} >
+            <Animated.View style={[styles.container, style]} >
                 {tabsView}
-            </View>
+            </Animated.View>
         )
     }
 
@@ -99,6 +100,7 @@ const styles = StyleSheet.create({
     },
     itemContainer: {
         alignItems: 'center',
+        justifyContent: "center",
         //borderWidth: 1,
         flex: 1
     },

@@ -1,4 +1,4 @@
-import { RESET, ADD_MEETUPMAIN_REQUESTS, UPDATE_MEETUPMAIN_REQUEST, PROCESSING, SET_MEETUPMAIN_URL, SET_MEETUPMAIN, SET_MEETUPMAIN_ERRORS, ADD_MEETUPMAIN_MY_REQUESTS } from "../actions/types";
+import { RESET, ADD_MEETUPMAIN_REQUESTS, UPDATE_MEETUPMAIN_REQUEST, PROCESSING, SET_MEETUPMAIN_URL, SET_MEETUPMAIN, SET_MEETUPMAIN_ERRORS, ADD_MEETUPMAIN_MY_REQUESTS, UPDATE_MEETUPMAIN_MY_REQUESTS, REMOVE_MEETUPMAIN_MY_REQUESTS, REMOVE_MEETUPMAIN_REQUESTS } from "../actions/types";
 import { checkData } from "../utilities/index";
 
 
@@ -15,10 +15,11 @@ const INITIAL_STATE = {
     },
     next_url: null,
     errors: ERRORS,
-    creating: false,
+    //creating: false,
     deleting: false,
     blacklisting: false,
     fetching: false,
+    myreqfetching: false,
     loadingmore: false,
 };
 
@@ -27,8 +28,9 @@ const arrangeRequests = (data: Array) => {
         return data;
     }
     data = [...data];
-    return data.sort((item1, item2) => item2.id - item1.id);
+    return data.sort((item1, item2) => item2.created_at - item1.created_at);
 };
+
 
 const handleProcessing = (key, value, state) => {
     if (checkData(key) != true || checkData(state) != true || checkData(value) != true) {
@@ -50,6 +52,9 @@ const handleProcessing = (key, value, state) => {
         case 'meetupmainblacklisting':
             return { ...state, blacklisting: value };
             break;
+        case 'meetupmainmyreqfetching':
+            return { ...state, myreqfetching: value };
+            break;
         default:
             return state;
             break;
@@ -63,9 +68,15 @@ const MeetupMainReducer = (state = INITIAL_STATE, action) => {
         case ADD_MEETUPMAIN_REQUESTS:
             return { ...state, requests: arrangeRequests([...state.requests, ...action.payload]) };
             break;
+        case REMOVE_MEETUPMAIN_REQUESTS:
+            reducerdata = state.requests.filter(item => {
+                return item.request_id != action.payload;
+            });
+            return { ...state, requests: arrangeRequests(reducerdata) };
+            break;
         case UPDATE_MEETUPMAIN_REQUEST:
             let updatedstate = state.requests.map(item => {
-                item.request_id == action.payload.request_id ? { ...item, ...action.payload } : item;
+                return item.request_id == action.payload.request_id ? { ...item, ...action.payload } : item;
             });
             updatedstate.find(item => item.request_id == action.payload.request_id) == undefined &&
                 updatedstate.push(action.payload);
@@ -75,7 +86,21 @@ const MeetupMainReducer = (state = INITIAL_STATE, action) => {
             return { ...state, errors: { ...state.errors, ...action.payload } };
             break;
         case ADD_MEETUPMAIN_MY_REQUESTS:
-            return { ...state, myrequests: [...state.myrequests, ...action.payload] };
+            return { ...state, myrequests: arrangeRequests([...state.myrequests, ...action.payload]) };
+            break;
+        case REMOVE_MEETUPMAIN_MY_REQUESTS:
+            reducerdata = state.myrequests.filter(item => {
+                return item.request_id != action.payload;
+            });
+            return { ...state, myrequests: arrangeRequests(reducerdata) };
+            break;
+        case UPDATE_MEETUPMAIN_MY_REQUESTS:
+            reducerdata = state.myrequests.map(item => {
+                return item.request_id == action.payload.request_id ? { ...item, ...action.payload } : item;
+            });
+            reducerdata.find(item => item.request_id == action.payload.request_id) == undefined &&
+                reducerdata.push(action.payload);
+            return { ...state, myrequests: arrangeRequests(reducerdata) };
             break;
         case SET_MEETUPMAIN:
             return { ...state, ...action.payload };

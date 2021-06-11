@@ -4,8 +4,8 @@
 
 'use strict'
 
-import { PanResponder, Platform, ScrollView, StyleSheet, View } from 'react-native'
-import ViewPager from "@react-native-community/viewpager";
+import { PanResponder, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import ViewPager from "react-native-pager-view";
 import React, { Component } from 'react';
 
 const SCROLL_STATE = {

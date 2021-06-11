@@ -1,15 +1,55 @@
 import React, { Component } from 'react';
 import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
-import { Text, Icon, ListItem, Button } from 'react-native-elements';
+import { Text, Icon, Button } from 'react-native-elements';
 import { useTheme } from '../../assets/themes/index';
-import { ConfirmModal, ActivityOverlay, BottomListModal, PanelMsg, AvatarNavModal } from './ResuableWidgets';
+import { ConfirmModal, ActivityOverlay, BottomListModal, PanelMsg, AvatarNavModal, ListItem } from './ResuableWidgets';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from 'react-native-responsive-dimensions';
-import { checkData, handleTime } from '../../utilities';
+import { checkData, handleTime, hasProperty } from '../../utilities';
+import * as Animatable from 'react-native-animatable';
 import EmojiData from '../../assets/static/EmojiList.json';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
 
-
 const { colors } = useTheme();
+
+class BottomContainerItem extends Component {
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        return false;
+    }
+    render() {
+        const { request_mood, request_category, created_at } = this.props;
+        return (
+            <View style={{
+                paddingVertical: 5,
+                flexDirection: "row",
+                flex: 1,
+                justifyContent: "space-between"
+            }}>
+                <Animatable.Text
+                    animation={'slideInUp'}
+                    style={{ color: colors.iconcolor, textAlign: "center" }}
+                    useNativeDriver={true}>
+                    {created_at}
+                </Animatable.Text>
+
+                <Animatable.Text
+                    animation={'slideInUp'}
+                    style={{ color: colors.text, textAlign: "center" }}
+                    useNativeDriver={true}>
+                    {request_mood}
+                </Animatable.Text>
+
+                <Animatable.Text
+                    animation={'slideInUp'}
+                    style={{ color: colors.iconcolor }}
+                    useNativeDriver={true}>
+                    {request_category} request
+                </Animatable.Text>
+            </View>
+        );
+    }
+
+}
+
 
 class MeetRequestList extends Component {
     constructor(props) {
@@ -22,31 +62,33 @@ class MeetRequestList extends Component {
     }
 
     _setEmptyPlaceholder = () => {
-        if (this.props.meetupreqobj.fetching == true) {
+        let fetching = this.props.myrequests ? this.props.meetupreqobj.myreqfetching : this.props.meetupreqobj.fetching;
+        if (fetching == true) {
             return (
-                <View style={{ height: 300, width: '100%', justifyContent: "center", alignItems: "center" }}>
+                <View style={{ height: responsiveHeight(70), width: '100%', justifyContent: "center", alignItems: "center" }}>
                     <ActivityIndicator size="large" color={'silver'} />
                 </View>
             );
-        } else if (this.props.meetupreqobj.fetching == 'retry') {
+        } else if (fetching == 'retry') {
             return (
                 <View style={{
                     alignItems: "center",
                     justifyContent: "center",
-                    //borderColor: "red",
-                    //borderWidth: 3,
-                    height: 300,
-                    width: 300,
+                    height: responsiveHeight(70),
+                    width: '100%',
                 }}>
                     <Text style={{
                         color: colors.iconcolor,
+                        width: '70%',
                         textAlign: "center",
                     }}>
-                        Meet Request not fetched ,something went wrong
+                        {this.props.myrequests ?
+                            'Your meets not fetched'
+                            : 'Meets not fetched'}
                     </Text>
                     <Button
                         type="outline"
-                        onPress={() => this.props.fetchReqs()}
+                        onPress={this.props.fetchReqs}
                         icon={{
                             name: 'sync',
                             type: "antdesign",
@@ -72,8 +114,8 @@ class MeetRequestList extends Component {
         } else {
             return (
                 <View style={{
-                    height: 300,
-                    width: 300,
+                    height: responsiveHeight(70),
+                    width: '100%',
                     justifyContent: "center",
                     alignItems: "center"
                 }}>
@@ -84,8 +126,15 @@ class MeetRequestList extends Component {
                         iconStyle={{ marginVertical: 5 }}
                         size={responsiveFontSize(5)}
                     />
-                    <Text style={{ color: colors.iconcolor, textAlign: "center" }}>
-                        No request yet,you can adjust your request setting for a wider range
+                    <Text style={{
+                        width: '70%',
+                        color: colors.iconcolor,
+                        textAlign: "center"
+                    }}>
+                        {this.props.myrequests ?
+                            'You have no recent meets'
+                            : 'No meets yet, try adjusting your meet setting for a wider range'
+                        }
                     </Text>
                 </View>
             );
@@ -94,7 +143,7 @@ class MeetRequestList extends Component {
     };
 
     _setFooterComponent = () => {
-        if (this.props.meetupreqobj.requests.length < 1) {
+        if (this.props.meetupreqobj.requests.length < 1 || !checkData(this.props.fetchMoreReqs)) {
             return null;
         }
         if (this.props.meetupreqobj.loadingmore == true) {
@@ -125,7 +174,9 @@ class MeetRequestList extends Component {
                         name="sync"
                         type="antdesign"
                     />
-                    <Text style={{ color: colors.border, fontSize: responsiveFontSize(1.5) }}>Tap to retry</Text>
+                    <Text style={{ color: colors.border, fontSize: responsiveFontSize(1.5) }}>
+                        Tap to retry
+                        </Text>
                 </View>
             );
         } else if (this.props.meetupreqobj.loadingmore == false) {
@@ -153,50 +204,71 @@ class MeetRequestList extends Component {
     _keyExtractor = (item, index) => index.toString();
 
     _getItemLayout = (data, index) => {
-        if (index == -1) return { index, length: 0, height: 0 };
+        if (index == -1) return { index, length: responsiveWidth(100), height: 0 };
         return { length: this.resheight, offset: this.resheight * index, index }
     };
 
+
     renderItem = ({ item, index }) => {
+        if (!hasProperty(item, ['requester_meet_profile']) ||
+            !hasProperty(item, ['requester_profile']) ||
+            !hasProperty(item.requester_profile, ['user'])
+        ) {
+            return null;
+        }
         return (
-            <ListItem
-                containerStyle={styles.requestItemCtn}
-                leftAvatar={{
-                    source: { uri: item.requester_meet_profile.meetup_avatar }
-                }}
-                title={item.requester_meet_profile.meetup_name}
-                titleStyle={{ color: colors.text }}
-                rightTitle={
-                    <Icon
-                        type="antdesign"
-                        Component={TouchableScale}
-                        containerStyle={{ marginBottom: 10 }}
-                        size={responsiveFontSize(4)}
-                        name="ellipsis1"
-                        color={colors.text}
-                    />
-                }
-                rightSubtitle={item.request_mood}
-                rightSubtitleStyle={styles.requestItemRightSubtitle}
-                subtitle={item.request_msg}
-                subtitleProps={{
-                    ellipsizeMode: 'tail',
-                    numberOfLines: 4
-                }}
-                subtitleStyle={styles.requestItemLeftSubtitle}
-            />
+            <View
+                style={{ flex: 1 }}>
+                <ListItem
+                    onPress={item.creating ? this.props.fetchReqs : null}
+                    containerStyle={styles.requestItemCtn}
+                    leftAvatar={{ uri: item.requester_meet_profile.meetup_avatar }}
+                    title={item.requester_meet_profile.meetup_name}
+                    likeButtonComponent={
+                        <Animatable.View
+                            animation={'slideInRight'}
+                            style={{ alignItems: "center", justifyContent: "center" }}
+                            useNativeDriver={true}>
+                            <Icon
+                                type="antdesign"
+                                Component={TouchableScale}
+                                containerStyle={{ marginBottom: 10 }}
+                                size={responsiveFontSize(3)}
+                                name="ellipsis1"
+                                color={colors.text}
+                            />
+                        </Animatable.View>
+                    }
+                    likebtn={true}
+                    subtitle={item.request_msg}
+                    BottomContainerItem={
+                        <BottomContainerItem
+                            request_category={item.request_category}
+                            request_mood={item.request_mood}
+                            created_at={item.created_at}
+                        />
+                    }
+                />
+            </View>
         );
     };
 
 
     render() {
+        let { meetupreqobj, myrequests } = this.props;
+        //console.warn(`glowfinejorr ${myrequests}`, meetupreqobj.myrequests);
+        let refreshing = meetupreqobj.fetching ?
+            (meetupreqobj.fetching == "retry" ? false : meetupreqobj.fetching)
+            : (false);
         return (
             <FlatList
-                data={this.props.meetupreqobj.requests}
+                data={myrequests ? meetupreqobj.myrequests : meetupreqobj.requests}
                 keyExtractor={this._keyExtractor}
-                //getItemLayout={this._getItemLayout}
-                //onRefresh={onRefresh}
-                //refreshing={refreshing}
+                initialNumRender={1}
+                windowSize={50}
+                refreshing={meetupreqobj.requests.length > 0 ? refreshing : false}
+                onRefresh={meetupreqobj.requests.length > 0 ? this.props.fetchReqs : null}
+                getItemLayout={this._getItemLayout}
                 showsVerticalScrollIndicator={false}
                 renderItem={this.renderItem}
                 ListEmptyComponent={this._setEmptyPlaceholder()}
@@ -210,22 +282,28 @@ const styles = StyleSheet.create({
     requestItemCtn: {
         margin: 10,
         width: responsiveWidth(90),
+        // borderWidth: 3,
+        //borderColor: "green",
         maxWidth: 400,
         padding: 15,
         backgroundColor: colors.card,
-        elevation: 3,
+        elevation: 1.8,
         borderRadius: 20
     },
     requestItemTitle: {
-
+        color: colors.text,
+        fontSize: responsiveFontSize(1.8),
     },
-    requestItemLeftSubtitle: {
-        color: colors.placeholder
+    requestItemSubtitle: {
+        color: colors.placeholder,
+        fontSize: responsiveFontSize(1.5)
     },
     requestItemRightSubtitle: {
         color: colors.text,
-        fontSize: responsiveFontSize(3)
+        textAlign: "center",
+        fontSize: responsiveFontSize(2)
     }
+
 });
 
 export default MeetRequestList; 

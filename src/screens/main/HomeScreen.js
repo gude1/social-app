@@ -72,21 +72,21 @@ const HomeScreen = ({
         }, () => {
             start();
         });
-        Entypo.getImageSource('home', 100).then(e =>
+        Entypo.getImageSource('home', 100).then(e => {
             Navigation.mergeOptions('POST_HOME_SCREEN', {
                 bottomTab: {
                     icon: e,
                 }
-            }));
-        Navigation.mergeOptions('POST_HOME_SCREEN', {
-            bottomTabs: {
-                visible: true
-            }
-        });
+            });
+            Navigation.mergeOptions('POST_HOME_SCREEN', {
+                bottomTabs: {
+                    visible: true
+                }
+            });
+        })
         const listener = {
             componentDidAppear: async () => {
                 const { fs } = RNFetchBlob;
-                //console.warn(await setChatPics([{ chatpic: `${fs.dirs.DownloadDir}/h.jpeg` }]));
                 Navigation.mergeOptions('POST_HOME_SCREEN', {
                     bottomTabs: {
                         visible: true
@@ -147,7 +147,7 @@ const HomeScreen = ({
         <SafeAreaView style={styles.containerStyle}>
             <Header
                 headercolor={colors.card}
-                headertext="CampusMeet"
+                headertext="appname"
                 headerTextStyle={{
                     fontFamily: 'cursive',
                     fontWeight: 'bold'

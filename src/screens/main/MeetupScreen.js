@@ -1,95 +1,103 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, View, Image } from 'react-native';
-import { Text } from 'react-native-elements';
+import EntypoIcon from 'react-native-vector-icons/Entypo';
+import { Animated, View, TouchableOpacity, StyleSheet, SafeAreaView, Image } from 'react-native';
+import { Text, Icon, Avatar, CheckBox, Input, Button } from 'react-native-elements';
 import * as actions from '../../actions';
 import { connect } from 'react-redux';
-import { useTheme } from '../../assets/themes'
-import EntypoIcon from 'react-native-vector-icons/Entypo';
-import { Avatar, Button, Input, Image as EImage } from 'react-native-elements';
-import { Navigation } from 'react-native-navigation';
-import { PagerDotIndicator, IndicatorViewPager } from '../../components/reusable/viewpager/index';
+import { useTheme } from '../../assets/themes/index';
+import { Header } from '../../components/reusable/ResuableWidgets';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
-import { checkData } from '../../utilities/index';
-import { ImageGallery, ActivityOverlay, Header } from '../../components/reusable/ResuableWidgets';
-import moment from 'moment';
-import { ScrollView } from 'react-native';
-import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
+import { IndicatorViewPager, PagerTabIndicator } from '../../components/reusable/viewpager/index';
+import { Navigation } from 'react-native-navigation';
+import MeetRequestList from '../../components/reusable/MeetRequestList';
 
 const { colors } = useTheme();
 
-const RequestCategoryItem = ({ onClick, icon, avatar, catName }) => {
-    let width = responsiveWidth(44);
-    let height = responsiveWidth(15);
+const FirstTimeView = ({ meetupform, updateMeetForm, meetupmain }) => {
+    //COMPONENT STARTS HERE
+    const renderDotIndicator = () => {
+        return (
+            <PagerDotIndicator
+                pageCount={2}
+                dotStyle={{ borderColor: 'silver', width: 13, borderWidth: 2, backgroundColor: colors.background, height: 13, borderRadius: 50, borderWidth: 1 }}
+                selectedDotStyle={{ borderColor: 'silver', borderWidth: 2, width: 16, backgroundColor: colors.text, height: 16, borderRadius: 50, borderWidth: 1 }}
+                hideSingle
+            />
+        );
+    }
 
     return (
-        <TouchableScale
-            activeScale={0.7}
-            tension={10}
-            onPress={() => {
-                Navigation.showModal({
-                    component: {
-                        name: "MeetupMain",
-                        id: 'MEETUP_MAIN',
-                        passProps: {
-                            screentype: 'modal',
-                            catName
-                        }
-                    }
-                });
-            }}
+        <IndicatorViewPager
+            style={{ flex: 1, marginBottom: 20 }}
+            initialPage={0}
+            indicator={renderDotIndicator()}
         >
-            <EImage
-                style={{ width, height, maxWidth: 300, maxHeight: 300 }}
-                containerStyle={{ elevation: 3, marginVertical: 10, marginHorizontal: 10, backgroundColor: colors.border }}
-                placeholderStyle={{ backgroundColor: colors.border }}
-                resizeMode="cover"
-                source={avatar}
-            >
-                <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
-                    <Text style={{ backgroundColor: 'rgba(0,0,0,0.03)', color: "white", fontWeight: "bold", fontSize: responsiveFontSize(2.6) }}>
-                        {catName}
-                    </Text>
-                </View>
-            </EImage>
-        </TouchableScale >
+            <View key={0} style={styles.pagerView}>
+                <Avatar
+                    rounded
+                    size={200}
+                    containerStyle={{ marginTop: 10, backgroundColor: colors.border }}
+                    placeholderStyle={{ backgroundColor: colors.border }}
+                    icon={{ size: responsiveFontSize(4), name: 'image', type: 'evilicons', color: 'white' }}
+                    source={require('../../assets/meetupscreen/icon2.png')}
+                />
+                <Text style={styles.pagerViewText}>
+                    Meet New people across campuses
+            </Text>
+            </View>
+
+            <View key={1} style={styles.pagerView}>
+                <Avatar
+                    rounded
+                    size={200}
+                    containerStyle={{ backgroundColor: colors.border }}
+                    placeholderStyle={{ backgroundColor: colors.border }}
+                    icon={{ size: responsiveFontSize(4), name: 'image', type: 'evilicons', color: 'white' }}
+                    source={require('../../assets/meetupscreen/icon3.png')}
+                />
+                <Text style={styles.pagerViewText}>
+                    Create Meets and connect with others that share your interest
+                </Text>
+                <Button
+                    title={'Get Started'}
+                    onPress={() => updateMeetForm({ accepted: true })}
+                    titleStyle={{ color: 'white' }}
+                    containerStyle={{ marginVertical: 15 }}
+                    buttonStyle={{ width: 250, borderRadius: 20, backgroundColor: colors.blue, padding: 13 }}
+                />
+            </View>
+        </IndicatorViewPager>
     );
 };
 
-const MeetupScreen = ({
-   componentId,
-    meetupform,
-    privatechatlistform,
-    authprofile,
+export const MeetupScreen = ({
+    componentId,
     updateMeetForm,
-    saveMeetupDetails,
-    connected
+    meetupmain,
+    meetupform,
+    fetchMeetRequests,
+    fetchMoreMeetRequests
 }) => {
     const [loaded, setLoaded] = useState(false);
-    const [inputvalue, setInputValue] = useState('');
-    const [time, setTime] = useState(null);
-    let avatar = meetupform.avatar_name || meetupform.meetup_avatar;
-    /**CONDITIONAL STATEMENTS  STARTS HERE */
-    if (checkData(avatar)) {
-        avatar = { uri: avatar };
-    } else {
-        avatar = null;
-    }
-    /**CONDITIONAL STATEMENTS  ENDS HERE*/
+    let meetupreqobj = meetupmain;
+    let category = meetupreqobj.options.request_category;
 
-    /**compoent function goes here */
+    //COMPONENT FUNCTION STARTS HERE
+
     useEffect(() => {
-        updateMeetForm({ processing: false });
         EntypoIcon.getImageSource('network', 100).then(e =>
             Navigation.mergeOptions(componentId, {
                 bottomTab: {
                     icon: e,
                 }
-            }));
+            })
+        );
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
                     setLoaded(true);
                 }
+                fetchMeetRequests();
             },
             componentDidDisappear: () => {
             }
@@ -98,13 +106,55 @@ const MeetupScreen = ({
         // Register the listener to all events related to our component
         const unsubscribe = Navigation.events().bindComponent(listener, componentId);
         return () => {
-            if (meetupform.visited != true) {
-                updateMeetForm({ visited: true });
-            }
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
         };
     }, []);
+
+    const renderTabIndicator = () => {
+        const TABS = [
+            {
+                text: "Meets"
+            },
+            {
+                text: "Meet Msgs"
+            },
+            {
+                text: "My Meets"
+            }
+        ];
+        return (
+            <PagerTabIndicator
+                textStyle={{
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    color: colors.placeholder,
+                    fontSize: responsiveFontSize(1.8)
+                }}
+                selectedTextStyle={{
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    color: colors.text,
+                    fontSize: responsiveFontSize(1.8)
+                }}
+                style={{
+                    borderColor: colors.border,
+                    height: 50,
+                    borderBottomWidth: 0.5,
+                    backgroundColor: colors.background,
+                }}
+                itemStyle={{
+                    height: '100%',
+                }}
+                selectedItemStyle={{
+                    borderBottomWidth: 1.5,
+                    height: '100%',
+                    borderColor: colors.text,
+                }}
+                tabs={TABS}
+            />
+        );
+    };
 
     const renderView = () => {
         if (loaded == false) {
@@ -112,240 +162,131 @@ const MeetupScreen = ({
                 <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
                     {
                         colors.theme == "white" ?
-                            <Image source={require('../../assets/animations/loader1white.gif')} style={{ width: 300, height: 300 }} />
+                            <Image
+                                source={require('../../assets/animations/loader1white.gif')}
+                                style={{ width: 300, height: 300 }}
+                            />
                             :
                             <Image source={require('../../assets/animations/loader1black.gif')}
-                                style={{ width: 300, height: 300 }} />
+                                style={{ width: 300, height: 300 }}
+                            />
                     }
 
                 </View>
             );
-        } else if (!checkData(meetupform.meetup_avatar) || !checkData(meetupform.meetup_name)) {
-            const renderDotIndicator = () =>
-                <PagerDotIndicator
-                    pageCount={3}
-                    dotStyle={{ borderColor: 'silver', width: 10, borderWidth: 2, backgroundColor: colors.background, height: 10, borderRadius: 50, borderWidth: 1 }}
-                    selectedDotStyle={{ borderColor: 'silver', borderWidth: 2, width: 13, backgroundColor: colors.text, height: 13, borderRadius: 50, borderWidth: 1 }}
-                    hideSingle
-                />;
+        } else if (!meetupform.accepted) {
             return (
-                <>
-                <IndicatorViewPager
-                    style={{ flex: 0.9 }}
-                    initialPage={meetupform.visited == false ? 0 : 2}
-                    indicator={renderDotIndicator()}
-                >
-                    <View key={0} style={styles.pagerView}>
-                        <Avatar
-                            rounded
-                            size={200}
-                            containerStyle={{ marginTop: 10, backgroundColor: colors.border }}
-                            placeholderStyle={{ backgroundColor: colors.border }}
-                            icon={{ size: responsiveFontSize(4), name: 'image', type: 'evilicons', color: 'white' }}
-                            source={require('../../assets/meetupscreen/icon2.png')}
-                        />
-                        <Text style={styles.pagerViewText}>
-                            Find and Meet with new people across campuses
-                        </Text>
-                    </View>
-
-                    <View key={1} style={styles.pagerView}>
-                        <Avatar
-                            rounded
-                            size={200}
-                            containerStyle={{ backgroundColor: colors.border }}
-                            placeholderStyle={{ backgroundColor: colors.border }}
-                            icon={{ size: responsiveFontSize(4), name: 'image', type: 'evilicons', color: 'white' }}
-                            source={require('../../assets/meetupscreen/icon3.png')}
-                        />
-                        <Text style={styles.pagerViewText}>
-                            Connect with like minds and make memories
-                        </Text>
-                    </View>
-
-                    <View key={2} style={styles.pagerView}>
-                        <Avatar
-                            size={160}
-                            source={avatar}
-                            onPress={() => {
-                                Navigation.showModal({
-                                    component: {
-                                        name: "GiphyGallery",
-                                        id: 'GIPHY_GALLERY',
-                                        passProps: {
-                                            screentype: 'modal',
-                                            onSubmitAction: (smallavatar, avatar) => {
-                                                Navigation.dismissAllModals();
-                                                saveMeetupDetails([null, avatar]);
-                                            }
-                                        }
-                                    }
-                                });
-                            }}
-                            rounded
-                            containerStyle={{ marginTop: 20, backgroundColor: "#673ab7" }}
-                            placeholderStyle={{ backgroundColor: "#673ab7" }}
-                            icon={{ size: responsiveFontSize(6), name: 'camerao', type: 'antdesign', color: 'white' }}
-                        />
-                        <Text style={{ marginTop: 3, fontSize: responsiveFontSize(2), textAlign: "center", color: 'red' }}>
-                            {meetupform.errors.meetup_avatar_err || meetupform.errors.meetup_avatar_name_err}
-                        </Text>
-                        <Input
-                            placeholder="Set A Meet Name"
-                            leftIcon={{
-                                name: "pencil",
-                                type: "evilicon",
-                                color: colors.iconcolor,
-                                size: responsiveFontSize(5)
-                            }}
-                            onChangeText={(txt) => {
-                                setInputValue(txt);
-                            }}
-                            onSubmitEditing={() => {
-                                saveMeetupDetails([inputvalue]);
-                            }}
-                            value={inputvalue}
-                            returnKeyType={'go'}
-                            errorMessage={meetupform.errors.meetup_name_err}
-                            selectionColor='#2196F3'
-                            maxLength={15}
-                            errorStyle={{ color: 'red' }}
-                            inputContainerStyle={{ borderWidth: 0, borderBottomWidth: 0 }}
-                            placeholderTextColor={colors.placeholder}
-                            containerStyle={{ maxWidth: 300, marginTop: 10, borderWidth: 0, }}
-                            inputStyle={{ color: colors.text, borderWidth: 0, borderBottomWidth: 1, borderColor: colors.border }}
-                        />
-                        <Button
-                            type="outline"
-                            icon={{
-                                name: 'arrow-right',
-                                type: "evilicon",
-                                size: responsiveFontSize(4),
-                                color: colors.text
-                            }}
-                            onPress={() => {
-                                saveMeetupDetails([inputvalue]);
-                            }}
-                            iconRight
-                            title={'Next'}
-                            titleStyle={{ color: colors.iconcolor }}
-                            buttonStyle={{
-                                borderColor: colors.text,
-                                alignItems: 'center',
-                                borderRadius: 50,
-                                padding: 10
-                            }}
-                            containerStyle={{ marginBottom: 50 }}
-                        />
-
-                    </View>
-                </IndicatorViewPager>
-                <ActivityOverlay text={'Processing'} isVisible={meetupform.processing} />
-                </>
+                <FirstTimeView
+                    meetupform={meetupform}
+                    updateMeetForm={updateMeetForm}
+                />
             );
         } else {
-            let reqCategory = [
-                {
-                    avatar: require('../../assets/meetupscreen/requestcat/hangout.jpeg'),
-                    catName: "Hangout"
-                },
-                {
-                    avatar: require('../../assets/meetupscreen/requestcat/music.jpeg'),
-                    catName: "Music"
-                },
-                {
-                    avatar: require('../../assets/meetupscreen/requestcat/sport.jpeg'),
-                    catName: "Sport"
-                },
-                {
-                    avatar: require('../../assets/meetupscreen/requestcat/study.jpeg'),
-                    catName: "Study"
-                },
-                {
-                    avatar: require('../../assets/meetupscreen/requestcat/party.jpeg'),
-                    catName: "Party"
-                },
-                {
-                    avatar: require('../../assets/meetupscreen/requestcat/gaming.jpeg'),
-                    catName: "Gaming"
-                },
-
-            ];
             return (
-                <View style={styles.containerStyle}>
-                    <Header
-                        headertext="Meet"
-                        headertextcolor={colors.text}
-                        headercolor={colors.card}
-                        headerStyle={{ width: responsiveWidth(100), elevation: 0.6 }}
-                        headertextsize={responsiveFontSize(4)}
-                        headerTextStyle={{
-                            marginHorizontal: 30,
-                            textAlign: "center",
-                            // width: '100%',
-                            fontFamily: 'cursive',
-                            fontWeight: 'bold'
-                        }}
-                    />
-                    <ScrollView
-                        style={{ marginTop: 5 }}
-                        contentContainerStyle={styles.requestCatCtn}
-                    >
-                        {
-                            reqCategory.map((item, index) => {
-                                return (
-                                    <RequestCategoryItem
-                                        avatar={item.avatar}
-                                        key={index}
-                                        catName={item.catName}
-                                    />
-                                );
-                            })
-                        }
+                <>
+                <Header
+                    headertext="Meet"
+                    headertextcolor={colors.text}
+                    headercolor={colors.card}
+                    headerStyle={{ width: responsiveWidth(100), elevation: 1 }}
+                    headertextsize={responsiveFontSize(4)}
+                    headerTextStyle={{
+                        marginHorizontal: 30,
+                        textAlign: "center",
+                        fontFamily: 'cursive',
+                        fontWeight: 'bold'
+                    }}
+                    righticon={
+                        <>
+                        <Avatar
+                            rounded
+                            size={30}
+                            containerStyle={{ backgroundColor: colors.border }}
+                            placeholderStyle={{ backgroundColor: colors.border }}
+                            source={require('../../assets/meetupscreen/meetupmain/blackhi.gif')}
+                        />
+                        </>
+                    }
+                    righticon2={
+                        <Icon
+                            type="antdesign"
+                            name="plus"
+                            style={{
+                                borderWidth: 2,
+                                padding: 2,
+                                borderRadius: 10,
+                                borderColor: colors.text
+                            }}
+                            color={colors.text}
+                            size={responsiveFontSize(2.5)}
+                        />
+                    }
+                />
+                <IndicatorViewPager
+                    initialPage={0}
+                    style={{ flex: 1, marginTop: 2, borderBottomWidth: 0 }}
+                    indicatorposition={'top'}
+                    indicator={renderTabIndicator()}
+                    keyboardDismissMode='none'
+                >
+                    <View key={0} style={{ flex: 1 }}>
+                        <MeetRequestList
+                            meetupreqobj={meetupreqobj}
+                            fetchReqs={fetchMeetRequests}
+                            fetchMoreReqs={fetchMoreMeetRequests}
+                        />
+                    </View>
 
-                    </ScrollView>
-                </View>
+                    <View key={1} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                        <Text style={{ color: colors.text }}>Conversations</Text>
+                    </View>
+                    <View key={2} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                        <MeetRequestList
+                            meetupreqobj={meetupreqobj}
+                            myrequests={true}
+                            fetchReqs={() => fetchMyMeetRequests()}
+                        />
+                    </View>
+                </IndicatorViewPager>
+                </>
             );
         }
     };
 
-    /**component function ends here */
-    return (
-        <SafeAreaView
-            style={styles.containerStyle}
-        >
-            {renderView()}
-        </SafeAreaView>
+    //COMPONENT FUNCTION ENDS HERE
 
+    return (
+        <SafeAreaView style={styles.containerStyle}>
+            <View style={styles.contentContainerStyle}>
+                {renderView()}
+            </View>
+        </SafeAreaView>
     );
 };
-MeetupScreen.options = {
-    bottomTabs: {
-        visible: true
-    },
-    bottomTab: {
-        text: 'Meet',
-    },
-};
-
-const mapStateToProps = state => ({
-    connected: state.network.isConnected,
-    privatechatlistform: state.privatechatlistform,
-    meetupform: state.meetupform,
-    authprofile: state.profile,
-    offlineactions: state.offlineactions,
-});
 
 const styles = StyleSheet.create({
     containerStyle: {
         flex: 1,
-        // alignItems: "center",
-        backgroundColor: colors.background
+        backgroundColor: colors.background,
+        marginBottom: 55
     },
     pagerView: {
-        flex: 1,
+        width: "100%",
+        height: "100%",
         alignItems: "center",
         justifyContent: "center"
+    },
+    container: {
+        flex: 1,
+    },
+    tabBar: {
+        flexDirection: 'row',
+        paddingTop: 20,
+    },
+    tabItem: {
+        flex: 1,
+        alignItems: 'center',
+        padding: 16,
     },
     pagerViewText: {
         margin: 20,
@@ -353,12 +294,29 @@ const styles = StyleSheet.create({
         textAlign: "center",
         color: 'silver'
     },
-    requestCatCtn: {
-        flexDirection: "row",
-        justifyContent: "center",
+    contentContainerStyle: {
+        flex: 1,
         backgroundColor: colors.background,
-        flexWrap: 'wrap',
+    },
+    checkBoxCtn: {
+        backgroundColor: colors.background,
+        borderColor: colors.iconcolor,
+        borderRadius: 10
     }
+});
+
+MeetupScreen.options = {
+    bottomTabs: {
+        visible: true
+    },
+    bottomTab: {
+        text: "Meet"
+    }
+};
+
+const mapStateToProps = (state) => ({
+    meetupmain: state.meetupmain,
+    meetupform: state.meetupform
 });
 
 export default connect(mapStateToProps, actions)(MeetupScreen);

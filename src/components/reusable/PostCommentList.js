@@ -3,7 +3,7 @@ import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { ListItem, ConfirmModal, BottomListModal, PanelMsg, ActivityOverlay, AvatarNavModal } from './ResuableWidgets';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
 import { useTheme } from '../../assets/themes';
-import { checkData, handleTime } from '../../utilities';
+import { checkData, handleTime, hasProperty } from '../../utilities';
 import { Icon, Overlay, Text, Button } from 'react-native-elements';
 import { Navigation } from 'react-native-navigation';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
@@ -533,32 +533,13 @@ export default class PostCommentList extends React.Component {
     };
 
     _renderItem = ({ item }) => {
-        /* return (
-             <ShowComment
-                 data={this.props.data}
-                 onLongPress={(item) => this._setSelected(
-                     item.commentid,
-                     item.profile.profile_id,
-                     item
-                 )}
-                 updateComment={this.props.updateComment}
-                 onAvatarPress={(item) => {
-                     this.setState({
-                         avatarnavmodal: {
-                             ...this.state.avatarnavmodal,
-                             headername: item.profile.user.username,
-                             profile: item.profile,
-                             avatar: item.profile.avatar[1],
-                             visible: true
-                         }
-                     });
-                 }}
-                 numLikesPress={(item) => this._navShowLikes(item.commentid)}
-                 likePress={(item) => this._onItemLiked(item.commentid, item.commentliked, item.num_likes)}
-                 replyPress={(item) => this._navShowReplies(item)}
-             />
-         )*/
-        if (item.profile.profilemuted == true && item.muted != false) {
+        if (!hasProperty(item, ['profile']) || !hasProperty(item.profile, ['user'])) {
+            return (
+                <PanelMsg
+                    message={'Comment is unavailable'}
+                />
+            );
+        } else if (item.profile.profilemuted == true && item.muted != false) {
             return (
                 <PanelMsg
                     message={'This comment is from someone you have muted '}

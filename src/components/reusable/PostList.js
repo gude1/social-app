@@ -7,7 +7,7 @@ import { Icon, Avatar, Image, Overlay, Button } from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
 //import { ViewPager, IndicatorViewPager, PagerDotIndicator } from '';
 import * as  Animatable from 'react-native-animatable';
-import { checkData, toHumanReadableTime, handleTime } from '../../utilities/index';
+import { checkData, toHumanReadableTime, handleTime, hasProperty } from '../../utilities/index';
 import { Navigation } from 'react-native-navigation';
 import { store } from '../../store/index';
 import TouchableScale from 'react-native-touchable-scale';
@@ -716,45 +716,16 @@ export default class PostList extends React.Component {
     };
 
     _renderItem = ({ item }) => {
-        /* return (
-             <ShowPost
-                 data={this.props.data}
-                 arrangePostImage={this._arrangePostImage}
-                 onOthersPostOption={(item) => {
-                     this._setSelected(item.postid, item.profile.profile_id, item);
-                 }}
-                 onUserPostOption={(item) => {
-                     this._setSelected(item.postid, item.profile.profile_id, item);
-                 }}
-                 onAvatarPress={(item) => {
-                     this.setState({
-                         avatarnavmodal: {
-                             ...this.state.avatarnavmodal,
-                             headername: item.profile.user.username,
-                             profile: item.profile,
-                             avatar: item.profile.avatar[1],
-                             visible: true
-                         }
-                     });
-                 }}
-                 onLikePress={this._likePostItem}
-                 onViewLikesPress={(item) => this._navShowLikes(item.postid)}
-                 onSharePress={this._sharePostItem}
-                 onViewSharesPress={(item) => this._navShowShares(item.postid)}
-                 onCommentPress={(item) => {
-                     this._openComments(item);
-                 }}
-             />
-         )*/
-        if (!checkData(item) || !checkData(item.profile)) {
+        let sharemsg = null;
+
+        if (!hasProperty(item, ['profile']) || !hasProperty(item.profile, ['user'])) {
             return (
                 <PanelMsg
                     message={'Post is unavailable'}
                 />
             );
-        }
-        let sharemsg = null;
-        if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
+        } else if (item.profile.profilemuted == true && checkData(item.showpost) == false) {
+
             return (
                 <PanelMsg
                     message={'This post is from someone you have muted'}

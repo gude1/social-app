@@ -4,7 +4,7 @@ import { checkData } from "../utilities/index";
 
 const INITIAL_STATE = {
     processing: false,
-    visited: false,
+    accepted: false,
     meetup_name: '',
     avatar_name: null,
     meetup_avatar: null,

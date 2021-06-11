@@ -74,7 +74,6 @@ export class Header extends React.PureComponent {
                 {lefticon}
                 <Text style={{
                     fontSize: headertextsize,
-                    /// fontWeight: 'bold',
                     marginHorizontal: 15,
                     color: headertextcolor,
                     ...headerTextStyle
@@ -802,7 +801,7 @@ export class ListItem extends Component {
     }
 
     _setBtnComponent = () => {
-        if (this.props.likebtn == true && this.props.hide == false) {
+        if (this.props.likebtn == true && this.props.hide != true) {
             return (this.props.likeButtonComponent || <Icon
                 Component={TouchableScale}
                 activeScale={0.8}

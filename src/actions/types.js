@@ -242,7 +242,10 @@ export const ADD_MEETUPMAIN_REQUESTS = 'add_meetupmain_requests';
 export const UPDATE_MEETUPMAIN_REQUEST = 'update_meetupmain_request';
 export const SET_MEETUPMAIN_URL = 'set_meetupmain_url';
 export const ADD_MEETUPMAIN_MY_REQUESTS = 'add_meetupmain_myrequests';
+export const UPDATE_MEETUPMAIN_MY_REQUESTS = 'update_meetupmain_myrequests';
 export const SET_MEETUPMAIN_ERRORS = 'set_meetup_errors';
+export const REMOVE_MEETUPMAIN_REQUESTS = 'remove_meetupmain_requests';
+export const REMOVE_MEETUPMAIN_MY_REQUESTS = 'remove_meetupmain_my_requests';
 
 /**
  * TYPE CONSTANT FOR GIPHYGALLERY REDUCER
