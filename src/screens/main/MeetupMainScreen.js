@@ -318,7 +318,7 @@ const MeetupMainScreen = ({
                             setCreateReq(REQUEST_SCHEMA);
                         }}
                         visible={showmakereqmodal}
-                        ListTitle={'Create Meet Req'}
+                        ListTitle={'Create Meet'}
                         loading={false}
                         contentContainerStyle={{ marginLeft: 0 }}
                     >
@@ -341,7 +341,7 @@ const MeetupMainScreen = ({
                                 mode="dialog"
                                 options={EmojiList}
                                 selectedValue={createReq.request_mood}
-                                labelText="What's your mood"
+                                labelText="Meet mood"
                                 borderColor={colors.border}
                                 labelStyle={{ color: colors.text }}
                                 placeholderColor={colors.placeholder}
@@ -369,7 +369,7 @@ const MeetupMainScreen = ({
                                 multiline={true}
                                 label="Meet Req text (<=200)"
                                 placeholderTextColor={colors.placeholder}
-                                placeholder={'Write your request'}
+                                placeholder={'Meet M'}
                                 labelStyle={{ color: colors.text }}
                                 inputStyle={{
                                     borderBottomWidth: 1,

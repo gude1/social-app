@@ -1,19 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
-import { Animated, View, TouchableOpacity, StyleSheet, SafeAreaView, Image } from 'react-native';
+import { Animated, View, TouchableOpacity, StyleSheet, SafeAreaView, Image, Alert } from 'react-native';
 import { Text, Icon, Avatar, CheckBox, Input, Button } from 'react-native-elements';
 import * as actions from '../../actions';
 import { connect } from 'react-redux';
 import { useTheme } from '../../assets/themes/index';
-import { Header } from '../../components/reusable/ResuableWidgets';
+import { Header, ModalList, ScrollableListOverLay } from '../../components/reusable/ResuableWidgets';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import { IndicatorViewPager, PagerTabIndicator, PagerDotIndicator } from '../../components/reusable/viewpager/index';
 import { Navigation } from 'react-native-navigation';
 import MeetRequestList from '../../components/reusable/MeetRequestList';
+import CustomPicker from '../../components/reusable/Picker';
+import EmojiList from '../../assets/static/EmojiList.json';
+import HoursList from '../../assets/static/HoursList.json';
+import MeetTypes from '../../assets/static/MeetTypes.json';
+import CampusList from '../../assets/static/CampusList.json';
+import { isEmpty, checkData, Toast } from '../../utilities/index';
+import moment from 'moment';
+
 
 const { colors } = useTheme();
 
-const FirstTimeView = ({ meetupform, updateMeetForm, meetupmain }) => {
+const FirstTimeView = ({ meetupform, okAction, meetupmain }) => {
+
     //COMPONENT STARTS HERE
     const renderDotIndicator = () => {
         return (
@@ -60,7 +69,7 @@ const FirstTimeView = ({ meetupform, updateMeetForm, meetupmain }) => {
                 </Text>
                 <Button
                     title={'Get Started'}
-                    onPress={() => updateMeetForm({ accepted: true })}
+                    onPress={okAction}
                     titleStyle={{ color: 'white' }}
                     containerStyle={{ marginVertical: 15 }}
                     buttonStyle={{ width: 250, borderRadius: 20, backgroundColor: colors.blue, padding: 13 }}
@@ -74,16 +83,74 @@ export const MeetupScreen = ({
     componentId,
     updateMeetForm,
     meetupmain,
+    setMeetupMain,
+    authprofile,
     meetupform,
+    createMeetRequest,
+    removeMeetupMainMyRequests,
+    removeMeetupMainRequests,
+    fetchMyMeetRequests,
     fetchMeetRequests,
     fetchMoreMeetRequests
 }) => {
+    const REQUEST_SCHEMA = {
+        expires_at: 24,
+        request_msg: '',
+        request_category: "Hangout",
+        request_mood: '😀',
+    };
     const [loaded, setLoaded] = useState(false);
-    let meetupreqobj = meetupmain;
+    const [showmeetsetting, showMeetSetting] = useState(false);
+    const [createReq, setCreateReq] = useState(REQUEST_SCHEMA);
+    const [showmakemeetmodal, setShowMakeMeetModal] = useState(false);
+    const [onscreen, setOnScreen] = useState(false);
+    const [reqoptions, setReqOptions] = useState(meetupmain.options);
+    const [viewpager, setViewPager] = useState(null);
+    const [showmeetprofileopt, setShowMeetProfileOpt] = useState(false);
+    const MEET_PROFILE_OPTIONS = [
+        {
+            title: "View Your Meet Profile",
+            onPress: () => {
+                setShowMeetProfileOpt(false);
+                Navigation.showModal({
+                    component: {
+                        name: 'PhotoViewer',
+                        passProps: {
+                            navparent: true,
+                            headerText: meetupform.meetup_name,
+                            photos: [meetupform.meetup_avatar]
+                        },
+                    }
+                });
+            }
+        },
+        {
+            title: "Edit Your Meet Profile",
+            onPress: () => {
+                setShowMeetProfileOpt(false);
+                Navigation.showModal({
+                    component: {
+                        name: 'MeetupForm',
+                        passProps: {
+                            navparent: true,
+                        },
+                    }
+                });
+            }
+        },
+        {
+            title: "Edit Your Meet Setting",
+            onPress: () => {
+                setShowMeetProfileOpt(false);
+                showMeetSetting(true);
+            }
+        }
+    ];
+    let meetupreqobj = filterMeets();
     let category = meetupreqobj.options.request_category;
-
+    let mood = meetupreqobj.options.request_mood;
     //COMPONENT FUNCTION STARTS HERE
-
+    console.warn(category);
     useEffect(() => {
         EntypoIcon.getImageSource('network', 100).then(e =>
             Navigation.mergeOptions(componentId, {
@@ -92,15 +159,22 @@ export const MeetupScreen = ({
                 }
             })
         );
+        if (meetupform.accepted == true) {
+            fetchMeetRequests();
+            fetchMyMeetRequests();
+        }
         const listener = {
             componentDidAppear: () => {
                 if (!loaded) {
                     setLoaded(true);
                 }
-                fetchMeetRequests();
+                setOnScreen(true);
+                setScreenInfo();
             },
             componentDidDisappear: () => {
+                setOnScreen(false);
             }
+
         };
 
         // Register the listener to all events related to our component
@@ -110,6 +184,67 @@ export const MeetupScreen = ({
             unsubscribe.remove();
         };
     }, []);
+
+    useEffect(() => {
+        if (onscreen) {
+            setScreen();
+        }
+    }, [onscreen, meetupform.accepted, meetupform.meetup_name, meetupform.meetup_avatar]);
+
+    function filterMeets() {
+        let requests = meetupmain.requests.filter(item => {
+            if (!isEmpty(category) && category != item.request_category)
+                return false;
+            else if (!isEmpty(mood) && mood != item.request_mood)
+                return false;
+            else
+                return true;
+        });
+        return { ...meetupmain, requests };
+    }
+
+    const setScreenInfo = () => {
+        if (isEmpty(meetupmain)) {
+            return;
+        }
+        let current = new Date().getTime();
+        let requests = meetupmain.requests.forEach(item => {
+            let expires_at = Math.floor(item.expires_at * 1000);
+            if (item.deleted == true || expires_at <= current) {
+                removeMeetupMainRequests(item.request_id);
+            }
+        });
+
+        let myrequests = meetupmain.myrequests.filter(item => {
+            let expires_at = Math.floor(item.expires_at * 1000);
+            if (item.deleted == true || expires_at <= current) {
+                removeMeetupMainMyRequests(item.request_id);
+            }
+        });
+    };
+
+
+    const setScreen = () => {
+        if ((isEmpty(meetupform.meetup_name) || isEmpty(meetupform.meetup_avatar)) &&
+            meetupform.accepted == true
+        ) {
+            Alert.alert(
+                'Please setup your meet profile to continue',
+                'Press ok to start',
+                [
+                    {
+                        text: "Ok",
+                        onPress: () => setShowMeetProfileOpt(true),
+                    },
+                    {
+                        text: "Cancel",
+                        style: "cancel"
+                    },
+                ]
+            )
+        }
+
+    };
 
     const renderTabIndicator = () => {
         const TABS = [
@@ -178,7 +313,11 @@ export const MeetupScreen = ({
             return (
                 <FirstTimeView
                     meetupform={meetupform}
-                    updateMeetForm={updateMeetForm}
+                    okAction={() => {
+                        updateMeetForm({ accepted: true });
+                        fetchMeetRequests();
+                        fetchMyMeetRequests();
+                    }}
                 />
             );
         } else {
@@ -203,10 +342,11 @@ export const MeetupScreen = ({
                             size={30}
                             containerStyle={{ backgroundColor: colors.border }}
                             placeholderStyle={{ backgroundColor: colors.border }}
-                            source={require('../../assets/meetupscreen/meetupmain/blackhi.gif')}
+                            source={isEmpty(meetupform.meetup_avatar) ? null : { uri: meetupform.meetup_avatar }}
                         />
                         </>
                     }
+                    rightIconPress={() => setShowMeetProfileOpt(true)}
                     righticon2={
                         <Icon
                             type="antdesign"
@@ -221,9 +361,12 @@ export const MeetupScreen = ({
                             size={responsiveFontSize(2.5)}
                         />
                     }
+                    rightIcon2Press={() => setShowMakeMeetModal(true)}
                 />
                 <IndicatorViewPager
                     initialPage={0}
+                    offscreenPageLimit={1}
+                    ref={viewpager => setViewPager(viewpager)}
                     style={{ flex: 1, marginTop: 2, borderBottomWidth: 0 }}
                     indicatorposition={'top'}
                     indicator={renderTabIndicator()}
@@ -232,22 +375,256 @@ export const MeetupScreen = ({
                     <View key={0} style={{ flex: 1 }}>
                         <MeetRequestList
                             meetupreqobj={meetupreqobj}
+                            authprofile={authprofile}
                             fetchReqs={fetchMeetRequests}
                             fetchMoreReqs={fetchMoreMeetRequests}
                         />
                     </View>
 
                     <View key={1} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                        <Text style={{ color: colors.text }}>Conversations</Text>
+                        <Text onPress={() => {
+                            checkData(viewpager) && viewpager.setPage(2);
+                            //alert(JSON.stringify(meetupmain.options));
+                            //console.warn('Button Meetupmain', meetupmain.requests);
+                            //console.warn('Button Meetupobj', meetupmain.requests);
+                        }} style={{ color: colors.text }}>Conversations</Text>
                     </View>
-                    <View key={2} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <View key={2} style={{ flex: 1 }}>
                         <MeetRequestList
                             meetupreqobj={meetupreqobj}
+                            authprofile={authprofile}
                             myrequests={true}
                             fetchReqs={() => fetchMyMeetRequests()}
                         />
                     </View>
                 </IndicatorViewPager>
+                <ModalList
+                    optionsArr={MEET_PROFILE_OPTIONS}
+                    isVisible={showmeetprofileopt}
+                    onBackdropPress={() => setShowMeetProfileOpt(false)}
+                />
+
+                <ScrollableListOverLay
+                    submitAction={() => {
+                        showMeetSetting(false);
+                        setMeetupMain({
+                            options: {
+                                ...meetupreqobj.options,
+                                ...reqoptions
+                            }
+                        });
+                        setMeetupMain({ requests: [] });
+                        setTimeout(() => {
+                            fetchMeetRequests();
+                            Toast('Meet settings saved');
+                        }, 1000);
+                    }}
+                    submitactiontxt={'Save'}
+                    onBackdropPress={() => {
+                        showMeetSetting(false);
+                        setReqOptions(meetupreqobj.options);
+                    }}
+                    visible={showmeetsetting}
+                    ListTitle={'Meet Setting'}
+                    loading={false}
+                    contentContainerStyle={{
+                        marginLeft: 0,
+                        flex: 1,
+                    }}
+                >
+                    <View style={{
+                        marginLeft: 10,
+                        marginTop: 5,
+                        marginRight: 5,
+                        flex: 1,
+                    }}>
+                        <CustomPicker
+                            containerPickerStyle={{ width: "100%" }}
+                            pickerContainerStyle={{ width: "100%" }}
+                            onValueChange={(itemValue, itemIndex) => {
+                                setReqOptions({
+                                    ...reqoptions,
+                                    request_mood: itemValue
+                                });
+                            }}
+                            mode="dialog"
+                            options={EmojiList}
+                            selectedValue={reqoptions.request_mood}
+                            labelText="Filter meets by mood"
+                            borderColor={colors.border}
+                            labelStyle={{ color: colors.text }}
+                            placeholderColor={colors.placeholder}
+                            backgroundColor={colors.card}
+                            icon={{
+                                type: 'antdesign',
+                                name: 'smileo',
+                                color: colors.iconcolor,
+                                size: 28
+                            }}
+                        />
+                        <CustomPicker
+                            containerPickerStyle={{ width: "100%" }}
+                            pickerContainerStyle={{ width: "100%" }}
+                            onValueChange={(itemValue, itemIndex) => {
+                                setReqOptions({
+                                    ...reqoptions,
+                                    campus: itemValue
+                                });
+                            }}
+                            mode="dialog"
+                            selectedValue={reqoptions.campus}
+                            options={CampusList}
+                            labelText="Filter meets by campus"
+                            borderColor={colors.border}
+                            labelStyle={{ color: colors.text }}
+                            placeholderColor={colors.placeholder}
+                            backgroundColor={colors.card}
+                            icon={{
+                                type: 'antdesign',
+                                name: 'book',
+                                color: colors.iconcolor,
+                                size: 28
+                            }}
+                        />
+
+                    </View>
+                </ScrollableListOverLay>
+                <ScrollableListOverLay
+                    submitAction={() => {
+                        createMeetRequest([
+                            createReq.request_msg,
+                            createReq.request_category,
+                            createReq.request_mood,
+                            createReq.expires_at
+                        ], () => {
+                            checkData(viewpager) && viewpager.setPage(2);
+                        });
+                        setShowMakeMeetModal(false);
+                        setCreateReq(REQUEST_SCHEMA);
+                    }}
+                    height={400}
+                    submitactiontxt={'Create'}
+                    onBackdropPress={() => {
+                        setShowMakeMeetModal(false);
+                        setCreateReq(REQUEST_SCHEMA);
+                    }}
+                    visible={showmakemeetmodal}
+                    ListTitle={'Create Meet'}
+                    loading={false}
+                    contentContainerStyle={{ marginLeft: 0 }}
+                >
+                    <View style={{
+                        marginLeft: 10,
+                        marginTop: 5,
+                        marginRight: 5,
+                        flex: 1,
+                    }}>
+
+                        <CustomPicker
+                            containerPickerStyle={{ width: "100%" }}
+                            pickerContainerStyle={{ width: "100%" }}
+                            onValueChange={(itemValue, itemIndex) => {
+                                setCreateReq({
+                                    ...createReq,
+                                    request_mood: itemValue
+                                });
+                            }}
+                            mode="dialog"
+                            options={EmojiList}
+                            selectedValue={createReq.request_mood}
+                            labelText="Meet mood"
+                            borderColor={colors.border}
+                            labelStyle={{ color: colors.text }}
+                            placeholderColor={colors.placeholder}
+                            backgroundColor={colors.card}
+                            icon={{
+                                type: 'antdesign',
+                                name: 'smileo',
+                                color: colors.iconcolor,
+                                size: 25
+                            }}
+                        />
+                        <Input
+                            containerStyle={{
+                                marginVertical: 0,
+                                marginHorizontal: 0,
+                                paddingVertical: 0,
+                                paddingHorizontal: 0,
+                            }}
+                            onChangeText={(text) => {
+                                setCreateReq({
+                                    ...createReq,
+                                    request_msg: text
+                                });
+                            }}
+                            multiline={true}
+                            label="Meet Message (<=200)"
+                            placeholderTextColor={colors.placeholder}
+                            placeholder={"film show @ John doe's by 5pm"}
+                            labelStyle={{ color: colors.text }}
+                            inputStyle={{
+                                borderBottomWidth: 1,
+                                color: colors.text,
+                                borderColor: colors.border,
+                            }}
+                            inputContainerStyle={{
+                                borderBottomWidth: 0,
+                                width: '100%',
+                            }}
+                        />
+
+                        <CustomPicker
+                            containerPickerStyle={{ width: "100%" }}
+                            pickerContainerStyle={{ width: "100%" }}
+                            onValueChange={(itemValue, itemIndex) => {
+                                setCreateReq({
+                                    ...createReq,
+                                    request_category: itemValue
+                                });
+                            }}
+                            mode="dialog"
+                            options={MeetTypes}
+                            selectedValue={createReq.request_category}
+                            labelText="Kind of meet ?"
+                            borderColor={colors.border}
+                            labelStyle={{ color: colors.text }}
+                            placeholderColor={colors.placeholder}
+                            backgroundColor={colors.card}
+                            icon={{
+                                type: 'entypo',
+                                name: 'network',
+                                color: colors.iconcolor,
+                                size: 25
+                            }}
+                        />
+
+                        <CustomPicker
+                            containerPickerStyle={{ width: "100%" }}
+                            pickerContainerStyle={{ width: "100%" }}
+                            onValueChange={(itemValue, itemIndex) => {
+                                setCreateReq({
+                                    ...createReq,
+                                    expires_at: itemValue
+                                });
+                            }}
+                            mode="dialog"
+                            selectedValue={createReq.expires_at}
+                            options={HoursList}
+                            labelText="Expries after"
+                            borderColor={colors.border}
+                            labelStyle={{ color: colors.text }}
+                            placeholderColor={colors.placeholder}
+                            backgroundColor={colors.card}
+                            icon={{
+                                type: 'antdesign',
+                                name: 'clockcircleo',
+                                color: colors.iconcolor,
+                                size: 25
+                            }}
+                        />
+                    </View>
+                </ScrollableListOverLay>
+
                 </>
             );
         }
@@ -310,12 +687,18 @@ MeetupScreen.options = {
         visible: true
     },
     bottomTab: {
-        text: "Meet"
+        text: "Meet",
+        dotIndicator: {
+            color: "green",
+            animate: true,
+            visible: true
+        },
     }
 };
 
 const mapStateToProps = (state) => ({
     meetupmain: state.meetupmain,
+    authprofile: state.profile,
     meetupform: state.meetupform
 });
 

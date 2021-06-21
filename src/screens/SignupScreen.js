@@ -88,7 +88,7 @@ const SignupScreen = ({
      * functions
      */
     return (
-        <SafeAreaView style={[screenstyle.containerStyle, { backgroundColor: colors.background }]} >
+        <SafeAreaView style={screenstyle.containerStyle} >
             <AuthForm
                 imageTitle='CM'
                 appName='Campus Meetup'
@@ -434,7 +434,7 @@ const mapStateToProps = state => ({
 const screenstyle = StyleSheet.create({
     containerStyle: {
         flex: 1,
-        backgroundColor: 'white'
+        backgroundColor: colors.background
     },
 });
 

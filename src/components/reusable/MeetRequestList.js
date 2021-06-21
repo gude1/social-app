@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { Text, Icon, Button } from 'react-native-elements';
 import { useTheme } from '../../assets/themes/index';
-import { ConfirmModal, ActivityOverlay, BottomListModal, PanelMsg, AvatarNavModal, ListItem } from './ResuableWidgets';
+import { ConfirmModal, ModalList, ActivityOverlay, BottomListModal, PanelMsg, AvatarNavModal, ListItem } from './ResuableWidgets';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from 'react-native-responsive-dimensions';
-import { checkData, handleTime, hasProperty } from '../../utilities';
+import { checkData, handleTime, hasProperty, isEmpty, customAlert } from '../../utilities';
 import * as Animatable from 'react-native-animatable';
 import EmojiData from '../../assets/static/EmojiList.json';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
@@ -13,10 +13,16 @@ const { colors } = useTheme();
 
 class BottomContainerItem extends Component {
     shouldComponentUpdate(nextProps, nextState, nextContext) {
+        if (this.props.request_mood != nextProps.request_mood ||
+            this.props.campus != nextProps.campus ||
+            this.props.request_category || nextProps.request_category ||
+            this.props.created_at || nextProps.created_at) {
+            return true;
+        }
         return false;
     }
     render() {
-        const { request_mood, request_category, created_at } = this.props;
+        const { request_mood, campus, request_category, created_at } = this.props;
         return (
             <View style={{
                 paddingVertical: 5,
@@ -40,6 +46,13 @@ class BottomContainerItem extends Component {
 
                 <Animatable.Text
                     animation={'slideInUp'}
+                    style={{ color: colors.text, textAlign: "center" }}
+                    useNativeDriver={true}>
+                    {campus}
+                </Animatable.Text>
+
+                <Animatable.Text
+                    animation={'slideInUp'}
                     style={{ color: colors.iconcolor }}
                     useNativeDriver={true}>
                     {request_category} request
@@ -54,7 +67,11 @@ class BottomContainerItem extends Component {
 class MeetRequestList extends Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            showmeetoptions: false,
+        };
+        this.currentselectmeet = null;
+        this.play = !isEmpty(this.currentselectmeet) ? "exist" : "lowman";
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
@@ -204,9 +221,43 @@ class MeetRequestList extends Component {
     _keyExtractor = (item, index) => index.toString();
 
     _getItemLayout = (data, index) => {
-        if (index == -1) return { index, length: responsiveWidth(100), height: 0 };
-        return { length: this.resheight, offset: this.resheight * index, index }
+        if (index == -1) return { index, length: 0, height: 0 };
+        return { length: responsiveWidth(100), offset: responsiveWidth(100) * index, index }
     };
+
+    _returnMeetOptions = () => {
+        if (!isEmpty(this.currentselectmeet) && !isEmpty(this.currentselectmeet.requester_profile)) {
+            return this.currentselectmeet.requester_profile.profile_id == this.props.authprofile.profile_id ?
+                [
+                    {
+                        title: "Delete Meet",
+                        onPress: () => {
+                            this.setState({ showmeetoptions: false });
+                            customAlert('Delete Meet?', null, () => {
+                                alert('delete true')
+                            });
+                        }
+                    },
+                ] : [
+                    {
+                        title: "Remove Meet",
+                        onPress: () => {
+                            this.setState({ showmeetoptions: false });
+                        }
+                    },
+                    {
+                        title: "Mute Meets from this profile",
+                        onPress: () => {
+                            this.setState({ showmeetoptions: false });
+                        }
+                    },
+                ];
+        }
+        return [];
+    }
+    _onItemOptionSelected = () => {
+        this.setState({ showmeetoptions: true });
+    }
 
 
     renderItem = ({ item, index }) => {
@@ -214,16 +265,24 @@ class MeetRequestList extends Component {
             !hasProperty(item, ['requester_profile']) ||
             !hasProperty(item.requester_profile, ['user'])
         ) {
-            return null;
+            return (
+                <PanelMsg
+                    message={'This meet request is unavailable'}
+                />
+            );
         }
+        let leftavatar = isEmpty(item.requester_meet_profile.meetup_avatar) ? null : { uri: item.requester_meet_profile.meetup_avatar };
+        let created_at = item.creating == true ? "creating" :
+            item.creating == "retry" ? "Tap to retry" : item.created_at;
         return (
             <View
                 style={{ flex: 1 }}>
                 <ListItem
-                    onPress={item.creating ? this.props.fetchReqs : null}
+                    onPress={item.creating == "retry" ? item.retry : null}
                     containerStyle={styles.requestItemCtn}
-                    leftAvatar={{ uri: item.requester_meet_profile.meetup_avatar }}
+                    leftAvatar={leftavatar}
                     title={item.requester_meet_profile.meetup_name}
+                    titleStyle={{ color: colors.iconcolor }}
                     likeButtonComponent={
                         <Animatable.View
                             animation={'slideInRight'}
@@ -233,19 +292,25 @@ class MeetRequestList extends Component {
                                 type="antdesign"
                                 Component={TouchableScale}
                                 containerStyle={{ marginBottom: 10 }}
-                                size={responsiveFontSize(3)}
+                                onPress={() => {
+                                    this.currentselectmeet = item;
+                                    this._onItemOptionSelected();
+                                }}
+                                size={responsiveFontSize(4)}
                                 name="ellipsis1"
                                 color={colors.text}
                             />
                         </Animatable.View>
                     }
                     likebtn={true}
-                    subtitle={item.request_msg}
+                    subtitle={`   ${item.request_msg}`}
+                    subtitleStyle={{ fontWeight: 'bold' }}
                     BottomContainerItem={
                         <BottomContainerItem
                             request_category={item.request_category}
                             request_mood={item.request_mood}
-                            created_at={item.created_at}
+                            campus={item.requester_profile.campus}
+                            created_at={created_at}
                         />
                     }
                 />
@@ -256,16 +321,16 @@ class MeetRequestList extends Component {
 
     render() {
         let { meetupreqobj, myrequests } = this.props;
-        //console.warn(`glowfinejorr ${myrequests}`, meetupreqobj.myrequests);
         let refreshing = meetupreqobj.fetching ?
             (meetupreqobj.fetching == "retry" ? false : meetupreqobj.fetching)
             : (false);
         return (
+            <>
             <FlatList
                 data={myrequests ? meetupreqobj.myrequests : meetupreqobj.requests}
                 keyExtractor={this._keyExtractor}
-                initialNumRender={1}
-                windowSize={50}
+                initialNumRender={5}
+                //windowSize={50}
                 refreshing={meetupreqobj.requests.length > 0 ? refreshing : false}
                 onRefresh={meetupreqobj.requests.length > 0 ? this.props.fetchReqs : null}
                 getItemLayout={this._getItemLayout}
@@ -274,6 +339,12 @@ class MeetRequestList extends Component {
                 ListEmptyComponent={this._setEmptyPlaceholder()}
                 ListFooterComponent={this._setFooterComponent()}
             />
+            <ModalList
+                optionsArr={this._returnMeetOptions()}
+                isVisible={this.state.showmeetoptions}
+                onBackdropPress={() => this.setState({ showmeetoptions: false })}
+            />
+            </>
         );
     }
 }

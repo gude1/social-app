@@ -13,7 +13,7 @@ import { image_exists, checkData, Toast } from '../../utilities/index';
 const { colors } = useTheme();
 
 
-const PhotoViewerScreen = ({ componentId, navparent, photos, onSubmit, showinput }) => {
+const PhotoViewerScreen = ({ componentId, navparent, headerText, photos, onSubmit, showinput }) => {
     let lefticon = navparent == true ? <Icon
         type="antdesign"
         name="arrowleft"
@@ -104,6 +104,7 @@ const PhotoViewerScreen = ({ componentId, navparent, photos, onSubmit, showinput
             <PhotoViewer
                 photos={photos}
                 showinput={showinput || false}
+                headerText={headerText}
                 headerIcons={{
                     lefticon,
                     righticon,

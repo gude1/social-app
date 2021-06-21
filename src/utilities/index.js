@@ -1,5 +1,5 @@
 import RNFetchBlob from 'rn-fetch-blob';
-import { Platform, Image, ToastAndroid } from 'react-native';
+import { Platform, Image, ToastAndroid, Alert } from 'react-native';
 import { Navigation } from 'react-native-navigation';
 import { AUTHROUTE, SETUPPROFILEROUTE, SETUPPOSTROUTE, MAINTABSROUTE } from '../routes';
 import ImageResizer from 'react-native-image-resizer';
@@ -304,6 +304,36 @@ export function checkData(data) {
         return true;
     }
     return false;
+}
+
+export const isEmpty = (data) => {
+    if (!checkData(data))
+        return true;
+    if (data.constructor == Array && data.length < 1)
+        return true;
+    else if (data.constructor == String && data.length < 1)
+        return true;
+    else if (data.constructor == Object && Object.keys(data).length == 0)
+        return true;
+    else
+        return false;
+};
+
+export const customAlert = (title = '', subtitle = "", okAction, failedAction) => {
+    if (isEmpty(title) || !checkData(okAction)) {
+        return;
+    }
+    Alert.alert(title, subtitle, [
+        {
+            text: "Ok",
+            onPress: okAction,
+        },
+        {
+            text: "Cancel",
+            onPress: failedAction,
+            style: "cancel"
+        },
+    ]);
 }
 
 

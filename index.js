@@ -17,6 +17,7 @@ import PhotoViewerScreen from './src/screens/main/PhotoViewerScreen';
 import RouterScreen from './src/screens/RouterScreen';
 import HomeScreen from './src/screens/main/HomeScreen';
 import MeetupScreen from './src/screens/main/MeetupScreen';
+import MeetupFormScreen from './src/screens/main/MeetupFormScreen';
 import ViewProfileScreen from './src/screens/main/ViewProfileScreen';
 import ExploreScreen from './src/screens/main/ExploreScreen';
 import PostCommentScreen from './src/screens/main/PostCommentScreen';
@@ -32,7 +33,6 @@ import PrivateChatScreen from './src/screens/main/PrivateChatScreen';
 import SearchPrivateChatListScreen from './src/screens/main/SearchPrivateChatListScreen';
 import GiphyGalleryScreen from './src/screens/main/GiphyGalleryScreen';
 import GiphyViewerScreen from './src/screens/main/GiphyViewerScreen';
-import MeetupMainScreen from './src/screens/main/MeetupMainScreen';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
@@ -51,7 +51,7 @@ const setTheDefault = () => {
         },
         navigationBar: {
             visible: true,
-            backgroundColor: colors.background,
+            backgroundColor: 'black'
         },
         statusBar: {
             animate: false,
@@ -76,6 +76,7 @@ const setTheDefault = () => {
         },
         bottomTabs: {
             animate: true,
+            elevation: 2,
             //translucent: true,
             drawBehind: true,
             visible: false,//only set to true on mainpage screens
@@ -304,12 +305,12 @@ Navigation.events().registerAppLaunchedListener(async () => {
                         () => GiphyViewerScreen
                     );
                     break;
-                case 'MeetupMain':
-                    Navigation.registerComponent('MeetupMain', () => (props) =>
+                case 'MeetupForm':
+                    Navigation.registerComponent('MeetupForm', () => (props) =>
                         <Provider store={store}>
-                            <MeetupMainScreen {...props} />
+                            <MeetupFormScreen {...props} />
                         </Provider>,
-                        () => MeetupMainScreen
+                        () => MeetupFormScreen
                     );
                     break;
                 default:

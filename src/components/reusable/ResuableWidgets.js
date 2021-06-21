@@ -509,15 +509,15 @@ export class ScrollableListOverLay extends Component {
                         }}
                         righticon={
                             submitAction ?
-                                <Text style={{
-                                    fontSize: responsiveFontSize(2),
-                                    color: colors.blue
-                                }}>
-                                    {submitactiontxt || 'Save'}
-                                </Text>
+                                <Button
+                                    title={submitactiontxt || 'save'}
+                                    buttonStyle={{ backgroundColor: colors.blue }}
+                                    containerStyle={{ borderRadius: 10 }}
+                                    onPress={() => submitAction()}
+                                />
                                 : null
                         }
-                        rightIconPress={submitAction}
+                    //rightIconPress={submitAction}
                     />
                     {this._render()}
                 </View>
@@ -787,6 +787,7 @@ export class ListItem extends Component {
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         if (nextProps.liked != this.props.liked ||
             nextProps.title != this.props.title ||
+            nextProps.subtitle != this.props.subtitle ||
             nextProps.replies != this.props.replies ||
             nextProps.likes != this.props.likes ||
             nextProps.deleted != this.props.deleted ||
@@ -828,8 +829,8 @@ export class ListItem extends Component {
 
     //onTimePress time liked
     render() {
-        const { title, time, likebtn, onLongPress, onAvatarPress, onPress, liked, likeButtonComponent, onRetryPress, numLikesPress, likePress, timeTextStyle, likes,
-            replies, subtitle, BottomContainerItem,
+        const { title, titleStyle, time, likebtn, onLongPress, onAvatarPress, onPress, liked, likeButtonComponent, onRetryPress, numLikesPress, likePress, timeTextStyle, likes,
+            replies, subtitle, subtitleStyle, BottomContainerItem,
             replyPress, rightIcon, leftAvatar } = this.props;
         //onRetrypress has precedence
         let longpress = null;
@@ -862,8 +863,8 @@ export class ListItem extends Component {
                     />
                     <View style={styles.listItemTextCtn}>
                         <Text>
-                            <Text style={styles.title}>{title} </Text>
-                            <Text style={styles.subtitle}>
+                            <Text style={[styles.title, titleStyle]}>{title} </Text>
+                            <Text style={{ ...styles.subtitle, ...subtitleStyle }}>
                                 {subtitle}
                             </Text>
                         </Text>

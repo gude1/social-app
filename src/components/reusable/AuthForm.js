@@ -125,7 +125,7 @@ const AuthForm = ({
         />);
     };
     return (
-        <View>
+        <View style={styles.containerStyle}>
             <ScrollView showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps='always'
                 keyboardDismissMode={'on-drag'}
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
         color: '#2196F3',
         fontSize: 16,
         margin: 5,
-        padding: 2,
+        padding: 1,
         //borderWidth: 3,
     },
     forgotPassTextStyle: {

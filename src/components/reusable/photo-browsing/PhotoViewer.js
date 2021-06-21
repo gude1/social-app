@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { StyleSheet, SafeAreaView, View, ToastAndroid } from 'react-native';
 import { Text, Image, Icon, Input } from 'react-native-elements';
 import { checkData } from '../../../utilities';
+import { useTheme } from '../../../assets/themes/index'
 import { Header, InputBox } from '../../reusable/ResuableWidgets';
 import {
     responsiveHeight,
@@ -9,8 +10,8 @@ import {
     responsiveFontSize
 } from "react-native-responsive-dimensions";
 import { ViewPager } from '../viewpager/index';
-import { TextInput } from 'react-native';
-import { ScrollView } from 'react-native';
+
+const { colors } = useTheme();
 
 class ViewerImage extends Component {
     constructor(props) {
@@ -83,7 +84,7 @@ class ViewerImage extends Component {
     }
 
     render() {
-        let { imageuri, imageindex, total, headerIcons, headerIconsActions, updatePhotos, photolist } = this.props;
+        let { imageuri, imageindex, total, headerIcons, headertext, headerIconsActions, updatePhotos, photolist } = this.props;
         const { lefticon, righticon, righticon2 } = headerIcons;
         imageuri = typeof imageuri == "string" ? { uri: imageuri } : imageuri;
         //console.warn(imageuri);
@@ -108,8 +109,10 @@ class ViewerImage extends Component {
                 >
                     <Header
                         headerStyle={{ opacity: 0.7, marginTop: 35 }}
-                        headertextsize={responsiveFontSize(3.6)}
+                        headertextsize={responsiveFontSize(2)}
+                        headerTextStyle={{ color: 'white' }}
                         lefticon={lefticon}
+                        headertext={headertext}
                         leftIconPress={lefticonpress}
                         righticon={righticon}
                         rightIconPress={_righticonpress}
@@ -181,6 +184,7 @@ export default class PhotoViewer extends Component {
                     showinput={this.props.showinput}
                     imageindex={item.id}
                     total={this.state.photos.length}
+                    headertext={this.props.headerText}
                     headerIcons={this.props.headerIcons}
                     headerIconsActions={this.headerIconsActions}
                 />
