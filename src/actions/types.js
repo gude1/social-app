@@ -234,6 +234,7 @@ export const ADD_FOLLOWINFO_URL = 'add_followinfo_url';
 export const UPDATE_MEETUP_FORM = 'update_meetup_form';
 export const UPDATE_MEETUP_FORM_ERRORS = 'update_meetup_form_errors';
 
+
 /**
  * TYPE CONSTANT FOR MEETUPMAIN REDUCER
  */
@@ -246,6 +247,15 @@ export const UPDATE_MEETUPMAIN_MY_REQUESTS = 'update_meetupmain_myrequests';
 export const SET_MEETUPMAIN_ERRORS = 'set_meetup_errors';
 export const REMOVE_MEETUPMAIN_REQUESTS = 'remove_meetupmain_requests';
 export const REMOVE_MEETUPMAIN_MY_REQUESTS = 'remove_meetupmain_my_requests';
+export const REMOVE_PROFILE_MEETUPMAIN = 'remove_profile_meetupmain';
+
+/**
+ *TYPE CONSTANT FOR MEETUPCONVLIST REDUCER
+ */
+export const UPDATE_MEETCONVLIST = 'update_meetconvlist';
+export const SET_MEETCONVLIST = 'set_meetconvlist';
+
+
 
 /**
  * TYPE CONSTANT FOR GIPHYGALLERY REDUCER

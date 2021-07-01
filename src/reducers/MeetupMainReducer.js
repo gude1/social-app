@@ -1,4 +1,4 @@
-import { RESET, ADD_MEETUPMAIN_REQUESTS, UPDATE_MEETUPMAIN_REQUEST, PROCESSING, SET_MEETUPMAIN_URL, SET_MEETUPMAIN, SET_MEETUPMAIN_ERRORS, ADD_MEETUPMAIN_MY_REQUESTS, UPDATE_MEETUPMAIN_MY_REQUESTS, REMOVE_MEETUPMAIN_MY_REQUESTS, REMOVE_MEETUPMAIN_REQUESTS } from "../actions/types";
+import { RESET, ADD_MEETUPMAIN_REQUESTS, REMOVE_PROFILE_MEETUPMAIN, UPDATE_MEETUPMAIN_REQUEST, PROCESSING, SET_MEETUPMAIN_URL, SET_MEETUPMAIN, SET_MEETUPMAIN_ERRORS, ADD_MEETUPMAIN_MY_REQUESTS, UPDATE_MEETUPMAIN_MY_REQUESTS, REMOVE_MEETUPMAIN_MY_REQUESTS, REMOVE_MEETUPMAIN_REQUESTS } from "../actions/types";
 import { checkData } from "../utilities/index";
 
 
@@ -8,6 +8,7 @@ const ERRORS = {
 const INITIAL_STATE = {
     requests: [],
     myrequests: [],
+    blacklist: [],
     options: {
         request_category: null,
         request_mood: null,
@@ -93,6 +94,12 @@ const MeetupMainReducer = (state = INITIAL_STATE, action) => {
                 return item.request_id != action.payload;
             });
             return { ...state, myrequests: arrangeRequests(reducerdata) };
+            break;
+        case REMOVE_PROFILE_MEETUPMAIN:
+            reducerdata = state.requests.filter(item => {
+                return item.requester_id != action.payload
+            });
+            return { ...state, requests: arrangeRequests(reducerdata) };
             break;
         case UPDATE_MEETUPMAIN_MY_REQUESTS:
             reducerdata = state.myrequests.map(item => {

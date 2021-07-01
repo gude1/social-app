@@ -10,14 +10,15 @@ import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dim
 import { IndicatorViewPager, PagerTabIndicator, PagerDotIndicator } from '../../components/reusable/viewpager/index';
 import { Navigation } from 'react-native-navigation';
 import MeetRequestList from '../../components/reusable/MeetRequestList';
+import MeetConversationList from '../../components/MeetConversationList';
 import CustomPicker from '../../components/reusable/Picker';
+import ExploreScreen from './ExploreScreen';
 import EmojiList from '../../assets/static/EmojiList.json';
 import HoursList from '../../assets/static/HoursList.json';
 import MeetTypes from '../../assets/static/MeetTypes.json';
 import CampusList from '../../assets/static/CampusList.json';
 import { isEmpty, checkData, Toast } from '../../utilities/index';
 import moment from 'moment';
-
 
 const { colors } = useTheme();
 
@@ -85,28 +86,27 @@ export const MeetupScreen = ({
     meetupmain,
     setMeetupMain,
     authprofile,
+    meetupconvlist,
     meetupform,
     createMeetRequest,
+    fetchMeetConv,
+    fetchNewMeetConv,
+    fetchLaterMeetConv,
+    blackListMeetProfile,
+    deleteMeetRequest,
     removeMeetupMainMyRequests,
     removeMeetupMainRequests,
     fetchMyMeetRequests,
     fetchMeetRequests,
     fetchMoreMeetRequests
 }) => {
+
     const REQUEST_SCHEMA = {
         expires_at: 24,
         request_msg: '',
         request_category: "Hangout",
         request_mood: '😀',
     };
-    const [loaded, setLoaded] = useState(false);
-    const [showmeetsetting, showMeetSetting] = useState(false);
-    const [createReq, setCreateReq] = useState(REQUEST_SCHEMA);
-    const [showmakemeetmodal, setShowMakeMeetModal] = useState(false);
-    const [onscreen, setOnScreen] = useState(false);
-    const [reqoptions, setReqOptions] = useState(meetupmain.options);
-    const [viewpager, setViewPager] = useState(null);
-    const [showmeetprofileopt, setShowMeetProfileOpt] = useState(false);
     const MEET_PROFILE_OPTIONS = [
         {
             title: "View Your Meet Profile",
@@ -146,11 +146,18 @@ export const MeetupScreen = ({
             }
         }
     ];
+    const [loaded, setLoaded] = useState(false);
+    const [showmeetsetting, showMeetSetting] = useState(false);
+    const [createReq, setCreateReq] = useState(REQUEST_SCHEMA);
+    const [showmakemeetmodal, setShowMakeMeetModal] = useState(false);
+    const [onscreen, setOnScreen] = useState(false);
+    const [reqoptions, setReqOptions] = useState(meetupmain.options);
+    const [viewpager, setViewPager] = useState(null);
+    const [showmeetprofileopt, setShowMeetProfileOpt] = useState(false);
     let meetupreqobj = filterMeets();
     let category = meetupreqobj.options.request_category;
     let mood = meetupreqobj.options.request_mood;
     //COMPONENT FUNCTION STARTS HERE
-    console.warn(category);
     useEffect(() => {
         EntypoIcon.getImageSource('network', 100).then(e =>
             Navigation.mergeOptions(componentId, {
@@ -222,7 +229,6 @@ export const MeetupScreen = ({
             }
         });
     };
-
 
     const setScreen = () => {
         if ((isEmpty(meetupform.meetup_name) || isEmpty(meetupform.meetup_avatar)) &&
@@ -376,22 +382,29 @@ export const MeetupScreen = ({
                         <MeetRequestList
                             meetupreqobj={meetupreqobj}
                             authprofile={authprofile}
+                            deleteMeetReq={deleteMeetRequest}
+                            blackList={blackListMeetProfile}
                             fetchReqs={fetchMeetRequests}
                             fetchMoreReqs={fetchMoreMeetRequests}
                         />
                     </View>
 
-                    <View key={1} style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                        <Text onPress={() => {
-                            checkData(viewpager) && viewpager.setPage(2);
-                            //alert(JSON.stringify(meetupmain.options));
-                            //console.warn('Button Meetupmain', meetupmain.requests);
-                            //console.warn('Button Meetupobj', meetupmain.requests);
-                        }} style={{ color: colors.text }}>Conversations</Text>
+                    <View key={1} style={{ flex: 1 }}>
+                        <MeetConversationList
+                            meetupconvs={meetupconvlist}
+                            fetchConvs={fetchMeetConv}
+                            meetsetting={meetupform}
+                            authprofile={authprofile}
+                            fetchNewConvs={fetchNewMeetConv}
+                            fetchLaterConvs={fetchLaterMeetConv}
+                        />
                     </View>
+
                     <View key={2} style={{ flex: 1 }}>
                         <MeetRequestList
                             meetupreqobj={meetupreqobj}
+                            blackList={blackListMeetProfile}
+                            deleteMeetReq={deleteMeetRequest}
                             authprofile={authprofile}
                             myrequests={true}
                             fetchReqs={() => fetchMyMeetRequests()}
@@ -699,6 +712,7 @@ MeetupScreen.options = {
 const mapStateToProps = (state) => ({
     meetupmain: state.meetupmain,
     authprofile: state.profile,
+    meetupconvlist: state.meetupconvlist,
     meetupform: state.meetupform
 });
 

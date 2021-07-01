@@ -154,6 +154,9 @@ import {
     UPDATE_MEETUPMAIN_MY_REQUESTS,
     REMOVE_MEETUPMAIN_REQUESTS,
     REMOVE_MEETUPMAIN_MY_REQUESTS,
+    REMOVE_PROFILE_MEETUPMAIN,
+    SET_MEETCONVLIST,
+    UPDATE_MEETCONVLIST,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -5731,7 +5734,14 @@ export const updateMeetupMainMyRequest = (data = {}) => {
         type: UPDATE_MEETUPMAIN_MY_REQUESTS,
         payload: data,
     };
-}
+};
+
+export const removeProfileMeetupMain = (data = '') => {
+    return {
+        type: REMOVE_PROFILE_MEETUPMAIN,
+        payload: data,
+    };
+};
 
 
 export const setMeetupMainUrl = (data = "") => {
@@ -5790,6 +5800,10 @@ export const fetchMeetRequests = (data) => {
         if (reqobj.campus == "none") {
             reqobj['campus'] = null;
         }
+        if (!isEmpty(meetupmain.blacklist)) {
+            reqobj['blacklist'] = meetupmain.blacklist;
+        }
+
         dispatch(setProcessing(true, 'meetupmainfetching'));
         try {
             const options = {
@@ -5798,7 +5812,6 @@ export const fetchMeetRequests = (data) => {
             const response = await session.post('meetupreqlist', reqobj, options);
             const { status, errmsg, message, meetup_list, my_num_req_left, next_url } = response.data;
             //alert(JSON.stringify(next_url));
-            console.warn('Fetchmeetrequest func', meetup_list)
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'meetupmainfetching'));
@@ -5853,6 +5866,13 @@ export const fetchMoreMeetRequests = () => {
     return async (dispatch) => {
         const { user, meetupmain } = store.getState();
         let reqobj = { ...reqobj, ...meetupmain.options };
+
+        if (reqobj.campus == "none") {
+            reqobj['campus'] = null;
+        }
+        if (!isEmpty(meetupmain.blacklist)) {
+            reqobj['blacklist'] = meetupmain.blacklist;
+        }
         dispatch(setProcessing(true, 'meetupmainloadingmore'));
         try {
             const options = {
@@ -6041,7 +6061,7 @@ export const createMeetRequest = (data, initAction, failedAction) => {
                     break;
             }
         } catch (err) {
-            console.warn(`${err.toString()}`);
+            //console.warn(`${err.toString()}`);
             dispatch(updateMeetupMainMyRequest(retryschema));
             //dispatch(setProcessing(false, 'meetupmaincreating'));
             if (err.toString().indexOf('Network Error') != -1) {
@@ -6070,14 +6090,22 @@ export const deleteMeetRequest = (meetreqid) => {
         const { user, profile, meetupmain } = store.getState();
         let todelmeetreq = [...meetupmain.requests, ...meetupmain.myrequests].find(item => item.request_id == meetreqid);
         if (!checkData(todelmeetreq)) {
-            Toast('Meet request to delete not found', null, ToastAndroid.CENTER);
+            Toast('Meet request to delete not found');
             return;
         } else if (todelmeetreq.requester_id != profile.profile_id) {
-            Toast('You cannot delete this meet request', null, ToastAndroid.CENTER);
+            let blacklist = meetupmain.blacklist || [];
+            if (!blacklist.includes(meetreqid)) {
+                blacklist.push(meetreqid);
+            }
+            dispatch(setMeetupMain({ blacklist: blacklist }));
+            dispatch(removeMeetupMainMyRequests(meetreqid));
+            dispatch(removeMeetupMainRequests(meetreqid));
+            Toast('Meet removed');
             return;
         } else if (checkData(todelmeetreq.schema)) {
             dispatch(removeMeetupMainMyRequests(meetreqid));
             dispatch(removeMeetupMainRequests(meetreqid));
+            Toast('Meet removed');
         }
 
         dispatch(setProcessing(true, 'meetupmaindeleting'));
@@ -6119,7 +6147,7 @@ export const deleteMeetRequest = (meetreqid) => {
 export const blackListMeetProfile = (meet_profile_id) => {
     return async (dispatch) => {
         const { user, profile } = store.getState();
-        if (checkData(meet_profile_id)) {
+        if (!checkData(meet_profile_id)) {
             Toast('Missing values to continue');
             return;
         }
@@ -6129,11 +6157,12 @@ export const blackListMeetProfile = (meet_profile_id) => {
             const options = {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
-            const response = await session.post('deletemeetupreq', { meetup_reqid: meet_profile_id }, options);
+            const response = await session.post('meetblacklistaction', { profile_id: meet_profile_id }, options);
             const { status, errmsg, message } = response.data;
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'meetupmainblacklisting'));
+                    dispatch(removeProfileMeetupMain(meet_profile_id));
                     Toast(message, null, ToastAndroid.CENTER);
                     break;
                 case 500:
@@ -6158,7 +6187,135 @@ export const blackListMeetProfile = (meet_profile_id) => {
 }
 
 
+/**
+ * ACTION CREATOR FOR MEETUPCONVLIST REDUCER
+ */
+export const setMeetupConvList = (data = {}) => {
+    return {
+        type: SET_MEETCONVLIST,
+        payload: data
+    };
+};
 
+export const updateMeetConvList = (data = {}) => {
+    return {
+        type: UPDATE_MEETCONVLIST,
+        payload: data
+    };
+};
+
+
+export const fetchMeetConv = () => {
+    return async (dispatch) => {
+        const { user, profile } = store.getState();
+        dispatch(setProcessing(true, 'meetupconvlistfetching'));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('meetupreqconvlist', null, options);
+            const { status, errmsg, message, meet_convs } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'meetupconvlistfetching'));
+                    meet_convs.map(item => {
+                        dispatch(updateMeetConvList(item));
+                    });
+                    break;
+                case 404:
+                    dispatch(setProcessing('retry', 'meetupconvlistfetching'));
+                    break;
+                default:
+                    dispatch(setProcessing('retry', 'meetupconvlistfetching'));
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing('retry', 'meetupconvlistfetching'));
+            console.warn(`${err.toString()}`);
+        }
+    };
+};
+
+export const fetchNewMeetConv = () => {
+    return async (dispatch) => {
+        const { user, profile, meetupconvlist } = store.getState();
+        dispatch(setProcessing(true, 'meetupconvlistrefreshing'));
+        let max = meetupconvlist.list.reduce((item1, item2) => {
+            return Math.max(item1.id, item2.id);
+        });
+        max = typeof max == "object" ? max.id : max;
+        if (!checkData(max)) {
+            dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
+            Toast('Missing values to continue');
+            return;
+        }
+
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('meetupreqconvlist', { max }, options);
+            const { status, errmsg, message, meet_convs } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
+                    meet_convs.map(item => {
+                        dispatch(updateMeetConvList(item));
+                    });
+                    break;
+                case 404:
+                    dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
+            console.warn(`${err.toString()}`);
+        }
+    };
+};
+
+export const fetchLaterMeetConv = () => {
+    return async (dispatch) => {
+        let { user, profile, meetupconvlist } = store.getState();
+        dispatch(setProcessing(true, 'meetupconvlistloadingmore'));
+        let min = meetupconvlist.list.reduce((item1, item2) => {
+            return Math.min(item1.id, item2.id);
+        });
+        min = typeof min == "object" ? min.id : min;
+        if (!checkData(min)) {
+            dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
+            Toast('Missing values to continue');
+            return;
+        }
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('meetupreqconvlist', { min }, options);
+            const { status, errmsg, message, meet_convs } = response.data; 
+            switch (status) {
+                case 200:
+                    dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
+                    meet_convs.map(item => {
+                        dispatch(updateMeetConvList(item));
+                    });
+                    break;
+                case 404:
+                    dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
+                    break;
+                default:
+                    dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
+                    break;
+            }
+        } catch (err) {
+            dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
+            console.warn(`${err.toString()}`);
+        }
+    };
+};
 
 /**
  * ACTION CREATOR FOR BOOKMARKS REDUCER
@@ -6175,6 +6332,7 @@ export const bookMark = (data: Object, key: String) => {
  * ACTION CREATOR FOR OFFLINEACTIONS REDUCER
  * 
  */
+
 export const addOfflineAction = (data: Object) => {
     return {
         type: ADD_OFFLINE_ACTION,

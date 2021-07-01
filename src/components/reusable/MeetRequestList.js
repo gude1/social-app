@@ -86,7 +86,7 @@ class MeetRequestList extends Component {
                     <ActivityIndicator size="large" color={'silver'} />
                 </View>
             );
-        } else if (fetching == 'retry') {
+        } else {
             return (
                 <View style={{
                     alignItems: "center",
@@ -128,7 +128,7 @@ class MeetRequestList extends Component {
                     />
                 </View>
             );
-        } else {
+        } /*else {
             return (
                 <View style={{
                     height: responsiveHeight(70),
@@ -155,7 +155,7 @@ class MeetRequestList extends Component {
                     </Text>
                 </View>
             );
-        }
+        }*/
 
     };
 
@@ -174,26 +174,6 @@ class MeetRequestList extends Component {
                     <ActivityIndicator
                         size={30}
                         color={colors.border} />
-                </View>
-            );
-        } else if (this.props.meetupreqobj.loadingmore == 'retry') {
-            return (
-                <View style={{
-                    flex: 1,
-                    justifyContent: "center",
-                    margin: 6,
-                    alignItems: "center"
-                }}>
-                    <Icon
-                        color={colors.text}
-                        size={responsiveFontSize(4)}
-                        onPress={() => this.props.fetchMoreReqs()}
-                        name="sync"
-                        type="antdesign"
-                    />
-                    <Text style={{ color: colors.border, fontSize: responsiveFontSize(1.5) }}>
-                        Tap to retry
-                        </Text>
                 </View>
             );
         } else if (this.props.meetupreqobj.loadingmore == false) {
@@ -220,11 +200,6 @@ class MeetRequestList extends Component {
 
     _keyExtractor = (item, index) => index.toString();
 
-    _getItemLayout = (data, index) => {
-        if (index == -1) return { index, length: 0, height: 0 };
-        return { length: responsiveWidth(100), offset: responsiveWidth(100) * index, index }
-    };
-
     _returnMeetOptions = () => {
         if (!isEmpty(this.currentselectmeet) && !isEmpty(this.currentselectmeet.requester_profile)) {
             return this.currentselectmeet.requester_profile.profile_id == this.props.authprofile.profile_id ?
@@ -234,7 +209,8 @@ class MeetRequestList extends Component {
                         onPress: () => {
                             this.setState({ showmeetoptions: false });
                             customAlert('Delete Meet?', null, () => {
-                                alert('delete true')
+                                checkData(this.props.deleteMeetReq) &&
+                                    this.props.deleteMeetReq(this.currentselectmeet.request_id);
                             });
                         }
                     },
@@ -243,12 +219,19 @@ class MeetRequestList extends Component {
                         title: "Remove Meet",
                         onPress: () => {
                             this.setState({ showmeetoptions: false });
+                            customAlert('Remove Meet?', null, () => {
+                                checkData(this.props.deleteMeetReq) &&
+                                    this.props.deleteMeetReq(this.currentselectmeet.request_id)
+                            });
                         }
                     },
                     {
                         title: "Mute Meets from this profile",
                         onPress: () => {
                             this.setState({ showmeetoptions: false });
+                            //alert(JSON.stringify(this.currentselectmeet));
+                            checkData(this.props.blackList) &&
+                                this.props.blackList(this.currentselectmeet.requester_id)
                         }
                     },
                 ];
@@ -270,6 +253,8 @@ class MeetRequestList extends Component {
                     message={'This meet request is unavailable'}
                 />
             );
+        } else if (checkData(this.props.meetupreqobj.blacklist) && this.props.meetupreqobj.blacklist.includes(item.request_id)) {
+            return null;
         }
         let leftavatar = isEmpty(item.requester_meet_profile.meetup_avatar) ? null : { uri: item.requester_meet_profile.meetup_avatar };
         let created_at = item.creating == true ? "creating" :
@@ -343,6 +328,15 @@ class MeetRequestList extends Component {
                 optionsArr={this._returnMeetOptions()}
                 isVisible={this.state.showmeetoptions}
                 onBackdropPress={() => this.setState({ showmeetoptions: false })}
+            />
+            <ActivityOverlay
+                isVisible={meetupreqobj.blacklisting}
+                text={'processing'}
+            />
+
+            <ActivityOverlay
+                isVisible={meetupreqobj.deleting}
+                text={'deleting'}
             />
             </>
         );
