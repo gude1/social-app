@@ -7,6 +7,7 @@ import TouchableScale from 'react-native-touchable-scale';
 import { useTheme } from '../../assets/themes/index';
 import { checkData, cutText, Toast } from '../../utilities/index';
 import { AvatarNavModal, ModalList, ActivityOverlay } from './ResuableWidgets';
+import moment from 'moment';
 
 const { colors } = useTheme();
 
@@ -63,6 +64,14 @@ class ChatListItem extends Component {
         }
         return false;
     }
+
+    getChatTime = (time) => {
+        if (!checkData(time))
+            return null;
+        let parsedtimeformat = moment(time).format('DD/MM/YYYY');
+        let currenttimeformat = moment().format('DD/MM/YYYY');
+        return parsedtimeformat == currenttimeformat ? moment(time).format('h:mm a') : parsedtimeformat;
+    };
 
     renderCheck = () => {
         const { item, userprofile } = this.props;
@@ -234,7 +243,7 @@ class ChatListItem extends Component {
                     //onPress: () => { console.warn(item, item.created_at) },
                     resizeMode: "contain"
                 }}
-                rightTitle={item.created_at}
+                rightTitle={this.getChatTime(item.created_at * 1000)}
                 rightTitleProps={{ ellipsizeMode: 'tail', numberOfLines: 1 }}
                 rightTitleStyle={this.rightTitleStyle()}
                 contentContainerStyle={styles.listItemContentContainerStyle}

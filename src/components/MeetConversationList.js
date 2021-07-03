@@ -6,7 +6,7 @@ import { Text, Button, Icon, ListItem } from 'react-native-elements';
 import { useTheme } from '../assets/themes/index';
 import moment from 'moment';
 import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
-
+import { Navigation } from 'react-native-navigation';
 
 const { colors } = useTheme();
 
@@ -15,6 +15,21 @@ class ConversationItem extends Component {
         super(props);
         this.state = {};
     }
+
+    shouldComponentUpdate(nextProps, nextState, nextContext) {
+        if (nextProps.item.id != this.props.item.id) {
+            return true;
+        }
+        return false;
+    }
+
+    getConvTime = (time) => {
+        if (!checkData(time))
+            return null;
+        let parsedtimeformat = moment(time).format('DD/MM/YYYY');
+        let currenttimeformat = moment().format('DD/MM/YYYY');
+        return parsedtimeformat == currenttimeformat ? moment(time).format('h:mm a') : parsedtimeformat;
+    };
 
     renderCheck = () => {
         const { item, meetsetting } = this.props;
@@ -168,6 +183,20 @@ class ConversationItem extends Component {
         return (
             <ListItem
                 onPress={onPress}
+                chevron={
+                    <Icon
+                        size={responsiveFontSize(3)}
+                        onPress={() => {
+                            console.warn(`glow`)
+                        }}
+                        containerStyle={{
+                            marginRight: 5
+                        }}
+                        name={'infocirlceo'}
+                        color={colors.text}
+                        type={'antdesign'}
+                    />
+                }
                 onLongPress={onLongPress}
                 badge={this.renderBadge()}
                 containerStyle={styles.listItemContainerStyle}
@@ -175,42 +204,26 @@ class ConversationItem extends Component {
                     source: checkData(meetprofile.meetup_avatar) ?
                         { uri: meetprofile.meetup_avatar } : require('../assets/images/download.jpeg'),
                     onPress: () => {
-                        console.warn(item, item.created_at)
+                        Navigation.showModal({
+                            component: {
+                                name: 'PhotoViewer',
+                                passProps: {
+                                    navparent: true,
+                                    headerText: meetprofile.meetup_name,
+                                    photos: [meetprofile.meetup_avatar]
+                                },
+                            }
+                        });
                     },
                     resizeMode: "contain"
                 }}
-                rightTitle={moment(item.created_at * 1000).format('h:mm a')}
+                rightTitle={this.getConvTime(item.created_at * 1000)}
                 rightTitleProps={{ ellipsizeMode: 'tail', numberOfLines: 1 }}
                 rightTitleStyle={this.rightTitleStyle()}
                 contentContainerStyle={styles.listItemContentContainerStyle}
-                title={
-                    <View>
-                        <Text
-                            ellipsizeMode={'tail'}
-                            style={{
-                                fontWeight: 'bold',
-                                color: colors.iconcolor,
-                                marginBottom: 5,
-                            }}
-                            numberOfLines={1}
-                        >
-                            Tap me to view meet
-                        </Text>
-                        <Text
-                            ellipsizeMode={'tail'}
-                            style={{
-                                fontWeight: 'bold',
-                                color: colors.text,
-                                fontSize: responsiveFontSize(1.7)
-                            }}
-                            numberOfLines={1}
-                        >
-                            {meetprofile.meetup_name}
-                        </Text>
-                    </View>
-                }
-                //title={meetprofile.meetup_name}
-                //titleProps={{ ellipsizeMode: 'tail', numberOfLines: 1 }}
+                title={meetprofile.meetup_name}
+                titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                titleProps={{ ellipsizeMode: 'tail', numberOfLines: 1 }}
                 subtitle={this.renderSubTitle()}
             />
         );
@@ -231,6 +244,7 @@ class MeetConversationList extends Component {
         return (
             <ConversationItem
                 meetsetting={this.props.meetsetting}
+                onPress={() => console.warn(`glo game`)}
                 item={item}
             />
         );

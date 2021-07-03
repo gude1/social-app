@@ -86,6 +86,9 @@ export class Header extends React.PureComponent {
         );
     }
 };
+
+
+
 export class HeaderWithImage extends Component {
     constructor(props) {
         super(props);
@@ -302,6 +305,8 @@ export class ImageViewPager extends React.Component {
 };
 
 
+
+
 export const LoaderScreen = ({ animationType, loaderIcon, animationOff, showLoading }) => {
     animationType = checkData(animationType) != true ? 'zoomIn' : animationType;
     loaderIcon = checkData(loaderIcon) != true ? <Icon
@@ -407,8 +412,10 @@ export class ScrollableListOverLay extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
-        return true;
-        if (this.props.visible != nextProps.visible || this.props.loading != nextProps.loading)
+        if (this.props.visible != nextProps.visible ||
+            this.props.loading != nextProps.loading ||
+            String(this.props.updateArr) != String(nextProps.updateArr)
+        )
             return true;
         else
             return false;
@@ -792,7 +799,8 @@ export class ListItem extends Component {
             nextProps.likes != this.props.likes ||
             nextProps.deleted != this.props.deleted ||
             nextProps.time != this.props.time ||
-            nextProps.BottomContainerItem != this.props.BottomContainerItem ||
+            String(nextProps.leftAvatar) != String(this.props.leftAvatar) ||
+            //nextProps.BottomContainerItem != this.props.BottomContainerItem ||
             nextProps.profilemuted != this.props.profilemuted ||
             nextProps.hide != this.props.hide
         ) {
@@ -1130,6 +1138,19 @@ export class ImageGallery extends Component {
     }
 }
 
+export function optimizeComponent(WrappedComponent, update) {
+    return class Optimize extends Component {
+        shouldComponentUpdate(nextProps, nextState, nextContext) {
+            return checkData(update) ?
+                update(nextProps, this.props) : false;
+        }
+        render() {
+            return (
+                <WrappedComponent {...this.props} />
+            )
+        }
+    };
+};
 
 const styles = StyleSheet.create({
     containerStyle: {

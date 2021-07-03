@@ -8,15 +8,18 @@ import { checkData, handleTime, hasProperty, isEmpty, customAlert } from '../../
 import * as Animatable from 'react-native-animatable';
 import EmojiData from '../../assets/static/EmojiList.json';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
+import { Navigation } from 'react-native-navigation';
 
 const { colors } = useTheme();
 
 class BottomContainerItem extends Component {
+
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         if (this.props.request_mood != nextProps.request_mood ||
             this.props.campus != nextProps.campus ||
             this.props.request_category || nextProps.request_category ||
-            this.props.created_at || nextProps.created_at) {
+            this.props.created_at || nextProps.created_at
+        ) {
             return true;
         }
         return false;
@@ -65,6 +68,7 @@ class BottomContainerItem extends Component {
 
 
 class MeetRequestList extends Component {
+
     constructor(props) {
         super(props);
         this.state = {
@@ -128,35 +132,7 @@ class MeetRequestList extends Component {
                     />
                 </View>
             );
-        } /*else {
-            return (
-                <View style={{
-                    height: responsiveHeight(70),
-                    width: '100%',
-                    justifyContent: "center",
-                    alignItems: "center"
-                }}>
-                    <Icon
-                        name="meh"
-                        type={"antdesign"}
-                        color={colors.iconcolor}
-                        iconStyle={{ marginVertical: 5 }}
-                        size={responsiveFontSize(5)}
-                    />
-                    <Text style={{
-                        width: '70%',
-                        color: colors.iconcolor,
-                        textAlign: "center"
-                    }}>
-                        {this.props.myrequests ?
-                            'You have no recent meets'
-                            : 'No meets yet, try adjusting your meet setting for a wider range'
-                        }
-                    </Text>
-                </View>
-            );
-        }*/
-
+        }
     };
 
     _setFooterComponent = () => {
@@ -238,10 +214,10 @@ class MeetRequestList extends Component {
         }
         return [];
     }
+
     _onItemOptionSelected = () => {
         this.setState({ showmeetoptions: true });
     }
-
 
     renderItem = ({ item, index }) => {
         if (!hasProperty(item, ['requester_meet_profile']) ||
@@ -261,11 +237,22 @@ class MeetRequestList extends Component {
             item.creating == "retry" ? "Tap to retry" : item.created_at;
         return (
             <View
-                style={{ flex: 1 }}>
+                style={{ flex: 1 }}
+            >
                 <ListItem
                     onPress={item.creating == "retry" ? item.retry : null}
                     containerStyle={styles.requestItemCtn}
                     leftAvatar={leftavatar}
+                    onAvatarPress={() => Navigation.showModal({
+                        component: {
+                            name: 'PhotoViewer',
+                            passProps: {
+                                navparent: true,
+                                headerText: item.requester_meet_profile.meetup_name,
+                                photos: [item.requester_meet_profile.meetup_avatar]
+                            },
+                        }
+                    })}
                     title={item.requester_meet_profile.meetup_name}
                     titleStyle={{ color: colors.iconcolor }}
                     likeButtonComponent={
@@ -302,7 +289,6 @@ class MeetRequestList extends Component {
             </View>
         );
     };
-
 
     render() {
         let { meetupreqobj, myrequests } = this.props;

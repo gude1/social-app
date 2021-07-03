@@ -5,7 +5,7 @@ import { Text, Icon, Avatar, CheckBox, Input, Button } from 'react-native-elemen
 import * as actions from '../../actions';
 import { connect } from 'react-redux';
 import { useTheme } from '../../assets/themes/index';
-import { Header, ModalList, ScrollableListOverLay } from '../../components/reusable/ResuableWidgets';
+import { Header, ModalList, ScrollableListOverLay, optimizeComponent } from '../../components/reusable/ResuableWidgets';
 import { responsiveFontSize, responsiveWidth } from 'react-native-responsive-dimensions';
 import { IndicatorViewPager, PagerTabIndicator, PagerDotIndicator } from '../../components/reusable/viewpager/index';
 import { Navigation } from 'react-native-navigation';
@@ -21,6 +21,23 @@ import { isEmpty, checkData, Toast } from '../../utilities/index';
 import moment from 'moment';
 
 const { colors } = useTheme();
+
+/**CREATE OPTIMIZED COMPONENT */
+let OAvatar = optimizeComponent(Avatar, (nextprop, oldprop) => {
+    let newuri = !isEmpty(nextprop.source) ? !isEmpty(nextprop.source.uri) ? nextprop.source.uri : nextprop.source
+        : null;
+    let olduri = !isEmpty(oldprop.source) ? !isEmpty(oldprop.source.uri) ? oldprop.source.uri : oldprop.source
+        : null;
+    if (newuri != olduri) {
+        return true;
+    }
+    return false;
+});
+
+let OIcon = optimizeComponent(Icon, (nextprop, oldprop) => {
+    return false;
+});
+
 
 const FirstTimeView = ({ meetupform, okAction, meetupmain }) => {
 
@@ -43,7 +60,7 @@ const FirstTimeView = ({ meetupform, okAction, meetupmain }) => {
             indicator={renderDotIndicator()}
         >
             <View key={0} style={styles.pagerView}>
-                <Avatar
+                <OAvatar
                     rounded
                     size={200}
                     containerStyle={{ marginTop: 10, backgroundColor: colors.border }}
@@ -57,7 +74,7 @@ const FirstTimeView = ({ meetupform, okAction, meetupmain }) => {
             </View>
 
             <View key={1} style={styles.pagerView}>
-                <Avatar
+                <OAvatar
                     rounded
                     size={200}
                     containerStyle={{ backgroundColor: colors.border }}
@@ -343,7 +360,7 @@ export const MeetupScreen = ({
                     }}
                     righticon={
                         <>
-                        <Avatar
+                        <OAvatar
                             rounded
                             size={30}
                             containerStyle={{ backgroundColor: colors.border }}
@@ -515,6 +532,12 @@ export const MeetupScreen = ({
                         setShowMakeMeetModal(false);
                         setCreateReq(REQUEST_SCHEMA);
                     }}
+                    updateArr={[
+                        createReq.expires_at,
+                        createReq.request_category,
+                        createReq.request_mood,
+                        createReq.request_msg
+                    ]}
                     height={400}
                     submitactiontxt={'Create'}
                     onBackdropPress={() => {

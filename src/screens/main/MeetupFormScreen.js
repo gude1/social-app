@@ -1,22 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { Component, useState, useEffect } from 'react';
 import { StyleSheet, SafeAreaView, View } from 'react-native';
 import { Avatar, Button, Input, Icon, Text } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import { useTheme } from '../../assets/themes/index';
-import { Header, ActivityOverlay } from '../../components/reusable/ResuableWidgets';
+import { Header, ActivityOverlay, OptimizeComponent, optimizeComponent } from '../../components/reusable/ResuableWidgets';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from 'react-native-responsive-dimensions';
 import { Navigation } from 'react-native-navigation';
 import { isEmpty, checkData } from '../../utilities/index';
 
 const { colors } = useTheme();
+/**CREATE OPTIMIZED COMPONENT */
+let OAvatar = optimizeComponent(Avatar, (nextprop, oldprop) => {
+    let newuri = isEmpty(nextprop.source) ? null : nextprop.source.uri;
+    let olduri = isEmpty(oldprop.source) ? null : oldprop.source.uri;
+    if (newuri != olduri) {
+        return true;
+    }
+    return false;
+});
+
+let OIcon = optimizeComponent(Icon, (nextprop, oldprop) => {
+    return false;
+});
 
 const MeetupFormScreen = ({ componentId, screentype, meetupform, navparent, saveMeetupDetails }) => {
     const [inputvalue, setInputValue] = useState(meetupform.meetup_name);
     let formcompleted = !isEmpty(meetupform.meetup_avatar) && !isEmpty(meetupform.meetup_name) ?
         true : false;
     let lefticon = navparent == true ?
-        <Icon
+        <OIcon
             type="evilicon"
             name="arrow-left"
             color={colors.text}
@@ -58,7 +71,7 @@ const MeetupFormScreen = ({ componentId, screentype, meetupform, navparent, save
                 headerStyle={{ elevation: 0, marginVertical: 20 }}
             />
             <View style={styles.contentContainerStyle}>
-                <Avatar
+                <OAvatar
                     size={160}
                     source={isEmpty(meetupform.meetup_avatar) ? null : { uri: meetupform.meetup_avatar }}
                     onPress={() => {
