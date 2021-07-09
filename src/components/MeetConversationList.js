@@ -177,12 +177,26 @@ class ConversationItem extends Component {
     }
 
     render() {
-        let { item, meetsetting, leftAvatarPress, onPress, onLongPress } = this.props;
+        let { item, meetsetting, leftAvatarPress, } = this.props;
         let meetprofile = item.sender_meet_profile.owner_id == meetsetting.owner_id ?
             item.receiver_meet_profile : item.sender_meet_profile;
         return (
             <ListItem
-                onPress={onPress}
+                Component={TouchableScale}
+                onPress={() => {
+                    Navigation.showModal({
+                        component: {
+                            name: 'MeetupConversation',
+                            passProps: {
+                                navparent: true,
+                                chatitem: {
+                                    conv_list: item.conv_list,
+                                    partnermeetprofile: meetprofile
+                                }
+                            },
+                        }
+                    });
+                }}
                 chevron={
                     <Icon
                         size={responsiveFontSize(3)}
@@ -197,7 +211,10 @@ class ConversationItem extends Component {
                         type={'antdesign'}
                     />
                 }
-                onLongPress={onLongPress}
+                activeScale={0.9}
+                friction={100}
+                tension={100}
+                //onLongPress={onLongPress}
                 badge={this.renderBadge()}
                 containerStyle={styles.listItemContainerStyle}
                 leftAvatar={{
@@ -244,7 +261,6 @@ class MeetConversationList extends Component {
         return (
             <ConversationItem
                 meetsetting={this.props.meetsetting}
-                onPress={() => console.warn(`glo game`)}
                 item={item}
             />
         );

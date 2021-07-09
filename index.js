@@ -39,6 +39,7 @@ import { useTheme } from './src/assets/themes/index';
 import { setRoute } from './src/utilities';
 import { getGalleryPhotos } from './src/actions/index';
 import { ReduxNetworkProvider } from 'react-native-offline';
+import MeetupConversationScreen from './src/screens/main/MeetupConversationScreen';
 
 
 const { colors } = useTheme();
@@ -311,6 +312,14 @@ Navigation.events().registerAppLaunchedListener(async () => {
                             <MeetupFormScreen {...props} />
                         </Provider>,
                         () => MeetupFormScreen
+                    );
+                    break;
+                case 'MeetupConversation':
+                    Navigation.registerComponent('MeetupConversation', () => (props) =>
+                        <Provider store={store}>
+                            <MeetupConversationScreen {...props} />
+                        </Provider>,
+                        () => MeetupConversationScreen
                     );
                     break;
                 default:
