@@ -227,7 +227,7 @@ export default class PhotoViewer extends Component {
 
 const styles = StyleSheet.create({
     containerStyle: {
-        backgroundColor: "#000",
+        backgroundColor: "black",
         flex: 1,
     },
     imageIndexTextStyle: {

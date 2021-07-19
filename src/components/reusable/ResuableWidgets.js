@@ -413,8 +413,8 @@ export class ScrollableListOverLay extends Component {
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         if (this.props.visible != nextProps.visible ||
-            this.props.loading != nextProps.loading ||
-            String(this.props.updateArr) != String(nextProps.updateArr)
+            this.props.loading != nextProps.loading
+            //String(this.props.updateArr) != String(nextProps.updateArr)
         )
             return true;
         else
@@ -449,7 +449,7 @@ export class ScrollableListOverLay extends Component {
                             color: colors.text
                         }}
                         title="Tap to retry"
-                        titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
+                        titleStyle={{ color: colors.text, fontSize: responsiveFontSize(1.5) }}
                         buttonStyle={{
                             marginTop: 40,
                             borderColor: colors.iconcolor,
@@ -691,7 +691,10 @@ export class InputBox extends Component {
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         //return true;
-        if (this.props.inputvalue != nextProps.inputvalue || this.props.update != nextProps.update) {
+        if (
+            this.props.inputvalue != nextProps.inputvalue ||
+            this.props.update != nextProps.update
+        ) {
             return true;
         }
         return false;

@@ -12,7 +12,7 @@ import { Navigation } from 'react-native-navigation';
 
 const { colors } = useTheme();
 
-class BottomContainerItem extends Component {
+export class BottomContainerItem extends Component {
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         if (this.props.request_mood != nextProps.request_mood ||
@@ -24,6 +24,7 @@ class BottomContainerItem extends Component {
         }
         return false;
     }
+
     render() {
         const { request_mood, campus, request_category, created_at } = this.props;
         return (

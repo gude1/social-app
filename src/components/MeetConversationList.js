@@ -5,19 +5,26 @@ import TouchableScale from 'react-native-touchable-scale';
 import { Text, Button, Icon, ListItem } from 'react-native-elements';
 import { useTheme } from '../assets/themes/index';
 import moment from 'moment';
-import { responsiveFontSize, responsiveWidth, responsiveHeight } from 'react-native-responsive-dimensions';
+import { responsiveFontSize, responsiveWidth, responsiveHeight, responsiveScreenWidth } from 'react-native-responsive-dimensions';
 import { Navigation } from 'react-native-navigation';
+import { ScrollableListOverLay, ListItem as CustomListItem } from './reusable/ResuableWidgets';
+import { BottomContainerItem } from './reusable/MeetRequestList';
+import * as  Animatable from 'react-native-animatable';
+
 
 const { colors } = useTheme();
 
 class ConversationItem extends Component {
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {
+            showparentmeet: false
+        };
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
-        if (nextProps.item.id != this.props.item.id) {
+        if (nextProps.item.id != this.props.item.id ||
+            this.state.showparentmeet != nextState.showparentmeet) {
             return true;
         }
         return false;
@@ -36,37 +43,39 @@ class ConversationItem extends Component {
         if (meetsetting.owner_id != item.sender_id) {
             return null;
         }
-        //console.warn(item.read);
 
         if (item.status == "read") {
             return (
-                <Text style={{
-                    color: colors.blue,
-                    fontWeight: "bold",
-                    letterSpacing: -1,
-                    fontSize: responsiveFontSize(1.8),
-                    marginRight: 5
-                }}> √√</Text>
+                <Text
+                    style={{
+                        color: colors.blue,
+                        fontWeight: "bold",
+                        letterSpacing: -1,
+                        fontSize: responsiveFontSize(1.8),
+                        marginRight: 5
+                    }}> √√</Text>
             );//
         } else if (item.status == "delivered") {
             return (
-                <Text style={{
-                    color: "#a0a0a0",
-                    fontWeight: "bold",
-                    letterSpacing: -1,
-                    fontSize: responsiveFontSize(1.8),
-                    marginRight: 5
-                }}> √√</Text>
+                <Text
+                    style={{
+                        color: "#a0a0a0",
+                        fontWeight: "bold",
+                        letterSpacing: -1,
+                        fontSize: responsiveFontSize(1.8),
+                        marginRight: 5
+                    }}> √√</Text>
             );
         } else if (item.status == "sending") {
             return (
-                <Text style={{
-                    color: "#a0a0a0",
-                    fontWeight: "bold",
-                    letterSpacing: -1,
-                    fontSize: responsiveFontSize(1.8),
-                    marginRight: 5
-                }}> sending...</Text>
+                <Text
+                    style={{
+                        color: "#a0a0a0",
+                        fontWeight: "bold",
+                        letterSpacing: -1,
+                        fontSize: responsiveFontSize(1.8),
+                        marginRight: 5
+                    }}> sending...</Text>
             );
         } else if (item.status == "failed") {
             return (
@@ -91,6 +100,56 @@ class ConversationItem extends Component {
                 }}> √</Text>
             );
         }
+    }
+
+    renderMeetModal() {
+        let item = this.props.item;
+        let { sender_meet_profile, receiver_meet_profile, origin_meet_request } = item;
+        let meet_profile = item.sender_meet_profile.owner_id == origin_meet_request.requester_id ?
+            item.sender_meet_profile : item.receiver_meet_profile;
+
+        return (
+            <ScrollableListOverLay
+                width={300}
+                onBackdropPress={() => {
+                    this.setState({ showparentmeet: false })
+                }}
+                contentContainerStyle={{ marginLeft: 0 }}
+                visible={this.state.showparentmeet}
+                ListTitle={'Message on Meet Request :'}
+                height={300}
+            >
+                <CustomListItem
+                    containerStyle={styles.requestItemCtn}
+                    leftAvatar={{ uri: meet_profile.meetup_avatar }}
+                    onAvatarPress={() => {
+                        this.setState({ showparentmeet: false })
+                        Navigation.showModal({
+                            component: {
+                                name: 'PhotoViewer',
+                                passProps: {
+                                    navparent: true,
+                                    headerText: meet_profile.meetup_name,
+                                    photos: [meet_profile.meetup_avatar]
+                                },
+                            }
+                        })
+                    }}
+                    title={meet_profile.meetup_name}
+                    titleStyle={{ color: colors.iconcolor }}
+                    subtitle={`   ${item.origin_meet_request.request_msg}`}
+                    subtitleStyle={{ fontWeight: 'bold' }}
+                    BottomContainerItem={
+                        <BottomContainerItem
+                            request_category={item.origin_meet_request.request_category}
+                            request_mood={item.origin_meet_request.request_mood}
+                            campus={meet_profile.campus}
+                            created_at={item.origin_meet_request.created_at}
+                        />
+                    }
+                />
+            </ScrollableListOverLay>
+        );
     }
 
     renderSubTitle = () => {
@@ -181,6 +240,7 @@ class ConversationItem extends Component {
         let meetprofile = item.sender_meet_profile.owner_id == meetsetting.owner_id ?
             item.receiver_meet_profile : item.sender_meet_profile;
         return (
+            <>
             <ListItem
                 Component={TouchableScale}
                 onPress={() => {
@@ -201,7 +261,7 @@ class ConversationItem extends Component {
                     <Icon
                         size={responsiveFontSize(3)}
                         onPress={() => {
-                            console.warn(`glow`)
+                            this.setState({ showparentmeet: true });
                         }}
                         containerStyle={{
                             marginRight: 5
@@ -243,6 +303,8 @@ class ConversationItem extends Component {
                 titleProps={{ ellipsizeMode: 'tail', numberOfLines: 1 }}
                 subtitle={this.renderSubTitle()}
             />
+            {this.renderMeetModal()}
+            </>
         );
     }
 }

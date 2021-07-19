@@ -14,31 +14,35 @@ const { colors } = useTheme();
 
 
 const PhotoViewerScreen = ({ componentId, navparent, headerText, photos, onSubmit, showinput }) => {
-    let lefticon = navparent == true ? <Icon
-        type="antdesign"
-        name="arrowleft"
-        iconStyle={{
-            color: "rgb(255,255,255)",
-            fontWeight: "bold",
-            padding: 3,
-            borderRadius: 6,
-            backgroundColor: 'rgba(0,0,0,0.6)'
-        }}
-        size={responsiveFontSize(4.5)}
-    /> : null;
+    let lefticon = navparent == true ?
+        <Icon
+            type="antdesign"
+            name="arrowleft"
+            iconStyle={{
+                color: "rgb(255,255,255)",
+                fontWeight: "bold",
+                padding: 3,
+                borderRadius: 6,
+                backgroundColor: 'rgba(0,0,0,0.6)'
+            }}
+            size={responsiveFontSize(4.5)}
+        />
+        : null;
     let lefticonpress = navparent == true ? () => Navigation.dismissModal(componentId) : null;
-    let righticon = checkData(onSubmit) == true ? <Icon
-        type="feather"
-        name="send"
-        iconStyle={{
-            color: "white",
-            fontWeight: "bold",
-            padding: 3,
-            borderRadius: 6,
-            backgroundColor: 'rgba(0,0,0,0.6)'
-        }}
-        size={responsiveFontSize(4.5)}
-    /> : null;
+    let righticon = checkData(onSubmit) == true ?
+        <Icon
+            type="feather"
+            name="send"
+            iconStyle={{
+                color: "white",
+                fontWeight: "bold",
+                padding: 3,
+                borderRadius: 6,
+                backgroundColor: 'rgba(0,0,0,0.6)'
+            }}
+            size={responsiveFontSize(4.5)}
+        />
+        : null;
     let righticonpress = onSubmit;
     let righticon2 = checkData(onSubmit) == true ? <Icon
         type="feather"
@@ -68,9 +72,11 @@ const PhotoViewerScreen = ({ componentId, navparent, headerText, photos, onSubmi
 
     Navigation.mergeOptions(componentId, {
         statusBar: {
-            visible: false,
-        },
+            backgroundColor: 'black',
+            style: 'light'
+        }
     });
+
     //to check if images exists
     const checkImages = async () => {
         if (!Array.isArray(photos) || photos.length < 1) {
@@ -123,12 +129,9 @@ const PhotoViewerScreen = ({ componentId, navparent, headerText, photos, onSubmi
 
 PhotoViewerScreen.options = {
     topBar: {
-        visible: false,
-        backgroundColor: 'black',
-        style: 'light'
+        visible: false
     },
     statusBar: {
-        visible: false,
         backgroundColor: 'black',
         style: 'light'
     },

@@ -1,19 +1,23 @@
 import React, { Component, useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, View } from 'react-native';
+import { StyleSheet, SafeAreaView, View, KeyboardAvoidingView, Keyboard } from 'react-native';
 import { Avatar, Button, Input, Icon, Text } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import { useTheme } from '../../assets/themes/index';
-import { HeaderWithImage } from '../../components/reusable/ResuableWidgets';
+import { HeaderWithImage, InputBox } from '../../components/reusable/ResuableWidgets';
 import { Navigation } from 'react-native-navigation';
 import { isEmpty } from '../../utilities/index';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from 'react-native-responsive-dimensions';
+import MeetConversation from '../../components/reusable/MeetConversation';
+import * as Animatable from 'react-native-animatable';
+
 
 const { colors } = useTheme();
 
 const MeetupConversationScreen = ({
     navparent,
     chatitem,
+    authprofile,
     screentype,
     componentId
 }) => {
@@ -37,6 +41,36 @@ const MeetupConversationScreen = ({
         };
     }, []);
 
+
+    const renderConvInfo = () => {
+        return (
+            <Animatable.View
+                style={{
+                    flexDirection: 'row',
+                    width: 300,
+                    alignSelf: "center",
+                    marginTop: 20,
+                    padding: 15,
+                    borderRadius: 20,
+                    backgroundColor: colors.theme == "white" ? 'rgb(237,237,237)' : colors.card
+                }}
+                animation={'slideInRight'}
+                useNativeDriver={true}
+            >
+                <Text
+                    style={{
+                        textAlign: "justify",
+                        fontSize: responsiveFontSize(1.2),
+                        color: colors.placeholder
+                    }}
+                >
+                    Meet Conversations disappear as soon as the  meet expires. Avoid sharing personal information and only meet with strangers at public places
+                </Text>
+            </Animatable.View>
+        );
+    }
+
+
     function renderView() {
         if (isEmpty(chatitem) ||
             isEmpty(chatitem.partnermeetprofile) ||
@@ -54,7 +88,7 @@ const MeetupConversationScreen = ({
                         type="outline"
                         onPress={setDismissNav}
                         icon={{
-                            name: 'arrow-right',
+                            name: 'arrow-left',
                             type: "evilicon",
                             size: responsiveFontSize(4),
                             color: colors.iconcolor
@@ -77,6 +111,7 @@ const MeetupConversationScreen = ({
             );
         } else {
             return (
+                <>
                 <HeaderWithImage
                     title={chatitem.partnermeetprofile.meetup_name}
                     avatarUri={{ uri: chatitem.partnermeetprofile.meetup_avatar }}
@@ -112,10 +147,43 @@ const MeetupConversationScreen = ({
                                 setLoaded(true)
                             }}
                             containerStyle={{ marginTop: 3, marginHorizontal: 10 }}
-                            size={responsiveFontSize(4)}
+                            size={responsiveFontSize(3)}
                         />
                     }
                 />
+
+                {renderConvInfo()}
+
+                <MeetConversation
+                    conv_list={chatitem.conv_list}
+                    authprofile={authprofile}
+                    partnermeetprofile={chatitem.partnermeetprofile}
+                />
+
+                <InputBox
+                    showAvatar={false}
+                    update={Math.random()}
+                    placeholder={'Type a message'}
+                    //onChangeText={setInputTxt}
+                    //inputvalue={inputtxt}
+                    multiline={true}
+                    onSubmit={() => {
+                    }}
+                    leftIcon={{
+                        onPress: () => { },
+                        type: "entypo",
+                        name: "images",
+                        color: colors.text,
+                        size: responsiveFontSize(4)
+                    }}
+                    rightIcon={{
+                        size: responsiveFontSize(5.5)
+                    }}
+                    maxLength={300}
+                    autoFocus={false}
+                    avatar={null}
+                />
+                </>
             );
         }
     }
@@ -126,10 +194,14 @@ const MeetupConversationScreen = ({
         else
             return Navigation.dismissModal(componentId)
     }
+
     /**COMPONENT FUNCTIONS */
+
     return (
         <SafeAreaView style={styles.containerStyle}>
-            {renderView()}
+            <KeyboardAvoidingView style={styles.containerStyle}>
+                {renderView()}
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };
@@ -155,6 +227,7 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state) => ({
+    authprofile: state.profile
 });
 
 export default connect(mapStateToProps, actions)(MeetupConversationScreen);
