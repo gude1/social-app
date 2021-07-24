@@ -4,8 +4,9 @@ import React, { PureComponent, Component } from 'react';
 import { useTheme } from "../../assets/themes/index";
 import { responsiveWidth, responsiveHeight, responsiveFontSize } from "react-native-responsive-dimensions";
 import FastImage from 'react-native-fast-image';
-import { checkData, formatDate, rnPath, convertByteToKbMb } from "../../utilities/index";
+import { checkData, formatDate, rnPath, convertByteToKbMb,isEmpty } from "../../utilities/index";
 import { ModalList, ActivityOverlay } from "./ResuableWidgets";
+import moment from 'moment';
 import RNFetchBlob from "rn-fetch-blob";
 import { Navigation } from "react-native-navigation";
 
@@ -91,6 +92,13 @@ class PrivateChatItem extends Component {
                 imageloaded: 'false',
             });
         }
+    }
+
+    formatChatTime = (time) => {
+        if (isEmpty(time)) {
+            return time;
+        }
+        return moment(time).format('MMM DD YYYY @ h:mm a');
     }
 
     renderOwnerChat = () => {
@@ -221,8 +229,8 @@ class PrivateChatItem extends Component {
                     color: "#a0a0a0",
                     marginHorizontal: 25,
                     textAlign: "justify",
-                    fontSize: responsiveFontSize(1.5),
-                }}>{item.created_at}  <Text style={{ letterSpacing: -1, color: colors.blue }}>√√</Text>
+                    fontSize: responsiveFontSize(1.2),
+                }}>{this.formatChatTime(this.item.created_at *1000)}  <Text style={{ letterSpacing: -1, color: colors.blue }}>√√</Text>
                 </Text>
             );
         } else if (item.read == "delivered") {
@@ -231,8 +239,8 @@ class PrivateChatItem extends Component {
                     color: "#a0a0a0",
                     marginHorizontal: 25,
                     textAlign: "justify",
-                    fontSize: responsiveFontSize(1.5),
-                }}>{item.created_at}  <Text style={{ letterSpacing: -1, }}>√√</Text>
+                    fontSize: responsiveFontSize(1.2),
+                }}>{this.formatChatTime(this.item.created_at *1000)}  <Text style={{ letterSpacing: -1, }}>√√</Text>
                 </Text>
             );
         } else if (item.read == "sending") {
@@ -241,8 +249,7 @@ class PrivateChatItem extends Component {
                     color: "#a0a0a0",
                     marginHorizontal: 25,
                     textAlign: "justify",
-                    letterSpacing: -1,
-                    fontSize: responsiveFontSize(1.8),
+                    fontSize: responsiveFontSize(1.2),
                 }}><Text style={{ letterSpacing: -1, }}>sending...</Text>
                 </Text>
             );
@@ -267,9 +274,8 @@ class PrivateChatItem extends Component {
                     color: "#a0a0a0",
                     marginHorizontal: 25,
                     textAlign: "justify",
-                    letterSpacing: -1,
-                    fontSize: responsiveFontSize(1.8),
-                }}>{item.created_at}  <Text style={{ letterSpacing: -1, }}>√</Text>
+                    fontSize: responsiveFontSize(1.2),
+                }}>{this.formatChatTime(this.item.created_at *1000)}  <Text style={{ letterSpacing: -1, }}>√</Text>
                 </Text>
             );
         }
@@ -292,7 +298,9 @@ class PrivateChatItem extends Component {
                         <Text style={styles.othersChatText}>
                             {this.item.chat_msg}
                         </Text>
-                        <Text style={styles.othersChatTime}>{this.item.created_at}</Text>
+                        <Text style={styles.othersChatTime}>
+                        {this.formatChatTime(this.item.created_at *1000)}
+                        </Text>
                     </View>
                 </TouchableOpacity>
             );
@@ -456,7 +464,7 @@ class PrivateChatItem extends Component {
                                 </View>
                             </Image>
                         </TouchableOpacity>
-                        <Text style={styles.othersChatTime}>{this.item.created_at}</Text>
+                        <Text style={styles.othersChatTime}>{this.formatChatTime(this.item.created_at *1000)}</Text>
                     </View>
                 </TouchableOpacity>
             );
@@ -738,7 +746,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 25,
         textAlign: "justify",
         color: "#a0a0a0",
-        fontSize: responsiveFontSize(1.5)
+        fontSize: responsiveFontSize(1.2)
     },
     ownerChatImagePlaceholder: {
         width: responsiveWidth(60),

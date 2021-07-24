@@ -250,6 +250,7 @@ class ConversationItem extends Component {
                             passProps: {
                                 navparent: true,
                                 chatitem: {
+                                    conversation_id: item.conversation_id,
                                     conv_list: item.conv_list,
                                     partnermeetprofile: meetprofile
                                 }

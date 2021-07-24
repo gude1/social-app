@@ -157,6 +157,9 @@ import {
     REMOVE_PROFILE_MEETUPMAIN,
     SET_MEETCONVLIST,
     UPDATE_MEETCONVLIST,
+    SET_MEETUPCONVERSATION,
+    UPDATE_MEETUPCONVERSATION,
+    REMOVE_MEETUPCONVERSATION,
 } from './types';
 import auth from '../api/auth';
 import session from '../api/session';
@@ -6218,7 +6221,7 @@ export const fetchMeetConv = () => {
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'meetupconvlistfetching'));
-                    meet_convs.map(item => {
+                    meet_convs.forEach(item => {
                         dispatch(updateMeetConvList(item));
                     });
                     break;
@@ -6295,7 +6298,7 @@ export const fetchLaterMeetConv = () => {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
             const response = await session.post('meetupreqconvlist', { min }, options);
-            const { status, errmsg, message, meet_convs } = response.data; 
+            const { status, errmsg, message, meet_convs } = response.data;
             switch (status) {
                 case 200:
                     dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
@@ -6316,6 +6319,167 @@ export const fetchLaterMeetConv = () => {
         }
     };
 };
+
+/**
+ * ACTION CREATORS FOR MEETUPCONVERSATION REDUCER
+ * 
+ */
+
+export const setMeetupConversation = (data = {}) => {
+    return {
+        type: SET_MEETUPCONVERSATION,
+        payload: data
+    };
+};
+
+export const updateMeetupConversation = (data = {}, conversation_id = '') => {
+    return {
+        type: UPDATE_MEETUPCONVERSATION,
+        payload: data,
+        conversation_id,
+    };
+};
+
+export const removeMeetupConversation = (data = {}, conversation_id = '') => {
+    return {
+        type: REMOVE_MEETUPCONVERSATION,
+        payload: data,
+        conversation_id
+    };
+};
+
+export const fetchMeetConversations = (data) => {
+    return async (dispatch) => {
+        let { user, profile, meetupconvs } = store.getState();
+        dispatch(deleteOfflineAction({ id: `fetchMeetConversations${data[0]}` }));
+        let reqobj = {};
+        if (isEmpty(data[0]) || meetupconvs.conversation_id != data[0]) {
+            return;
+        }
+        reqobj['conversation_id'] = data[0];
+        if (!isEmpty(data[1])) {
+            reqobj['min'] = data[1];
+        }
+
+        if (!isEmpty(data[2])) {
+            reqobj['max'] = data[1];
+        }
+
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('getandreadmeetconvs', reqobj, options);
+            const { status, errmsg, convs } = response.data;
+            switch (status) {
+                case 200:
+                    convs.forEach(item => {
+                        dispatch(updateMeetupConversation(item, data[0]));
+                    });
+                    break;
+                case 400:
+                    Toast('failed to refresh conversations');
+                    console.log(errmsg);
+                    break;
+                case 500:
+                    break;
+                default:
+                    break;
+            }
+        } catch (err) {
+            if (err.toString().indexOf('Network Error') != -1) {
+                //Toast('network error!');
+                dispatch(addOfflineAction({
+                    id: `fetchMeetConversations${data[0]}`,
+                    funcName: 'fetchMeetConversations',
+                    param: data,
+                    override: true,
+                }));
+            }
+        }
+    };
+};
+
+export const sendMeetConversation = (data) => {
+    return async (dispatch) => {
+        dispatch(deleteOfflineAction({ id: `sendMeetConversation${data[0]}` }));
+        if (
+            !Array.isArray(data) ||
+            data.length < 1 ||
+            isEmpty(data[0]) ||
+            (isEmpty(data[1]) && isEmpty(data[2]))
+        ) {
+            return;
+        }
+        let formdata = new FormData();
+        let convschema = {
+            conversation_id: data[0],
+            created_at: `${Math.round(new Date().getTime() / 1000)}`,
+            status: 'sending',
+            id: data[3] || `${new Date().getTime()}`,
+        }
+        data[3] = convschema.id;
+
+        if (!isEmpty(data[1])) {
+            formdata.append('chat_msg', data[1]);
+            convschema['chat_msg'] = data[1];
+        }
+
+        if (!isEmpty(data[2])) {
+            formdata.append('chat_pic', {
+                uri: data[2].chat_pic,
+                type: 'image/jpeg',
+                name: data[2].chat_pic
+            });
+
+            formdata.append('thumb_chat_pic', {
+                uri: data[2].thumb_chat_pic,
+                type: 'image/jpeg',
+                name: data[2].thumb_chat_pic
+            });
+            convschema['chat_pic'] = data[2];
+        }
+
+        dispatch(updateMeetupConversation(convschema, data[0]));
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+
+            const response = await session.post('addmeetupreqconv', formdata, options);
+            const { status, errmsg, message, conv } = response.data;
+            switch (status) {
+                case 200:
+                    dispatch(removeMeetupConversation(data, data[0]));   
+                    dispatch(updateMeetupConversation(conv, data[0]));
+                    break;
+                default:
+                    dispatch(updateMeetupConversation({
+                        ...convschema,
+                        status: "failed",
+                        onRetry: () => sendMeetConversation(data)
+                    }, data[0]));
+                    break;
+            }
+        } catch (err) {
+            dispatch(updateMeetupConversation({
+                ...convschema,
+                status: "failed",
+                onRetry: () => sendMeetConversation(data)
+            }, data[0]));
+            if (err.toString().indexOf('Network Error') != -1) {
+                //Toast('network error!');
+                dispatch(addOfflineAction({
+                    id: `sendMeetConversation${data[0]}`,
+                    funcName: 'sendMeetConversation',
+                    param: data,
+                    override: true,
+                }));
+            }
+        }
+    };
+};
+
 
 /**
  * ACTION CREATOR FOR BOOKMARKS REDUCER

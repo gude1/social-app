@@ -29,6 +29,7 @@ import MeetupFormReducer from './MeetupFormReducer';
 import GiphyGalleryReducer from './GiphyGalleryReducer';
 import MeetupMainReducer from './MeetupMainReducer';
 import MeetupConvListReducer from './MeetupConvListReducer';
+import MeetupConversationReducer from './MeetupConversationReducer';
 
 
 export default combineReducers({
@@ -54,6 +55,7 @@ export default combineReducers({
     meetupmain: MeetupMainReducer,
     giphygallery: GiphyGalleryReducer,
     meetupconvlist: MeetupConvListReducer,
+    meetupconvs: MeetupConversationReducer,
     privatechatform: PrivateChatReducer,
     followinfo: FollowInfoReducer,
     userslist: UsersListReducer,

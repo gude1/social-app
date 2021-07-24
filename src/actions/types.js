@@ -255,6 +255,13 @@ export const REMOVE_PROFILE_MEETUPMAIN = 'remove_profile_meetupmain';
 export const UPDATE_MEETCONVLIST = 'update_meetconvlist';
 export const SET_MEETCONVLIST = 'set_meetconvlist';
 
+/**
+ *TYPE CONSTANT FOR MEETUPCONVERSATION REDUCER
+ */
+export const UPDATE_MEETUPCONVERSATION = 'update_meetupconversation';
+export const SET_MEETUPCONVERSATION = 'set_meetupconversation';
+export const REMOVE_MEETUPCONVERSATION = 'remove_meetupconversation';
+
 
 
 /**
