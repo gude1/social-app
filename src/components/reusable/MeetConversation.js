@@ -4,7 +4,7 @@ import * as Animatable from 'react-native-animatable';
 import { Text, Button, Icon } from 'react-native-elements';
 import { useTheme } from '../../assets/themes/index';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from 'react-native-responsive-dimensions';
-import { isEmpty } from '../../utilities/index';
+import { isEmpty, checkData } from '../../utilities/index';
 import moment from 'moment';
 import ParsedText from 'react-native-parsed-text';
 
@@ -38,32 +38,8 @@ class MeetConversationItem extends Component {
         return false;
     }
 
-    renderOwnerChat = () => {
-        let { item } = this.props;
-        if (checkData(item.chat_msg) &&
-            (!Array.isArray(item.chat_pic) || item.chat_pic.length < 1)
-        ) {
-            return (
-                <Animatable.View
-                    animation={'slideInRight'}
-                    useNativeDriver={true}
-                >
-                    <View style={{ marginVertical: 5, alignItems: "flex-end" }}>
-                        <ParsedText style={[styles.ownerChatText, {
-                            color: this.ownerchattextcolor,
-                            backgroundColor: this.ownerchatbgcolor
-                        }]}>
-                            {item.chat_msg}
-                        </ParsedText>
-                        {this.renderCheck(item)}
-                    </View >
-                </Animatable.Viewy>
-            );
-        }
-    }
-
     renderCheck = (item) => {
-        if (!checkData(item) || item.sender_id != this.props.authprofile.profile_id) {
+        if (isEmpty(item) || item.sender_id != this.props.authprofile.profile_id) {
             return null;
         }
 
@@ -95,7 +71,7 @@ class MeetConversationItem extends Component {
                     color: "#a0a0a0",
                     marginHorizontal: 25,
                     textAlign: "justify",
-                    fontSize: responsiveFontSize(1.2),
+                    fontSize: responsiveFontSize(1.5),
                 }}><Text style={{ letterSpacing: -1, }}>sending...</Text>
                 </Text>
             );
@@ -133,6 +109,34 @@ class MeetConversationItem extends Component {
         return moment(time).format('MMM DD YYYY @ h:mm a');
     }
 
+    renderOwnerChat = () => {
+        let { item } = this.props;
+        if (!isEmpty(item.chat_msg) &&
+            (!Array.isArray(item.chat_pic) || item.chat_pic.length < 1)
+        ) {
+            return (
+                <Animatable.View
+                    animation={'slideInRight'}
+                    useNativeDriver={true}
+                >
+                    <TouchableOpacity
+                        onPress={item.onRetry}
+                    >
+                        <View style={{ marginVertical: 5, alignItems: "flex-end" }}>
+                            <ParsedText style={[styles.ownerChatText, {
+                                color: this.ownerchattextcolor,
+                                backgroundColor: this.ownerchatbgcolor
+                            }]}>
+                                {item.chat_msg}
+                            </ParsedText>
+                            {this.renderCheck(item)}
+                        </View >
+                    </TouchableOpacity>
+                </Animatable.View>
+            );
+        }
+    }
+
     renderPartnerChat = () => {
         let { item } = this.props;
         if (
@@ -160,7 +164,10 @@ class MeetConversationItem extends Component {
     }
 
     render() {
-        let content = this.renderPartnerChat();
+        let { authprofile, item } = this.props;
+        //console.warn('meetconvchatitem', item.id);
+        let content = item.sender_id == authprofile.profile_id ?
+            this.renderOwnerChat() : this.renderPartnerChat();
         return (
             content
         );
@@ -249,6 +256,9 @@ class MeetConversation extends Component {
         return (
             <FlatList
                 data={data}
+                ref={ref => {
+                    this.props.setFlatListRef && this.props.setFlatListRef(ref);
+                }}
                 contentContainerStyle={{ marginTop: 10 }}
                 renderItem={this.renderItem}
                 inverted

@@ -32,7 +32,8 @@ const persistConfig = {
         'userslist',
         'offlineactionslist',
         'searchprivatechatlist',
-        'giphygallery'
+        'giphygallery',
+        'meetupconvs'
     ]
 };
 

@@ -4,27 +4,38 @@ import { Avatar, Button, Input, Icon, Text } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as actions from '../../actions';
 import { useTheme } from '../../assets/themes/index';
-import { HeaderWithImage, InputBox } from '../../components/reusable/ResuableWidgets';
+import { HeaderWithImage, InputBox, LoaderScreen } from '../../components/reusable/ResuableWidgets';
 import { Navigation } from 'react-native-navigation';
 import { isEmpty } from '../../utilities/index';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from 'react-native-responsive-dimensions';
 import MeetConversation from '../../components/reusable/MeetConversation';
 import * as Animatable from 'react-native-animatable';
+import { Platform } from 'react-native';
 
 
 const { colors } = useTheme();
 
 const MeetupConversationScreen = ({
     navparent,
+    meetconvobj,
     chatitem,
     authprofile,
     screentype,
-    componentId
+    componentId,
+    setMeetupConversation,
+    sendMeetConversation,
+    setReset,
 }) => {
     /**COMPONENT FUNCTIONS */
     const [loaded, setLoaded] = useState(false);
+    const [flatlistref, setFlatListRef] = useState(null);
+    const [inputtxt, setInputTxt] = useState('');
+    chatitem = !isEmpty(meetconvobj.conversation_id) ?
+        { ...chatitem, ...meetconvobj } : chatitem;
 
     useEffect(() => {
+        setReset('meetupconversation');
+        setMeetupConversation(chatitem);
         const listener = {
             componentDidAppear: () => {
                 setLoaded(true);
@@ -36,6 +47,7 @@ const MeetupConversationScreen = ({
         // Register the listener to all events related to our component
         const unsubscribe = Navigation.events().bindComponent(listener, componentId);
         return () => {
+            setReset('meetupconversation')
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
         };
@@ -73,6 +85,7 @@ const MeetupConversationScreen = ({
 
     function renderView() {
         if (isEmpty(chatitem) ||
+            isEmpty(chatitem.conversation_id) ||
             isEmpty(chatitem.partnermeetprofile) ||
             //isEmpty(chatitem.partnerprofile) ||
             //isEmpty(chatitem.partnerprofile.user) ||
@@ -104,12 +117,34 @@ const MeetupConversationScreen = ({
                             borderColor: colors.iconcolor,
                             borderRadius: 15,
                             width: 100,
-                            padding: 10
                         }}
                     />
                 </View>
             );
         } else {
+            if (!loaded) {
+                return (
+                    <LoaderScreen
+                        loaderIcon={
+                            <View style={{ alignItems: "center" }}>
+                                <Text style={{
+                                    color: colors.text,
+                                    marginVertical: 5,
+                                    fontSize: responsiveFontSize(3)
+                                }}>
+                                    {chatitem.partnermeetprofile.meetup_name}
+                                </Text>
+                                <Icon
+                                    type={'evilicon'}
+                                    name={'comment'}
+                                    color={colors.text}
+                                    size={responsiveFontSize(8)}
+                                />
+                            </View>
+                        }
+                    />
+                );
+            }
             return (
                 <>
                 <HeaderWithImage
@@ -156,18 +191,24 @@ const MeetupConversationScreen = ({
 
                 <MeetConversation
                     conv_list={chatitem.conv_list}
+                    setFlatListRef={setFlatListRef}
                     authprofile={authprofile}
                     partnermeetprofile={chatitem.partnermeetprofile}
                 />
 
                 <InputBox
                     showAvatar={false}
-                    update={Math.random()}
                     placeholder={'Type a message'}
-                    //onChangeText={setInputTxt}
-                    //inputvalue={inputtxt}
+                    onChangeText={setInputTxt}
+                    inputvalue={inputtxt}
                     multiline={true}
                     onSubmit={() => {
+                        sendMeetConversation([
+                            chatitem.conversation_id,
+                            inputtxt
+                        ]);
+                        flatlistref && flatlistref.scrollToOffset({ offset: 0 });
+                        setInputTxt('');
                     }}
                     leftIcon={{
                         onPress: () => { },
@@ -179,7 +220,7 @@ const MeetupConversationScreen = ({
                     rightIcon={{
                         size: responsiveFontSize(5.5)
                     }}
-                    maxLength={300}
+                    //maxLength={300}
                     autoFocus={false}
                     avatar={null}
                 />
@@ -189,6 +230,7 @@ const MeetupConversationScreen = ({
     }
 
     function setDismissNav() {
+        Keyboard.dismiss();
         if (screentype == "screen")
             return Navigation.pop(componentId);
         else
@@ -199,9 +241,10 @@ const MeetupConversationScreen = ({
 
     return (
         <SafeAreaView style={styles.containerStyle}>
-            <KeyboardAvoidingView style={styles.containerStyle}>
+            <View
+                style={styles.containerStyle}>
                 {renderView()}
-            </KeyboardAvoidingView>
+            </View>
         </SafeAreaView>
     );
 };
@@ -227,7 +270,8 @@ const styles = StyleSheet.create({
 });
 
 const mapStateToProps = (state) => ({
-    authprofile: state.profile
+    authprofile: state.profile,
+    meetconvobj: state.meetupconvs
 });
 
 export default connect(mapStateToProps, actions)(MeetupConversationScreen);

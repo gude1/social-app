@@ -6403,6 +6403,7 @@ export const fetchMeetConversations = (data) => {
 export const sendMeetConversation = (data) => {
     return async (dispatch) => {
         dispatch(deleteOfflineAction({ id: `sendMeetConversation${data[0]}` }));
+        let { user, profile, meetupconvs } = store.getState();
         if (
             !Array.isArray(data) ||
             data.length < 1 ||
@@ -6414,7 +6415,8 @@ export const sendMeetConversation = (data) => {
         let formdata = new FormData();
         let convschema = {
             conversation_id: data[0],
-            created_at: `${Math.round(new Date().getTime() / 1000)}`,
+            created_at: Math.round(new Date().getTime() / 1000),
+            sender_id: profile.profile_id,
             status: 'sending',
             id: data[3] || `${new Date().getTime()}`,
         }
@@ -6450,14 +6452,14 @@ export const sendMeetConversation = (data) => {
             const { status, errmsg, message, conv } = response.data;
             switch (status) {
                 case 200:
-                    dispatch(removeMeetupConversation(data, data[0]));   
+                    dispatch(removeMeetupConversation(data, data[0]));
                     dispatch(updateMeetupConversation(conv, data[0]));
                     break;
                 default:
                     dispatch(updateMeetupConversation({
                         ...convschema,
                         status: "failed",
-                        onRetry: () => sendMeetConversation(data)
+                        onRetry: () => dispatch(sendMeetConversation(data))
                     }, data[0]));
                     break;
             }
@@ -6465,7 +6467,7 @@ export const sendMeetConversation = (data) => {
             dispatch(updateMeetupConversation({
                 ...convschema,
                 status: "failed",
-                onRetry: () => sendMeetConversation(data)
+                onRetry: () => dispatch(sendMeetConversation(data))
             }, data[0]));
             if (err.toString().indexOf('Network Error') != -1) {
                 //Toast('network error!');
@@ -6473,6 +6475,7 @@ export const sendMeetConversation = (data) => {
                     id: `sendMeetConversation${data[0]}`,
                     funcName: 'sendMeetConversation',
                     param: data,
+                    persist: true,
                     override: true,
                 }));
             }

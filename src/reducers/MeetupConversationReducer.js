@@ -12,8 +12,7 @@ const arrangeConvs = (data) => {
     if (!Array.isArray(data) || data.length < 1) {
         return data;
     }
-
-    return data.sort((item1, item2) => item2.id - item1.id);
+    return data.sort((item1, item2) => item2.created_at - item1.created_at);
 };
 
 const confirmId = (state, id) => {
@@ -35,16 +34,16 @@ const MeetupConversationReducer = (state = INITIAL_STATE, action) => {
             break;
         case UPDATE_MEETUPCONVERSATION:
             confirmId(state, action.conversation_id);
-            reducerdata = state.map(item => {
+            reducerdata = state.conv_list.map(item => {
                 return item.id == action.payload.id ? { ...item, ...action.payload } : item;
             });
-            reducerdata.find(item => item.id == action.payload) == undefined
+            reducerdata.find(item => item.id == action.payload.id) == undefined
                 && reducerdata.push(action.payload);
             return { ...state, conv_list: arrangeConvs(reducerdata) };
             break;
         case REMOVE_MEETUPCONVERSATION:
             confirmId(state, action.conversation_id);
-            reducerdata = state.filter(item => item.id != action.payload.id);
+            reducerdata = state.conv_list.filter(item => item.id != action.payload.id);
             return { ...state, conv_list: arrangeConvs(reducerdata) };
             break;
         case RESET:
