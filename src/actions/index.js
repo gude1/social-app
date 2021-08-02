@@ -160,14 +160,12 @@ import {
     SET_MEETUPCONVERSATION,
     UPDATE_MEETUPCONVERSATION,
     REMOVE_MEETUPCONVERSATION,
+    UPDATE_ARRAY_PRIVATECHATLIST,
+    UPDATE_MEETCONVLIST_CONVS,
+    REMOVE_MEETCONVLIST_CONVS,
+    UPDATE_MEETCONVLIST_CONVS_ARR,
+    UPDATE_MEETUPCONVERSATION_ARR,
 } from './types';
-import auth from '../api/auth';
-import session from '../api/session';
-import axios from 'axios';
-import { ToastAndroid, Image } from 'react-native';
-import ImagePicker from 'react-native-image-crop-picker';
-import RNFetchBlob from 'rn-fetch-blob';
-import { store, persistor } from '../store';
 import {
     deleteFile,
     rnPath,
@@ -186,6 +184,13 @@ import {
     cpFile,
     isEmpty
 } from '../utilities';
+import auth from '../api/auth';
+import session from '../api/session';
+import axios from 'axios';
+import { ToastAndroid, Image } from 'react-native';
+import ImagePicker from 'react-native-image-crop-picker';
+import RNFetchBlob from 'rn-fetch-blob';
+import { store, persistor } from '../store';
 import CameraRoll from "@react-native-community/cameraroll";
 import { GIPHY_API_KEY1, GIPHY_API_KEY2 } from '../env';
 import { SEARCH_INITIAL_STATE } from '../reducers/GiphyGalleryReducer';
@@ -1116,7 +1121,7 @@ export const uploadProfilePic = (image) => {
         } catch (e) {
             //alert(e.toString());
             //console.warn(e);
-            ImagePicker.clean().catch(e => alert(e));
+            ImagePicker.clean();
             dispatch(setProcessing(false, 'updateProfileImage'));
             Toast('could not update profile picture possible a network error please try again',
                 ToastAndroid.LONG);
@@ -4422,7 +4427,7 @@ export const fetchPrivateChats = (data) => {
                 }));
             }
         }
-    };
+    }; deleteFile
 };
 
 const setChatPics = async (chatpics: Array) => {
@@ -4437,7 +4442,7 @@ const setChatPics = async (chatpics: Array) => {
             let thumbchatpic = await resizeImage(item.chatpic, 50, 50);
             //console.warn(size);
             if (size >= 8000000) {
-                item.chatpic = await resizeImage(item.chatpic, 500, 500);
+                item.chatpic = await resizeImage(item.chatpic, 1000, 1000);
             } else {
                 let newpath = `${fs.dirs.MainBundleDir}/${Math.floor(Math.random() * 10000)}.jpg`
                 let moved = await cpFile(item.chatpic, newpath);
@@ -6207,6 +6212,29 @@ export const updateMeetConvList = (data = {}) => {
     };
 };
 
+export const updateMeetConvListConvs = (data = {}) => {
+    return {
+        type: UPDATE_MEETCONVLIST_CONVS,
+        payload: data
+    }
+};
+
+export const updateMeetConvListConvsArr = (data = []) => {
+    return {
+        type: UPDATE_MEETCONVLIST_CONVS_ARR,
+        payload: data
+    }
+};
+
+
+
+export const removeMeetConvListConvs = (data = {}) => {
+    return {
+        type: REMOVE_MEETCONVLIST_CONVS,
+        payload: data
+    }
+};
+
 
 export const fetchMeetConv = () => {
     return async (dispatch) => {
@@ -6222,7 +6250,7 @@ export const fetchMeetConv = () => {
                 case 200:
                     dispatch(setProcessing(false, 'meetupconvlistfetching'));
                     meet_convs.forEach(item => {
-                        dispatch(updateMeetConvList(item));
+                        dispatch(updateMeetConvListConvs(item));
                     });
                     break;
                 case 404:
@@ -6263,7 +6291,7 @@ export const fetchNewMeetConv = () => {
                 case 200:
                     dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
                     meet_convs.map(item => {
-                        dispatch(updateMeetConvList(item));
+                        dispatch(updateMeetConvListConvs(item));
                     });
                     break;
                 case 404:
@@ -6303,7 +6331,7 @@ export const fetchLaterMeetConv = () => {
                 case 200:
                     dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
                     meet_convs.map(item => {
-                        dispatch(updateMeetConvList(item));
+                        dispatch(updateMeetConvListConvs(item));
                     });
                     break;
                 case 404:
@@ -6340,6 +6368,14 @@ export const updateMeetupConversation = (data = {}, conversation_id = '') => {
     };
 };
 
+export const updateMeetupConversationArr = (data = [], conversation_id = '') => {
+    return {
+        type: UPDATE_MEETUPCONVERSATION_ARR,
+        payload: data,
+        conversation_id,
+    };
+};
+
 export const removeMeetupConversation = (data = {}, conversation_id = '') => {
     return {
         type: REMOVE_MEETUPCONVERSATION,
@@ -6350,19 +6386,20 @@ export const removeMeetupConversation = (data = {}, conversation_id = '') => {
 
 export const fetchMeetConversations = (data) => {
     return async (dispatch) => {
+        if (!Array.isArray(data) || data.length < 2) {
+            return;
+        }
         let { user, profile, meetupconvs } = store.getState();
         dispatch(deleteOfflineAction({ id: `fetchMeetConversations${data[0]}` }));
         let reqobj = {};
-        if (isEmpty(data[0]) || meetupconvs.conversation_id != data[0]) {
-            return;
-        }
         reqobj['conversation_id'] = data[0];
-        if (!isEmpty(data[1])) {
-            reqobj['min'] = data[1];
+        reqobj['request_id'] = data[1];
+        if (!isEmpty(data[2])) {
+            reqobj['min'] = data[2];
         }
 
-        if (!isEmpty(data[2])) {
-            reqobj['max'] = data[1];
+        if (!isEmpty(data[3])) {
+            reqobj['max'] = data[3];
         }
 
         try {
@@ -6373,20 +6410,28 @@ export const fetchMeetConversations = (data) => {
             const { status, errmsg, convs } = response.data;
             switch (status) {
                 case 200:
-                    convs.forEach(item => {
-                        dispatch(updateMeetupConversation(item, data[0]));
-                    });
+                    //console.warn('successfull', convs);
+                    dispatch(updateMeetConvListConvsArr({
+                        conversation_id: data[0],
+                        conv_list: convs
+                    }));
+                    dispatch(updateMeetupConversationArr(convs, data[0]));
                     break;
                 case 400:
                     Toast('failed to refresh conversations');
                     console.log(errmsg);
                     break;
                 case 500:
+                    Toast('failed to refresh conversations');
+                    console.log(errmsg);
                     break;
                 default:
+                    Toast('failed to refresh conversations');
+                    console.log(errmsg);
                     break;
             }
         } catch (err) {
+            console.warn('fetchMeetConversations', err.toString());
             if (err.toString().indexOf('Network Error') != -1) {
                 //Toast('network error!');
                 dispatch(addOfflineAction({
@@ -6400,84 +6445,157 @@ export const fetchMeetConversations = (data) => {
     };
 };
 
-export const sendMeetConversation = (data) => {
+const setConvPic = async (imageuri) => {
+    if (isEmpty(imageuri)) {
+        console.warn('setConvPic', 'imageuri is empty');
+        return;
+    }
+    let { fs } = RNFetchBlob;
+    let chatpic = imageuri;
+    let thumbchatpic = await resizeImage(imageuri, 50, 50);
+    let { file, size, path, filename } = await getFileInfo(imageuri);
+    let ext = filename.split('.')[1];
+    if (size > 6000000) {
+        chat_pic = await resizeImage(imageuri, 1000, 1000);
+    } else {
+        let newpath = `${fs.dirs.MainBundleDir}/${Math.floor(Math.random() * 10000)}.${ext}`
+        let moved = await cpFile(imageuri, newpath);
+        if (moved) {
+            chatpic = newpath;
+        }
+    }
+
+    return {chatpic: rnPath(chatpic), thumbchatpic, ext };
+}
+
+const saveConvPic = async (convpic, from) => {
+    if (isEmpty(convpic) || isEmpty(from)) {
+        return false;
+    }
+    let { fs } = RNFetchBlob;
+    //console.warn('directory',fs.dirs);
+    let convimagedir = `/storage/emulated/0/CampusMeetup/MeetConversations/sent/`;
+    let to = `${convimagedir}${convpic.split('/')[6]}`;
+    try {
+        let isdir = await fs.isDir(convimagedir);
+        if (!isdir) {
+            await fs.mkdir(convimagedir)
+        }
+        cpFile(from, to, true);
+    } catch (err) {
+        console.warn('saveConvPic', err.toString());
+    }
+};
+
+export const sendMeetConversation = (data = []) => {
     return async (dispatch) => {
-        dispatch(deleteOfflineAction({ id: `sendMeetConversation${data[0]}` }));
-        let { user, profile, meetupconvs } = store.getState();
         if (
             !Array.isArray(data) ||
             data.length < 1 ||
             isEmpty(data[0]) ||
-            (isEmpty(data[1]) && isEmpty(data[2]))
+            isEmpty(data[1]) ||
+            (isEmpty(data[2]) && isEmpty(data[3]))
         ) {
             return;
         }
+        dispatch(deleteOfflineAction({ id: `sendMeetConversation${data[0]}` }));
+        let { user, profile, meetupconvs } = store.getState();
         let formdata = new FormData();
         let convschema = {
             conversation_id: data[0],
             created_at: Math.round(new Date().getTime() / 1000),
             sender_id: profile.profile_id,
             status: 'sending',
-            id: data[3] || `${new Date().getTime()}`,
+            id: data[4] || `${new Date().getTime()}`,
         }
-        data[3] = convschema.id;
+        data[4] = convschema.id;
 
-        if (!isEmpty(data[1])) {
-            formdata.append('chat_msg', data[1]);
-            convschema['chat_msg'] = data[1];
-        }
+        formdata.append('request_id', data[1]);
 
         if (!isEmpty(data[2])) {
+            formdata.append('chat_msg', data[2]);
+            convschema['chat_msg'] = data[2];
+        }
+        if (!isEmpty(data[3])) {
+            let chat_pic = null;
+            if (data[3].processed != true) {
+                chat_pic = await setConvPic(data[3].chat_pic);
+            } else {
+                chat_pic = data[3];
+            }
+            let { chatpic, thumbchatpic, ext } = chat_pic;
             formdata.append('chat_pic', {
-                uri: data[2].chat_pic,
-                type: 'image/jpeg',
-                name: data[2].chat_pic
+                uri: chatpic,
+                type: `image/${ext}`,
+                name: chatpic
+            });
+            formdata.append('thumb_chat_pic', {
+                uri: thumbchatpic,
+                type: `image/${ext}`,
+                name: thumbchatpic
             });
 
-            formdata.append('thumb_chat_pic', {
-                uri: data[2].thumb_chat_pic,
-                type: 'image/jpeg',
-                name: data[2].thumb_chat_pic
-            });
-            convschema['chat_pic'] = data[2];
+            data[3] = { chatpic, thumbchatpic, ext, processed: true };
+            convschema['chat_pic'] = data[3];
         }
 
         dispatch(updateMeetupConversation(convschema, data[0]));
+        dispatch(updateMeetConvListConvs(convschema));
         try {
             const options = {
                 headers: { 'Authorization': `Bearer ${user.token}` }
             };
-
             const response = await session.post('addmeetupreqconv', formdata, options);
             const { status, errmsg, message, conv } = response.data;
             switch (status) {
                 case 200:
-                    dispatch(removeMeetupConversation(data, data[0]));
+                    console.warn(200);
+                    if (!isEmpty(conv.chat_pic)) {
+                        await saveConvPic(conv.chat_pic.chatpic, data[3].chatpic);
+                    }
+                    dispatch(removeMeetupConversation(convschema, data[0]));
                     dispatch(updateMeetupConversation(conv, data[0]));
+                    dispatch(removeMeetConvListConvs(convschema));
+                    dispatch(updateMeetConvListConvs(conv));
                     break;
                 default:
+                    Toast(errmsg);
+                    //console.warn('sendMeetConversation', errmsg);
                     dispatch(updateMeetupConversation({
                         ...convschema,
                         status: "failed",
-                        onRetry: () => dispatch(sendMeetConversation(data))
+                        data,
                     }, data[0]));
+
+                    dispatch(updateMeetConvListConvs({
+                        ...convschema,
+                        data,
+                        status: "failed"
+                    }));
                     break;
             }
         } catch (err) {
+            console.warn('sendMeetConversation', err.toString());
             dispatch(updateMeetupConversation({
                 ...convschema,
                 status: "failed",
-                onRetry: () => dispatch(sendMeetConversation(data))
+                data
             }, data[0]));
+
+            dispatch(updateMeetConvListConvs({
+                ...convschema,
+                status: "failed",
+                data
+            }));
             if (err.toString().indexOf('Network Error') != -1) {
                 //Toast('network error!');
-                dispatch(addOfflineAction({
+                /*dispatch(addOfflineAction({
                     id: `sendMeetConversation${data[0]}`,
                     funcName: 'sendMeetConversation',
                     param: data,
                     persist: true,
                     override: true,
-                }));
+                }));*/
             }
         }
     };

@@ -23,8 +23,22 @@ class ConversationItem extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
+        let prevconvlist = Array.isArray(this.props.item.conv_list)
+            ? this.props.item.conv_list : [{}];
+        let nextconvlist = Array.isArray(nextProps.item.conv_list)
+            ? nextProps.item.conv_list : [{}];
+
         if (nextProps.item.id != this.props.item.id ||
-            this.state.showparentmeet != nextState.showparentmeet) {
+            this.state.showparentmeet != nextState.showparentmeet
+        ) {
+            return true;
+        } else if (this.props.item.conversation_id == nextProps.item.conversation_id &&
+            (
+                this.props.item.num_new_msg != nextProps.item.num_new_msg ||
+                prevconvlist[0].id != nextconvlist[0].id ||
+                prevconvlist[0].status != nextconvlist[0].status
+            )
+        ) {
             return true;
         }
         return false;
@@ -38,8 +52,8 @@ class ConversationItem extends Component {
         return parsedtimeformat == currenttimeformat ? moment(time).format('h:mm a') : parsedtimeformat;
     };
 
-    renderCheck = () => {
-        const { item, meetsetting } = this.props;
+    renderCheck = (item) => {
+        let { meetsetting } = this.props;
         if (meetsetting.owner_id != item.sender_id) {
             return null;
         }
@@ -55,7 +69,7 @@ class ConversationItem extends Component {
                         marginRight: 5
                     }}> √√</Text>
             );//
-        } else if (item.status == "delivered") {
+        } else if (item.status == "delievered") {
             return (
                 <Text
                     style={{
@@ -153,11 +167,12 @@ class ConversationItem extends Component {
     }
 
     renderSubTitle = () => {
-        const { item } = this.props;
-        if (checkData(item.chat_msg) && (Array.isArray(item.chat_pic) && item.chat_pic.length > 0)) {
+        let { item } = this.props;
+        item = item.conv_list[0];
+        if (!isEmpty(item.chat_msg) && !isEmpty(item.chat_pic)) {
             return (
                 <View style={{ flexDirection: 'row', alignItems: "center", marginTop: 5 }}>
-                    {this.renderCheck()}
+                    {this.renderCheck(item)}
                     <Icon
                         type={'evilicons'}
                         name={'image'}
@@ -176,10 +191,10 @@ class ConversationItem extends Component {
                     </Text>
                 </View>
             );
-        } else if (checkData(item.chat_msg)) {
+        } else if (!isEmpty(item.chat_msg)) {
             return (
                 <View style={{ flexDirection: 'row', alignItems: "center", marginTop: 5 }}>
-                    {this.renderCheck()}
+                    {this.renderCheck(item)}
                     <Text ellipsizeMode={'tail'}
                         numberOfLines={1}
                         style={{
@@ -191,10 +206,10 @@ class ConversationItem extends Component {
                     </Text>
                 </View>
             );
-        } else if (Array.isArray(item.chat_pic) && item.chat_pic.length > 0) {
+        } else if (!isEmpty(item.chat_pic)) {
             return (
                 <View style={{ flexDirection: 'row', alignItems: "center", marginTop: 5 }}>
-                    {this.renderCheck()}
+                    {this.renderCheck(item)}
                     <Icon
                         type={'evilicons'}
                         name={'image'}
@@ -216,7 +231,7 @@ class ConversationItem extends Component {
 
     renderBadge = () => {
         const { item } = this.props;
-        if (checkData(item.num_new_msg) && item.num_new_msg > 0) {
+        if (!isEmpty(item.num_new_msg) && item.num_new_msg > 0) {
             return {
                 value: item.num_new_msg,
                 badgeStyle: { backgroundColor: colors.chatbadge, borderWidth: 0, height: 25, width: 25, borderRadius: 50 },
@@ -252,6 +267,7 @@ class ConversationItem extends Component {
                                 chatitem: {
                                     conversation_id: item.conversation_id,
                                     conv_list: item.conv_list,
+                                    meet_request_id: item.meet_request_id,
                                     partnermeetprofile: meetprofile
                                 }
                             },
@@ -295,7 +311,7 @@ class ConversationItem extends Component {
                     },
                     resizeMode: "contain"
                 }}
-                rightTitle={this.getConvTime(item.created_at * 1000)}
+                rightTitle={this.getConvTime(item.conv_list[0].created_at * 1000)}
                 rightTitleProps={{ ellipsizeMode: 'tail', numberOfLines: 1 }}
                 rightTitleStyle={this.rightTitleStyle()}
                 contentContainerStyle={styles.listItemContentContainerStyle}

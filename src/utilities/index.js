@@ -7,7 +7,7 @@ import { persistor } from '../store/index';
 import moment from 'moment';
 
 export const deleteFile = (data) => {
-    if (data != null && data != '' && data != undefined) {
+    if (!isEmpty(data)) {
         RNFetchBlob.fs.unlink(data)
             .then(e => e)
             .catch(e => e);
@@ -40,7 +40,7 @@ export const Toast = (message: String, duration: Number, gravity: Number) => {
         return;
     }
     if (Platform.OS == "android") {
-        ToastAndroid.showWithGravity(message, duration || ToastAndroid.LONG, gravity || ToastAndroid.BOTTOM);
+        ToastAndroid.showWithGravity(message, duration || ToastAndroid.SHORT, gravity || ToastAndroid.BOTTOM);
     } else {
         alert(message);
     }
@@ -159,8 +159,6 @@ export const downloadFile = (todownloadpath, todownloadfrompath, okAction, faile
             Toast(`Error: ${err.message}`);
             checkData(failedAction) && failedAction(err);
         });
-
-
 };
 
 export const cpFile = async (from: String, to: String, del: Boolean) => {

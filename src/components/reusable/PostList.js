@@ -14,8 +14,8 @@ import TouchableScale from 'react-native-touchable-scale';
 import { ViewPager, IndicatorViewPager, PagerDotIndicator } from './viewpager';
 
 const { colors } = useTheme();
-const postwidth = responsiveWidth(94) > 1024 ? 1024 : responsiveWidth(94);
-const postheight = responsiveWidth(94) > 1024 ? 1024 : responsiveWidth(94);
+const postwidth = responsiveWidth(94) > 1240 ? 1240 : responsiveWidth(94);
+const postheight = postwidth + 110;
 
 class PostImageViewPager extends Component {
     constructor(prop) {
@@ -490,7 +490,7 @@ export default class PostList extends React.Component {
             name="plus"
             style={{ borderWidth: 2, padding: 2, borderRadius: 10, borderColor: colors.text }}
             color={colors.text}
-            size={responsiveFontSize(3)}
+            size={responsiveFontSize(2.5)}
         />;
         this.rightIcon = <Icon
             type="antdesign"
@@ -1090,8 +1090,8 @@ const styles = StyleSheet.create({
     },
     postImagePlaceHolderStyle: {
         backgroundColor: colors.background,
-        borderTopLeftRadius: 15,
-        borderTopRightRadius: 15,
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
         borderWidth: 0.6,
         borderColor: colors.border
     },
@@ -1135,16 +1135,16 @@ const styles = StyleSheet.create({
         color: "dimgray"
     },
     postImageStyle: {
-        borderTopLeftRadius: 15,
-        borderTopRightRadius: 15,
+       // borderTopLeftRadius: 15,
+        //borderTopRightRadius: 15,
         width: postwidth,
         height: postheight
     },
     postListItemContainerAvatar: {
         backgroundColor: colors.border,
         //marginHorizontal: 15,
-        borderTopLeftRadius: 15,
-        borderTopRightRadius: 15,
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
         width: postwidth,
         height: postheight
     },

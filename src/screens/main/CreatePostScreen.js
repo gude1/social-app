@@ -363,7 +363,7 @@ CreatePostScreen.options = {
         style: colors.statusbartext
     },
     bottomTabs: {
-        visible: true
+        visible: false
     },
     topBar: {
         visible: false,

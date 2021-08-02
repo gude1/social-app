@@ -1,4 +1,4 @@
-import { RESET, SET_MEETCONVLIST, PROCESSING, UPDATE_MEETCONVLIST } from "../actions/types";
+import { RESET, SET_MEETCONVLIST, PROCESSING, UPDATE_MEETCONVLIST, UPDATE_MEETCONVLIST_CONVS, REMOVE_MEETCONVLIST_CONVS, UPDATE_MEETCONVLIST_CONVS_ARR } from "../actions/types";
 import { checkData, isEmpty } from "../utilities/index";
 
 const INITIAL_STATE = {
@@ -28,6 +28,13 @@ const handleProcessing = (key, value, state) => {
     }
 };
 
+const arrangeConvs = (data) => {
+    if (!Array.isArray(data) || data.length < 1) {
+        return data;
+    }
+    return data.sort((item1, item2) => item2.created_at - item1.created_at);
+};
+
 const arrangeConvList = (data: Array) => {
     if (!Array.isArray(data) || data.length < 1) {
         return data;
@@ -35,15 +42,14 @@ const arrangeConvList = (data: Array) => {
     data = [...data];
 
     return data.sort((item1, item2) => {
-        let id1 = !isEmpty(item1.conv_list) && Array.isArray(item1.conv_list) ?
+        let id1 = item1.conv_list && Array.isArray(item1.conv_list) ?
             item1.conv_list[0].id : item1.id;
-        let id2 = !isEmpty(item2.conv_list) && Array.isArray(item2.conv_list) ?
+        let id2 = item2.conv_list && Array.isArray(item2.conv_list) ?
             item2.conv_list[0].id : item2.id;
 
         return id2 - id1;
     });
 };
-
 
 let reducerdata = null;
 
@@ -53,12 +59,75 @@ const MeetupConvListReducer = (state = INITIAL_STATE, action) => {
             return { ...state, ...action.payload };
             break;
         case UPDATE_MEETCONVLIST:
-            reducerdata = state.list.map(item => {
-                return item.conversation_id == action.payload.conversation_id ?
-                    { ...item, ...action.payload } : item;
+            if (isEmpty(action.payload.conversation_id)) {
+                return state;
+            }
+            reducerdata = state.list.map(listitem => {
+                return listitem.conversation_id == action.payload.conversation_id ?
+                    { ...listitem, ...action.payload } : listitem;
             });
-            reducerdata.find(item => item.conversation_id == action.payload.conversation_id) == undefined &&
+            reducerdata.find(listitem => listitem.conversation_id == action.payload.conversation_id) == undefined &&
                 reducerdata.push(action.payload);
+            return { ...state, list: arrangeConvList(reducerdata) };
+            break;
+        case UPDATE_MEETCONVLIST_CONVS:
+            if (isEmpty(action.payload.conversation_id)) {
+                return state;
+            }
+            reducerdata = state.list.map(listitem => {
+                if (listitem.conversation_id == action.payload.conversation_id) {
+                    let convlist = listitem.conv_list.map(item => {
+                        return item.id == action.payload.id ?
+                            { ...item, ...action.payload } : item;
+                    });
+                    convlist.find(item => item.id == action.payload.id) == undefined
+                        && convlist.push(action.payload);
+                    return { ...listitem, ...action.payload, conv_list: arrangeConvs(convlist) };
+                }
+                return listitem;
+            });
+            reducerdata.find(listitem => listitem.conversation_id == action.payload.conversation_id) == undefined &&
+                reducerdata.push(action.payload);
+            return { ...state, list: arrangeConvList(reducerdata) };
+            break;
+        case UPDATE_MEETCONVLIST_CONVS_ARR:
+            if (isEmpty(action.payload.conversation_id)) {
+                return state;
+            }
+            reducerdata = state.list.map(listitem => {
+                if (action.payload.conversation_id == listitem.conversation_id) {
+                    if (!isEmpty(action.payload.conv_list)) {
+                        let excludeconvs = [];
+                        let newconvs = action.payload.conv_list.map(convitem => {
+                            let foundconvitem = action.payload.conv_list.find(newconvitem => newconvitem.id == convitem.id);
+                            if (foundconvitem) {
+                                excludeconvs.push(foundconvitem.id);
+                                return { ...convitem, ...foundconvitem };
+                            } else {
+                                return convitem;
+                            }
+                        });
+                        let tobeaddedconvs = action.payload.conv_list.filter(newconvitem => !excludeconvs.includes(newconvitem.id));
+                        newconvs = [...newconvs, ...tobeaddedconvs];
+                        return { ...listitem, ...action.payload, conv_list: arrangeConvs(newconvs) };
+                    } else {
+                        return { ...listitem, ...action.payload };
+                    }
+                }
+                return listitem;
+            });
+            reducerdata.find(listitem => listitem.conversation_id == action.payload.conversation_id) == undefined &&
+                reducerdata.push(action.payload);
+            return { ...state, list: arrangeConvList(reducerdata) };
+            break;
+        case REMOVE_MEETCONVLIST_CONVS:
+            reducerdata = state.list.map(listitem => {
+                if (listitem.conversation_id == action.payload.conversation_id) {
+                    let convlist = listitem.conv_list.filter(item => item.id != action.payload.id);
+                    return { ...listitem, conv_list: arrangeConvs(convlist) };
+                }
+                return listitem;
+            });
             return { ...state, list: arrangeConvList(reducerdata) };
             break;
         case PROCESSING:

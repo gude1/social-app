@@ -1,4 +1,4 @@
-import { RESET, SET_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION, REMOVE_MEETUPCONVERSATION } from "../actions/types";
+import { RESET, SET_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION, REMOVE_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION_ARR } from "../actions/types";
 import { checkData, isEmpty } from "../utilities/index";
 
 
@@ -39,6 +39,22 @@ const MeetupConversationReducer = (state = INITIAL_STATE, action) => {
             });
             reducerdata.find(item => item.id == action.payload.id) == undefined
                 && reducerdata.push(action.payload);
+            return { ...state, conv_list: arrangeConvs(reducerdata) };
+            break;
+        case UPDATE_MEETUPCONVERSATION_ARR:
+            confirmId(state, action.conversation_id);
+            let exclude = [];
+            reducerdata = state.conv_list.map(item => {
+                let founditem = action.payload.find(newitem => newitem.id == item.id);
+                if (founditem) {
+                    exclude.push(item.id);
+                    return { ...item, ...founditem };
+                } else {
+                    return item;
+                }
+            });
+            let toadd = action.payload.filter(newitem => !exclude.includes(newitem.id));
+            reducerdata = [...reducerdata, ...toadd];
             return { ...state, conv_list: arrangeConvs(reducerdata) };
             break;
         case REMOVE_MEETUPCONVERSATION:

@@ -203,12 +203,14 @@ class MeetRequestList extends Component {
                         }
                     },
                     {
-                        title: "Mute Meets from this profile",
+                        title: "Mute this meet profile",
                         onPress: () => {
                             this.setState({ showmeetoptions: false });
+                            customAlert('Mute this meetprofile?', null, () => {
+                                checkData(this.props.blackList) &&
+                                    this.props.blackList(this.currentselectmeet.requester_id)
+                            });
                             //alert(JSON.stringify(this.currentselectmeet));
-                            checkData(this.props.blackList) &&
-                                this.props.blackList(this.currentselectmeet.requester_id)
                         }
                     },
                 ];

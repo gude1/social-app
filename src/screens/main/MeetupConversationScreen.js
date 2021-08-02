@@ -6,7 +6,7 @@ import * as actions from '../../actions';
 import { useTheme } from '../../assets/themes/index';
 import { HeaderWithImage, InputBox, LoaderScreen } from '../../components/reusable/ResuableWidgets';
 import { Navigation } from 'react-native-navigation';
-import { isEmpty } from '../../utilities/index';
+import { isEmpty, resizeImage, getFileInfo } from '../../utilities/index';
 import { responsiveFontSize, responsiveHeight, responsiveWidth } from 'react-native-responsive-dimensions';
 import MeetConversation from '../../components/reusable/MeetConversation';
 import * as Animatable from 'react-native-animatable';
@@ -22,11 +22,14 @@ const MeetupConversationScreen = ({
     authprofile,
     screentype,
     componentId,
+    fetchMeetConversations,
     setMeetupConversation,
+    updateMeetConvList,
     sendMeetConversation,
     setReset,
 }) => {
     /**COMPONENT FUNCTIONS */
+
     const [loaded, setLoaded] = useState(false);
     const [flatlistref, setFlatListRef] = useState(null);
     const [inputtxt, setInputTxt] = useState('');
@@ -47,11 +50,24 @@ const MeetupConversationScreen = ({
         // Register the listener to all events related to our component
         const unsubscribe = Navigation.events().bindComponent(listener, componentId);
         return () => {
-            setReset('meetupconversation')
             // Make sure to unregister the listener during cleanup
             unsubscribe.remove();
+            setReset('meetupconversation');
         };
     }, []);
+
+    useEffect(() => {
+        if (meetconvobj.conversation_id == chatitem.conversation_id) {
+            updateMeetConvList({
+                conversation_id: meetconvobj.conversation_id,
+                num_new_msg: null
+            });
+            /* fetchMeetConversations([
+                 chatitem.conversation_id,
+                 chatitem.meet_request_id,
+             ]);*/
+        }
+    }, [meetconvobj.conversation_id]);
 
 
     const renderConvInfo = () => {
@@ -82,10 +98,25 @@ const MeetupConversationScreen = ({
         );
     }
 
+    function sendImageConv(data) {
+        if (!Array.isArray(data) || isEmpty(data)) {
+            return;
+        }
+        data.forEach(dataobj => {
+            sendMeetConversation([
+                chatitem.conversation_id,
+                chatitem.meet_request_id,
+                dataobj.inputtxt,
+                { chat_pic: dataobj.imageuri }
+            ])
+        })
+
+    }
 
     function renderView() {
         if (isEmpty(chatitem) ||
             isEmpty(chatitem.conversation_id) ||
+            isEmpty(chatitem.meet_request_id) ||
             isEmpty(chatitem.partnermeetprofile) ||
             //isEmpty(chatitem.partnerprofile) ||
             //isEmpty(chatitem.partnerprofile.user) ||
@@ -193,6 +224,7 @@ const MeetupConversationScreen = ({
                     conv_list={chatitem.conv_list}
                     setFlatListRef={setFlatListRef}
                     authprofile={authprofile}
+                    sendConv={sendMeetConversation}
                     partnermeetprofile={chatitem.partnermeetprofile}
                 />
 
@@ -205,13 +237,31 @@ const MeetupConversationScreen = ({
                     onSubmit={() => {
                         sendMeetConversation([
                             chatitem.conversation_id,
+                            chatitem.meet_request_id,
                             inputtxt
                         ]);
                         flatlistref && flatlistref.scrollToOffset({ offset: 0 });
                         setInputTxt('');
                     }}
                     leftIcon={{
-                        onPress: () => { },
+                        onPress: () => {
+                            Navigation.showModal({
+                                component: {
+                                    name: 'PhotoList',
+                                    id: "PHOTO_LIST_CHAT",
+                                    passProps: {
+                                        navparent: true,
+                                        showinput: true,
+                                        onSubmit: (data) => {
+                                            Navigation.dismissModal('PHOTO_VIEWER');
+                                            Navigation.dismissModal('PHOTO_LIST_CHAT');
+                                            sendImageConv(data);
+                                            flatlistref && flatlistref.scrollToOffset({ offset: 0 });
+                                        }
+                                    }
+                                }
+                            });
+                        },
                         type: "entypo",
                         name: "images",
                         color: colors.text,

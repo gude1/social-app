@@ -96,7 +96,7 @@ export class HeaderWithImage extends Component {
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
-        if (this.props.avatarUri != nextProps.avatarUri ||
+        if (this.props ?.avatarUri ?.uri != nextProps ?.avatarUri ?.uri ||
             this.props.title != nextProps.title ||
             this.props.subTitle != nextProps.subTitle
         ) {
