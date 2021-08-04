@@ -4,6 +4,7 @@ import { checkData, isEmpty } from "../utilities/index";
 
 const INITIAL_STATE = {
     conversation_id: '',
+    meet_request: {},
     partnermeetprofile: {},
     conv_list: []
 };

@@ -134,7 +134,6 @@ class ConversationItem extends Component {
                 height={300}
             >
                 <CustomListItem
-                    containerStyle={styles.requestItemCtn}
                     leftAvatar={{ uri: meet_profile.meetup_avatar }}
                     onAvatarPress={() => {
                         this.setState({ showparentmeet: false })
@@ -267,7 +266,7 @@ class ConversationItem extends Component {
                                 chatitem: {
                                     conversation_id: item.conversation_id,
                                     conv_list: item.conv_list,
-                                    meet_request_id: item.meet_request_id,
+                                    meet_request: item.origin_meet_request,
                                     partnermeetprofile: meetprofile
                                 }
                             },

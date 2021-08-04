@@ -607,29 +607,36 @@ export const AvatarNavModal = ({
             fullScreen={false}
             isVisible={isVisible}
             onBackdropPress={onBackdropPress}
-            animationType="fade"
+            //animationType="fade"
             overlayStyle={{
                 padding: 0,
                 margin: 0,
-                backgroundColor: colors.background
+                backgroundColor: 'rgba(0,0,0,0.0)',
             }}
         >
-            <View style={styles.avatarNavModal}>
-                <TouchableScale activeScale={1} onPress={onAvatarPress}>
-                    <Image style={{ width: 250, height: 250, }}
-                        source={avatar}
-                    >
-                        <View style={styles.avatarNavModalImageHeader}>
-                            <Text style={{ color: 'white', fontSize: responsiveFontSize(2.5) }}>
-                                {headername}
-                            </Text>
-                        </View>
-                    </Image>
-                </TouchableScale>
-                <View style={styles.avatarNavModalNavCtn}>
-                    {renderNavItems()}
+            <Animatable.View
+                animation={'bounceInUp'}
+                useNativeDriver={true}
+            >
+
+                <View style={styles.avatarNavModal}>
+                    <TouchableScale activeScale={1} onPress={onAvatarPress}>
+                        <Image style={{ width: 250, height: 250, }}
+                            source={avatar}
+                        >
+                            <View style={styles.avatarNavModalImageHeader}>
+                                <Text style={{ color: 'white', fontSize: responsiveFontSize(2.5) }}>
+                                    {headername}
+                                </Text>
+                            </View>
+                        </Image>
+                    </TouchableScale>
+                    <View style={styles.avatarNavModalNavCtn}>
+                        {renderNavItems()}
+                    </View>
                 </View>
-            </View>
+            </Animatable.View>
+
         </Overlay>
     )
 };

@@ -9,6 +9,9 @@ import moment from 'moment';
 import ParsedText from 'react-native-parsed-text';
 import { Navigation } from 'react-native-navigation';
 import RNFetchBlob from "rn-fetch-blob";
+import { BottomContainerItem } from './MeetRequestList';
+import { ScrollableListOverLay, ListItem } from './ResuableWidgets';
+
 
 const { colors } = useTheme();
 
@@ -50,6 +53,7 @@ class MeetConversationItem extends Component {
 
         return false;
     }
+
     componentDidMount() {
         (async () => {
             let { item } = this.props;
@@ -137,6 +141,7 @@ class MeetConversationItem extends Component {
 
     returnPartnerImageUri = async () => {
     }
+
     returnOwnerImageUri = (dbconvpic, processed) => {
         if (isEmpty(dbconvpic) || (processed != undefined || processed != null)) {
             return dbconvpic;
@@ -147,11 +152,11 @@ class MeetConversationItem extends Component {
 
     renderOwnerChat = () => {
         let { item, sendConv } = this.props;
-        let imageuri = this.returnOwnerImageUri(item.chat_pic.chatpic, item.chat_pic.processed);
         let onPress = null;
         if (checkData(sendConv) && !isEmpty(item.data)) {
             onPress = () => sendConv(item.data);
         }
+
         if (!isEmpty(item.chat_msg) &&
             isEmpty(item.chat_pic)
         ) {
@@ -176,6 +181,7 @@ class MeetConversationItem extends Component {
                 </Animatable.View>
             );
         } else if (!isEmpty(item.chat_msg) && !isEmpty(item.chat_pic)) {
+            let imageuri = this.returnOwnerImageUri(item.chat_pic.chatpic, item.chat_pic.processed);
             return (
                 <Animatable.View
                     animation={'slideInRight'}
@@ -227,6 +233,7 @@ class MeetConversationItem extends Component {
             );
 
         } else if (isEmpty(item.chat_msg) && !isEmpty(item.chat_pic)) {
+            let imageuri = this.returnOwnerImageUri(item.chat_pic.chatpic, item.chat_pic.processed);
             //console.warn(this.returnOwnerImageUri(item.chat_pic.chatpic, item.chat_pic.processed));
             return (
                 <Animatable.View
@@ -270,7 +277,6 @@ class MeetConversationItem extends Component {
             return null;
         }
     }
-
 
     renderDownloadBtn = (size) => {
         if (isEmpty(size) || !isEmpty(this.state.partnerimageuri)) {
@@ -532,6 +538,53 @@ class MeetConversation extends Component {
         }
     };
 
+    renderParentMeetReq = () => {
+        let { meet_request, showparentmeet, setShowParentMeet, partnermeetprofile, authmeetprofile } = this.props;
+        let meet_profile = meet_request.requester_id == authmeetprofile.owner_id
+            ? authmeetprofile : partnermeetprofile;
+        return (
+            <ScrollableListOverLay
+                width={300}
+                onBackdropPress={() => {
+                    setShowParentMeet(false);
+                }}
+                contentContainerStyle={{ marginLeft: 0 }}
+                visible={showparentmeet}
+                ListTitle={'Meet Request'}
+                height={300}
+            >
+                <ListItem
+                    leftAvatar={{ uri: meet_profile.meetup_avatar }}
+                    onAvatarPress={() => {
+                        setShowParentMeet(false);
+                        Navigation.showModal({
+                            component: {
+                                name: 'PhotoViewer',
+                                passProps: {
+                                    navparent: true,
+                                    headerText: meet_profile.meetup_name,
+                                    photos: [meet_profile.meetup_avatar]
+                                },
+                            }
+                        })
+                    }}
+                    title={meet_profile.meetup_name}
+                    titleStyle={{ color: colors.iconcolor }}
+                    subtitle={`   ${meet_request.request_msg}`}
+                    subtitleStyle={{ fontWeight: 'bold' }}
+                    BottomContainerItem={
+                        <BottomContainerItem
+                            request_category={meet_request.request_category}
+                            request_mood={meet_request.request_mood}
+                            campus={meet_profile.campus}
+                            created_at={meet_request.created_at}
+                        />
+                    }
+                />
+            </ScrollableListOverLay>
+        );
+    }
+
     renderItem = ({ item }) => {
         return (
             <MeetConversationItem
@@ -544,9 +597,10 @@ class MeetConversation extends Component {
 
 
     render() {
-        let { conv_list } = this.props;
+        let { conv_list, authprofile, } = this.props;
         let data = conv_list.sort((item1, item2) => item2.created_at - item1.created_at);
         return (
+            <>
             <FlatList
                 data={data}
                 ref={ref => {
@@ -560,6 +614,8 @@ class MeetConversation extends Component {
                 keyboardDismissMode={'on-drag'}
                 keyExtractor={this.keyExtractor}
             />
+            {this.renderParentMeetReq()}
+            </>
         );
     }
 }

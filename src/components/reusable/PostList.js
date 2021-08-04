@@ -829,39 +829,21 @@ export default class PostList extends React.Component {
 
     _setFooterComponent = () => {
         if (this.props.loadingmore == true) {
-            return (<View style={{
-                flex: 1,
-                justifyContent: "center",
-                margin: 6,
-                alignItems: "center"
-            }}>
-                <ActivityIndicator
-                    size={30}
-                    color={colors.border} />
-            </View>);
-        } else if (this.props.loadingmore == 'retry') {
             return (
-                <Button
-                    type="clear"
-                    onPress={this.props.onLoadMorePress}
-                    icon={{
-                        name: 'sync',
-                        type: "antdesign",
-                        size: responsiveFontSize(2.7),
-                        color: colors.text
+                <View
+                    style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        margin: 6,
+                        alignItems: "center"
                     }}
-                    title="Retry"
-                    titleStyle={{ color: colors.text, fontSize: responsiveFontSize(2) }}
-                    buttonStyle={{
-                        alignSelf: 'center',
-                        marginTop: 10,
-                        borderColor: colors.iconcolor,
-                        borderRadius: 15,
-                        padding: 10
-                    }}
-                />
+                >
+                    <ActivityIndicator
+                        size={30}
+                        color={colors.border} />
+                </View>
             );
-        } else if (this.props.loadingmore == false) {
+        } else {
             return (
                 <Button
                     type="clear"
@@ -882,8 +864,6 @@ export default class PostList extends React.Component {
                     }}
                 />
             );
-        } else {
-            return null;
         }
     };
 
@@ -1135,7 +1115,7 @@ const styles = StyleSheet.create({
         color: "dimgray"
     },
     postImageStyle: {
-       // borderTopLeftRadius: 15,
+        // borderTopLeftRadius: 15,
         //borderTopRightRadius: 15,
         width: postwidth,
         height: postheight

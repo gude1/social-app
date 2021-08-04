@@ -20,6 +20,7 @@ const MeetupConversationScreen = ({
     meetconvobj,
     chatitem,
     authprofile,
+    authmeetprofile,
     screentype,
     componentId,
     fetchMeetConversations,
@@ -31,6 +32,7 @@ const MeetupConversationScreen = ({
     /**COMPONENT FUNCTIONS */
 
     const [loaded, setLoaded] = useState(false);
+    const [showparentmeet, setShowParentMeet] = useState(false);
     const [flatlistref, setFlatListRef] = useState(null);
     const [inputtxt, setInputTxt] = useState('');
     chatitem = !isEmpty(meetconvobj.conversation_id) ?
@@ -64,7 +66,7 @@ const MeetupConversationScreen = ({
             });
             /* fetchMeetConversations([
                  chatitem.conversation_id,
-                 chatitem.meet_request_id,
+                 chatitem.meet_request.request_id,
              ]);*/
         }
     }, [meetconvobj.conversation_id]);
@@ -105,7 +107,7 @@ const MeetupConversationScreen = ({
         data.forEach(dataobj => {
             sendMeetConversation([
                 chatitem.conversation_id,
-                chatitem.meet_request_id,
+                chatitem.meet_request.request_id,
                 dataobj.inputtxt,
                 { chat_pic: dataobj.imageuri }
             ])
@@ -116,8 +118,8 @@ const MeetupConversationScreen = ({
     function renderView() {
         if (isEmpty(chatitem) ||
             isEmpty(chatitem.conversation_id) ||
-            isEmpty(chatitem.meet_request_id) ||
             isEmpty(chatitem.partnermeetprofile) ||
+            isEmpty(chatitem.meet_request) ||
             //isEmpty(chatitem.partnerprofile) ||
             //isEmpty(chatitem.partnerprofile.user) ||
             !Array.isArray(chatitem.conv_list)
@@ -210,7 +212,7 @@ const MeetupConversationScreen = ({
                             name="infocirlceo"
                             color={colors.text}
                             onPress={() => {
-                                setLoaded(true)
+                                setShowParentMeet(true)
                             }}
                             containerStyle={{ marginTop: 3, marginHorizontal: 10 }}
                             size={responsiveFontSize(3)}
@@ -224,7 +226,11 @@ const MeetupConversationScreen = ({
                     conv_list={chatitem.conv_list}
                     setFlatListRef={setFlatListRef}
                     authprofile={authprofile}
+                    authmeetprofile={authmeetprofile}
+                    showparentmeet={showparentmeet}
+                    setShowParentMeet={setShowParentMeet}
                     sendConv={sendMeetConversation}
+                    meet_request={chatitem.meet_request}
                     partnermeetprofile={chatitem.partnermeetprofile}
                 />
 
@@ -237,7 +243,7 @@ const MeetupConversationScreen = ({
                     onSubmit={() => {
                         sendMeetConversation([
                             chatitem.conversation_id,
-                            chatitem.meet_request_id,
+                            chatitem.meet_request.request_id,
                             inputtxt
                         ]);
                         flatlistref && flatlistref.scrollToOffset({ offset: 0 });
@@ -321,6 +327,11 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state) => ({
     authprofile: state.profile,
+    authmeetprofile: {
+        meetup_name: state.meetupform.meetup_name,
+        meetup_avatar: state.meetupform.meetup_avatar,
+        owner_id: state.profile.profile_id
+    },
     meetconvobj: state.meetupconvs
 });
 

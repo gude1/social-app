@@ -6589,13 +6589,13 @@ export const sendMeetConversation = (data = []) => {
             }));
             if (err.toString().indexOf('Network Error') != -1) {
                 //Toast('network error!');
-                /*dispatch(addOfflineAction({
+                dispatch(addOfflineAction({
                     id: `sendMeetConversation${data[0]}`,
                     funcName: 'sendMeetConversation',
                     param: data,
                     persist: true,
                     override: true,
-                }));*/
+                }));
             }
         }
     };
