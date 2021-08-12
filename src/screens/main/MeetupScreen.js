@@ -421,6 +421,7 @@ export const MeetupScreen = ({
                         <MeetRequestList
                             meetupreqobj={meetupreqobj}
                             blackList={blackListMeetProfile}
+                            createMeetReq={createMeetRequest}
                             deleteMeetReq={deleteMeetRequest}
                             authprofile={authprofile}
                             myrequests={true}
@@ -532,12 +533,12 @@ export const MeetupScreen = ({
                         setShowMakeMeetModal(false);
                         setCreateReq(REQUEST_SCHEMA);
                     }}
-                    updateArr={[
-                        createReq.expires_at,
-                        createReq.request_category,
-                        createReq.request_mood,
-                        createReq.request_msg
-                    ]}
+                    updateArr={`
+                        ${createReq.expires_at}
+                        ${createReq.request_category}
+                        ${createReq.request_mood}
+                       ${createReq.request_msg}
+                    `}
                     height={400}
                     submitactiontxt={'Create'}
                     onBackdropPress={() => {

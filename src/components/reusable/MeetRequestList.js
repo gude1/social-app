@@ -9,6 +9,8 @@ import * as Animatable from 'react-native-animatable';
 import EmojiData from '../../assets/static/EmojiList.json';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
 import { Navigation } from 'react-native-navigation';
+import moment from 'moment';
+
 
 const { colors } = useTheme();
 
@@ -18,7 +20,7 @@ export class BottomContainerItem extends Component {
         if (this.props.request_mood != nextProps.request_mood ||
             this.props.campus != nextProps.campus ||
             this.props.request_category || nextProps.request_category ||
-            this.props.created_at || nextProps.created_at
+            this.props.created_at != nextProps.created_at
         ) {
             return true;
         }
@@ -26,7 +28,7 @@ export class BottomContainerItem extends Component {
     }
 
     render() {
-        const { request_mood, campus, request_category, created_at } = this.props;
+        const { request_mood, campus, request_category, expires_at, created_at } = this.props;
         return (
             <View style={{
                 paddingVertical: 5,
@@ -36,6 +38,8 @@ export class BottomContainerItem extends Component {
             }}>
                 <Animatable.Text
                     animation={'slideInUp'}
+                    ellipsizeMode={'tail'}
+                    numberOfLines={1}
                     style={{ color: colors.iconcolor, textAlign: "center" }}
                     useNativeDriver={true}>
                     {created_at}
@@ -43,20 +47,26 @@ export class BottomContainerItem extends Component {
 
                 <Animatable.Text
                     animation={'slideInUp'}
-                    style={{ color: colors.text, textAlign: "center" }}
+                    ellipsizeMode={'tail'}
+                    numberOfLines={1}
+                    style={{ color: colors.text, textAlign: "center", marginHorizontal: 5 }}
                     useNativeDriver={true}>
                     {request_mood}
                 </Animatable.Text>
 
                 <Animatable.Text
                     animation={'slideInUp'}
-                    style={{ color: colors.text, textAlign: "center" }}
+                    ellipsizeMode={'tail'}
+                    numberOfLines={1}
+                    style={{ color: colors.text, textAlign: "center", marginHorizontal: 5 }}
                     useNativeDriver={true}>
                     {campus}
                 </Animatable.Text>
 
                 <Animatable.Text
                     animation={'slideInUp'}
+                    ellipsizeMode={'tail'}
+                    numberOfLines={1}
                     style={{ color: colors.iconcolor }}
                     useNativeDriver={true}>
                     {request_category} request
@@ -235,27 +245,41 @@ class MeetRequestList extends Component {
         } else if (checkData(this.props.meetupreqobj.blacklist) && this.props.meetupreqobj.blacklist.includes(item.request_id)) {
             return null;
         }
+
         let leftavatar = isEmpty(item.requester_meet_profile.meetup_avatar) ? null : { uri: item.requester_meet_profile.meetup_avatar };
-        let created_at = item.creating == true ? "creating" :
-            item.creating == "retry" ? "Tap to retry" : item.created_at;
+        let created_at = item.creating == true
+            ? "creating..." : item.creating == "retry"
+                ? "Tap to retry" : `expires ${moment(item.expires_at * 1000).fromNow()}`;
+        let onpress = item.creating == "retry"
+            ? () => this.props.createMeetReq([
+                item.request_msg,
+                item.request_category,
+                item.request_mood,
+                item.expires_at,
+                null,
+                null,
+                item.request_id,
+            ]) : null
         return (
             <View
                 style={{ flex: 1 }}
             >
                 <ListItem
-                    onPress={item.creating == "retry" ? item.retry : null}
+                    onPress={onpress}
                     containerStyle={styles.requestItemCtn}
                     leftAvatar={leftavatar}
-                    onAvatarPress={() => Navigation.showModal({
-                        component: {
-                            name: 'PhotoViewer',
-                            passProps: {
-                                navparent: true,
-                                headerText: item.requester_meet_profile.meetup_name,
-                                photos: [item.requester_meet_profile.meetup_avatar]
-                            },
-                        }
-                    })}
+                    onAvatarPress={() =>
+                        Navigation.showModal({
+                            component: {
+                                name: 'PhotoViewer',
+                                passProps: {
+                                    navparent: true,
+                                    headerText: item.requester_meet_profile.meetup_name,
+                                    photos: [item.requester_meet_profile.meetup_avatar]
+                                },
+                            }
+                        })
+                    }
                     title={item.requester_meet_profile.meetup_name}
                     titleStyle={{ color: colors.iconcolor }}
                     likeButtonComponent={
@@ -280,6 +304,7 @@ class MeetRequestList extends Component {
                     likebtn={true}
                     subtitle={`   ${item.request_msg}`}
                     subtitleStyle={{ fontWeight: 'bold' }}
+                    update={created_at}
                     BottomContainerItem={
                         <BottomContainerItem
                             request_category={item.request_category}

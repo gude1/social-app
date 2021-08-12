@@ -157,7 +157,7 @@ class ConversationItem extends Component {
                             request_category={item.origin_meet_request.request_category}
                             request_mood={item.origin_meet_request.request_mood}
                             campus={meet_profile.campus}
-                            created_at={item.origin_meet_request.created_at}
+                            created_at={`expires ${moment(item.origin_meet_request.expires_at * 1000).fromNow()}`}
                         />
                     }
                 />

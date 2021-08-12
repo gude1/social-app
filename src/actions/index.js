@@ -6022,10 +6022,7 @@ export const createMeetRequest = (data, initAction, failedAction) => {
         data[6] = tempid;
         let retryschema = {
             ...meetreqschema,
-            creating: "retry",
-            retry: () => {
-                dispatch(createMeetRequest(data, initAction, failedAction));
-            }
+            creating: "retry"
         };
         dispatch(updateMeetupMainMyRequest(meetreqschema));
         checkData(initAction) && initAction();
@@ -6074,12 +6071,12 @@ export const createMeetRequest = (data, initAction, failedAction) => {
             //dispatch(setProcessing(false, 'meetupmaincreating'));
             if (err.toString().indexOf('Network Error') != -1) {
                 Toast('network error!', null, ToastAndroid.CENTER);
-                /*dispatch(addOfflineAction({
+                dispatch(addOfflineAction({
                     id: `createMeetRequest${tempid}`,
                     funcName: 'createMeetRequest',
                     param: data,
                     override: true,
-                }));*/
+                }));
             } else {
                 console.warn(`${err.toString()}`);
                 Toast('something went wrong please try again', null, ToastAndroid.CENTER);
@@ -6410,7 +6407,7 @@ export const fetchMeetConversations = (data) => {
             const { status, errmsg, convs } = response.data;
             switch (status) {
                 case 200:
-                    //console.warn('successfull', convs);
+                    console.warn('successfull', convs);
                     dispatch(updateMeetConvListConvsArr({
                         conversation_id: data[0],
                         conv_list: convs

@@ -98,7 +98,7 @@ const MeetupConvListReducer = (state = INITIAL_STATE, action) => {
                 if (action.payload.conversation_id == listitem.conversation_id) {
                     if (!isEmpty(action.payload.conv_list)) {
                         let excludeconvs = [];
-                        let newconvs = action.payload.conv_list.map(convitem => {
+                        let newconvs = listitem.conv_list.map(convitem => {
                             let foundconvitem = action.payload.conv_list.find(newconvitem => newconvitem.id == convitem.id);
                             if (foundconvitem) {
                                 excludeconvs.push(foundconvitem.id);

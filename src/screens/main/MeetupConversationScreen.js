@@ -12,7 +12,6 @@ import MeetConversation from '../../components/reusable/MeetConversation';
 import * as Animatable from 'react-native-animatable';
 import { Platform } from 'react-native';
 
-
 const { colors } = useTheme();
 
 const MeetupConversationScreen = ({
@@ -64,10 +63,10 @@ const MeetupConversationScreen = ({
                 conversation_id: meetconvobj.conversation_id,
                 num_new_msg: null
             });
-            /* fetchMeetConversations([
-                 chatitem.conversation_id,
-                 chatitem.meet_request.request_id,
-             ]);*/
+            fetchMeetConversations([
+                chatitem.conversation_id,
+                chatitem.meet_request.request_id,
+            ]);
         }
     }, [meetconvobj.conversation_id]);
 
@@ -110,9 +109,9 @@ const MeetupConversationScreen = ({
                 chatitem.meet_request.request_id,
                 dataobj.inputtxt,
                 { chat_pic: dataobj.imageuri }
-            ])
-        })
-
+            ]);
+        });
+        !isEmpty(flatlistref) && flatlistref.scrollToOffset({ offset: 0 });
     }
 
     function renderView() {
@@ -237,6 +236,7 @@ const MeetupConversationScreen = ({
                 <InputBox
                     showAvatar={false}
                     placeholder={'Type a message'}
+                    update={flatlistref}
                     onChangeText={setInputTxt}
                     inputvalue={inputtxt}
                     multiline={true}
@@ -262,7 +262,6 @@ const MeetupConversationScreen = ({
                                             Navigation.dismissModal('PHOTO_VIEWER');
                                             Navigation.dismissModal('PHOTO_LIST_CHAT');
                                             sendImageConv(data);
-                                            flatlistref && flatlistref.scrollToOffset({ offset: 0 });
                                         }
                                     }
                                 }

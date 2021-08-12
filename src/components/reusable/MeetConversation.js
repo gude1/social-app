@@ -203,10 +203,11 @@ class MeetConversationItem extends Component {
                             activeOpacity={0.9}
                         >
                             <Image
-                                containerStyle={[styles.ownerChatImageContainer, {
-                                    borderColor: colors.theme == "black"
-                                        ? this.ownerchatbgcolor : colors.text
-                                }]}
+                                containerStyle={[
+                                    styles.ownerChatImageContainer, {
+                                        borderColor: this.ownerchatbgcolor
+                                    }
+                                ]}
                                 onPress={onPress}
                                 //onError={() => this._onImageLoadErr(true)}
                                 placeholderStyle={styles.ownerChatImagePlaceholder}
@@ -256,10 +257,11 @@ class MeetConversationItem extends Component {
                             activeOpacity={0.9}
                         >
                             <Image
-                                containerStyle={[styles.ownerChatImageContainer, {
-                                    borderColor: colors.theme == "black"
-                                        ? this.ownerchatbgcolor : colors.text
-                                }]}
+                                containerStyle={[
+                                    styles.ownerChatImageContainer, {
+                                        borderColor: this.ownerchatbgcolor
+                                    }
+                                ]}
                                 //onError={() => this._onImageLoadErr(true)}
                                 placeholderStyle={styles.ownerChatImagePlaceholder}
                                 PlaceholderContent={this.imageplacholdericon}
@@ -577,7 +579,7 @@ class MeetConversation extends Component {
                             request_category={meet_request.request_category}
                             request_mood={meet_request.request_mood}
                             campus={meet_profile.campus}
-                            created_at={meet_request.created_at}
+                            created_at={`expires ${moment(meet_request.expires_at * 1000).fromNow()}`}
                         />
                     }
                 />
@@ -647,7 +649,7 @@ const styles = StyleSheet.create({
         padding: 0,
         borderTopLeftRadius: 10,
         borderTopRightRadius: 20,
-        borderWidth: 2,
+        borderWidth: 1.5,
         borderBottomLeftRadius: 30,
     },
     othersChatText: {

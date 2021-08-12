@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "873881900712",
+    "project_id": "testmeet-ef15f",
+    "storage_bucket": "testmeet-ef15f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873881900712:android:7c190e9b5a32913da3d49d",
+        "android_client_info": {
+          "package_name": "com.campusmeetup"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "873881900712-j6rsj9tttrv16s7jqi46l7j5vkttk0au.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.campusmeetup",
+            "certificate_hash": "8db96ba72973519f9b83b436d6c3827136151dbf"
+          }
+        },
+        {
+          "client_id": "873881900712-d7t4dag0mnbsn4d5oe7knhg3hum9jq64.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkT71grfKKnK7JpZcDEkWqqoo5QXWTtMs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "873881900712-d7t4dag0mnbsn4d5oe7knhg3hum9jq64.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

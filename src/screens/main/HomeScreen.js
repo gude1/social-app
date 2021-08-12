@@ -17,12 +17,15 @@ import PostList from '../../components/reusable/PostList';
 import OfflineActionsDispatcher from '../../components/reusable/OfflineActionsDispatcher';
 import { getFileInfo, rnPath, cpFile } from '../../utilities/index';
 import RNFetchBlob from 'rn-fetch-blob';
-
+import PushNotification from 'react-native-push-notification';
+import messaging from '@react-native-firebase/messaging';
 
 const { colors } = useTheme();
+
 /*const getConstants = async () => {
     return { statusBarHeight, topBarHeight, bottomTabsHeight } = await Navigation.constants();
 }*/
+
 const HomeScreen = ({
     componentId,
     setChatPics,
@@ -72,6 +75,7 @@ const HomeScreen = ({
         }, () => {
             start();
         });
+
         Entypo.getImageSource('home', 100).then(e => {
             Navigation.mergeOptions('POST_HOME_SCREEN', {
                 bottomTab: {
@@ -155,6 +159,15 @@ const HomeScreen = ({
                 headertextcolor={colors.text}
                 headertextsize={responsiveFontSize(3.8)}
                 righticon={righticon}
+                rightIconPress={() => {
+                    PushNotification.localNotification({
+                        channelId: 'test-chanel',
+                        showWhen: true,
+                        when: new Date().getTime(),
+                        title: "My Notification Title",
+                        message: 'it works mehn'
+                    });
+                }}
                 righticon2={righticon2}
             />
             {

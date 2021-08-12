@@ -39,11 +39,93 @@ import { useTheme } from './src/assets/themes/index';
 import { setRoute } from './src/utilities';
 import { getGalleryPhotos } from './src/actions/index';
 import { ReduxNetworkProvider } from 'react-native-offline';
-import MeetupConversationScreen from './src/screens/main/MeetupConversationScreen';
-
+import PushNotification from 'react-native-push-notification';
+import messaging from '@react-native-firebase/messaging';
+import { NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME } from './src/env';
 
 const { colors } = useTheme();
+// Register background handler
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+    console.log('Message handled in the background!', remoteMessage);
+});
+
 const setTheDefault = () => {
+
+    //handles remote notification received in foreground
+    messaging().onMessage(async message => {
+        console.warn('firebase foreground', [message, message.notification]);
+    });
+
+    //handles  interactions on remote notfication received in quit state
+    messaging()
+        .getInitialNotification()
+        .then(remoteMessage => {
+            if (remoteMessage)
+                console.warn('firebase quit state', remoteMessage);
+        })
+
+    //handles  interactions on remote notfication received in backgroundS state
+    messaging()
+        .onNotificationOpenedApp(message => {
+            console.warn('firebase background state', message);
+        });
+
+    // Must be outside of any component LifeCycle (such as `componentDidMount`).
+    PushNotification.configure({
+        // (optional) Called when Token is generated (iOS and Android)
+        onRegister: function (tokenobj) {
+            console.warn("TOKEN:", tokenobj.token);
+        },
+
+        // (required) Called when a remote is received or opened, or local notification is opened
+        onNotification: function (notification) {
+            if (notification.channelId == NOTIFICATION_CHANNEL_ID) {
+                console.warn('PUSH NOTIFICATION', notification);
+            }
+            // (required) Called when a remote is received or opened, or local notification is opened
+            notification.finish();
+        },
+
+        // (optional) Called when Registered Action is pressed and invokeApp is false, if true onNotification will be called (Android)
+        onAction: function (notification) {
+            //console.log("ACTION:", notification.action);
+            //console.log("NOTIFICATION:", notification);
+
+            // process the action
+        },
+
+        // (optional) Called when the user fails to register for remote notifications. Typically occurs when APNS is having issues, or the device is a simulator. (iOS)
+        onRegistrationError: function (err) {
+            console.error(err.message, err);
+        },
+
+        // IOS ONLY (optional): default: all - Permissions to register.
+        permissions: {
+            alert: true,
+            badge: true,
+            sound: true,
+        },
+
+        // Should the initial notification be popped automatically
+        // default: true
+        popInitialNotification: true,
+
+        /**
+         * (optional) default: true
+         * - Specified if permissions (ios) and token (android and ios) will requested or not,
+         * - if not, you must call PushNotificationsHandler.requestPermissions() later
+         * - if you are not using remote notification or do not have Firebase installed, use this:
+         *     requestPermissions: Platform.OS === 'ios'
+         */
+        requestPermissions: true,
+    });
+
+    PushNotification.createChannel({
+        channelId: NOTIFICATION_CHANNEL_ID,
+        channelName: NOTIFICATION_CHANNEL_NAME,
+        channelDescription: "A channel to test notification",
+    }, (created) => console.log(`created returned ${created}`));
+
 
     Navigation.setDefaultOptions({
         layout: {
@@ -327,7 +409,7 @@ Navigation.events().registerAppLaunchedListener(async () => {
             }
         });
         store.dispatch(getGalleryPhotos());
-        setTheDefault(store);
+        setTheDefault();
         setRoute(store.getState());
     });
     /* persistStore(store, null, () => {

@@ -413,8 +413,8 @@ export class ScrollableListOverLay extends Component {
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         if (this.props.visible != nextProps.visible ||
-            this.props.loading != nextProps.loading
-            //String(this.props.updateArr) != String(nextProps.updateArr)
+            this.props.loading != nextProps.loading ||
+            this.props.updateArr != nextProps.updateArr
         )
             return true;
         else
@@ -607,10 +607,12 @@ export const AvatarNavModal = ({
             fullScreen={false}
             isVisible={isVisible}
             onBackdropPress={onBackdropPress}
-            //animationType="fade"
+            animationType="fade"
             overlayStyle={{
                 padding: 0,
                 margin: 0,
+                borderWidth: 0,
+                borderColor: 'rgba(0,0,0,0.0)',
                 backgroundColor: 'rgba(0,0,0,0.0)',
             }}
         >
@@ -810,7 +812,7 @@ export class ListItem extends Component {
             nextProps.deleted != this.props.deleted ||
             nextProps.time != this.props.time ||
             String(nextProps.leftAvatar) != String(this.props.leftAvatar) ||
-            //nextProps.BottomContainerItem != this.props.BottomContainerItem ||
+            nextProps.update != this.props.update ||
             nextProps.profilemuted != this.props.profilemuted ||
             nextProps.hide != this.props.hide
         ) {
