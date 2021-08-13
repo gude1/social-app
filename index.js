@@ -33,10 +33,11 @@ import PrivateChatScreen from './src/screens/main/PrivateChatScreen';
 import SearchPrivateChatListScreen from './src/screens/main/SearchPrivateChatListScreen';
 import GiphyGalleryScreen from './src/screens/main/GiphyGalleryScreen';
 import GiphyViewerScreen from './src/screens/main/GiphyViewerScreen';
+import MeetupConversationScreen from './src/screens/main/MeetupConversationScreen';
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
-import { setRoute } from './src/utilities';
+import { setRoute, isEmpty } from './src/utilities';
 import { getGalleryPhotos } from './src/actions/index';
 import { ReduxNetworkProvider } from 'react-native-offline';
 import PushNotification from 'react-native-push-notification';
@@ -60,14 +61,17 @@ const setTheDefault = () => {
     messaging()
         .getInitialNotification()
         .then(remoteMessage => {
-            if (remoteMessage)
+            if (!isEmpty(remoteMessage)) {
                 console.warn('firebase quit state', remoteMessage);
+                //alert('firebase quit state')
+            }
         })
 
     //handles  interactions on remote notfication received in backgroundS state
     messaging()
         .onNotificationOpenedApp(message => {
             console.warn('firebase background state', message);
+            //alert('firebase background state');
         });
 
     // Must be outside of any component LifeCycle (such as `componentDidMount`).
@@ -81,6 +85,7 @@ const setTheDefault = () => {
         onNotification: function (notification) {
             if (notification.channelId == NOTIFICATION_CHANNEL_ID) {
                 console.warn('PUSH NOTIFICATION', notification);
+                // alert(`PUSH NOTIFICATION`)
             }
             // (required) Called when a remote is received or opened, or local notification is opened
             notification.finish();

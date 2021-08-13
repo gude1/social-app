@@ -19,6 +19,8 @@ import { getFileInfo, rnPath, cpFile } from '../../utilities/index';
 import RNFetchBlob from 'rn-fetch-blob';
 import PushNotification from 'react-native-push-notification';
 import messaging from '@react-native-firebase/messaging';
+import moment from 'moment';
+import { NOTIFICATION_CHANNEL_ID } from '../../env';
 
 const { colors } = useTheme();
 
@@ -161,11 +163,11 @@ const HomeScreen = ({
                 righticon={righticon}
                 rightIconPress={() => {
                     PushNotification.localNotification({
-                        channelId: 'test-chanel',
+                        channelId: NOTIFICATION_CHANNEL_ID,
                         showWhen: true,
                         when: new Date().getTime(),
-                        title: "My Notification Title",
-                        message: 'it works mehn'
+                        title: `Today 😊`,
+                        message: `${moment().format('LLLL')}`
                     });
                 }}
                 righticon2={righticon2}
