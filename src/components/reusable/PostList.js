@@ -717,7 +717,6 @@ export default class PostList extends React.Component {
 
     _renderItem = ({ item }) => {
         let sharemsg = null;
-
         if (!hasProperty(item, ['profile']) || !hasProperty(item.profile, ['user'])) {
             return (
                 <PanelMsg

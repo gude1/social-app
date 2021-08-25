@@ -114,15 +114,17 @@ const AuthForm = ({
                 </Text>
             </Card>);
         }
-        return (<Button
-            title={buttonText ? buttonText : 'Button'}
-            buttonStyle={styles.buttonStyle}
-            loading={btnLoading}
-            onPress={buttonFunc}
-            loadingProps={{ size: 30 }}
-            disabled={btnDisabled}
-            disabledStyle={{ backgroundColor: '#87CEEB' }}
-        />);
+        return (
+            <Button
+                title={buttonText ? buttonText : 'Button'}
+                buttonStyle={styles.buttonStyle}
+                loading={btnLoading}
+                onPress={buttonFunc}
+                loadingProps={{ size: 30 }}
+                disabled={btnDisabled}
+                disabledStyle={{ backgroundColor: '#87CEEB' }}
+            />
+        );
     };
     return (
         <View style={styles.containerStyle}>

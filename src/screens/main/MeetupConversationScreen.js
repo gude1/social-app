@@ -70,6 +70,15 @@ const MeetupConversationScreen = ({
         }
     }, [meetconvobj.conversation_id]);
 
+    //to handle new messages gotten in realtime
+    useEffect(() => {
+        updateMeetConvList({
+            conversation_id: chatitem.conversation_id,
+            num_new_msg: null
+        });
+        flatlistref && flatlistref.scrollToOffset({ offset: 0 });
+    }, [chatitem.conv_list[0].id]);
+
 
     const renderConvInfo = () => {
         return (
@@ -246,7 +255,7 @@ const MeetupConversationScreen = ({
                             chatitem.meet_request.request_id,
                             inputtxt
                         ]);
-                        flatlistref && flatlistref.scrollToOffset({ offset: 0 });
+                        //flatlistref && flatlistref.scrollToOffset({ offset: 0 });
                         setInputTxt('');
                     }}
                     leftIcon={{

@@ -490,7 +490,7 @@ class MeetConversation extends Component {
         return { length: 150, offset: 150 * index, index }
     };
 
-    keyExtractor = (item, index) => String(item.id);
+    keyExtractor = (item, index) => String(index);
 
     returnHeaderComponent = () => {
         if (

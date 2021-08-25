@@ -1,4 +1,4 @@
-import { RESET, SET_MEETCONVLIST, PROCESSING, UPDATE_MEETCONVLIST, UPDATE_MEETCONVLIST_CONVS, REMOVE_MEETCONVLIST_CONVS, UPDATE_MEETCONVLIST_CONVS_ARR } from "../actions/types";
+import { RESET, SET_MEETCONVLIST, PROCESSING, UPDATE_MEETCONVLIST, UPDATE_MEETCONVLIST_CONVS, REMOVE_MEETCONVLIST_CONVS, UPDATE_MEETCONVLIST_CONVS_ARR, SET_FCM_MEET_CONV_TO_DELIVERED, SET_FCM_MEET_CONV_TO_READ, ADD_FCM_MEET_CONV } from "../actions/types";
 import { checkData, isEmpty } from "../utilities/index";
 
 const INITIAL_STATE = {
@@ -128,6 +128,53 @@ const MeetupConvListReducer = (state = INITIAL_STATE, action) => {
                 }
                 return listitem;
             });
+            return { ...state, list: arrangeConvList(reducerdata) };
+            break;
+        case SET_FCM_MEET_CONV_TO_READ:
+            reducerdata = state.list.map(listitem => {
+                if (listitem.conversation_id == action.conv_id) {
+                    let convlist = listitem.conv_list.map(item => {
+                        return item.id <= action.payload ? { ...item, status: "read" } : item;
+                    });
+                    return { ...listitem, conv_list: arrangeConvs(convlist) };
+                }
+                return listitem;
+            });
+            return { ...state, list: arrangeConvList(reducerdata) };
+            break;
+        case SET_FCM_MEET_CONV_TO_DELIVERED:
+            reducerdata = state.list.map(listitem => {
+                if (listitem.conversation_id == action.conv_id) {
+                    let convlist = listitem.conv_list.map(item => {
+                        return item.id <= action.payload ? { ...item, status: "delievered" } : item;
+                    });
+                    return { ...listitem, conv_list: arrangeConvs(convlist) };
+                }
+                return listitem;
+            });
+            return { ...state, list: arrangeConvList(reducerdata) };
+            break;
+        case ADD_FCM_MEET_CONV:
+            let found = false;
+            reducerdata = state.list.map(listitem => {
+                if (listitem.conversation_id == action.conv_id) {
+                    let convlist = listitem.conv_list;
+                    convlist.push(action.payload);
+                    found = true;
+                    return {
+                        ...listitem,
+                        ...action.payload,
+                        num_new_msg: (listitem.num_new_msg || 0) + 1,
+                        conv_list: arrangeConvs(convlist)
+                    };
+                }
+                return listitem;
+            });
+            found == false && reducerdata.push({
+                ...action.payload,
+                num_new_msg: 1,
+                conv_list: [action.payload]
+            })
             return { ...state, list: arrangeConvList(reducerdata) };
             break;
         case PROCESSING:

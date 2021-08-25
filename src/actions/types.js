@@ -267,6 +267,14 @@ export const SET_MEETUPCONVERSATION = 'set_meetupconversation';
 export const REMOVE_MEETUPCONVERSATION = 'remove_meetupconversation';
 
 
+/***
+ * TYPE CONSTANT FOR FCM
+ */
+export const SET_FCM_MEET_CONV_TO_DELIVERED = 'SET_FCM_MEET_CONV_TO_DELIVERED';
+export const SET_FCM_MEET_CONV_TO_READ = 'SET_FCM_MEET_CONV_TO_READ';
+export const ADD_FCM_MEET_CONV = 'ADD_FCM_MEET_CONV';
+
+
 
 /**
  * TYPE CONSTANT FOR GIPHYGALLERY REDUCER

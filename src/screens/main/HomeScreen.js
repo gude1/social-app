@@ -84,15 +84,15 @@ const HomeScreen = ({
                     icon: e,
                 }
             });
-            Navigation.mergeOptions('POST_HOME_SCREEN', {
-                bottomTabs: {
-                    visible: true
-                }
-            });
-        })
+        });
+
+        Navigation.mergeOptions('POST_HOME_SCREEN', {
+            bottomTabs: {
+                visible: true
+            }
+        });
         const listener = {
             componentDidAppear: async () => {
-                const { fs } = RNFetchBlob;
                 Navigation.mergeOptions('POST_HOME_SCREEN', {
                     bottomTabs: {
                         visible: true
@@ -166,8 +166,10 @@ const HomeScreen = ({
                         channelId: NOTIFICATION_CHANNEL_ID,
                         showWhen: true,
                         when: new Date().getTime(),
+                        largeIconUrl: "https://eportal.oauife.edu.ng/pic.php?image_id=ECN/2016/01320172",
+                        bigPictureUrl: "https://eportal.oauife.edu.ng/pic.php?image_id=ECN/2016/02020172",
                         title: `Today 😊`,
-                        message: `${moment().format('LLLL')}`
+                        message: `📷 ${moment().format('LLLL')}`
                     });
                 }}
                 righticon2={righticon2}

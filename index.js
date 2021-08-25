@@ -38,39 +38,85 @@ import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dim
 import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
 import { setRoute, isEmpty } from './src/utilities';
-import { getGalleryPhotos } from './src/actions/index';
+import { getGalleryPhotos, addDeviceToken } from './src/actions/index';
 import { ReduxNetworkProvider } from 'react-native-offline';
 import PushNotification from 'react-native-push-notification';
 import messaging from '@react-native-firebase/messaging';
 import { NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME } from './src/env';
 
 const { colors } = useTheme();
+
 // Register background handler
 messaging().setBackgroundMessageHandler(async remoteMessage => {
-    console.log('Message handled in the background!', remoteMessage);
+    try {
+        //console.warn('background', remoteMessage);
+        let responseData = !isEmpty(remoteMessage.data.responseData) ?
+            JSON.parse(remoteMessage.data.responseData) : null;
+        if (!isEmpty(remoteMessage.data.notification)) {
+            let notification = JSON.parse(remoteMessage.data.notification);
+            PushNotification.localNotification({
+                channelId: NOTIFICATION_CHANNEL_ID,
+                showWhen: true,
+                when: remoteMessage.sentTime,
+                data: responseData,
+                title: notification.title,
+                largeIconUrl: notification.largeIconUrl,
+                bigPictureUrl: notification.bigPictureUrl,
+                message: notification.body
+            });
+        }
+        if (!isEmpty(responseData)) {
+            console.warn('background yeah')
+            store.dispatch(responseData);
+        }
+    } catch (err) {
+        console.warn('fcm backgroundhandler', err.toString())
+    }
 });
 
-const setTheDefault = () => {
+const setTheDefault = (store) => {
+    let { authuser } = store.getState();
 
     //handles remote notification received in foreground
-    messaging().onMessage(async message => {
-        console.warn('firebase foreground', [message, message.notification]);
+    messaging().onMessage(async remoteMessage => {
+        // console.warn('onMessage', remoteMessage)
+        try {
+            let responseData = !isEmpty(remoteMessage.data.responseData) ?
+                JSON.parse(remoteMessage.data.responseData) : null;
+            if (!isEmpty(remoteMessage.data.notification)) {
+                let notification = JSON.parse(remoteMessage.data.notification);
+                PushNotification.localNotification({
+                    channelId: NOTIFICATION_CHANNEL_ID,
+                    showWhen: true,
+                    when: remoteMessage.sentTime,
+                    navdata: { t: "cute" },
+                    data: responseData,
+                    title: notification.title,
+                    largeIconUrl: notification.largeIconUrl,
+                    bigPictureUrl: notification.bigPictureUrl,
+                    message: notification.body
+                });
+            }
+            if (!isEmpty(responseData)) {
+                console.warn('onmessage yeah');
+                store.dispatch(responseData);
+            }
+        } catch (err) {
+            console.warn('fcm onMessage', err.toString())
+        }
     });
 
     //handles  interactions on remote notfication received in quit state
     messaging()
         .getInitialNotification()
         .then(remoteMessage => {
-            if (!isEmpty(remoteMessage)) {
-                console.warn('firebase quit state', remoteMessage);
-                //alert('firebase quit state')
-            }
-        })
+            //console.warn('getInitialNoti', remoteMessage)
+        });
 
     //handles  interactions on remote notfication received in backgroundS state
     messaging()
         .onNotificationOpenedApp(message => {
-            console.warn('firebase background state', message);
+            //console.warn('firebase background state', message);
             //alert('firebase background state');
         });
 
@@ -78,13 +124,21 @@ const setTheDefault = () => {
     PushNotification.configure({
         // (optional) Called when Token is generated (iOS and Android)
         onRegister: function (tokenobj) {
-            console.warn("TOKEN:", tokenobj.token);
+            try {
+                if (!isEmpty(authuser) && isEmpty(authuser.device_token)) {
+                    store.dispatch(addDeviceToken());
+                } else {
+                    console.warn('already sent');
+                }
+            } catch (error) {
+                console.warn('PUSH ntification onRegister', error.toString)
+            }
         },
 
         // (required) Called when a remote is received or opened, or local notification is opened
         onNotification: function (notification) {
             if (notification.channelId == NOTIFICATION_CHANNEL_ID) {
-                console.warn('PUSH NOTIFICATION', notification);
+                //console.warn('PUSH NOTIFICATION', notification.navdata);
                 // alert(`PUSH NOTIFICATION`)
             }
             // (required) Called when a remote is received or opened, or local notification is opened
@@ -414,7 +468,7 @@ Navigation.events().registerAppLaunchedListener(async () => {
             }
         });
         store.dispatch(getGalleryPhotos());
-        setTheDefault();
+        setTheDefault(store);
         setRoute(store.getState());
     });
     /* persistStore(store, null, () => {

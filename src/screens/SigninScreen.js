@@ -27,6 +27,7 @@ const iconsColor = "black";
 const SigninScreen = ({
     saveUser,
     componentId,
+    testfcmarr,
     setEmail,
     setPassword,
     auth,
@@ -81,6 +82,7 @@ const SigninScreen = ({
                     descLink='Sign Up'
                     desLinkFunc={() => Navigation.pop(componentId)}
                     buttonText='Log in'
+                    //buttonFunc={() => console.warn(testfcmarr, testfcmarr.length)}
                     buttonFunc={() => logIn({ email, password, Navigation, componentId })}
                     generalErrMsg={inputerrors.generalerrmsg}
                     btnLoading={loading}
@@ -158,80 +160,6 @@ const SigninScreen = ({
                             </TouchableOpacity>
                         )
                     }]}
-                /* inputs={{
-                     'Email': {
-                         type: 'email-address',
-                         maxLength: 50,
-                         inputstyle: emailinputstyle,
-                         autoCompleteType: 'email',
-                         returnKeyType: "next",
-                         onSubmitEditing: (input) => {
-                             console.warn(input);
-                         },
-                         onFocus: () => {
-                             setStyles({
-                                 ...styles,
-                                 //emailiconcolor: "#2196F3",
-                                 emailinputstyle: {
-                                     borderBottomWidth: 2,
-                                     borderColor: "#2196F3",
-                                 }
-                             })
-                         },
-                         onBlur: () => {
-                             setStyles({
-                                 ...styles,
-                                 //emailiconcolor: colors.text,
-                                 emailinputstyle: null
-                             })
-                         },
-                         //autoFocus: true,
-                         value: email,
-                         function: (data) => { setEmail(data, 'login'); },
-                         errmsg: inputerrors.emailerr,
-                         lefticon: { type: 'font-awesome', name: 'envelope-o', color: emailiconcolor, size: fontsize }
-                     },
-
-                     'Password': {
-                         type: 'password',
-                         autoCompleteType: 'password',
-                         returnKeyType: "next",
-                         inputstyle: passwordinputstyle,
-                         onSubmitEditing: (input) => {
-                             console.warn(input);
-                         },
-                         onFocus: () => {
-                             setStyles({
-                                 ...styles,
-                                 // passwordiconcolor: "#2196F3",
-                                 passwordinputstyle: {
-                                     borderBottomWidth: 2,
-                                     borderColor: "#2196F3",
-                                 }
-                             })
-                         },
-                         onBlur: () => {
-                             setStyles({
-                                 ...styles,
-                                 //passwordiconcolor: colors.text,
-                                 passwordinputstyle: null
-                             })
-                         },
-                         value: password,
-                         secureTextEntry: secure,
-                         function: (data) => { setPassword(data, 'login'); },
-                         errmsg: inputerrors.passworderr,
-                         lefticon: (
-                             <TouchableOpacity onPress={checkSecure}>
-                                 <Icon
-                                     name={securefont}
-                                     size={fontsize}
-                                     color={passwordiconcolor}
-                                 />
-                             </TouchableOpacity>
-                         )
-                     },
-                 }}*/
                 />
             </View>
         </SafeAreaView>
@@ -252,6 +180,7 @@ SigninScreen.options = {
 
 const mapStateToProps = state => ({
     auth: state.auth,
+    testfcmarr: state.testfcmarr
 });
 
 const screenstyle = StyleSheet.create({

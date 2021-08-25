@@ -1,4 +1,4 @@
-import { RESET, SET_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION, REMOVE_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION_ARR } from "../actions/types";
+import { RESET, SET_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION, REMOVE_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION_ARR, SET_FCM_MEET_CONV_TO_DELIVERED, SET_FCM_MEET_CONV_TO_READ, ADD_FCM_MEET_CONV } from "../actions/types";
 import { checkData, isEmpty } from "../utilities/index";
 
 
@@ -23,18 +23,23 @@ const confirmId = (state, id) => {
         (state.conversation_id != id)
     ) {
         console.warn('MEETUPCONVERSATIONREDUCER_CONFIRMID', 'fucked');
-        return state;
+        return false;
     }
+    return true;
 }
 
 let reducerdata = null;
+let confirmed = false;
 const MeetupConversationReducer = (state = INITIAL_STATE, action) => {
     switch (action.type) {
         case SET_MEETUPCONVERSATION:
             return { ...state, ...action.payload };
             break;
         case UPDATE_MEETUPCONVERSATION:
-            confirmId(state, action.conversation_id);
+            confirmed = confirmId(state, action.conversation_id);
+            if (!confirmed) {
+                return state;
+            }
             reducerdata = state.conv_list.map(item => {
                 return item.id == action.payload.id ? { ...item, ...action.payload } : item;
             });
@@ -43,7 +48,10 @@ const MeetupConversationReducer = (state = INITIAL_STATE, action) => {
             return { ...state, conv_list: arrangeConvs(reducerdata) };
             break;
         case UPDATE_MEETUPCONVERSATION_ARR:
-            confirmId(state, action.conversation_id);
+            confirmed = confirmId(state, action.conversation_id);
+            if (!confirmed) {
+                return state;
+            }
             let exclude = [];
             reducerdata = state.conv_list.map(item => {
                 let founditem = action.payload.find(newitem => newitem.id == item.id);
@@ -59,8 +67,49 @@ const MeetupConversationReducer = (state = INITIAL_STATE, action) => {
             return { ...state, conv_list: arrangeConvs(reducerdata) };
             break;
         case REMOVE_MEETUPCONVERSATION:
-            confirmId(state, action.conversation_id);
+            confirmed = confirmId(state, action.conversation_id);
+            if (!confirmed) {
+                return state;
+            }
             reducerdata = state.conv_list.filter(item => item.id != action.payload.id);
+            return { ...state, conv_list: arrangeConvs(reducerdata) };
+            break;
+        case SET_FCM_MEET_CONV_TO_DELIVERED:
+            confirmed = confirmId(state, action.conv_id);
+            if (!confirmed) {
+                return state;
+            }
+            reducerdata = state.conv_list.map(item => {
+                if (item.id <= action.payload) {
+                    return { ...item, status: 'delievered' };
+                }
+                return item;
+            });
+            return { ...state, conv_list: arrangeConvs(reducerdata) };
+            break;
+        case SET_FCM_MEET_CONV_TO_READ:
+            confirmed = confirmId(state, action.conv_id);
+            if (!confirmed) {
+                return state;
+            }
+            reducerdata = state.conv_list.map(item => {
+                if (item.id <= action.payload) {
+                    return { ...item, status: 'read' };
+                }
+                return item;
+            });
+            return { ...state, conv_list: arrangeConvs(reducerdata) };
+            break;
+        case ADD_FCM_MEET_CONV:
+            confirmed = confirmId(state, action.conv_id);
+            if (!confirmed) {
+                return state;
+            }
+            reducerdata = state.conv_list.map(item => {
+                return item.id == action.payload.id ? { ...item, ...action.payload } : item;
+            });
+            reducerdata.find(item => item.id == action.payload.id) == undefined
+                && reducerdata.push(action.payload);
             return { ...state, conv_list: arrangeConvs(reducerdata) };
             break;
         case RESET:

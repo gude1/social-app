@@ -187,13 +187,26 @@ import {
 import auth from '../api/auth';
 import session from '../api/session';
 import axios from 'axios';
-import { ToastAndroid, Image } from 'react-native';
+import {
+    ToastAndroid,
+    Image
+} from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import RNFetchBlob from 'rn-fetch-blob';
-import { store, persistor } from '../store';
+import {
+    store,
+    persistor
+} from '../store';
 import CameraRoll from "@react-native-community/cameraroll";
-import { GIPHY_API_KEY1, GIPHY_API_KEY2 } from '../env';
-import { SEARCH_INITIAL_STATE } from '../reducers/GiphyGalleryReducer';
+import messaging from '@react-native-firebase/messaging';
+import {
+    GIPHY_API_KEY1,
+    GIPHY_API_KEY2
+} from '../env';
+import {
+    SEARCH_INITIAL_STATE
+} from '../reducers/GiphyGalleryReducer';
+
 
 /**
  * GENERAL ACTION CREATORS
@@ -290,12 +303,14 @@ export const signUp = ({ email, username, name, phone, password, Navigation, com
             generalerrmsg: null,
         }, 'signup'));
         try {
+            const device_token = await messaging().getToken();
             const response = await auth.post('register', {
                 name,
                 username,
                 email,
                 phone,
-                password
+                password,
+                device_token,
             });
             const { errors, status, message, errmsg } = response.data;
 
@@ -354,9 +369,11 @@ export const logIn = ({ email, password, Navigation, componentId }) => {
             generalerrmsg: null,
         }, 'login'));
         try {
+            const device_token = await messaging().getToken();
             const response = await auth.post('login', {
                 email: email,
-                password: password
+                password: password,
+                device_token
             });
             const { errmsg, status, user, profile, meet_setting, posts } = response.data;
             switch (status) {
@@ -399,6 +416,40 @@ export const logIn = ({ email, password, Navigation, componentId }) => {
     };
 
 };
+
+export const addDeviceToken = () => {
+    return async (dispatch) => {
+        dispatch(deleteOfflineAction({ id: `addDeviceToken` }));
+        try {
+            const { user } = store.getState();
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const device_token = await messaging().getToken();
+            const response = await session.post('user/addDeviceToken', { device_token }, options);
+            const { errmsg, message, userdetails, status } = response.data;
+            switch (status) {
+                case 200:
+                    checkData(userdetails) && dispatch(saveUser(userdetails));
+                    break;
+                default:
+                    console.warn('addDeviceToken', errmsg);
+                    break;
+            }
+        } catch (err) {
+            if (err.toString().indexOf('Network Error') > -1) {
+                dispatch(addOfflineAction({
+                    id: `addDeviceToken`,
+                    funcName: 'addDeviceToken',
+                    param: [],
+                    override: true,
+                }));
+            } else {
+                console.warn('addDeviceToken', 'Something went wrong please try again');
+            }
+        }
+    };
+}
 
 /**
  * ACTION CREATORS FOR PROFILEACTIONFORMREDUCER
@@ -1664,7 +1715,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
                 followedpostnexturl,
                 withincampuspostsnexturl
             } = response.data;
-            // console.warn(response.data);
+            //console.warn('refreshpost',response.data);
             //alert(JSON.stringify(response.data));
             dispatch(setTimelinepostRefresh(false));
             switch (postlistrange) {
@@ -1715,7 +1766,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
             }
         } catch (e) {
             //alert(JSON.stringify(e));
-            //console.warn(e.toString())
+            console.warn('refreshpost', e.toString())
             failedAction && failedAction();
             dispatch(setTimelinepostRefresh('failed'));
             if (e.toString().indexOf('Network Error') > - 1) {
@@ -2198,8 +2249,6 @@ export const fetchMoreTimelinePost = () => {
                 } else {
                     Toast(`could not load more posts please try again`, ToastAndroid.LONG);
                 }
-
-
             });
 
     };
@@ -6407,7 +6456,7 @@ export const fetchMeetConversations = (data) => {
             const { status, errmsg, convs } = response.data;
             switch (status) {
                 case 200:
-                    console.warn('successfull', convs);
+                    //console.warn('successfull', convs);
                     dispatch(updateMeetConvListConvsArr({
                         conversation_id: data[0],
                         conv_list: convs
@@ -6428,7 +6477,7 @@ export const fetchMeetConversations = (data) => {
                     break;
             }
         } catch (err) {
-            console.warn('fetchMeetConversations', err.toString());
+            console.warn('fetchMeetConversations', [err.toString(), reqobj]);
             if (err.toString().indexOf('Network Error') != -1) {
                 //Toast('network error!');
                 dispatch(addOfflineAction({
@@ -6462,7 +6511,7 @@ const setConvPic = async (imageuri) => {
         }
     }
 
-    return {chatpic: rnPath(chatpic), thumbchatpic, ext };
+    return { chatpic: rnPath(chatpic), thumbchatpic, ext };
 }
 
 const saveConvPic = async (convpic, from) => {
@@ -6584,6 +6633,7 @@ export const sendMeetConversation = (data = []) => {
                 status: "failed",
                 data
             }));
+
             if (err.toString().indexOf('Network Error') != -1) {
                 //Toast('network error!');
                 dispatch(addOfflineAction({
