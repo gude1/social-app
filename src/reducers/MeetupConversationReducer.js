@@ -1,4 +1,4 @@
-import { RESET, SET_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION, REMOVE_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION_ARR, SET_FCM_MEET_CONV_TO_DELIVERED, SET_FCM_MEET_CONV_TO_READ, ADD_FCM_MEET_CONV } from "../actions/types";
+import { RESET, SET_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION, REMOVE_MEETUPCONVERSATION, UPDATE_MEETUPCONVERSATION_ARR, SET_FCM_MEET_CONV_TO_DELIVERED, SET_FCM_MEET_CONV_TO_READ, ADD_FCM_MEET_CONV, PROCESSING } from "../actions/types";
 import { checkData, isEmpty } from "../utilities/index";
 
 
@@ -6,6 +6,7 @@ const INITIAL_STATE = {
     conversation_id: '',
     meet_request: {},
     partnermeetprofile: {},
+    loadingprev: false,
     conv_list: []
 };
 
@@ -20,13 +21,28 @@ const confirmId = (state, id) => {
     if (
         isEmpty(state) ||
         isEmpty(state.partnermeetprofile) ||
-        (state.conversation_id != id)
+        state.conversation_id != id
     ) {
         console.warn('MEETUPCONVERSATIONREDUCER_CONFIRMID', 'fucked');
         return false;
     }
     return true;
-}
+};
+
+const handleProcessing = (key, value, state) => {
+    if (checkData(key) != true || checkData(state) != true || checkData(value) != true) {
+        return state;
+    }
+    switch (key) {
+        case 'meetupconvloadingprev':
+            return { ...state, loadingprev: value };
+            break;
+        default:
+            return state;
+            break;
+    }
+};
+
 
 let reducerdata = null;
 let confirmed = false;
@@ -111,6 +127,9 @@ const MeetupConversationReducer = (state = INITIAL_STATE, action) => {
             reducerdata.find(item => item.id == action.payload.id) == undefined
                 && reducerdata.push(action.payload);
             return { ...state, conv_list: arrangeConvs(reducerdata) };
+            break;
+        case PROCESSING:
+            return handleProcessing(action.payload.key, action.payload.value, state);
             break;
         case RESET:
             return action.payload.key == "meetupconversation" ? INITIAL_STATE : state;

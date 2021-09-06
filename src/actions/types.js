@@ -246,7 +246,9 @@ export const ADD_MEETUPMAIN_MY_REQUESTS = 'add_meetupmain_myrequests';
 export const UPDATE_MEETUPMAIN_MY_REQUESTS = 'update_meetupmain_myrequests';
 export const SET_MEETUPMAIN_ERRORS = 'set_meetup_errors';
 export const REMOVE_MEETUPMAIN_REQUESTS = 'remove_meetupmain_requests';
+export const REMOVE_MEETUPMAIN_REQUESTS_ARR = 'remove_meetupmain_requests_arr';
 export const REMOVE_MEETUPMAIN_MY_REQUESTS = 'remove_meetupmain_my_requests';
+export const REMOVE_MEETUPMAIN_MY_REQUESTS_ARR = 'remove_meetupmain_my_requests_arr';
 export const REMOVE_PROFILE_MEETUPMAIN = 'remove_profile_meetupmain';
 
 /**
@@ -256,6 +258,7 @@ export const UPDATE_MEETCONVLIST = 'update_meetconvlist';
 export const UPDATE_MEETCONVLIST_CONVS = 'update_meetconvlist_convs';
 export const UPDATE_MEETCONVLIST_CONVS_ARR = 'update_meetconvlist_convs_arr';
 export const REMOVE_MEETCONVLIST_CONVS = 'remove_meetconvlist_convs';
+export const REMOVE_MEETCONVLIST = 'remove_meetconvlist';
 export const SET_MEETCONVLIST = 'set_meetconvlist';
 
 /**

@@ -1,4 +1,4 @@
-import { RESET, ADD_MEETUPMAIN_REQUESTS, REMOVE_PROFILE_MEETUPMAIN, UPDATE_MEETUPMAIN_REQUEST, PROCESSING, SET_MEETUPMAIN_URL, SET_MEETUPMAIN, SET_MEETUPMAIN_ERRORS, ADD_MEETUPMAIN_MY_REQUESTS, UPDATE_MEETUPMAIN_MY_REQUESTS, REMOVE_MEETUPMAIN_MY_REQUESTS, REMOVE_MEETUPMAIN_REQUESTS } from "../actions/types";
+import { RESET, ADD_MEETUPMAIN_REQUESTS, REMOVE_PROFILE_MEETUPMAIN, UPDATE_MEETUPMAIN_REQUEST, PROCESSING, SET_MEETUPMAIN_URL, SET_MEETUPMAIN, SET_MEETUPMAIN_ERRORS, ADD_MEETUPMAIN_MY_REQUESTS, UPDATE_MEETUPMAIN_MY_REQUESTS, REMOVE_MEETUPMAIN_MY_REQUESTS, REMOVE_MEETUPMAIN_REQUESTS, REMOVE_MEETUPMAIN_REQUESTS_ARR, REMOVE_MEETUPMAIN_MY_REQUESTS_ARR } from "../actions/types";
 import { checkData } from "../utilities/index";
 
 
@@ -75,6 +75,12 @@ const MeetupMainReducer = (state = INITIAL_STATE, action) => {
             });
             return { ...state, requests: arrangeRequests(reducerdata) };
             break;
+        case REMOVE_MEETUPMAIN_REQUESTS_ARR:
+            reducerdata = state.requests.filter(item => {
+                return !action.payload.includes(item.request_id);
+            });
+            return { ...state, requests: arrangeRequests(reducerdata) };
+            break;
         case UPDATE_MEETUPMAIN_REQUEST:
             let updatedstate = state.requests.map(item => {
                 return item.request_id == action.payload.request_id ? { ...item, ...action.payload } : item;
@@ -92,6 +98,12 @@ const MeetupMainReducer = (state = INITIAL_STATE, action) => {
         case REMOVE_MEETUPMAIN_MY_REQUESTS:
             reducerdata = state.myrequests.filter(item => {
                 return item.request_id != action.payload;
+            });
+            return { ...state, myrequests: arrangeRequests(reducerdata) };
+            break;
+        case REMOVE_MEETUPMAIN_MY_REQUESTS_ARR:
+            reducerdata = state.myrequests.filter(item => {
+                return !action.payload.includes(item.request_id);
             });
             return { ...state, myrequests: arrangeRequests(reducerdata) };
             break;

@@ -111,9 +111,12 @@ export const MeetupScreen = ({
     fetchLaterMeetConv,
     blackListMeetProfile,
     deleteMeetRequest,
-    removeMeetupMainMyRequests,
-    removeMeetupMainRequests,
+    //removeMeetupMainMyRequests,
+    //removeMeetupMainRequests,
+    removeMeetupMainRequestsArr,
+    removeMeetupMainMyRequestsArr,
     fetchMyMeetRequests,
+    removeMeetConvList,
     fetchMeetRequests,
     fetchMoreMeetRequests
 }) => {
@@ -231,20 +234,31 @@ export const MeetupScreen = ({
         if (isEmpty(meetupmain)) {
             return;
         }
-        let current = new Date().getTime();
-        let requests = meetupmain.requests.forEach(item => {
+        let current = new Date().getTime() - 60000;//1 min diff from curren time
+        let exprequests = meetupmain.requests.filter(item => {
             let expires_at = Math.floor(item.expires_at * 1000);
             if (item.deleted == true || expires_at <= current) {
-                removeMeetupMainRequests(item.request_id);
+                return true;
             }
-        });
-
-        let myrequests = meetupmain.myrequests.filter(item => {
+            return false;
+        }).map(item => item.request_id);
+        let expmyrequests = meetupmain.myrequests.filter(item => {
             let expires_at = Math.floor(item.expires_at * 1000);
             if (item.deleted == true || expires_at <= current) {
-                removeMeetupMainMyRequests(item.request_id);
+                return true;
             }
-        });
+            return false;
+        }).map(item => item.request_id);
+        let expconvlists = meetupconvlist.list.filter(listitem => {
+            let expires_at = Math.floor(listitem.origin_meet_request.expires_at * 1000);
+            if (listitem.origin_meet_request.deleted == true || expires_at <= current) {
+                return true;
+            }
+            return false;
+        }).map(item => item.conversation_id);
+        removeMeetupMainRequestsArr(expmyrequests);
+        removeMeetupMainMyRequestsArr(expmyrequests);
+        removeMeetConvList(expconvlists);
     };
 
     const setScreen = () => {

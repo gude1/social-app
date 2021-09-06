@@ -165,6 +165,9 @@ import {
     REMOVE_MEETCONVLIST_CONVS,
     UPDATE_MEETCONVLIST_CONVS_ARR,
     UPDATE_MEETUPCONVERSATION_ARR,
+    REMOVE_MEETUPMAIN_MY_REQUESTS_ARR,
+    REMOVE_MEETUPMAIN_REQUESTS_ARR,
+    REMOVE_MEETCONVLIST,
 } from './types';
 import {
     deleteFile,
@@ -5750,6 +5753,13 @@ export const removeMeetupMainRequests = (data = '') => {
     };
 };
 
+export const removeMeetupMainRequestsArr = (data = []) => {
+    return {
+        type: REMOVE_MEETUPMAIN_REQUESTS_ARR,
+        payload: data,
+    };
+};
+
 
 export const updateMeetupMainRequest = (data = {}) => {
     return {
@@ -5782,6 +5792,13 @@ export const addMeetupMainMyRequests = (data = []) => {
 export const removeMeetupMainMyRequests = (data = '') => {
     return {
         type: REMOVE_MEETUPMAIN_MY_REQUESTS,
+        payload: data
+    };
+};
+
+export const removeMeetupMainMyRequestsArr = (data = []) => {
+    return {
+        type: REMOVE_MEETUPMAIN_MY_REQUESTS_ARR,
         payload: data
     };
 };
@@ -6265,14 +6282,19 @@ export const updateMeetConvListConvs = (data = {}) => {
     }
 };
 
-export const updateMeetConvListConvsArr = (data = []) => {
+export const updateMeetConvListConvsArr = (data = {}) => {
     return {
         type: UPDATE_MEETCONVLIST_CONVS_ARR,
         payload: data
     }
 };
 
-
+export const removeMeetConvList = (data = []) => {
+    return {
+        type: REMOVE_MEETCONVLIST,
+        payload: data,
+    };
+}
 
 export const removeMeetConvListConvs = (data = {}) => {
     return {
@@ -6296,7 +6318,7 @@ export const fetchMeetConv = () => {
                 case 200:
                     dispatch(setProcessing(false, 'meetupconvlistfetching'));
                     meet_convs.forEach(item => {
-                        dispatch(updateMeetConvListConvs(item));
+                        dispatch(updateMeetConvListConvsArr(item));
                     });
                     break;
                 case 404:
@@ -6337,7 +6359,7 @@ export const fetchNewMeetConv = () => {
                 case 200:
                     dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
                     meet_convs.map(item => {
-                        dispatch(updateMeetConvListConvs(item));
+                        dispatch(updateMeetConvListConvsArr(item));
                     });
                     break;
                 case 404:
@@ -6377,7 +6399,7 @@ export const fetchLaterMeetConv = () => {
                 case 200:
                     dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
                     meet_convs.map(item => {
-                        dispatch(updateMeetConvListConvs(item));
+                        dispatch(updateMeetConvListConvsArr(item));
                     });
                     break;
                 case 404:
@@ -6430,7 +6452,61 @@ export const removeMeetupConversation = (data = {}, conversation_id = '') => {
     };
 };
 
-export const fetchMeetConversations = (data) => {
+export const setMeetupConvStatus = (data =[]) =>{
+    return async (dispatch) => {
+        dispatch(deleteOfflineAction({ id: `setMeetupConvStatus${String(data)}` }));
+        let options = ['1', '2'];
+        if (!Array.isArray(data) ||
+            data.length < 2 ||
+            !Array.isArray(data[0]) ||
+            data[0].length < 1 ||
+            !options.includes(data[1])
+        ) {
+            console.warn('setMeetupConvStatus', 'wrong input');
+            return;
+        }
+        let { user, meetupconvs } = store.getState();
+        let reqobj = { arr: data[0] };
+        if (!isEmpty(data[2]) && meetupconvs.conversation_id == data[2]) {
+            reqobj['type'] = options[1];
+        } else {
+            reqobj['type'] = data[1];  
+        }
+        try {
+            const options = {
+                headers: { 'Authorization': `Bearer ${user.token}` }
+            };
+            const response = await session.post('setmeetconvstatus',reqobj, options);
+            const { status, errmsg, message } = response.data;
+            switch (status) {
+                case 200:
+                    console.warn('setMeetupConvStatus', message); 
+                    break;
+                default:
+                   console.warn('setMeetupConvStatus',errmsg);   
+                    break;
+            }
+        } catch (err) {
+            if (err.toString().indexOf('Network Error') != -1) {
+                console.warn('setMeetupConvStatus', `${err.toString()}`)
+                dispatch(addOfflineAction({
+                    id: `setMeetupConvStatus${String(data)}`,
+                    funcName: 'setMeetupConvStatus',
+                    param: data,
+                    persist:true,
+                    override: true,
+                }));
+                //Toast('network error!, failed to perform action', null, ToastAndroid.CENTER);
+            } else {
+                console.warn('setMeetupConvStatus',`${err.toString()}`);
+                //Toast('could not perform action, something went wrong', null, ToastAndroid.CENTER);
+            }
+        }
+
+    };
+}
+
+export const fetchMeetConversations = (data,okAction,afterAction) => {
     return async (dispatch) => {
         if (!Array.isArray(data) || data.length < 2) {
             return;
@@ -6462,22 +6538,28 @@ export const fetchMeetConversations = (data) => {
                         conv_list: convs
                     }));
                     dispatch(updateMeetupConversationArr(convs, data[0]));
+                    checkData(okAction) && okAction();
+                    checkData(afterAction) && afterAction();
                     break;
                 case 400:
                     Toast('failed to refresh conversations');
                     console.log(errmsg);
+                    checkData(afterAction) && afterAction();
                     break;
                 case 500:
                     Toast('failed to refresh conversations');
                     console.log(errmsg);
+                    checkData(afterAction) && afterAction();
                     break;
                 default:
                     Toast('failed to refresh conversations');
                     console.log(errmsg);
+                    checkData(afterAction) && afterAction();
                     break;
             }
         } catch (err) {
             console.warn('fetchMeetConversations', [err.toString(), reqobj]);
+            checkData(afterAction) && afterAction();
             if (err.toString().indexOf('Network Error') != -1) {
                 //Toast('network error!');
                 dispatch(addOfflineAction({

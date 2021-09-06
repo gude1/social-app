@@ -3,7 +3,7 @@
  */
 import { Navigation } from 'react-native-navigation';
 //import { gestureHandlerRootHOC } from 'react-native-gesture-handler'
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { store, persistor } from './src/store';
 import { persistStore } from 'redux-persist';
@@ -37,8 +37,9 @@ import MeetupConversationScreen from './src/screens/main/MeetupConversationScree
 import { responsiveWidth, responsiveFontSize } from 'react-native-responsive-dimensions';
 import { AUTHROUTE, SETUPROUTE } from './src/routes';
 import { useTheme } from './src/assets/themes/index';
-import { setRoute, isEmpty } from './src/utilities';
+import { setRoute, isEmpty, doDispatch } from './src/utilities';
 import { getGalleryPhotos, addDeviceToken } from './src/actions/index';
+import AsyncStorage from '@react-native-community/async-storage';
 import { ReduxNetworkProvider } from 'react-native-offline';
 import PushNotification from 'react-native-push-notification';
 import messaging from '@react-native-firebase/messaging';
@@ -48,8 +49,8 @@ const { colors } = useTheme();
 
 // Register background handler
 messaging().setBackgroundMessageHandler(async remoteMessage => {
+    let { user } = store.getState();
     try {
-        //console.warn('background', remoteMessage);
         let responseData = !isEmpty(remoteMessage.data.responseData) ?
             JSON.parse(remoteMessage.data.responseData) : null;
         if (!isEmpty(remoteMessage.data.notification)) {
@@ -66,8 +67,14 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
             });
         }
         if (!isEmpty(responseData)) {
-            console.warn('background yeah')
-            store.dispatch(responseData);
+            if (isEmpty(user) || isEmpty(user.token)) {
+                let actions = await AsyncStorage.getItem('actions');
+                actions = !isEmpty(actions) ? JSON.parse(actions) : [];
+                actions.push(responseData);
+                await AsyncStorage.setItem('actions', JSON.stringify(actions));
+            } else {
+                doDispatch(store, responseData);
+            }
         }
     } catch (err) {
         console.warn('fcm backgroundhandler', err.toString())
@@ -75,7 +82,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
 });
 
 const setTheDefault = (store) => {
-    let { authuser } = store.getState();
+    let { user } = store.getState();
 
     //handles remote notification received in foreground
     messaging().onMessage(async remoteMessage => {
@@ -89,7 +96,7 @@ const setTheDefault = (store) => {
                     channelId: NOTIFICATION_CHANNEL_ID,
                     showWhen: true,
                     when: remoteMessage.sentTime,
-                    navdata: { t: "cute" },
+                    //navdata: { t: "cute" },
                     data: responseData,
                     title: notification.title,
                     largeIconUrl: notification.largeIconUrl,
@@ -99,7 +106,7 @@ const setTheDefault = (store) => {
             }
             if (!isEmpty(responseData)) {
                 console.warn('onmessage yeah');
-                store.dispatch(responseData);
+                doDispatch(store, responseData);
             }
         } catch (err) {
             console.warn('fcm onMessage', err.toString())
@@ -125,7 +132,7 @@ const setTheDefault = (store) => {
         // (optional) Called when Token is generated (iOS and Android)
         onRegister: function (tokenobj) {
             try {
-                if (!isEmpty(authuser) && isEmpty(authuser.device_token)) {
+                if (!isEmpty(user) && isEmpty(user.device_token)) {
                     store.dispatch(addDeviceToken());
                 } else {
                     console.warn('already sent');
@@ -269,7 +276,15 @@ const setTheDefault = (store) => {
     });
 }
 Navigation.events().registerAppLaunchedListener(async () => {
-    persistStore(store, null, () => {
+    persistStore(store, null, async () => {
+        let actions = await AsyncStorage.getItem('actions');
+        if (!isEmpty(actions)) {
+            actions = JSON.parse(actions);
+            actions.forEach(item => {
+                doDispatch(store, item);
+            });
+            AsyncStorage.removeItem('actions');
+        }
         Navigation.registerComponent('Home', () => (props) =>
             <Provider store={store}>
                 <ReduxNetworkProvider

@@ -1,5 +1,5 @@
-import { RESET, SET_MEETCONVLIST, PROCESSING, UPDATE_MEETCONVLIST, UPDATE_MEETCONVLIST_CONVS, REMOVE_MEETCONVLIST_CONVS, UPDATE_MEETCONVLIST_CONVS_ARR, SET_FCM_MEET_CONV_TO_DELIVERED, SET_FCM_MEET_CONV_TO_READ, ADD_FCM_MEET_CONV } from "../actions/types";
-import { checkData, isEmpty } from "../utilities/index";
+import { RESET, SET_MEETCONVLIST, PROCESSING, UPDATE_MEETCONVLIST, UPDATE_MEETCONVLIST_CONVS, REMOVE_MEETCONVLIST_CONVS, UPDATE_MEETCONVLIST_CONVS_ARR, SET_FCM_MEET_CONV_TO_DELIVERED, SET_FCM_MEET_CONV_TO_READ, ADD_FCM_MEET_CONV, REMOVE_MEETCONVLIST } from "../actions/types";
+import { checkData, isEmpty, hasProperty } from "../utilities/index";
 
 const INITIAL_STATE = {
     list: [],
@@ -42,9 +42,9 @@ const arrangeConvList = (data: Array) => {
     data = [...data];
 
     return data.sort((item1, item2) => {
-        let id1 = item1.conv_list && Array.isArray(item1.conv_list) ?
+        let id1 = item1.conv_list && Array.isArray(item1.conv_list) && item1.conv_list.length > 0 ?
             item1.conv_list[0].id : item1.id;
-        let id2 = item2.conv_list && Array.isArray(item2.conv_list) ?
+        let id2 = item2.conv_list && Array.isArray(item2.conv_list) && item2.conv_list.length > 0 ?
             item2.conv_list[0].id : item2.id;
 
         return id2 - id1;
@@ -77,11 +77,13 @@ const MeetupConvListReducer = (state = INITIAL_STATE, action) => {
             reducerdata = state.list.map(listitem => {
                 if (listitem.conversation_id == action.payload.conversation_id) {
                     let convlist = listitem.conv_list.map(item => {
-                        return item.id == action.payload.id ?
+                        return item.id == action.payload.id && !hasProperty(action.payload, ['conv_list']) ?
                             { ...item, ...action.payload } : item;
                     });
-                    convlist.find(item => item.id == action.payload.id) == undefined
-                        && convlist.push(action.payload);
+                    let found = convlist.find(item => item.id == action.payload.id);
+                    if (!found && hasProperty(action.payload, ['conv_list']) == false) {
+                        convlist.push(action.payload);
+                    }
                     return { ...listitem, ...action.payload, conv_list: arrangeConvs(convlist) };
                 }
                 return listitem;
@@ -127,6 +129,12 @@ const MeetupConvListReducer = (state = INITIAL_STATE, action) => {
                     return { ...listitem, conv_list: arrangeConvs(convlist) };
                 }
                 return listitem;
+            });
+            return { ...state, list: arrangeConvList(reducerdata) };
+            break;
+        case REMOVE_MEETCONVLIST:
+            reducerdata = state.list.filter(listitem => {
+                return !action.payload.includes(listitem.conversation_id);
             });
             return { ...state, list: arrangeConvList(reducerdata) };
             break;
@@ -178,10 +186,7 @@ const MeetupConvListReducer = (state = INITIAL_STATE, action) => {
             return { ...state, list: arrangeConvList(reducerdata) };
             break;
         case PROCESSING:
-            return handleProcessing(action.payload.key,
-                action.payload.value,
-                state
-            );
+            return handleProcessing(action.payload.key, action.payload.value, state);
             break;
         case RESET:
             return action.payload.key == "meetupconvlist" ? INITIAL_STATE : state;

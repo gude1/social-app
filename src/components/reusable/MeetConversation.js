@@ -493,15 +493,35 @@ class MeetConversation extends Component {
     keyExtractor = (item, index) => String(index);
 
     returnHeaderComponent = () => {
-        if (
-            this.props.loading == false ||
-            !Array.isArray(this.props.conv_list) ||
-            this.props.conv_list.length < 1
-        ) {
+        if (!Array.isArray(this.props.conv_list) || this.props.conv_list.length < 1) {
             return null;
         }
+        return (
+            <Button
+                onPress={() => { this.props.loadPrev() }}
+                loading={this.props.loadingprev}
+                disabled={this.props.loadingprev}
+                type="clear"
+                icon={{
+                    name: 'plus',
+                    type: "evilicon",
+                    size: responsiveFontSize(4),
+                    color: colors.text
+                }}
+                titleStyle={{
+                    color: colors.text,
+                    fontSize: responsiveFontSize(2)
+                }}
+                containerStyle={{
+                    alignSelf: 'center',
+                    borderColor: colors.iconcolor,
+                    borderRadius: 15,
+                    padding: 10
+                }}
+            />
+        );
 
-        if (this.props.loadingmore == true) {
+        /*if (this.props.loadingprev == true) {
             return (
                 <View
                     style={{
@@ -517,7 +537,7 @@ class MeetConversation extends Component {
         } else {
             return (
                 <Button
-                    onPress={() => { }}
+                    onPress={() => { this.props.loadPrev() }}
                     type="clear"
                     icon={{
                         name: 'plus',
@@ -529,7 +549,7 @@ class MeetConversation extends Component {
                         color: colors.text,
                         fontSize: responsiveFontSize(2)
                     }}
-                    buttonStyle={{
+                    containerStyle={{
                         alignSelf: 'center',
                         borderColor: colors.iconcolor,
                         borderRadius: 15,
@@ -537,7 +557,7 @@ class MeetConversation extends Component {
                     }}
                 />
             );
-        }
+        }*/
     };
 
     renderParentMeetReq = () => {
@@ -600,11 +620,11 @@ class MeetConversation extends Component {
 
     render() {
         let { conv_list, authprofile, } = this.props;
-        let data = conv_list.sort((item1, item2) => item2.created_at - item1.created_at);
+        //let data = conv_list.sort((item1, item2) => item2.created_at - item1.created_at);
         return (
             <>
             <FlatList
-                data={data}
+                data={conv_list}
                 ref={ref => {
                     this.props.setFlatListRef && this.props.setFlatListRef(ref);
                 }}

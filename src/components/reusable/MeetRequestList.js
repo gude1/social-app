@@ -213,6 +213,26 @@ class MeetRequestList extends Component {
                         }
                     },
                     {
+                        title: "Message",
+                        onPress: () => {
+                            this.setState({ showmeetoptions: false });
+                            Navigation.showModal({
+                                component: {
+                                    name: 'MeetupConversation',
+                                    passProps: {
+                                        navparent: true,
+                                        chatitem: {
+                                            conversation_id: `${this.currentselectmeet.request_id}${this.currentselectmeet.requester_id}${this.props.authprofile.profile_id}`,
+                                            conv_list: [],
+                                            meet_request: this.currentselectmeet,
+                                            partnermeetprofile: this.currentselectmeet.requester_meet_profile,
+                                        }
+                                    },
+                                }
+                            });
+                        }
+                    },
+                    {
                         title: "Mute this meet profile",
                         onPress: () => {
                             this.setState({ showmeetoptions: false });

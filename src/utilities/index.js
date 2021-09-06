@@ -5,6 +5,8 @@ import { AUTHROUTE, SETUPPROFILEROUTE, SETUPPOSTROUTE, MAINTABSROUTE } from '../
 import ImageResizer from 'react-native-image-resizer';
 import { persistor } from '../store/index';
 import moment from 'moment';
+import { ADD_FCM_MEET_CONV } from '../actions/types';
+import { setMeetupConvStatus } from '../actions/index';
 
 export const deleteFile = (data) => {
     if (!isEmpty(data)) {
@@ -23,8 +25,36 @@ export const test = async () => {
             .then(e => { return e })
             .catch(e => e)
     );
-
 }
+
+/**
+ * For dispatching actions and performing other actions
+ * 
+ */
+export const doDispatch = (store, data) => {
+    if (isEmpty(store) || isEmpty(data)) {
+        return null;
+    }
+    try {
+        switch (data.type) {
+            case ADD_FCM_MEET_CONV:
+                store.dispatch(data);
+                store.dispatch(
+                    setMeetupConvStatus([
+                        [data.payload.id],
+                        '1',
+                        data.payload.conversation_id
+                    ])
+                );
+                break;
+            default:
+                store.dispatch(data);
+                break;
+        }
+    } catch (err) {
+        console.warn('doDispatch', err.toString());
+    }
+};
 
 
 /**
@@ -32,7 +62,7 @@ export const test = async () => {
  * 
  * @param String message
  * @param Integer duration
- * @param Integre gravity
+ * @param Integer gravity
  *
  */
 export const Toast = (message: String, duration: Number, gravity: Number) => {
@@ -287,7 +317,7 @@ export const handleTime = (data) => {
 
 //function to check if object contains property specified
 export const hasProperty = (obj = {}, props = []) => {
-    if (!checkData(obj) || !Array.isArray(props)) {
+    if (isEmpty(obj) || !Array.isArray(props)) {
         return false;
     }
     let check = props.filter(propname => {

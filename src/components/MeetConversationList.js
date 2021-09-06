@@ -7,7 +7,7 @@ import { useTheme } from '../assets/themes/index';
 import moment from 'moment';
 import { responsiveFontSize, responsiveWidth, responsiveHeight, responsiveScreenWidth } from 'react-native-responsive-dimensions';
 import { Navigation } from 'react-native-navigation';
-import { ScrollableListOverLay, ListItem as CustomListItem } from './reusable/ResuableWidgets';
+import { ScrollableListOverLay, ListItem as CustomListItem, PanelMsg } from './reusable/ResuableWidgets';
 import { BottomContainerItem } from './reusable/MeetRequestList';
 import * as  Animatable from 'react-native-animatable';
 
@@ -336,13 +336,26 @@ class MeetConversationList extends Component {
     }
 
     renderItem = ({ item, index }) => {
+        if (!hasProperty(item, ['sender_meet_profile', 'conv_list', 'receiver_meet_profile', 'origin_meet_request'])) {
+            return (
+                <PanelMsg
+                    message={'This conversation is unavailable'}
+                />
+            );
+        } else if (item.conv_list.length < 1) {
+            return (
+                <PanelMsg
+                    message={'This conversation is unavailable'}
+                />
+            );
+        }
         return (
             <ConversationItem
                 meetsetting={this.props.meetsetting}
                 item={item}
             />
         );
-    };
+    }
 
     _setFooterComponent = () => {
         if (this.props.meetupconvs.list.length < 1 || !checkData(this.props.fetchLaterConvs)) {
