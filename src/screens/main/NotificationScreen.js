@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {Navigation} from 'react-native-navigation';
-import {View, Text, StyleSheet, SafeAreaView} from 'react-native';
+import {View, StyleSheet, SafeAreaView} from 'react-native';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import {LoaderScreen, Header} from '../../components/reusable/ResuableWidgets';
-import {Icon, Avatar, Input} from 'react-native-elements';
+import {Icon, Avatar, Input, Text} from 'react-native-elements';
 import {
   responsiveFontSize,
   responsiveWidth,
@@ -14,20 +14,11 @@ import ProfileList from '../../components/reusable/ProfileList';
 import {checkData} from '../../utilities/index';
 
 const {colors} = useTheme();
-
-const SharesListScreen = ({
+const NotificationScreen = ({
   screenname,
+  screentype,
   componentId,
-  setReset,
   navparent,
-  requrl,
-  reqdata,
-  fetchShares,
-  fetchMoreShares,
-  updateSharesListForm,
-  shareslistform,
-  followProfileAction,
-  profileactionform,
 }) => {
   const [loaded, setLoaded] = useState(false);
   let lefticon =
@@ -39,12 +30,9 @@ const SharesListScreen = ({
         size={responsiveFontSize(6)}
       />
     ) : null;
-  let lefticonpress =
-    navparent == true ? () => Navigation.dismissModal(componentId) : null;
-  let righticon = '';
-  let righticonpress = '';
+  let lefticonpress = navparent == true ? setDismissNav() : null;
+  /***Component functtion starts here */
   useEffect(() => {
-    setReset('shareslistform');
     const listener = {
       componentDidAppear: () => {
         if (!loaded) {
@@ -63,51 +51,56 @@ const SharesListScreen = ({
       unsubscribe.remove();
     };
   }, []);
-  return (
-    <SafeAreaView style={styles.containerStyle}>
-      <Header
-        headertext={screenname || 'Shares'}
-        headercolor={colors.card}
-        lefticon={lefticon}
-        leftIconPress={lefticonpress}
-        headerTextStyle={{color: colors.text}}
-        headertextsize={responsiveFontSize(2.9)}
-      />
-      {loaded == false ? (
+
+  //function to determine dismiss of navigation based on screentype
+  function setDismissNav() {
+    if (screentype == 'screen') return () => Navigation.pop(componentId);
+    else return () => Navigation.dismissModal(componentId);
+  }
+
+  function renderView() {
+    if (loaded == false) {
+      return (
         <LoaderScreen
           loaderIcon={
             <Icon
-              type="entypo"
-              name="forward"
+              type="antdesign"
+              name="bells"
               color={colors.text}
               size={responsiveFontSize(10)}
             />
           }
           animationType={'zoomIn'}
         />
-      ) : (
-        <View style={styles.parentStyle}>
-          <ProfileList
-            data={shareslistform.shareslist}
-            onFetch={() => fetchShares(requrl, reqdata)}
-            fetching={shareslistform.fetching}
-            followProfileAction={followProfileAction}
-            processfollowing={profileactionform.followingprofile}
-            updateItem={updateSharesListForm}
-            onLoadMore={() => fetchMoreShares(reqdata)}
-            loadingmore={shareslistform.loadingmore}
-          />
+      );
+    }
+    return (
+      <>
+        <Header
+          headertext={screenname || 'Notifications'}
+          headercolor={colors.card}
+          lefticon={lefticon}
+          leftIconPress={lefticonpress}
+          headerTextStyle={{color: colors.text}}
+          headertextsize={responsiveFontSize(2.9)}
+        />
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          <Text style={{color: colors.placeholder}}>
+            Notifications goes here
+          </Text>
         </View>
-      )}
-    </SafeAreaView>
+      </>
+    );
+  }
+  /**Component function ends here */
+  return (
+    <SafeAreaView style={styles.containerStyle}>{renderView()}</SafeAreaView>
   );
 };
 
-const mapStateToProps = state => ({
-  shareslistform: state.shareslistform,
-  profileactionform: state.profileactionform,
-});
-SharesListScreen.options = {
+const mapStateToProps = state => ({});
+
+NotificationScreen.options = {
   topBar: {
     visible: false,
   },
@@ -118,12 +111,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  parentStyle: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
 });
+
 export default connect(
   mapStateToProps,
   actions,
-)(SharesListScreen);
+)(NotificationScreen);
