@@ -103,7 +103,7 @@ const SharesListScreen = ({
   );
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   shareslistform: state.shareslistform,
   profileactionform: state.profileactionform,
 });
@@ -123,7 +123,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 });
-export default connect(
-  mapStateToProps,
-  actions,
-)(SharesListScreen);
+export default connect(mapStateToProps, actions)(SharesListScreen);

@@ -87,7 +87,7 @@ const HomeScreen = ({
       },
     );
 
-    Entypo.getImageSource('home', 100).then(e => {
+    Entypo.getImageSource('home', 100).then((e) => {
       Navigation.mergeOptions('POST_HOME_SCREEN', {
         bottomTab: {
           icon: e,
@@ -150,12 +150,12 @@ const HomeScreen = ({
     }
   };
 
-  const updatePostItemLiked = postid => {
+  const updatePostItemLiked = (postid) => {
     alert('liked');
     //updateTimelinePostForm({ postid, likedstatus: "pending" });
   };
 
-  const updatePostItemShared = postid => {
+  const updatePostItemShared = (postid) => {
     alert('shared');
     //updateTimelinePostForm({ postid, sharedstatus: "pending" });
   };
@@ -243,11 +243,11 @@ const HomeScreen = ({
                 userprofile={profile}
                 profileschanges={timelinepostform.profileschanges}
                 updatePostItem={updateTimelinePostForm}
-                updateProfileChanges={dataobj => {
+                updateProfileChanges={(dataobj) => {
                   updateTimelinePostProfileChanges(dataobj);
                   updateTimelinePostFormProfileChanges(dataobj);
                 }}
-                removeProfilePosts={id => {
+                removeProfilePosts={(id) => {
                   removeProfileTimeLinePost(id);
                   removeProfileTimeLinePostForm(id);
                 }}
@@ -283,7 +283,7 @@ HomeScreen.options = {
   },
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   timelineposts: state.timelineposts,
   timelinepostform: state.timelinepostform,
   profileactionform: state.profileactionform,
@@ -313,7 +313,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(
-  mapStateToProps,
-  actions,
-)(HomeScreen);
+export default connect(mapStateToProps, actions)(HomeScreen);

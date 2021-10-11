@@ -1,118 +1,118 @@
 import {
-    RESET,
-    PROCESSING,
-    ADD_OTHERS_VIEWPROFILEFORM_POSTS,
-    UPDATE_OTHERS_VIEWPROFILEFORM_POSTS,
-    SET_OTHERS_VIEWPROFILEFORM_PROFILE_STATUS,
-    SET_OTHERS_VIEWPROFILEFORM,
-    SET_OTHERS_VIEWPROFILEFORM_LINK,
-    UPDATE_OTHERS_VIEWPROFILEFORM_POSTS_ARRAY,
-    SET_OTHERS_VIEWPROFILEFORM_POSTS,
-
+  RESET,
+  PROCESSING,
+  ADD_OTHERS_VIEWPROFILEFORM_POSTS,
+  UPDATE_OTHERS_VIEWPROFILEFORM_POSTS,
+  SET_OTHERS_VIEWPROFILEFORM_PROFILE_STATUS,
+  SET_OTHERS_VIEWPROFILEFORM,
+  SET_OTHERS_VIEWPROFILEFORM_LINK,
+  UPDATE_OTHERS_VIEWPROFILEFORM_POSTS_ARRAY,
+  SET_OTHERS_VIEWPROFILEFORM_POSTS,
 } from '../actions/types';
-import { checkData } from '../utilities/index';
-
+import {checkData} from '../utilities/index';
 
 const INITIAL_STATE = {
-    viewprofile: {},
-    viewprofileposts: [],
-    viewprofilepostsnexturl: null,
-    following: false,
-    refreshing: false,
-    blocking: false,
-    muting: false,
-    viewpostloading: false,
-    viewpostloadingmore: false,
+  viewprofile: {},
+  viewprofileposts: [],
+  viewprofilepostsnexturl: null,
+  following: false,
+  refreshing: false,
+  blocking: false,
+  muting: false,
+  viewpostloading: false,
+  viewpostloadingmore: false,
 };
-
-
 
 //to determine the type of processing request if user profile
 const handleProcessing = (key, value, state) => {
-    if (checkData(key) != true || checkData(state) != true || checkData(value) != true) {
-        return state;
-    }
-    switch (key) {
-        case 'othersviewprofileformpostloading':
-            return { ...state, viewpostloading: value };
-            break;
-        case 'othersviewprofileformpostloadingmore':
-            return { ...state, viewpostloadingmore: value };
-            break;
-        case 'othersviewprofileformblocking':
-            return { ...state, blocking: value };
-            break;
-        case 'othersviewprofileformmuting':
-            return { ...state, muting: value };
-            break;
-        case 'othersviewprofileformfollowing':
-            return { ...state, following: value };
-            break;
-        case 'othersviewprofileformrefreshing':
-            return { ...state, refreshing: value };
-            break;
-        default:
-            return state;
-            break;
-    }
+  if (
+    checkData(key) != true ||
+    checkData(state) != true ||
+    checkData(value) != true
+  ) {
+    return state;
+  }
+  switch (key) {
+    case 'othersviewprofileformpostloading':
+      return {...state, viewpostloading: value};
+      break;
+    case 'othersviewprofileformpostloadingmore':
+      return {...state, viewpostloadingmore: value};
+      break;
+    case 'othersviewprofileformblocking':
+      return {...state, blocking: value};
+      break;
+    case 'othersviewprofileformmuting':
+      return {...state, muting: value};
+      break;
+    case 'othersviewprofileformfollowing':
+      return {...state, following: value};
+      break;
+    case 'othersviewprofileformrefreshing':
+      return {...state, refreshing: value};
+      break;
+    default:
+      return state;
+      break;
+  }
 };
 
 const handleUpdatePostArray = (prevdata, newdata, type) => {
-    if (type == "reset" || (newdata.length > 1 && prevdata.length < 1)) {
-        return newdata;
-    } else if (prevdata.length > 1 && newdata.length < 1) {
-        return prevdata;
-    }
-    let updateddata = prevdata.viewprofileposts.map(item => {
-        let value = newdata.viewprofileposts.find(newitem => newitem.id == item.id);
-        return checkData(value) ? { ...item, ...value } : item;
-    });
-    return updateddata;
+  if (type == 'reset' || (newdata.length > 1 && prevdata.length < 1)) {
+    return newdata;
+  } else if (prevdata.length > 1 && newdata.length < 1) {
+    return prevdata;
+  }
+  let updateddata = prevdata.viewprofileposts.map((item) => {
+    let value = newdata.viewprofileposts.find(
+      (newitem) => newitem.id == item.id,
+    );
+    return checkData(value) ? {...item, ...value} : item;
+  });
+  return updateddata;
 };
-
-
-
 
 //original reducer
 const OthersViewProfileReducer = (state = INITIAL_STATE, action) => {
-    switch (action.type) {
-        case ADD_OTHERS_VIEWPROFILEFORM_POSTS:
-            return { ...state, viewprofileposts: [...state.viewprofileposts, ...action.payload] };
-            break;
-        case UPDATE_OTHERS_VIEWPROFILEFORM_POSTS_ARRAY:
-            return {
-                ...state,
-                viewprofileposts:
-                    handleUpdatePostArray(
-                        state.viewprofileposts,
-                        action.payload.data,
-                        action.payload.type
-                    )
-            };
-            break;
-        case PROCESSING:
-            return handleProcessing(action.payload.key,
-                action.payload.value, state);
-            break;
-        case SET_OTHERS_VIEWPROFILEFORM:
-            return { ...state, viewprofile: { ...state.viewprofile, ...action.payload } };
-            break;
-        case SET_OTHERS_VIEWPROFILEFORM_POSTS:
-            return { ...state, viewprofileposts: action.payload };
-            break;
-        case SET_OTHERS_VIEWPROFILEFORM_LINK:
-            return { ...state, viewprofilepostsnexturl: action.payload };
-            break;
-        case RESET:
-            if (action.payload.key == 'othersviewprofileform') {
-                return INITIAL_STATE;
-            }
-            return state;
-            break;
-        default:
-            return state;
-            break;
-    };
+  switch (action.type) {
+    case ADD_OTHERS_VIEWPROFILEFORM_POSTS:
+      return {
+        ...state,
+        viewprofileposts: [...state.viewprofileposts, ...action.payload],
+      };
+      break;
+    case UPDATE_OTHERS_VIEWPROFILEFORM_POSTS_ARRAY:
+      return {
+        ...state,
+        viewprofileposts: handleUpdatePostArray(
+          state.viewprofileposts,
+          action.payload.data,
+          action.payload.type,
+        ),
+      };
+      break;
+    case PROCESSING:
+      return handleProcessing(action.payload.key, action.payload.value, state);
+      break;
+    case SET_OTHERS_VIEWPROFILEFORM:
+      return {...state, viewprofile: {...state.viewprofile, ...action.payload}};
+      break;
+    case SET_OTHERS_VIEWPROFILEFORM_POSTS:
+      return {...state, viewprofileposts: action.payload};
+      break;
+    case SET_OTHERS_VIEWPROFILEFORM_LINK:
+      return {...state, viewprofilepostsnexturl: action.payload};
+      break;
+    case RESET:
+      if (action.payload.key == 'othersviewprofileform') {
+        return INITIAL_STATE;
+      }
+      return state;
+      break;
+    default:
+      return state;
+      break;
+  }
 };
 
 export default OthersViewProfileReducer;

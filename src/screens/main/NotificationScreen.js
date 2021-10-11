@@ -9,6 +9,10 @@ import {
   responsiveFontSize,
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
+import {
+  IndicatorViewPager,
+  PagerTabIndicator,
+} from '../../components/reusable/viewpager/index';
 import {useTheme} from '../../assets/themes/index';
 import ProfileList from '../../components/reusable/ProfileList';
 import {checkData} from '../../utilities/index';
@@ -18,6 +22,10 @@ const NotificationScreen = ({
   screenname,
   screentype,
   componentId,
+  state,
+  notifications,
+  mentions,
+  fetchNotifications,
   navparent,
 }) => {
   const [loaded, setLoaded] = useState(false);
@@ -33,6 +41,7 @@ const NotificationScreen = ({
   let lefticonpress = navparent == true ? setDismissNav() : null;
   /***Component functtion starts here */
   useEffect(() => {
+    fetchNotifications();
     const listener = {
       componentDidAppear: () => {
         if (!loaded) {
@@ -57,6 +66,54 @@ const NotificationScreen = ({
     if (screentype == 'screen') return () => Navigation.pop(componentId);
     else return () => Navigation.dismissModal(componentId);
   }
+
+  const renderTabIndicator = () => {
+    const TABS = [
+      {
+        text: 'All',
+      },
+      {
+        text: 'Mentions',
+      },
+    ];
+    return (
+      <PagerTabIndicator
+        textStyle={{
+          fontWeight: 'bold',
+          textAlign: 'center',
+          letterSpacing: 1,
+          paddingBottom: 5,
+          color: colors.placeholder,
+          fontSize: responsiveFontSize(1.8),
+        }}
+        selectedTextStyle={{
+          fontWeight: 'bold',
+          textAlign: 'center',
+          letterSpacing: 1,
+          color: colors.text,
+          paddingBottom: 5,
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderBottomWidth: 1.5,
+          borderColor: colors.text,
+          fontSize: responsiveFontSize(1.8),
+        }}
+        style={{
+          borderColor: colors.border,
+          height: 50,
+          borderBottomWidth: 1,
+          backgroundColor: colors.background,
+        }}
+        itemStyle={{
+          height: '100%',
+        }}
+        selectedItemStyle={{
+          height: '100%',
+        }}
+        tabs={TABS}
+      />
+    );
+  };
 
   function renderView() {
     if (loaded == false) {
@@ -84,21 +141,42 @@ const NotificationScreen = ({
           headerTextStyle={{color: colors.text}}
           headertextsize={responsiveFontSize(2.9)}
         />
-        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          <Text style={{color: colors.placeholder}}>
-            Notifications goes here
-          </Text>
-        </View>
+        <IndicatorViewPager
+          initialPage={0}
+          //ref={viewpager => (viewpagerref = viewpager)}
+          style={{flex: 1}}
+          indicatorposition={'top'}
+          indicator={renderTabIndicator()}
+          keyboardDismissMode="none">
+          <View key={0}>
+            {notifications.map(item => {
+              return (
+                <Text style={{color: colors.placeholder}}>
+                  {`${item.linkmodel} - ${item.id}`}
+                </Text>
+              );
+            })}
+          </View>
+
+          <View key={1}>
+            <Text style={{color: colors.placeholder}}>Mentions goes here</Text>
+          </View>
+        </IndicatorViewPager>
       </>
     );
   }
+
   /**Component function ends here */
   return (
     <SafeAreaView style={styles.containerStyle}>{renderView()}</SafeAreaView>
   );
 };
 
-const mapStateToProps = state => ({});
+const mapStateToProps = state => ({
+  state: state,
+  notifications: state.mynotes.notifications,
+  mentions: state.mynotes.mentions,
+});
 
 NotificationScreen.options = {
   topBar: {

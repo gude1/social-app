@@ -34,6 +34,7 @@ const persistConfig = {
     'searchprivatechatlist',
     'giphygallery',
     'meetupconvs',
+    'mynotes',
   ],
 };
 

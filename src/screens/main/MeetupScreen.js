@@ -104,7 +104,8 @@ const FirstTimeView = ({meetupform, okAction, meetupmain}) => {
     <IndicatorViewPager
       style={{flex: 1, marginBottom: 20}}
       initialPage={0}
-      indicator={renderDotIndicator()}>
+      indicator={renderDotIndicator()}
+    >
       <View key={0} style={styles.pagerView}>
         <OAvatar
           rounded
@@ -120,7 +121,7 @@ const FirstTimeView = ({meetupform, okAction, meetupmain}) => {
           source={require('../../assets/meetupscreen/icon2.png')}
         />
         <Text style={styles.pagerViewText}>
-          Meet New people across campuses
+          Meet New people across and within your community
         </Text>
       </View>
 
@@ -139,7 +140,7 @@ const FirstTimeView = ({meetupform, okAction, meetupmain}) => {
           source={require('../../assets/meetupscreen/icon3.png')}
         />
         <Text style={styles.pagerViewText}>
-          Create Meets and connect with others that share your interest
+          Create Meets and connect with people that share your interest
         </Text>
         <Button
           title={'Get Started'}
@@ -239,7 +240,7 @@ export const MeetupScreen = ({
   let mood = meetupreqobj.options.request_mood;
   //COMPONENT FUNCTION STARTS HERE
   useEffect(() => {
-    EntypoIcon.getImageSource('network', 100).then(e =>
+    EntypoIcon.getImageSource('network', 100).then((e) =>
       Navigation.mergeOptions(componentId, {
         bottomTab: {
           icon: e,
@@ -286,7 +287,7 @@ export const MeetupScreen = ({
   ]);
 
   function filterMeets() {
-    let requests = meetupmain.requests.filter(item => {
+    let requests = meetupmain.requests.filter((item) => {
       if (!isEmpty(category) && category != item.request_category) return false;
       else if (!isEmpty(mood) && mood != item.request_mood) return false;
       else return true;
@@ -300,25 +301,25 @@ export const MeetupScreen = ({
     }
     let current = new Date().getTime() - 60000; //1 min diff from curren time
     let exprequests = meetupmain.requests
-      .filter(item => {
+      .filter((item) => {
         let expires_at = Math.floor(item.expires_at * 1000);
         if (item.deleted == true || expires_at <= current) {
           return true;
         }
         return false;
       })
-      .map(item => item.request_id);
+      .map((item) => item.request_id);
     let expmyrequests = meetupmain.myrequests
-      .filter(item => {
+      .filter((item) => {
         let expires_at = Math.floor(item.expires_at * 1000);
         if (item.deleted == true || expires_at <= current) {
           return true;
         }
         return false;
       })
-      .map(item => item.request_id);
+      .map((item) => item.request_id);
     let expconvlists = meetupconvlist.list
-      .filter(listitem => {
+      .filter((listitem) => {
         let expires_at = Math.floor(
           listitem.origin_meet_request.expires_at * 1000,
         );
@@ -330,7 +331,7 @@ export const MeetupScreen = ({
         }
         return false;
       })
-      .map(item => item.conversation_id);
+      .map((item) => item.conversation_id);
     removeMeetupMainRequestsArr(expmyrequests);
     removeMeetupMainMyRequestsArr(expmyrequests);
     removeMeetConvList(expconvlists);
@@ -375,28 +376,34 @@ export const MeetupScreen = ({
         textStyle={{
           fontWeight: 'bold',
           textAlign: 'center',
+          letterSpacing: 0.6,
+          paddingBottom: 5,
           color: colors.placeholder,
           fontSize: responsiveFontSize(1.8),
         }}
         selectedTextStyle={{
           fontWeight: 'bold',
           textAlign: 'center',
+          letterSpacing: 0.6,
           color: colors.text,
+          paddingBottom: 5,
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderBottomWidth: 1.5,
+          borderColor: colors.text,
           fontSize: responsiveFontSize(1.8),
         }}
         style={{
           borderColor: colors.border,
           height: 50,
-          borderBottomWidth: 0.5,
+          borderBottomWidth: 1,
           backgroundColor: colors.background,
         }}
         itemStyle={{
           height: '100%',
         }}
         selectedItemStyle={{
-          borderBottomWidth: 1.5,
           height: '100%',
-          borderColor: colors.text,
         }}
         tabs={TABS}
       />
@@ -481,11 +488,12 @@ export const MeetupScreen = ({
           <IndicatorViewPager
             initialPage={0}
             offscreenPageLimit={1}
-            ref={viewpager => setViewPager(viewpager)}
+            ref={(viewpager) => setViewPager(viewpager)}
             style={{flex: 1, marginTop: 2, borderBottomWidth: 0}}
             indicatorposition={'top'}
             indicator={renderTabIndicator()}
-            keyboardDismissMode="none">
+            keyboardDismissMode="none"
+          >
             <View key={0} style={{flex: 1}}>
               <MeetRequestList
                 meetupreqobj={meetupreqobj}
@@ -553,14 +561,16 @@ export const MeetupScreen = ({
             contentContainerStyle={{
               marginLeft: 0,
               flex: 1,
-            }}>
+            }}
+          >
             <View
               style={{
                 marginLeft: 10,
                 marginTop: 5,
                 marginRight: 5,
                 flex: 1,
-              }}>
+              }}
+            >
               <CustomPicker
                 containerPickerStyle={{width: '100%'}}
                 pickerContainerStyle={{width: '100%'}}
@@ -642,14 +652,16 @@ export const MeetupScreen = ({
             visible={showmakemeetmodal}
             ListTitle={'Create Meet'}
             loading={false}
-            contentContainerStyle={{marginLeft: 0}}>
+            contentContainerStyle={{marginLeft: 0}}
+          >
             <View
               style={{
                 marginLeft: 10,
                 marginTop: 5,
                 marginRight: 5,
                 flex: 1,
-              }}>
+              }}
+            >
               <CustomPicker
                 containerPickerStyle={{width: '100%'}}
                 pickerContainerStyle={{width: '100%'}}
@@ -681,7 +693,7 @@ export const MeetupScreen = ({
                   paddingVertical: 0,
                   paddingHorizontal: 0,
                 }}
-                onChangeText={text => {
+                onChangeText={(text) => {
                   setCreateReq({
                     ...createReq,
                     request_msg: text,
@@ -823,14 +835,11 @@ MeetupScreen.options = {
   },
 };
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   meetupmain: state.meetupmain,
   authprofile: state.profile,
   meetupconvlist: state.meetupconvlist,
   meetupform: state.meetupform,
 });
 
-export default connect(
-  mapStateToProps,
-  actions,
-)(MeetupScreen);
+export default connect(mapStateToProps, actions)(MeetupScreen);
