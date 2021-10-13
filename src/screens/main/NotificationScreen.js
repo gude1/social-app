@@ -16,15 +16,18 @@ import {
 import {useTheme} from '../../assets/themes/index';
 import ProfileList from '../../components/reusable/ProfileList';
 import {checkData} from '../../utilities/index';
+import {
+  MentionsList,
+  NotificationList,
+} from '../../components/reusable/NoteList';
 
 const {colors} = useTheme();
 const NotificationScreen = ({
   screenname,
   screentype,
   componentId,
-  state,
-  notifications,
-  mentions,
+  setReset,
+  mynotes,
   fetchNotifications,
   navparent,
 }) => {
@@ -41,7 +44,6 @@ const NotificationScreen = ({
   let lefticonpress = navparent == true ? setDismissNav() : null;
   /***Component functtion starts here */
   useEffect(() => {
-    fetchNotifications();
     const listener = {
       componentDidAppear: () => {
         if (!loaded) {
@@ -57,6 +59,7 @@ const NotificationScreen = ({
     );
     return () => {
       // Make sure to unregister the listener during cleanup
+      setReset('mynotes');
       unsubscribe.remove();
     };
   }, []);
@@ -149,17 +152,21 @@ const NotificationScreen = ({
           indicator={renderTabIndicator()}
           keyboardDismissMode="none">
           <View key={0}>
-            {notifications.map(item => {
-              return (
-                <Text style={{color: colors.placeholder}}>
-                  {`${item.linkmodel} - ${item.id}`}
-                </Text>
-              );
-            })}
+            <NotificationList
+              list={mynotes.notifications}
+              loading={mynotes.loadingnotes}
+              loadingmore={mynotes.loadingmorenotes}
+              fetchNotes={fetchNotifications}
+            />
           </View>
 
           <View key={1}>
-            <Text style={{color: colors.placeholder}}>Mentions goes here</Text>
+            <MentionsList
+              list={mynotes.mentions}
+              loading={mynotes.loadingmentions}
+              loadingmore={mynotes.loadingmorementions}
+              //fetchMentions={}
+            />
           </View>
         </IndicatorViewPager>
       </>
@@ -174,8 +181,7 @@ const NotificationScreen = ({
 
 const mapStateToProps = state => ({
   state: state,
-  notifications: state.mynotes.notifications,
-  mentions: state.mynotes.mentions,
+  mynotes: state.mynotes,
 });
 
 NotificationScreen.options = {

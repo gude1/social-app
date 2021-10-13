@@ -71,7 +71,7 @@ class PostImageViewPager extends Component {
     />
   );
 
-  _viewImage = (data) => {
+  _viewImage = data => {
     Navigation.showModal({
       component: {
         name: 'PhotoViewer',
@@ -98,8 +98,7 @@ class PostImageViewPager extends Component {
             resizeMode="cover"
             style={styles.postImageStyle}
             placeholderStyle={styles.postImagePlaceHolderStyle}
-            containerStyle={styles.postListItemContainerAvatar}
-          >
+            containerStyle={styles.postListItemContainerAvatar}>
             <View style={styles.postImageOptions}>
               {total < 2 ? null : (
                 <Text style={[styles.imageIndexTextStyle]}>
@@ -108,8 +107,7 @@ class PostImageViewPager extends Component {
               )}
               <TouchableHighlight
                 onPress={() => this._viewImage([image])}
-                style={styles.btnViewPostImage}
-              >
+                style={styles.btnViewPostImage}>
                 <Icon
                   type="feather"
                   name="image"
@@ -128,7 +126,7 @@ class PostImageViewPager extends Component {
   render() {
     return (
       <IndicatorViewPager
-        ref={(viewpager) => (this.viewpager = viewpager)}
+        ref={viewpager => (this.viewpager = viewpager)}
         indicator={this._renderTitleIndicator()}
         orientation="horizontal"
         style={{
@@ -138,8 +136,7 @@ class PostImageViewPager extends Component {
         }}
         //showPageIndicator={true}
         initialPage={0}
-        keyboardDismissMode="none"
-      >
+        keyboardDismissMode="none">
         {this.pagerItems}
       </IndicatorViewPager>
     );
@@ -264,14 +261,12 @@ export class PostItem extends Component {
                   this.props.numlikes,
                 )
               }
-              style={styles.postListItemBottomBarItem}
-            >
+              style={styles.postListItemBottomBarItem}>
               {this._setLikeIcon()}
             </TouchableScale>
             <TouchableScale
               onPress={this.props.onViewLikesPress}
-              activeScale={1}
-            >
+              activeScale={1}>
               <Text style={styles.postListItemBottomBarText}>
                 {this.props.numlikes}
               </Text>
@@ -281,8 +276,7 @@ export class PostItem extends Component {
           <View style={styles.postListItemBottomBarItem}>
             <TouchableScale
               activeScale={0.7}
-              onPress={this.props.onCommentPress}
-            >
+              onPress={this.props.onCommentPress}>
               <Icon
                 type="antdesign"
                 name="message1"
@@ -305,14 +299,12 @@ export class PostItem extends Component {
                   this.props.postshared,
                   this.props.numshares,
                 )
-              }
-            >
+              }>
               {this._setShareIcon()}
             </TouchableScale>
             <TouchableScale
               onPress={this.props.onViewSharesPress}
-              activeScale={1}
-            >
+              activeScale={1}>
               <Text style={styles.postListItemBottomBarText}>
                 {this.props.numshares}
               </Text>
@@ -571,14 +563,14 @@ export default class PostList extends React.Component {
     }
   };
 
-  _setOthersModalList = (postitem) => {
+  _setOthersModalList = postitem => {
     if (!checkData(postitem)) {
       return;
     }
     let adjustedlist = null;
     //console.warn(this.props.profileschanges);
     let profilechanges = this.props.profileschanges.find(
-      (item) => item.profileid == this.currentselectedpostownerid,
+      item => item.profileid == this.currentselectedpostownerid,
     );
     //console.warn(postitem);
     let profilechangesmuted = checkData(profilechanges)
@@ -586,7 +578,7 @@ export default class PostList extends React.Component {
       : postitem.profile.profilemuted;
     /*** for  profile muted */
     if (profilechangesmuted == true) {
-      adjustedlist = this.state.bottomodallistothersoptions.map((item) => {
+      adjustedlist = this.state.bottomodallistothersoptions.map(item => {
         return item.id == 'muteprofile'
           ? {
               ...item,
@@ -603,7 +595,7 @@ export default class PostList extends React.Component {
         profilemuted: profilechangesmuted,
       });
     } else {
-      adjustedlist = this.state.bottomodallistothersoptions.map((item) => {
+      adjustedlist = this.state.bottomodallistothersoptions.map(item => {
         return item.id == 'muteprofile'
           ? {
               ...item,
@@ -700,11 +692,11 @@ export default class PostList extends React.Component {
     this.props.onPostItemShared(postid, sharestatus, numpostshares);
   };
 
-  _arrangePostImage = (data) => {
+  _arrangePostImage = data => {
     if (!Array.isArray(data) || data.length < 1) {
       return null;
     } else {
-      let postimages = data.map((image) => image.postimage);
+      let postimages = data.map(image => image.postimage);
       return postimages;
     }
   };
@@ -717,7 +709,7 @@ export default class PostList extends React.Component {
     this.setState({userpostvisible: true});
   };
 
-  _openComments = (post) => {
+  _openComments = post => {
     if (checkData(post) != true) {
       return;
     }
@@ -733,7 +725,7 @@ export default class PostList extends React.Component {
     });
   };
 
-  _navShowLikes = (postid) => {
+  _navShowLikes = postid => {
     if (checkData(postid) != true) {
       return;
     }
@@ -750,7 +742,7 @@ export default class PostList extends React.Component {
     });
   };
 
-  _navShowShares = (postid) => {
+  _navShowShares = postid => {
     if (checkData(postid) != true) {
       return;
     }
@@ -839,8 +831,7 @@ export default class PostList extends React.Component {
                 },
               },
             })
-          }
-        >
+          }>
           {sharemsg}
         </Text>
       );
@@ -908,8 +899,7 @@ export default class PostList extends React.Component {
             justifyContent: 'center',
             margin: 6,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size={30} color={colors.border} />
         </View>
       );
@@ -945,8 +935,7 @@ export default class PostList extends React.Component {
             alignItems: 'center',
             height: 200,
             justifyContent: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size="large" color={'silver'} />
         </View>
       );
@@ -956,8 +945,7 @@ export default class PostList extends React.Component {
     ) {
       return (
         <View
-          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}
-        >
+          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}>
           <Icon
             onPress={this.props.onRefresh}
             color={colors.text}

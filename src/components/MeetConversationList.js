@@ -54,7 +54,7 @@ class ConversationItem extends Component {
     return false;
   }
 
-  getConvTime = (time) => {
+  getConvTime = time => {
     if (!checkData(time)) return null;
     let parsedtimeformat = moment(time).format('DD/MM/YYYY');
     let currenttimeformat = moment().format('DD/MM/YYYY');
@@ -63,7 +63,7 @@ class ConversationItem extends Component {
       : parsedtimeformat;
   };
 
-  renderCheck = (item) => {
+  renderCheck = item => {
     let {meetsetting} = this.props;
     if (meetsetting.owner_id != item.sender_id) {
       return null;
@@ -78,8 +78,7 @@ class ConversationItem extends Component {
             letterSpacing: -1,
             fontSize: responsiveFontSize(1.8),
             marginRight: 5,
-          }}
-        >
+          }}>
           {' '}
           √√
         </Text>
@@ -93,8 +92,7 @@ class ConversationItem extends Component {
             letterSpacing: -1,
             fontSize: responsiveFontSize(1.8),
             marginRight: 5,
-          }}
-        >
+          }}>
           {' '}
           √√
         </Text>
@@ -108,8 +106,7 @@ class ConversationItem extends Component {
             letterSpacing: -1,
             fontSize: responsiveFontSize(1.8),
             marginRight: 5,
-          }}
-        >
+          }}>
           {' '}
           sending...
         </Text>
@@ -137,8 +134,7 @@ class ConversationItem extends Component {
             letterSpacing: -1,
             fontSize: responsiveFontSize(1.8),
             marginRight: 5,
-          }}
-        >
+          }}>
           {' '}
           √
         </Text>
@@ -148,8 +144,11 @@ class ConversationItem extends Component {
 
   renderMeetModal() {
     let item = this.props.item;
-    let {sender_meet_profile, receiver_meet_profile, origin_meet_request} =
-      item;
+    let {
+      sender_meet_profile,
+      receiver_meet_profile,
+      origin_meet_request,
+    } = item;
     let meet_profile =
       item.sender_meet_profile.owner_id == origin_meet_request.requester_id
         ? item.sender_meet_profile
@@ -164,8 +163,7 @@ class ConversationItem extends Component {
         contentContainerStyle={{marginLeft: 0}}
         visible={this.state.showparentmeet}
         ListTitle={'Message on Meet Request :'}
-        height={300}
-      >
+        height={300}>
         <CustomListItem
           leftAvatar={{uri: meet_profile.meetup_avatar}}
           onAvatarPress={() => {
@@ -206,8 +204,7 @@ class ConversationItem extends Component {
     if (!isEmpty(item.chat_msg) && !isEmpty(item.chat_pic)) {
       return (
         <View
-          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}
-        >
+          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}>
           {this.renderCheck(item)}
           <Icon
             type={'evilicons'}
@@ -221,8 +218,7 @@ class ConversationItem extends Component {
             style={{
               color: colors.iconcolor,
               // fontSize: responsiveFontSize(2)
-            }}
-          >
+            }}>
             {item.chat_msg}
           </Text>
         </View>
@@ -230,8 +226,7 @@ class ConversationItem extends Component {
     } else if (!isEmpty(item.chat_msg)) {
       return (
         <View
-          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}
-        >
+          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}>
           {this.renderCheck(item)}
           <Text
             ellipsizeMode={'tail'}
@@ -240,8 +235,7 @@ class ConversationItem extends Component {
               flexDirection: 'row',
               color: colors.iconcolor,
               //fontSize: responsiveFontSize(2)
-            }}
-          >
+            }}>
             {item.chat_msg}
           </Text>
         </View>
@@ -249,8 +243,7 @@ class ConversationItem extends Component {
     } else if (!isEmpty(item.chat_pic)) {
       return (
         <View
-          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}
-        >
+          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}>
           {this.renderCheck(item)}
           <Icon
             type={'evilicons'}
@@ -262,8 +255,7 @@ class ConversationItem extends Component {
             style={{
               color: colors.iconcolor,
               //fontSize: responsiveFontSize(2)
-            }}
-          >
+            }}>
             {'Photo'}
           </Text>
         </View>
@@ -425,8 +417,7 @@ class MeetConversationList extends Component {
             justifyContent: 'center',
             margin: 6,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size={30} color={colors.border} />
         </View>
       );
@@ -438,8 +429,7 @@ class MeetConversationList extends Component {
             justifyContent: 'center',
             margin: 10,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <Icon
             color={colors.text}
             size={responsiveFontSize(5)}
@@ -463,8 +453,7 @@ class MeetConversationList extends Component {
             height: responsiveHeight(70),
             alignItems: 'center',
             justifyContent: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size="large" color={'silver'} />
         </View>
       );
@@ -476,15 +465,13 @@ class MeetConversationList extends Component {
             justifyContent: 'center',
             height: responsiveHeight(70),
             width: '100%',
-          }}
-        >
+          }}>
           <Text
             style={{
               color: colors.iconcolor,
               width: '70%',
               textAlign: 'center',
-            }}
-          >
+            }}>
             Try Again
           </Text>
           <Button

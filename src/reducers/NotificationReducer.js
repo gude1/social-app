@@ -37,6 +37,15 @@ const handleProcessing = (key, value, state) => {
     case 'loadingnotifications':
       return {...state, loadingnotes: value};
       break;
+    case 'loadingmorenotifications':
+      return {...state, loadingmorenotes: value};
+      break;
+    case 'loadingmentions':
+      return {...state, loadingmentions: value};
+      break;
+    case 'loadingmorementions':
+      return {...state, loadingmorementions: value};
+      break;
     default:
       return state;
       break;
@@ -97,7 +106,7 @@ const NotificationReducer = (state = INITIAL_STATE, action) => {
       return handleProcessing(action.payload.key, action.payload.value, state);
       break;
     case RESET:
-      return action.payload.key == 'mynotifications' ? INITIAL_STATE : state;
+      return action.payload.key == 'mynotes' ? INITIAL_STATE : state;
       break;
     default:
       return state;
