@@ -7773,27 +7773,45 @@ export const setMentions = (data = []) => {
 
 export const fetchNotifications = (data = []) => {
   return async dispatch => {
-    dispatch(setProcessing(true, 'loadingnotifications'));
+    let processtxt = 'loadingnotifications';
+    if (!isEmpty(data)) {
+      processtxt = 'loadingmorenotifications';
+    }
+    dispatch(setProcessing(true, processtxt));
+    let max = null;
+    let min = null;
     try {
-      let {user} = store.getState();
+      let {user, mynotes} = store.getState();
+      if (data[1] == true) {
+        max = mynotes.notifications
+          .map(item => item.id)
+          .reduce((a, b) => Math.max(a, b));
+      } else if (data[0] == true) {
+        min = mynotes.notifications
+          .map(item => item.id)
+          .reduce((a, b) => Math.min(a, b));
+      }
+
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
       };
-      const response = await session.post('fetchnotes', null, options);
+      const response = await session.post('fetchnotes', {max, min}, options);
       const {status, errmsg, message, notes} = response.data;
       switch (status) {
         case 200:
           //console.warn('200', notes);
           dispatch(updateNotifications(notes));
-          dispatch(setProcessing(false, 'loadingnotifications'));
+          dispatch(setProcessing(false, processtxt));
           break;
         default:
           Toast(errmsg);
+          //console.warn(response.data);
+          dispatch(setProcessing(false, processtxt));
           break;
       }
     } catch (err) {
       console.warn('err', err.toString());
-      dispatch(setProcessing('retry', 'loadingnotifications'));
+      dispatch(setProcessing(false, processtxt));
       if (err.toString().indexOf('Network Error') != -1) {
         Toast('network error!');
       } else {

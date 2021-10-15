@@ -104,9 +104,18 @@ export class NotificationList extends Component {
     super(props);
     this.state = {};
   }
+
+  componentDidMount() {
+    if (checkData(this.props.fetchNotes)) {
+      //console.warn('componendidmountfetch nite called');
+      this.props.fetchNotes();
+    }
+  }
+
   renderItem = ({item}) => {
     return <Text style={{color: colors.text}}>{item.id}</Text>;
   };
+
   render() {
     let {list, loading, loadingmore, fetchNotes} = this.props;
     list = list || [];
@@ -118,7 +127,9 @@ export class NotificationList extends Component {
         showsVerticalScrollIndicator={false}
         renderItem={this.renderItem}
         ListEmptyComponent={_setEmptyPlaceHolder(loading, fetchNotes)}
-        ListFooterComponent={_setFooterComponent(loadingmore, list.length)}
+        ListFooterComponent={_setFooterComponent(loadingmore, list.length, () =>
+          fetchNotes([true]),
+        )}
       />
     );
   }
@@ -128,6 +139,13 @@ export class MentionsList extends Component {
   constructor(props) {
     super(props);
     this.state = {};
+  }
+
+  componentDidMount() {
+    if (checkData(this.props.fetchMentions)) {
+      // console.warn('componendidmountfetch nite called');
+      this.props.fetchMentions();
+    }
   }
 
   renderItem = ({item}) => {
