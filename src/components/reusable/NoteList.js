@@ -11,6 +11,7 @@ import {
 import {Navigation} from 'react-native-navigation';
 import {Text, Button, Icon, ListItem} from 'react-native-elements';
 import {useTheme} from '../../assets/themes/index';
+//import {ListItem} from './ResuableWidgets';
 
 const {colors} = useTheme();
 
@@ -112,8 +113,126 @@ export class NotificationList extends Component {
     }
   }
 
+  _arrangeNote = item => {
+    if (isEmpty(item)) {
+      return null;
+    }
+    let msg = null;
+    let count_msg = null;
+    switch (item.type) {
+      case 'postlike':
+        msg = `${item.post.post_text}`;
+        count_msg =
+          item.related_count > 0
+            ? `${item.initiator_profile.profile_name} and ${
+                item.related_count
+              } others liked your post`
+            : `${item.initiator_profile.profile_name} liked your post`;
+        return (
+          <ListItem
+            // title={}
+            leftAvatar={{source: {uri: item.initiator_profile.avatar[0]}}}
+            containerStyle={{
+              backgroundColor: colors.background,
+              paddingLeft: 30,
+              borderWidth: 0.5,
+              borderColor: colors.border,
+            }}
+            title={count_msg}
+            titleStyle={{fontWeight: 'bold', color: colors.text}}
+            subtitle={msg}
+            subtitleStyle={{color: colors.placeholder}}
+          />
+        );
+        break;
+      case 'postcomment':
+        msg = `${item.comment.comment_text}`;
+        count_msg =
+          item.related_count > 0
+            ? `${item.initiator_profile.profile_name} and ${
+                item.related_count
+              } others commented on your post`
+            : `${item.initiator_profile.profile_name} commented on your post`;
+        return (
+          <ListItem
+            // title={}
+            leftAvatar={{
+              source: {uri: item.initiator_profile.avatar[0]},
+            }}
+            containerStyle={{
+              backgroundColor: colors.background,
+              paddingLeft: 30,
+              borderWidth: 0.5,
+              borderColor: colors.border,
+            }}
+            title={count_msg}
+            titleStyle={{fontWeight: 'bold', color: colors.text}}
+            subtitle={msg}
+            subtitleStyle={{color: colors.placeholder}}
+          />
+        );
+        break;
+      case 'postcommentlike':
+        msg = `${item.comment.comment_text}`;
+        count_msg =
+          item.related_count > 0
+            ? `${item.initiator_profile.profile_name} and ${
+                item.related_count
+              } others like your comment`
+            : `${item.initiator_profile.profile_name} liked your comment`;
+        return (
+          <ListItem
+            // title={}
+            leftAvatar={{
+              source: {uri: item.initiator_profile.avatar[0]},
+            }}
+            containerStyle={{
+              backgroundColor: colors.background,
+              paddingLeft: 30,
+              borderWidth: 0.5,
+              borderColor: colors.border,
+            }}
+            title={count_msg}
+            titleStyle={{fontWeight: 'bold', color: colors.text}}
+            subtitle={msg}
+            subtitleStyle={{color: colors.placeholder}}
+          />
+        );
+        break;
+      default:
+        return (
+          <ListItem
+            // title={}
+            leftAvatar={{
+              source: {uri: item.initiator_profile.avatar[0]},
+            }}
+            containerStyle={{
+              backgroundColor: colors.background,
+              paddingLeft: 30,
+              borderWidth: 0.5,
+              borderColor: colors.border,
+            }}
+            title={`${item.initiator_profile.profile_name} and ${
+              item.related_count
+            } others like your comment`}
+            titleStyle={{fontWeight: 'bold', color: colors.text}}
+            subtitle={`i like everything beautiful and perfectly made inluding you`}
+            subtitleStyle={{color: colors.placeholder}}
+          />
+        );
+        break;
+    }
+  };
+
   renderItem = ({item}) => {
-    return <Text style={{color: colors.text}}>{item.id}</Text>;
+    if (
+      isEmpty(item) ||
+      isEmpty(item.initiator_profile) ||
+      isEmpty(item.initiator_profile.user)
+    ) {
+      return null;
+    }
+    return this._arrangeNote(item);
   };
 
   render() {

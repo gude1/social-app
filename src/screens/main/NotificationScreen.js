@@ -105,7 +105,7 @@ const NotificationScreen = ({
         style={{
           borderColor: colors.border,
           height: 50,
-          borderBottomWidth: 1,
+          borderBottomWidth: 0.5,
           backgroundColor: colors.background,
         }}
         itemStyle={{
