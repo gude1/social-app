@@ -26,7 +26,7 @@ const PostCommentReplyScreen = ({
   ownercomment,
   replies,
   profile,
-  makeRequest,
+  makerequest,
   muteProfileAction,
   profileactionform,
   postcommentreplyform,
@@ -66,7 +66,7 @@ const PostCommentReplyScreen = ({
     setReset('postcommentreplyform'); // set the replies to empty
     setPostCommentReplyFormOwnerComment(ownercomment);
     setPostCommentReplyForm(replies || []);
-    if (makeRequest != false) {
+    if (makerequest != false) {
       fetchPostCommentReply(ownercomment.commentid);
     }
     const listener = {
@@ -87,7 +87,7 @@ const PostCommentReplyScreen = ({
       unsubscribe.remove();
     };
   }, []);
-  const setFlatlistRef = (ref) => {
+  const setFlatlistRef = ref => {
     flatlistref = ref;
   };
 
@@ -189,7 +189,7 @@ PostCommentReplyScreen.options = {
   },
 };
 
-const mapStateToProps = (state) => {
+const mapStateToProps = state => {
   return {
     profile: state.profile,
     profileactionform: state.profileactionform,
@@ -209,4 +209,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToProps, actions)(PostCommentReplyScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(PostCommentReplyScreen);

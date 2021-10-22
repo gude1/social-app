@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {View, ActivityIndicator, FlatList, StyleSheet} from 'react-native';
-import {checkData, hasProperty, isEmpty} from '../../utilities';
+import {checkData, handleTime, hasProperty, isEmpty} from '../../utilities';
 import TouchableScale from 'react-native-touchable-scale';
 import {
   responsiveFontSize,
@@ -209,20 +209,38 @@ export class NotificationList extends Component {
             : `${item.initiator_profile.profile_name} liked your post`;
         return (
           <ListItem
+            Component={TouchableScale}
+            activeScale={0.8}
+            friction={100}
+            tension={100}
             leftAvatar={{
               source: {uri: item.initiator_profile.avatar[1]},
               onPress: this._onAvatarPress(item.initiator_profile),
             }}
+            onPress={() => {
+              Navigation.showModal({
+                component: {
+                  name: 'PostShow',
+                  passProps: {
+                    navparent: true,
+                    screentype: 'modal',
+                    toshowpost: item?.post,
+                  },
+                },
+              });
+            }}
             containerStyle={styles.containerStyle}
             title={count_msg}
-            titleStyle={{fontWeight: 'bold', color: colors.text}}
+            titleStyle={styles.titleStyle}
+            rightTitle={handleTime(Math.floor(item.updated_at * 1000))}
+            rightTitleStyle={styles.rightTitleStyle}
             subtitle={msg}
             subtitleStyle={{color: colors.placeholder}}
           />
         );
         break;
       case 'postcomment':
-        msg = `${item?.comment?.owner_post?.post_text}`;
+        msg = `${item?.postcomment?.owner_post?.post_text}`;
         count_msg =
           item.related_count > 0
             ? `${item.initiator_profile.profile_name} and ${
@@ -231,20 +249,41 @@ export class NotificationList extends Component {
             : `${item.initiator_profile.profile_name} commented on your post`;
         return (
           <ListItem
+            Component={TouchableScale}
+            activeScale={0.8}
+            friction={100}
+            tension={100}
             leftAvatar={{
               source: {uri: item.initiator_profile.avatar[1]},
               onPress: this._onAvatarPress(item.initiator_profile),
             }}
+            onPress={() => {
+              Navigation.showModal({
+                component: {
+                  name: 'PostComment',
+                  passProps: {
+                    navparent: true,
+                    screentype: 'modal',
+                    makerequest: false,
+                    postcomments: [item.postcomment],
+                    ownerpost: item?.postcomment?.owner_post,
+                  },
+                },
+              });
+            }}
             containerStyle={styles.containerStyle}
             title={count_msg}
-            titleStyle={{fontWeight: 'bold', color: colors.text}}
+            titleStyle={styles.titleStyle}
+            rightTitle={handleTime(Math.floor(item.updated_at * 1000))}
+            rightTitleStyle={styles.rightTitleStyle}
             subtitle={msg}
             subtitleStyle={{color: colors.placeholder}}
           />
         );
         break;
       case 'postcommentlike':
-        msg = `${item?.comment?.comment_text}`;
+        //console.warn(item);
+        msg = `${item?.postcomment?.comment_text}`;
         count_msg =
           item.related_count > 0
             ? `${item.initiator_profile.profile_name} and ${
@@ -253,13 +292,31 @@ export class NotificationList extends Component {
             : `${item.initiator_profile.profile_name} liked your comment`;
         return (
           <ListItem
+            Component={TouchableScale}
+            activeScale={0.8}
+            friction={100}
+            tension={100}
             leftAvatar={{
               source: {uri: item.initiator_profile.avatar[1]},
               onPress: this._onAvatarPress(item.initiator_profile),
             }}
+            titleStyle={styles.titleStyle}
+            onPress={() => {
+              Navigation.showModal({
+                component: {
+                  name: 'PostCommentReply',
+                  passProps: {
+                    navparent: true,
+                    ownercomment: item?.postcomment,
+                  },
+                },
+              });
+            }}
             containerStyle={styles.containerStyle}
             title={count_msg}
-            titleStyle={{fontWeight: 'bold', color: colors.text}}
+            titleStyle={styles.titleStyle}
+            rightTitle={handleTime(Math.floor(item.updated_at * 1000))}
+            rightTitleStyle={styles.rightTitleStyle}
             subtitle={msg}
             subtitleStyle={{color: colors.placeholder}}
           />
@@ -275,22 +332,36 @@ export class NotificationList extends Component {
             : `${item.initiator_profile.profile_name} replied to your comment`;
         return (
           <ListItem
+            Component={TouchableScale}
+            activeScale={0.8}
+            friction={100}
+            tension={100}
             leftAvatar={{
               source: {uri: item.initiator_profile.avatar[1]},
               onPress: this._onAvatarPress(item.initiator_profile),
             }}
+            onPress={() => {
+              Navigation.showModal({
+                component: {
+                  name: 'PostCommentReply',
+                  passProps: {
+                    navparent: true,
+                    makerequest: false,
+                    replies: [item.postcommentreply],
+                    ownercomment: item?.postcommentreply?.origin,
+                  },
+                },
+              });
+            }}
+            rightTitle={handleTime(Math.floor(item.updated_at * 1000))}
+            rightTitleStyle={styles.rightTitleStyle}
             containerStyle={styles.containerStyle}
             title={count_msg}
-            titleStyle={{
-              fontWeight: 'bold',
-              color: colors.text,
-            }}
+            titleStyle={styles.titleStyle}
+            rightTitle={handleTime(Math.floor(item.updated_at * 1000))}
+            rightTitleStyle={styles.rightTitleStyle}
             subtitle={msg}
-            subtitleStyle={{
-              fontFamily: 'serif',
-              color: colors.placeholder,
-              textAlign: 'justify',
-            }}
+            subtitleStyle={{color: colors.placeholder}}
           />
         );
         break;
@@ -305,13 +376,32 @@ export class NotificationList extends Component {
             : `${item.initiator_profile.profile_name} liked your reply`;
         return (
           <ListItem
+            Component={TouchableScale}
+            activeScale={0.8}
+            friction={100}
+            tension={100}
             leftAvatar={{
               source: {uri: item.initiator_profile.avatar[1]},
               onPress: this._onAvatarPress(item.initiator_profile),
             }}
+            onPress={() => {
+              Navigation.showModal({
+                component: {
+                  name: 'PostCommentReply',
+                  passProps: {
+                    navparent: true,
+                    makerequest: false,
+                    replies: [item?.postcommentreply],
+                    ownercomment: item?.postcommentreply?.origin,
+                  },
+                },
+              });
+            }}
             containerStyle={styles.containerStyle}
             title={count_msg}
-            titleStyle={{fontWeight: 'bold', color: colors.text}}
+            titleStyle={styles.titleStyle}
+            rightTitle={handleTime(Math.floor(item.updated_at * 1000))}
+            rightTitleStyle={styles.rightTitleStyle}
             subtitle={msg}
             subtitleStyle={{color: colors.placeholder}}
           />
@@ -321,13 +411,31 @@ export class NotificationList extends Component {
         msg = `${item.initiator_profile.profile_name} started following you`;
         return (
           <ListItem
+            Component={TouchableScale}
+            activeScale={0.8}
+            friction={100}
+            tension={100}
             leftAvatar={{
               source: {uri: item.initiator_profile.avatar[1]},
-              onPress: this._onAvatarPress(item.initiator_profile),
+              //onPress: this._onAvatarPress(item.initiator_profile),
+            }}
+            onPress={() => {
+              Navigation.showModal({
+                component: {
+                  name: 'ViewProfile',
+                  passProps: {
+                    navparent: true,
+                    reqprofile: item.initiator_profile,
+                    screentype: 'modal',
+                  },
+                },
+              });
             }}
             containerStyle={styles.containerStyle}
             title={msg}
-            titleStyle={{fontWeight: 'bold', color: colors.text}}
+            titleStyle={styles.titleStyle}
+            rightTitle={handleTime(Math.floor(item.updated_at * 1000))}
+            rightTitleStyle={styles.rightTitleStyle}
           />
         );
         break;
@@ -442,5 +550,14 @@ const styles = StyleSheet.create({
     paddingLeft: 30,
     borderBottomWidth: 0.3,
     borderColor: colors.border,
+  },
+  titleStyle: {
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  rightTitleStyle: {
+    color: 'silver',
+    fontSize: responsiveFontSize(1.8),
+    marginRight: 5,
   },
 });

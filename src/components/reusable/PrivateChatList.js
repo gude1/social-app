@@ -33,7 +33,7 @@ const ShowChatList = ({
   }
   return data
     .map((item, index) => {
-      let chatitem = item.chats.find((item) => item.deleted != true);
+      let chatitem = item.chats.find(item => item.deleted != true);
       chatitem = !checkData(chatitem) ? item.chats[0] : chatitem;
       return (
         <ChatListItem
@@ -83,7 +83,7 @@ class ChatListItem extends Component {
     return false;
   }
 
-  getChatTime = (time) => {
+  getChatTime = time => {
     if (!checkData(time)) return null;
     let parsedtimeformat = moment(time).format('DD/MM/YYYY');
     let currenttimeformat = moment().format('DD/MM/YYYY');
@@ -108,8 +108,7 @@ class ChatListItem extends Component {
             letterSpacing: -1,
             fontSize: responsiveFontSize(1.8),
             marginRight: 5,
-          }}
-        >
+          }}>
           {' '}
           √√
         </Text>
@@ -123,8 +122,7 @@ class ChatListItem extends Component {
             letterSpacing: -1,
             fontSize: responsiveFontSize(1.8),
             marginRight: 5,
-          }}
-        >
+          }}>
           {' '}
           √√
         </Text>
@@ -138,8 +136,7 @@ class ChatListItem extends Component {
             letterSpacing: -1,
             fontSize: responsiveFontSize(1.8),
             marginRight: 5,
-          }}
-        >
+          }}>
           {' '}
           sending...
         </Text>
@@ -167,8 +164,7 @@ class ChatListItem extends Component {
             letterSpacing: -1,
             fontSize: responsiveFontSize(1.8),
             marginRight: 5,
-          }}
-        >
+          }}>
           {' '}
           √
         </Text>
@@ -194,8 +190,7 @@ class ChatListItem extends Component {
     ) {
       return (
         <View
-          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}
-        >
+          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}>
           {this.renderCheck()}
           <Icon
             type={'evilicons'}
@@ -209,8 +204,7 @@ class ChatListItem extends Component {
             style={{
               color: colors.iconcolor,
               fontSize: responsiveFontSize(2),
-            }}
-          >
+            }}>
             {item.chat_msg}
           </Text>
         </View>
@@ -218,8 +212,7 @@ class ChatListItem extends Component {
     } else if (checkData(item.chat_msg)) {
       return (
         <View
-          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}
-        >
+          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}>
           {this.renderCheck()}
           <Text
             ellipsizeMode={'tail'}
@@ -228,8 +221,7 @@ class ChatListItem extends Component {
               flexDirection: 'row',
               color: colors.iconcolor,
               fontSize: responsiveFontSize(2),
-            }}
-          >
+            }}>
             {item.chat_msg}
           </Text>
         </View>
@@ -237,8 +229,7 @@ class ChatListItem extends Component {
     } else if (Array.isArray(item.chat_pics) && item.chat_pics.length > 0) {
       return (
         <View
-          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}
-        >
+          style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}>
           {this.renderCheck()}
           <Icon
             type={'evilicons'}
@@ -247,8 +238,7 @@ class ChatListItem extends Component {
             size={responsiveFontSize(2.4)}
           />
           <Text
-            style={{color: colors.iconcolor, fontSize: responsiveFontSize(2)}}
-          >
+            style={{color: colors.iconcolor, fontSize: responsiveFontSize(2)}}>
             {'Photo'}
           </Text>
         </View>
@@ -306,12 +296,12 @@ class ChatListItem extends Component {
     return (
       <ListItem
         Component={TouchableScale}
-        onPress={onPress}
-        onLongPress={onLongPress}
-        checkmark={checkmark}
         activeScale={0.8}
         friction={100}
         tension={100}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        checkmark={checkmark}
         badge={this.renderBadge()}
         containerStyle={styles.listItemContainerStyle}
         leftAvatar={{
@@ -392,7 +382,7 @@ class PrivateChatList extends Component {
 
   _keyExtractor = (item, index) => index.toString();
 
-  _setAvatarNavModal = (item) => {
+  _setAvatarNavModal = item => {
     if (!checkData(item)) {
       return;
     }
@@ -407,7 +397,7 @@ class PrivateChatList extends Component {
     });
   };
 
-  _setCurrentSelectedChat = (chat) => {
+  _setCurrentSelectedChat = chat => {
     this.currentselectedchat = chat;
   };
 
@@ -419,11 +409,11 @@ class PrivateChatList extends Component {
       return [[], chatlist];
     }
     //pinnedchatarr = pinnedchatarr.reverse();
-    let headerdata = pinnedchatarr.map((id) => {
-      return chatlist.find((item) => item.create_chatid == id);
+    let headerdata = pinnedchatarr.map(id => {
+      return chatlist.find(item => item.create_chatid == id);
     });
     //console.warn(pinnedchatarr);
-    let bodydata = chatlist.filter((item) => {
+    let bodydata = chatlist.filter(item => {
       return !pinnedchatarr.includes(item.create_chatid);
     });
     return [headerdata, bodydata];
@@ -433,7 +423,7 @@ class PrivateChatList extends Component {
     return (
       <ShowChatList
         data={this.bodydata}
-        onLongPress={(data) => {
+        onLongPress={data => {
           this._setCurrentSelectedChat(data);
           this.setState({modallistvisible: true});
         }}
@@ -477,7 +467,7 @@ class PrivateChatList extends Component {
 
     let pinnedlist = this.headerdata
       .map((item, index) => {
-        let chatitem = item.chats.find((item) => item.deleted != true);
+        let chatitem = item.chats.find(item => item.deleted != true);
         chatitem = !checkData(chatitem) ? item.chats[0] : chatitem;
         return (
           <ChatListItem
@@ -517,8 +507,7 @@ class PrivateChatList extends Component {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{flex: 1}}
         keyboardShouldPersistTaps="always"
-        keyboardDismissMode={'on-drag'}
-      >
+        keyboardDismissMode={'on-drag'}>
         {pinnedlist}
       </ScrollView>
     );
@@ -536,8 +525,7 @@ class PrivateChatList extends Component {
               textAlign: 'center',
               fontWeight: 'bold',
               fontSize: responsiveFontSize(3),
-            }}
-          >
+            }}>
             chat not fetched,something went wrong
           </Text>
           <Button
@@ -571,8 +559,7 @@ class PrivateChatList extends Component {
             textAlign: 'center',
             fontWeight: 'bold',
             fontSize: responsiveFontSize(3),
-          }}
-        >
+          }}>
           Send and receive private messages
         </Text>
         <Button
@@ -635,7 +622,7 @@ class PrivateChatList extends Component {
       ];
     }
     let check = this.headerdata.find(
-      (item) => item.create_chatid == this.currentselectedchat.create_chatid,
+      item => item.create_chatid == this.currentselectedchat.create_chatid,
     );
     if (!checkData(check)) {
       return [
@@ -691,8 +678,7 @@ class PrivateChatList extends Component {
             justifyContent: 'center',
             marginTop: 15,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size={30} color={'silver'} />
         </View>
       );
