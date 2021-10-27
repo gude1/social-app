@@ -6,6 +6,7 @@ import {
   Text,
   View,
   ActivityIndicator,
+  Linking,
   TouchableOpacity,
   TouchableHighlight,
 } from 'react-native';
@@ -38,6 +39,7 @@ import {Navigation} from 'react-native-navigation';
 import {store} from '../../store/index';
 import TouchableScale from 'react-native-touchable-scale';
 import {ViewPager, IndicatorViewPager, PagerDotIndicator} from './viewpager';
+import ParsedText from 'react-native-parsed-text';
 
 const {colors} = useTheme();
 const postwidth = responsiveWidth(94) > 1240 ? 1240 : responsiveWidth(94);
@@ -165,6 +167,10 @@ export class PostItem extends Component {
       return true;
     }
     return false;
+  }
+
+  handleUrlPress(url, matchIndex /*: number*/) {
+    Linking.openURL(url);
   }
 
   _setLikeIcon = () => {
@@ -318,12 +324,27 @@ export class PostItem extends Component {
         )}
         {checkData(this.props.posttext) ? (
           <View style={styles.postTextContainer}>
-            <Text style={styles.postText}>
-              <Text style={{fontWeight: 'bold'}}>
-                {this.props.posterusername}:
-              </Text>{' '}
-              {this.props.posttext}
+            <Text style={{...styles.postText, fontWeight: 'bold'}}>
+              {this.props.posterusername}:
             </Text>
+            <ParsedText
+              style={{
+                color: colors.text,
+              }}
+              parse={[
+                {
+                  type: 'url',
+                  style: styles.parsedText,
+                  onPress: this.handleUrlPress,
+                  renderText: this.renderUrlText,
+                },
+                {type: 'phone', style: styles.parsedText},
+                {type: 'email', style: styles.parsedText},
+                {pattern: /@(\w+)/, style: styles.parsedText},
+              ]}
+              childrenProps={{allowFontScaling: false}}>
+              {this.props.posttext}
+            </ParsedText>
           </View>
         ) : null}
       </View>
@@ -1178,9 +1199,19 @@ const styles = StyleSheet.create({
     marginHorizontal: 1,
     fontSize: responsiveFontSize(2),
   },
-  postText: {
-    marginHorizontal: 7,
+  postTextContainer: {
+    padding: 0,
     flex: 1,
+    marginVertical: 5,
+    width: postwidth - postwidth * 0.05,
+    //borderWidth: 1,
+    borderColor: 'red',
+    flexDirection: 'row',
+  },
+  postText: {
+    // borderWidth: 1,
+    marginHorizontal: 1,
+    borderColor: 'blue',
     color: colors.text,
   },
   postTimeStyle: {
@@ -1204,14 +1235,6 @@ const styles = StyleSheet.create({
   postListItemBottomBarIcon: {
     marginHorizontal: 1,
     elevation: 3,
-  },
-  postTextContainer: {
-    padding: 0,
-    margin: 0,
-    flex: 1,
-    width: postwidth,
-    //borderWidth: 1,
-    flexDirection: 'row',
   },
   postListItemTopBar: {
     width: postwidth,
@@ -1246,6 +1269,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     alignItems: 'center',
     padding: 5,
+  },
+  parsedText: {
+    color: colors.blue,
+    //textDecorationLine: 'underline',
   },
   postListItemBottomBarItem: {
     flexDirection: 'row',
