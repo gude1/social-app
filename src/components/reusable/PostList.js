@@ -34,6 +34,7 @@ import {
   toHumanReadableTime,
   handleTime,
   hasProperty,
+  LinkingHandler,
 } from '../../utilities/index';
 import {Navigation} from 'react-native-navigation';
 import {store} from '../../store/index';
@@ -168,11 +169,6 @@ export class PostItem extends Component {
     }
     return false;
   }
-
-  handleUrlPress(url, matchIndex /*: number*/) {
-    Linking.openURL(url);
-  }
-
   _setLikeIcon = () => {
     return this.props.postliked == 'postliked' ? (
       <Icon
@@ -324,27 +320,37 @@ export class PostItem extends Component {
         )}
         {checkData(this.props.posttext) ? (
           <View style={styles.postTextContainer}>
-            <Text style={{...styles.postText, fontWeight: 'bold'}}>
-              {this.props.posterusername}:
+            <Text style={styles.postText}>
+              <Text style={{fontWeight: 'bold'}}>
+                {`${this.props.posterusername}: `}
+              </Text>
+              <ParsedText
+                style={{
+                  color: colors.text,
+                }}
+                parse={[
+                  {
+                    type: 'url',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handleUrlPress,
+                    renderText: this.renderUrlText,
+                  },
+                  {
+                    type: 'phone',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handlePhonePress,
+                  },
+                  {
+                    type: 'email',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handleEmailPress,
+                  },
+                  {pattern: /@(\w+)/, style: styles.parsedText},
+                ]}
+                childrenProps={{allowFontScaling: false}}>
+                {this.props.posttext}
+              </ParsedText>
             </Text>
-            <ParsedText
-              style={{
-                color: colors.text,
-              }}
-              parse={[
-                {
-                  type: 'url',
-                  style: styles.parsedText,
-                  onPress: this.handleUrlPress,
-                  renderText: this.renderUrlText,
-                },
-                {type: 'phone', style: styles.parsedText},
-                {type: 'email', style: styles.parsedText},
-                {pattern: /@(\w+)/, style: styles.parsedText},
-              ]}
-              childrenProps={{allowFontScaling: false}}>
-              {this.props.posttext}
-            </ParsedText>
           </View>
         ) : null}
       </View>
@@ -1203,14 +1209,13 @@ const styles = StyleSheet.create({
     padding: 0,
     flex: 1,
     marginVertical: 5,
-    width: postwidth - postwidth * 0.05,
+    width: postwidth,
     //borderWidth: 1,
     borderColor: 'red',
     flexDirection: 'row',
   },
   postText: {
-    // borderWidth: 1,
-    marginHorizontal: 1,
+    //borderWidth: 1,
     borderColor: 'blue',
     color: colors.text,
   },

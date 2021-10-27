@@ -1,5 +1,5 @@
 import RNFetchBlob from 'rn-fetch-blob';
-import {Platform, Image, ToastAndroid, Alert} from 'react-native';
+import {Platform, Image, ToastAndroid, Alert, Linking} from 'react-native';
 import {Navigation} from 'react-native-navigation';
 import {
   AUTHROUTE,
@@ -13,12 +13,12 @@ import moment from 'moment';
 import {ADD_FCM_MEET_CONV} from '../actions/types';
 import {setMeetupConvStatus} from '../actions/index';
 
-export const deleteFile = (data) => {
+export const deleteFile = data => {
   if (!isEmpty(data)) {
     RNFetchBlob.fs
       .unlink(data)
-      .then((e) => e)
-      .catch((e) => e);
+      .then(e => e)
+      .catch(e => e);
   }
 };
 
@@ -29,10 +29,10 @@ export const test = async () => {
   t = await Promise.all(
     RNFetchBlob.fs
       .exists(dirs.PicturesDir + '/chai.jpg')
-      .then((e) => {
+      .then(e => {
         return e;
       })
-      .catch((e) => e),
+      .catch(e => e),
   );
 };
 
@@ -88,7 +88,7 @@ export const Toast = (message: String, duration: Number, gravity: Number) => {
   }
 };
 
-export const logOut = (after) => {
+export const logOut = after => {
   alert('Session expired! you are required to login');
   persistor.purge();
   Navigation.setRoot({
@@ -106,7 +106,7 @@ export const logOut = (after) => {
   });
 };
 
-export const convertByteToKbMb = (data) => {
+export const convertByteToKbMb = data => {
   //1mb == 1000000bytes
   //1kb == 1000bytes
   if (!checkData(data)) {
@@ -124,7 +124,7 @@ export const convertByteToKbMb = (data) => {
 /**
  * this function return info about a file
  */
-export const getFileInfo = async (file) => {
+export const getFileInfo = async file => {
   if (!checkData(file)) {
     return false;
   }
@@ -142,14 +142,14 @@ export const getFileInfo = async (file) => {
   }
 };
 
-export const rnPath = (data) => {
+export const rnPath = data => {
   if (Platform.OS == 'android') {
     return `file://${data}`;
   }
   return data;
 };
 
-export const setRoute = (store) => {
+export const setRoute = store => {
   let {user, profile, posts, timelinepostform, timelineposts} = store;
   if (
     checkData(user) == false ||
@@ -203,10 +203,10 @@ export const downloadFile = (
     path: todownloadpath,
   })
     .fetch('GET', todownloadfrompath)
-    .then((res) => {
+    .then(res => {
       checkData(okAction) && okAction(res);
     })
-    .catch((err) => {
+    .catch(err => {
       Toast(`Error: ${err.message}`);
       checkData(failedAction) && failedAction(err);
     });
@@ -251,7 +251,7 @@ export const shouldNav = (componentId, store, name) => {
     : info;
 };
 
-export const setUpInfo = (store) => {
+export const setUpInfo = store => {
   let {user, profile, posts} = store;
   if (
     checkData(user) == false ||
@@ -330,7 +330,7 @@ export const getAppInfo = (data, name) => {
   }
 };
 
-export const handleTime = (data) => {
+export const handleTime = data => {
   let rightnow = moment();
   if (!checkData(data)) {
     return data;
@@ -361,7 +361,7 @@ export const hasProperty = (obj = {}, props = []) => {
   if (isEmpty(obj) || !Array.isArray(props)) {
     return false;
   }
-  let check = props.filter((propname) => {
+  let check = props.filter(propname => {
     return obj[propname] ? true : false;
   });
   return check.length == props.length;
@@ -375,7 +375,7 @@ export function checkData(data) {
   return false;
 }
 
-export const isEmpty = (data) => {
+export const isEmpty = data => {
   if (!checkData(data)) return true;
   if (data.constructor == Array && data.length < 1) return true;
   else if (data.constructor == String && data.length < 1) return true;
@@ -444,7 +444,7 @@ export const cutText = (data, start, len, elipsis) => {
   }
 };
 
-export const getImageSize = async (uri) => {
+export const getImageSize = async uri => {
   let w = 0;
   let h = 0;
   if (checkData(uri) != true) {
@@ -456,12 +456,12 @@ export const getImageSize = async (uri) => {
       w = width;
       h = height;
     },
-    (e) => e,
+    e => e,
   );
   return {w, h};
 };
 
-export const image_exists = async (uri) => {
+export const image_exists = async uri => {
   if (checkData(uri) != true) {
     return false;
   }
@@ -471,11 +471,38 @@ export const image_exists = async (uri) => {
     (w, h) => {
       doesexists = true;
     },
-    (e) => {
+    e => {
       doesexists = false;
     },
   );
   return doesexists;
+};
+
+export const LinkingHandler = () => {
+  function handleUrlPress(url, matchIndex /*: number*/) {
+    if (url.slice(0, 4) != 'http') {
+      Linking.openURL(`http://${url}`);
+    } else {
+      Linking.openURL(`${url}`);
+    }
+  }
+
+  function handlePhonePress(url, matchIndex /*: number*/) {
+    if (url.slice(0, 3) != 'tel') {
+      Linking.openURL(`tel:${url}`);
+    } else {
+      Linking.openURL(`${url}`);
+    }
+  }
+
+  function handleEmailPress(url, matchIndex /*: number*/) {
+    if (url.slice(0, 6) != 'mailto') {
+      Linking.openURL(`mailto:${url}`);
+    } else {
+      Linking.openURL(`${url}`);
+    }
+  }
+  return {handleEmailPress, handlePhonePress, handleUrlPress};
 };
 
 export const resizeImage = async (
@@ -518,6 +545,6 @@ export const resizeImage = async (
   }
 };
 
-export const toHumanReadableTime = (timeseconds) => {
+export const toHumanReadableTime = timeseconds => {
   return timeseconds;
 };
