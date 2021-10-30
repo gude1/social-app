@@ -30,6 +30,7 @@ const arrangePost = (data: Array) => {
     return data;
   }
   data = [...data];
+  return data;
   return data.sort((item1, item2) => item2.created_at - item1.created_at);
 };
 
@@ -40,11 +41,11 @@ const handleDelete = (state, data) => {
   }
   if (Array.isArray(data)) {
     let updatestate = state.timelineposts.filter(
-      (item) => !data.includes(item.postid),
+      item => !data.includes(item.postid),
     );
     return {...state, timelineposts: updatestate};
   } else {
-    let updatestate = state.timelineposts.filter((item) => item.postid != data);
+    let updatestate = state.timelineposts.filter(item => item.postid != data);
     return {...state, timelineposts: updatestate};
   }
 };
@@ -84,7 +85,7 @@ const TimelinePostReducer = (state = INITIAL_STATE, action) => {
       };
       break;
     case UPDATE_TIMELINE_POST:
-      let updatedstate = state.timelineposts.map((item) => {
+      let updatedstate = state.timelineposts.map(item => {
         return item.postid == action.payload.postid
           ? {...item, ...action.payload}
           : item;
@@ -93,7 +94,7 @@ const TimelinePostReducer = (state = INITIAL_STATE, action) => {
       break;
     case REMOVE_PROFILE_TIMELINE_POST:
       let newstate = state.timelineposts.filter(
-        (item) => item.profile.profile_id != action.payload,
+        item => item.profile.profile_id != action.payload,
       );
       return {...state, timelineposts: arrangePost(newstate)};
       break;
@@ -104,13 +105,13 @@ const TimelinePostReducer = (state = INITIAL_STATE, action) => {
       return {...state, profileschanges: action.payload};
       break;
     case UPDATE_TIMELINE_POST_PROFILE_CHANGES:
-      let updatedprofilestate = state.profileschanges.map((item) => {
+      let updatedprofilestate = state.profileschanges.map(item => {
         return item.profileid == action.payload.profileid
           ? {...item, ...action.payload}
           : item;
       });
       updatedprofilestate.find(
-        (item) => item.profileid == action.payload.profileid,
+        item => item.profileid == action.payload.profileid,
       ) == undefined
         ? updatedprofilestate.push({...action.payload})
         : null;

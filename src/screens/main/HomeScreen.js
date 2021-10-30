@@ -251,17 +251,14 @@ const HomeScreen = ({
                   removeProfileTimeLinePost(id);
                   removeProfileTimeLinePostForm(id);
                 }}
-                //onReload={refreshTimelinePost}
                 refreshing={timelinepostform.refreshing}
                 onPostItemShared={shareTimelinePostAction}
                 data={timelinepostform.timelineposts}
-                //data={[]}
                 onitemdeleting={timelinepostform.deleting}
                 onitemarchiving={timelinepostform.archiving}
                 onitemblacklisting={timelinepostform.blacklisting}
                 onitemmuting={timelinepostform.muting}
                 loadingmore={timelinepostform.loadingmore}
-                //loading={timelinepostform.processing}
                 extraData={timelinepostform.timelineposts}
               />
             </View>

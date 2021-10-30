@@ -1878,10 +1878,13 @@ export const fetchParticularPost = (
   };
 };
 
-export const refreshTimelinePost = (okAction, failedAction) => {
+export const refreshTimelinePost = (data = []) => {
   return async dispatch => {
+    dispatch(deleteOfflineAction({id: `refreshTimelinePost`}));
     dispatch(setTimelinepostRefresh(true));
     const {user} = store.getState();
+    let okAction = data[0];
+    let failedAction = data[1];
     try {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
@@ -1890,72 +1893,23 @@ export const refreshTimelinePost = (okAction, failedAction) => {
       const {
         message,
         postlistrange,
-        generalpostnexturl,
         timelineposts,
         errmsg,
+        links,
         status,
-        followedpostnexturl,
-        withincampuspostsnexturl,
       } = response.data;
       //console.warn('refreshpost',response.data);
       //alert(JSON.stringify(response.data));
       dispatch(setTimelinepostRefresh(false));
-      switch (postlistrange) {
-        case 'all':
+      switch (status) {
+        case 200:
           dispatch(setTimelinePostForm(timelineposts));
           dispatch(setTimelinePost(timelineposts));
-          dispatch(
-            setTimelinePostFormLinks(
-              [followedpostnexturl, generalpostnexturl].filter(url =>
-                checkData(url),
-              ),
-            ),
-          );
-          dispatch(
-            setTimelinePostLinks(
-              [followedpostnexturl, generalpostnexturl].filter(url =>
-                checkData(url),
-              ),
-            ),
-          );
-          okAction && okAction();
-          break;
-        case 'campus':
-          dispatch(setTimelinePostForm(timelineposts));
-          dispatch(setTimelinePost(timelineposts));
-          dispatch(
-            setTimelinePostFormLinks(
-              [followedpostnexturl, withincampuspostsnexturl].filter(url =>
-                checkData(url),
-              ),
-            ),
-          );
-          dispatch(
-            setTimelinePostLinks(
-              [followedpostnexturl, withincampuspostsnexturl].filter(url =>
-                checkData(url),
-              ),
-            ),
-          );
-          okAction && okAction();
-          break;
-        case 'followedpost':
-          dispatch(setTimelinePostForm(timelineposts));
-          dispatch(setTimelinePost(timelineposts));
-          dispatch(
-            setTimelinePostFormLinks(
-              [followedpostnexturl].filter(url => checkData(url)),
-            ),
-          );
-          dispatch(
-            setTimelinePostLinks(
-              [followedpostnexturl].filter(url => checkData(url)),
-            ),
-          );
+          dispatch(setTimelinePostFormLinks(links));
+          dispatch(setTimelinePostLinks(links));
           okAction && okAction();
           break;
         default:
-          //alert(postlistrange);
           failedAction && failedAction();
           if (status == 401) {
             logOut(() => persistor.purge());
@@ -1970,7 +1924,7 @@ export const refreshTimelinePost = (okAction, failedAction) => {
           break;
       }
     } catch (e) {
-      //alert(JSON.stringify(e));
+      console.warn(JSON.stringify(e));
       console.warn('refreshpost', e.toString());
       failedAction && failedAction();
       dispatch(setTimelinepostRefresh('failed'));
@@ -1978,6 +1932,14 @@ export const refreshTimelinePost = (okAction, failedAction) => {
         Toast(
           'Network error please check your internet connection',
           ToastAndroid.LONG,
+        );
+        dispatch(
+          addOfflineAction({
+            id: `refreshTimelinePost`,
+            funcName: 'refreshTimelinePost',
+            param: data,
+            override: true,
+          }),
         );
       } else {
         Toast('could not refresh feed', ToastAndroid.LONG);
@@ -2483,112 +2445,58 @@ export const deleteTimelinePost = (postid, postprofileid) => {
 export const fetchMoreTimelinePost = () => {
   return async dispatch => {
     dispatch(setProcessing(true, 'processloadmoretimelinepostform'));
-    let checkPost = data => {
-      if (Array.isArray(data) && data.length > 0) {
-        return true;
+    try {
+      const {user, timelinepostform} = store.getState();
+      const options = {
+        headers: {Authorization: `Bearer ${user.token}`},
+      };
+      if (
+        !Array.isArray(timelinepostform.links) ||
+        timelinepostform.links.length < 1
+      ) {
+        dispatch(setProcessing(false, 'processloadmoretimelinepostform'));
+        return;
       }
-      return false;
-    };
-    const {user, timelinepostform} = store.getState();
-    const options = {
-      headers: {Authorization: `Bearer ${user.token}`},
-    };
-    let data = timelinepostform.links;
-    if (!Array.isArray(data) || data.length < 1) {
-      dispatch(setProcessing('complete', 'processloadmoretimelinepostform'));
-      return;
+      const response = await session.post(
+        'postlist',
+        {links: timelinepostform.links},
+        options,
+      );
+      const {
+        message,
+        postlistrange,
+        timelineposts,
+        errmsg,
+        links,
+        status,
+      } = response.data;
+      dispatch(setProcessing(false, 'processloadmoretimelinepostform'));
+      switch (status) {
+        case 200:
+          dispatch(addTimelinePostForm(timelineposts));
+          dispatch(addTimelinePost(timelineposts));
+          dispatch(setTimelinePostFormLinks(links));
+          dispatch(setTimelinePostLinks(links));
+          break;
+        default:
+          if (status == 401) {
+            logOut(() => persistor.purge());
+            return;
+          }
+          Toast(errmsg);
+          break;
+      }
+    } catch (err) {
+      console.warn('fetchMoreTimelinePost', err.toString());
+      if (e.toString().indexOf('Network Error') > -1) {
+        Toast('Network error please check your internet connection');
+      } else {
+        Toast('Failed to load');
+      }
     }
-    let reqArr = [];
-    data.forEach(url => {
-      reqArr.push(session.post(url, null, options));
-    });
-    axios
-      .all(reqArr)
-      .then(
-        axios.spread((result1, result2) => {
-          let postarr = [];
-          let postlinksarr = [];
-          if (checkData(result1)) {
-            result1 = structurePost(result1);
-            postarr = [...postarr, ...result1[0]];
-            postlinksarr = [...postlinksarr, ...result1[1]];
-          }
-          if (checkData(result2)) {
-            result2 = structurePost(result2);
-            postarr = [...postarr, ...result2[0]];
-            postlinksarr = [...postlinksarr, ...result2[1]];
-          }
-
-          if (postarr.length < 1) {
-            dispatch(setProcessing('retry', 'processloadmoretimelinepostform'));
-            Toast('something went wrong try again', ToastAndroid.LONG);
-          } else {
-            postarr.sort((item1, item2) => item2.id - item1.id);
-            dispatch(setProcessing(false, 'processloadmoretimelinepostform'));
-            dispatch(addTimelinePostForm(postarr));
-            dispatch(addTimelinePost(postarr));
-            dispatch(setTimelinePostFormLinks(postlinksarr));
-            dispatch(setTimelinePostLinks(postlinksarr));
-          }
-        }),
-      )
-      .catch(e => {
-        //alert(e.toString());
-        dispatch(setProcessing('retry', 'processloadmoretimelinepostform'));
-        if (e.toString().indexOf('Network Error') != -1) {
-          Toast(
-            'action failed please check your internet connection and try again',
-            ToastAndroid.LONG,
-          );
-        } else {
-          Toast(
-            `could not load more posts please try again`,
-            ToastAndroid.LONG,
-          );
-        }
-      });
   };
 };
 
-const structurePost = (result: Array) => {
-  let {
-    message,
-    postlistrange,
-    status,
-    generalpostnexturl,
-    timelineposts,
-    followedpostnexturl,
-    withincampuspostsnexturl,
-  } = result.data;
-  switch (postlistrange) {
-    case 'all':
-      return [
-        timelineposts,
-        [followedpostnexturl, generalpostnexturl].filter(url => checkData(url)),
-      ];
-      break;
-    case 'campus':
-      return [
-        timelineposts,
-        [followedpostnexturl, withincampuspostsnexturl].filter(url =>
-          checkData(url),
-        ),
-      ];
-      break;
-    case 'followedpost':
-      return [
-        timelineposts,
-        [followedpostnexturl].filter(url => checkData(url)),
-      ];
-      break;
-    default:
-      if (status == 401) {
-        logOut(() => persistor.purge());
-      }
-      return [];
-      break;
-  }
-};
 /**/
 
 export const fetchTimelinePost = () => {
@@ -2655,7 +2563,7 @@ export const bookMarkTimelinePost = postid => {
 /**
  * ACTION CREATORS FOR POSTSETTING REDUCER
  */
-export const updatePostSetting = (data: Object) => {
+export const updatePostSetting = (data = {}) => {
   return {
     type: UPDATE_POST_SETTINGS,
     payload: data,

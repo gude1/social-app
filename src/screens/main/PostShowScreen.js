@@ -95,7 +95,7 @@ const PostShowScreen = ({
       return null;
     }
     let check = timelinepostform.timelineposts.find(
-      (item) => item.postid == toshowpost.postid,
+      item => item.postid == toshowpost.postid,
     );
     if (!checkData(check)) {
       foreign = true;
@@ -153,14 +153,14 @@ const PostShowScreen = ({
                 );
               }}
               onDeletePress={deleteTimelinePost}
-              removeProfilePosts={(id) => {
+              removeProfilePosts={id => {
                 removeProfileTimeLinePost(id);
                 removeProfileTimeLinePostForm(id);
               }}
               onArchivePress={archiveTimelinePost}
               userprofile={profile}
               profileschanges={timelinepostform.profileschanges}
-              updateProfileChanges={(dataobj) => {
+              updateProfileChanges={dataobj => {
                 updateTimelinePostProfileChanges(dataobj);
                 updateTimelinePostFormProfileChanges(dataobj);
               }}
@@ -185,7 +185,7 @@ PostShowScreen.options = {
   },
 };
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   timelinepostform: state.timelinepostform,
   profileactionform: state.profileactionform,
   profile: state.profile,
@@ -198,4 +198,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToProps, actions)(PostShowScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(PostShowScreen);

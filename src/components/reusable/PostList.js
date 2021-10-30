@@ -568,11 +568,6 @@ export default class PostList extends React.Component {
     this.setState({
       bottomodallistothersoptions: this.bottomodallistothersoptions,
     });
-    /* this.props.onRefresh(() => {
-             this.setState({ initrefresh: true });
-         }, () => {
-             this.setState({ initrefresh: true });
-         });*/
   }
 
   _setSelected = (postid, postprofileid, postitem) => {
