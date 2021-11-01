@@ -1907,15 +1907,15 @@ export const refreshTimelinePost = (data = []) => {
           dispatch(setTimelinePost(timelineposts));
           dispatch(setTimelinePostFormLinks(links));
           dispatch(setTimelinePostLinks(links));
-          okAction && okAction();
+          checkData(okAction) && okAction();
           break;
         default:
-          failedAction && failedAction();
+          checkData(failedAction) && failedAction();
           if (status == 401) {
             logOut(() => persistor.purge());
             return;
           }
-          dispatch(setTimelinepostRefresh('failed'));
+          dispatch(setTimelinepostRefresh(false));
           Toast(
             'could not refresh feed',
             ToastAndroid.LONG,
@@ -1924,10 +1924,10 @@ export const refreshTimelinePost = (data = []) => {
           break;
       }
     } catch (e) {
-      console.warn(JSON.stringify(e));
+      console.warn(String(e));
       console.warn('refreshpost', e.toString());
-      failedAction && failedAction();
-      dispatch(setTimelinepostRefresh('failed'));
+      checkData(failedAction) && failedAction();
+      dispatch(setTimelinepostRefresh(false));
       if (e.toString().indexOf('Network Error') > -1) {
         Toast(
           'Network error please check your internet connection',
@@ -1949,23 +1949,48 @@ export const refreshTimelinePost = (data = []) => {
 };
 
 //to like time line post
-export const likeTimelinePostAction = (postid, likestatus, numpostlikes) => {
+export const likeTimelinePostAction = (data = []) => {
   return async dispatch => {
-    if (
-      checkData(postid) != true ||
-      checkData(likestatus) != true ||
-      checkData(numpostlikes) != true
-    ) {
+    //console.warn('called');
+    const {user, timelinepostform} = store.getState();
+    let postid = data[0];
+    let likestatus = data[1];
+    dispatch(deleteOfflineAction({id: `likeTimelinePostAction${postid}`}));
+
+    if (checkData(postid) != true || checkData(likestatus) != true) {
       return null;
     }
-    dispatch(
-      updateTimelinePostForm({
-        postid,
-        postliked: likestatus,
-        num_post_likes: numpostlikes,
-      }),
+
+    let postitem = timelinepostform.timelineposts.find(
+      item => item.postid == postid,
     );
-    const {user} = store.getState();
+    let numpostlikes = !isEmpty(postitem) ? Number(postitem.num_post_likes) : 0;
+    if (!isEmpty(postitem)) {
+      if (postitem.postliked == likestatus) {
+        dispatch(
+          updateTimelinePostForm({
+            postid,
+            num_post_likes:
+              likestatus == 'postliked' ? numpostlikes + 1 : numpostlikes - 1,
+            pendingpostliked: null,
+          }),
+        );
+        return;
+      }
+      if (likestatus != postitem.pendingpostliked) {
+        if (likestatus == 'postliked')
+          numpostlikes = numpostlikes + 1 < 0 ? 1 : numpostlikes + 1;
+        else numpostlikes = numpostlikes - 1 < 0 ? 0 : numpostlikes - 1;
+      }
+      dispatch(
+        updateTimelinePostForm({
+          postid,
+          pendingpostliked: likestatus,
+          num_post_likes: numpostlikes,
+        }),
+      );
+    }
+
     try {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
@@ -1981,91 +2006,106 @@ export const likeTimelinePostAction = (postid, likestatus, numpostlikes) => {
       //console.warn(response.data)
       switch (status) {
         case 200:
-          dispatch(updateTimelinePost({...postdetails}));
-          dispatch(updateTimelinePostForm({...postdetails}));
-          break;
-        case 500:
-          Toast(errmsg, ToastAndroid.LONG);
+          //console.warn('like done');
           dispatch(
-            updateTimelinePostForm({
-              postid,
-              postliked: likestatus == 'postliked' ? 'notliked' : 'postliked',
-              num_post_likes:
-                likestatus == 'postliked' ? numpostlikes - 1 : numpostlikes + 1,
-            }),
+            updateTimelinePost({...postdetails, pendingpostliked: null}),
           );
-          break;
-        case 400:
-          Toast(errmsg, ToastAndroid.LONG);
           dispatch(
-            updateTimelinePostForm({
-              postid,
-              postliked: likestatus == 'postliked' ? 'notliked' : 'postliked',
-              num_post_likes:
-                likestatus == 'postliked' ? numpostlikes - 1 : numpostlikes + 1,
-            }),
-          );
-          break;
-        case 401:
-          dispatch(
-            updateTimelinePostForm({
-              postid,
-              postliked: likestatus == 'postliked' ? 'notliked' : 'postliked',
-              num_post_likes:
-                likestatus == 'postliked' ? numpostlikes - 1 : numpostlikes + 1,
-            }),
-          );
-          logOut(() => persistor.purge());
-          break;
-        case 412:
-          Toast(errmsg, ToastAndroid.LONG);
-          dispatch(
-            updateTimelinePostForm({
-              postid,
-              postliked: likestatus == 'postliked' ? 'notliked' : 'postliked',
-              num_post_likes:
-                likestatus == 'postliked' ? numpostlikes - 1 : numpostlikes + 1,
-            }),
+            updateTimelinePostForm({...postdetails, pendingpostliked: null}),
           );
           break;
         default:
-          Toast('action failed please try again', ToastAndroid.LONG);
+          Toast(errmsg || 'action failed please try again');
+          !isEmpty(postitem) &&
+            dispatch(
+              updateTimelinePostForm({
+                postid,
+                pendingpostliked:
+                  likestatus == 'postliked' ? 'notliked' : 'postliked',
+                num_post_likes:
+                  likestatus == 'postliked'
+                    ? numpostlikes - 1
+                    : numpostlikes + 1,
+              }),
+            );
+          break;
+      }
+    } catch (err) {
+      console.warn('likeTimelinePostAction', String(err));
+      if (err.toString().indexOf('Network Error') > -1) {
+        dispatch(
+          addOfflineAction({
+            id: `likeTimelinePostAction${postid}`,
+            funcName: 'likeTimelinePostAction',
+            param: data,
+            persist: true,
+            override: true,
+          }),
+        );
+        return;
+      } else {
+        Toast(
+          likestatus == 'postliked'
+            ? 'post liked failed'
+            : 'post unlike failed',
+        );
+        !isEmpty(postitem) &&
           dispatch(
             updateTimelinePostForm({
               postid,
-              postliked: likestatus == 'postliked' ? 'notliked' : 'postliked',
+              pendingpostliked:
+                likestatus == 'postliked' ? 'notliked' : 'postliked',
               num_post_likes:
                 likestatus == 'postliked' ? numpostlikes - 1 : numpostlikes + 1,
             }),
           );
-          break;
       }
-    } catch (error) {
-      console.warn(error);
-      //ToastAndroid.show('could not like post posibbly a network error', ToastAndroid.LONG);
     }
-    //dispatch(addTimelinePostForm([{ profile: { user: {}, avatar: [null] } }]));
   };
 };
 
 //to share timelinepost
-export const shareTimelinePostAction = (postid, sharestatus, numpostshares) => {
+export const shareTimelinePostAction = (data = []) => {
   return async dispatch => {
-    if (
-      checkData(postid) != true ||
-      checkData(sharestatus) != true ||
-      checkData(numpostshares) != true
-    ) {
+    const {user, timelinepostform} = store.getState();
+    let postid = data[0];
+    let sharestatus = data[1];
+    dispatch(deleteOfflineAction({id: `shareTimelinePostAction${postid}`}));
+
+    if (checkData(postid) != true || checkData(sharestatus) != true) {
       return null;
     }
-    dispatch(
-      updateTimelinePostForm({
-        postid,
-        postshared: sharestatus,
-        num_post_shares: numpostshares,
-      }),
+    dispatch(deleteOfflineAction({id: `shareTimelinePostAction${postid}`}));
+
+    let postitem = timelinepostform.timelineposts.find(
+      item => item.postid == postid,
     );
-    const {user} = store.getState();
+    let numshares = !isEmpty(postitem) ? Number(postitem.num_post_shares) : 0;
+    if (!isEmpty(postitem)) {
+      if (postitem.postshared == sharestatus) {
+        dispatch(
+          updateTimelinePostForm({
+            postid,
+            num_post_shares:
+              sharestatus == 'postshared' ? numshares + 1 : numshares - 1,
+            pendingpostshared: null,
+          }),
+        );
+        return;
+      }
+      if (sharestatus != postitem.pendingpostshared) {
+        if (sharestatus == 'postshared')
+          numshares = numshares + 1 < 0 ? 1 : numshares + 1;
+        elsenumshares = numshares - 1 < 0 ? 0 : numshares - 1;
+      }
+      dispatch(
+        updateTimelinePostForm({
+          postid,
+          pendingpostshared: sharestatus,
+          num_post_shares: numshares,
+        }),
+      );
+    }
     try {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
@@ -2080,83 +2120,53 @@ export const shareTimelinePostAction = (postid, sharestatus, numpostshares) => {
       const {message, errmsg, postdetails, status} = response.data;
       switch (status) {
         case 200:
+          console.warn('share done');
           dispatch(updateTimelinePost({...postdetails}));
           dispatch(updateTimelinePostForm({...postdetails}));
           break;
-        case 401:
-          dispatch(
-            updateTimelinePostForm({
-              postid,
-              postshared:
-                sharestatus == 'postshared' ? 'notshared' : 'postshared',
-              num_post_shares:
-                sharestatus == 'postshared'
-                  ? numpostshares - 1
-                  : numpostshares + 1,
-            }),
-          );
-          logOut(() => persistor.purge());
-          break;
-        case 500:
-          Toast('could not share post please try again', ToastAndroid.LONG);
-          dispatch(
-            updateTimelinePostForm({
-              postid,
-              postshared:
-                sharestatus == 'postshared' ? 'notshared' : 'postshared',
-              num_post_shares:
-                sharestatus == 'postshared'
-                  ? numpostshares - 1
-                  : numpostshares + 1,
-            }),
-          );
-          break;
-        case 400:
-          Toast(errmsg, ToastAndroid.LONG);
-          dispatch(
-            updateTimelinePostForm({
-              postid,
-              postshared:
-                sharestatus == 'postshared' ? 'notshared' : 'postshared',
-              num_post_shares:
-                sharestatus == 'postshared'
-                  ? numpostshares - 1
-                  : numpostshares + 1,
-            }),
-          );
-          break;
-        case 412:
-          Toast(errmsg, ToastAndroid.LONG);
-          dispatch(
-            updateTimelinePostForm({
-              postid,
-              postshared:
-                sharestatus == 'postshared' ? 'notshared' : 'postshared',
-              num_post_shares:
-                sharestatus == 'postshared'
-                  ? numpostshares - 1
-                  : numpostshares + 1,
-            }),
-          );
-          break;
         default:
-          Toast('action failed please try again', ToastAndroid.LONG);
-          dispatch(
-            updateTimelinePostForm({
-              postid,
-              postshared:
-                sharestatus == 'postshared' ? 'notshared' : 'postshared',
-              num_post_shares:
-                sharestatus == 'postshared'
-                  ? numpostshares - 1
-                  : numpostshares + 1,
-            }),
-          );
+          Toast(errmsg || 'action failed please try again');
+          !isEmpty(postitem) &&
+            dispatch(
+              updateTimelinePostForm({
+                postid,
+                postshared:
+                  sharestatus == 'postshared' ? 'notshared' : 'postshared',
+                num_post_shares:
+                  sharestatus == 'postshared' ? numshares - 1 : numshares + 1,
+              }),
+            );
           break;
       }
-    } catch (error) {
-      //ToastAndroid.show('could not share post posibbly a network error', ToastAndroid.LONG);
-      //console.warn(error.toString());
+    } catch (err) {
+      console.warn('shareTimelinePostAction', err.toString());
+      if (err.toString().indexOf('Network Error') > -1) {
+        dispatch(
+          addOfflineAction({
+            id: `shareTimelinePostAction${postid}`,
+            funcName: 'shareTimelinePostAction',
+            persist: true,
+            param: data,
+            override: true,
+          }),
+        );
+      } else {
+        Toast(
+          sharestatus == 'postshared'
+            ? 'post shared failed'
+            : 'post unshare failed',
+        );
+        !isEmpty(postitem) &&
+          dispatch(
+            updateTimelinePostForm({
+              postid,
+              postshared:
+                sharestatus == 'postshared' ? 'notshared' : 'postshared',
+              num_post_shares:
+                sharestatus == 'postshared' ? numshares - 1 : numshares + 1,
+            }),
+          );
+      }
     }
   };
 };
@@ -2488,7 +2498,7 @@ export const fetchMoreTimelinePost = () => {
       }
     } catch (err) {
       console.warn('fetchMoreTimelinePost', err.toString());
-      if (e.toString().indexOf('Network Error') > -1) {
+      if (err.toString().indexOf('Network Error') > -1) {
         Toast('Network error please check your internet connection');
       } else {
         Toast('Failed to load');
@@ -4502,14 +4512,14 @@ export const delPrivateChatList = (id: String) => {
  *
  */
 
-export const updateSearchPrivateChatList = (data: Object) => {
+export const updateSearchPrivateChatList = (data = {}) => {
   return {
     type: UPDATE_SEARCH_PRIVATE_CHATLIST,
     payload: data,
   };
 };
 
-export const setSearchPrivateChatListSearchWord = (data: String) => {
+export const setSearchPrivateChatListSearchWord = (data = '') => {
   return {
     type: SET_SEARCH_PRIVATE_CHATLIST_SEARCHWORD,
     payload: data,

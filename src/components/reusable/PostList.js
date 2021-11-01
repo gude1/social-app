@@ -170,7 +170,8 @@ export class PostItem extends Component {
     return false;
   }
   _setLikeIcon = () => {
-    return this.props.postliked == 'postliked' ? (
+    let status = this.props.pendingpostliked || this.props.postliked;
+    return status == 'postliked' ? (
       <Icon
         type="antdesign"
         name="heart"
@@ -190,7 +191,8 @@ export class PostItem extends Component {
   };
 
   _setShareIcon = () => {
-    return this.props.postshared == 'postshared' ? (
+    let status = this.props.pendingpostshared || this.props.postshared;
+    return status == 'postshared' ? (
       <Icon
         type="entypo"
         name="forward"
@@ -259,8 +261,7 @@ export class PostItem extends Component {
               onPress={() =>
                 this.props.onLikePress(
                   this.props.postid,
-                  this.props.postliked,
-                  this.props.numlikes,
+                  this.props.pendingpostliked || this.props.postliked,
                 )
               }
               style={styles.postListItemBottomBarItem}>
@@ -298,8 +299,7 @@ export class PostItem extends Component {
               onPress={() =>
                 this.props.onSharePress(
                   this.props.postid,
-                  this.props.postshared,
-                  this.props.numshares,
+                  this.props.pendingpostshared || this.props.postshared,
                 )
               }>
               {this._setShareIcon()}
@@ -684,34 +684,20 @@ export default class PostList extends React.Component {
     );
   };
 
-  _likePostItem = (postid, likestatus, numpostlikes) => {
+  _likePostItem = (postid, likestatus) => {
     if (checkData(postid) != true) {
       return false;
     }
-    numpostlikes = Number(numpostlikes);
-    if (likestatus == 'postliked') {
-      likestatus = 'notliked';
-      numpostlikes = numpostlikes - 1 < 0 ? 0 : numpostlikes - 1;
-    } else {
-      likestatus = 'postliked';
-      numpostlikes = numpostlikes + 1 < 0 ? 0 : numpostlikes + 1;
-    }
-    this.props.onPostItemLiked(postid, likestatus, numpostlikes);
+    likestatus = likestatus == 'postliked' ? 'notliked' : 'postliked';
+    this.props.onPostItemLiked([postid, likestatus]);
   };
 
-  _sharePostItem = (postid, sharestatus, numpostshares) => {
+  _sharePostItem = (postid, sharestatus) => {
     if (checkData(postid) != true) {
       return false;
     }
-    numpostshares = Number(numpostshares);
-    if (sharestatus == 'postshared') {
-      sharestatus = 'notshared';
-      numpostshares = numpostshares - 1 < 0 ? 0 : numpostshares - 1;
-    } else {
-      sharestatus = 'postshared';
-      numpostshares = numpostshares + 1 < 0 ? 1 : numpostshares + 1;
-    }
-    this.props.onPostItemShared(postid, sharestatus, numpostshares);
+    sharestatus = sharestatus == 'postshared' ? 'notshared' : 'postshared';
+    this.props.onPostItemShared([postid, sharestatus]);
   };
 
   _arrangePostImage = data => {
@@ -866,6 +852,8 @@ export default class PostList extends React.Component {
         sharemsg={sharemsg}
         postimages={this._arrangePostImage(item.post_image)}
         postliked={item.postliked}
+        pendingpostliked={item.pendingpostliked}
+        pendingpostshared={item.pendingpostshared}
         profileid={item.profile.profile_id}
         created_at={handleTime(Math.floor(item.created_at * 1000))}
         postid={item.postid}
@@ -961,10 +949,7 @@ export default class PostList extends React.Component {
           <ActivityIndicator size="large" color={'silver'} />
         </View>
       );
-    } else if (
-      this.props.refreshing == 'failed' ||
-      this.props.data.length < 1
-    ) {
+    } else {
       return (
         <View
           style={{alignItems: 'center', height: 200, justifyContent: 'center'}}>
@@ -979,13 +964,10 @@ export default class PostList extends React.Component {
         </View>
       );
     }
-    return null;
   };
 
   render() {
     //console.warn(this.props.data);
-    let refreshing =
-      this.props.refreshing == 'failed' ? false : this.props.refreshing;
     //to hide pull to refresh functionality  when data is empty
     let onRefresh = this.props.data < 1 ? null : this.props.onRefresh;
     return (
@@ -1030,7 +1012,7 @@ export default class PostList extends React.Component {
           //updateCellsBatchingPeriod={1}
           initialNumRender={1}
           windowSize={50}
-          refreshing={refreshing}
+          refreshing={this.props.refreshing}
           onRefresh={onRefresh}
           //data={this.props.data.length > 0 ? [1] : []}
           data={this.props.data}

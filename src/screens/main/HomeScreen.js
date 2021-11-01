@@ -78,14 +78,14 @@ const HomeScreen = ({
   const [loaded, setLoaded] = useState(false);
   /**compoent function goes here */
   useEffect(() => {
-    refreshTimelinePost(
+    refreshTimelinePost([
       () => {
         // console.warn(timelinepostform.timelineposts);
       },
       () => {
         start();
       },
-    );
+    ]);
 
     Entypo.getImageSource('home', 100).then(e => {
       Navigation.mergeOptions('POST_HOME_SCREEN', {
