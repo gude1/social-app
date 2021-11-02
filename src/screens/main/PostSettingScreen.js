@@ -15,7 +15,7 @@ import {Icon, Text, CheckBox, ListItem} from 'react-native-elements';
 import {Header} from '../../components/reusable/ResuableWidgets';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
-import {checkData} from '../../utilities/index';
+import {checkData, isEmpty} from '../../utilities/index';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
 
 const {colors} = useTheme();
@@ -29,6 +29,7 @@ const PostSettingScreen = ({
   updatePostSetting,
 }) => {
   const [loaded, setLoaded] = useState(false);
+  postsetting = !isEmpty(postsetting) ? postsetting : {};
   let followedcheck =
     postsetting.timeline_post_range == 'followedpost' ? true : false;
   let campuscheck = postsetting.timeline_post_range == 'campus' ? true : false;
@@ -52,7 +53,7 @@ const PostSettingScreen = ({
   let righticonpress = '';
   /**compoent function goes here */
   useEffect(() => {
-    updatePostSetting({...postsetting, processing: false});
+    //updatePostSetting({...postsetting, processing: false});
     getPostSetting();
     const listener = {
       componentDidAppear: () => {
@@ -100,8 +101,7 @@ const PostSettingScreen = ({
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="always"
-          keyboardDismissMode={'on-drag'}
-        >
+          keyboardDismissMode={'on-drag'}>
           <View style={styles.contentContainerStyle}>
             <View>
               <Text
@@ -109,8 +109,7 @@ const PostSettingScreen = ({
                   color: colors.text,
                   fontSize: responsiveFontSize(2.4),
                   fontWeight: 'bold',
-                }}
-              >
+                }}>
                 Post Range
               </Text>
               <Text style={{color: colors.iconcolor}}>
@@ -172,7 +171,7 @@ const PostSettingScreen = ({
   );
 };
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   postsetting: state.postsetting,
 });
 
@@ -204,4 +203,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToProps, actions)(PostSettingScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(PostSettingScreen);

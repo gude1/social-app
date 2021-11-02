@@ -10,14 +10,14 @@ import {
 } from 'react-native-responsive-dimensions';
 import {Icon, Text} from 'react-native-elements';
 import {Header} from '../../components/reusable/ResuableWidgets';
-import PostShowList from '../../components/reusable/PostShowList';
+import PostList from '../../components/reusable/PostList';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import * as Animatable from 'react-native-animatable';
 import {checkData, Toast} from '../../utilities/index';
 import {ToastAndroid} from 'react-native';
-
 const {colors} = useTheme();
+
 const PostShowScreen = ({
   componentId,
   profileactionform,
@@ -135,8 +135,10 @@ const PostShowScreen = ({
       ) : (
         <>
           {toshowpost && (
-            <PostShowList
+            <PostList
               data={[toshowpost]}
+              hideHeader={true}
+              hideFooter={true}
               fetching={timelinepostform.fetching}
               onPostItemLiked={likeTimelinePostAction}
               onPostItemShared={shareTimelinePostAction}

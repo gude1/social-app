@@ -171,7 +171,7 @@ const PostCommentReplyScreen = ({
   return (
     <SafeAreaView style={styles.containerStyle}>
       <Header
-        headertext="PostReply"
+        headertext="PostCommentReply"
         headercolor={colors.card}
         lefticon={lefticon}
         leftIconPress={lefticonpress}

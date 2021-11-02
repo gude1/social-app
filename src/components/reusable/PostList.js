@@ -94,7 +94,10 @@ class PostImageViewPager extends Component {
     let arr = [];
     data.map((image, index) => {
       arr.push(
-        <View key={index + 1}>
+        <TouchableOpacity
+          key={index + 1}
+          activeOpacity={1}
+          onPress={() => this._viewImage([image])}>
           <Image
             source={{uri: image}}
             PlaceholderContent={placeholder}
@@ -108,19 +111,9 @@ class PostImageViewPager extends Component {
                   {`${index + 1}/${total}`}
                 </Text>
               )}
-              <TouchableHighlight
-                onPress={() => this._viewImage([image])}
-                style={styles.btnViewPostImage}>
-                <Icon
-                  type="feather"
-                  name="image"
-                  color={'white'}
-                  size={responsiveFontSize(2.5)}
-                />
-              </TouchableHighlight>
             </View>
           </Image>
-        </View>,
+        </TouchableOpacity>,
       );
     });
     return arr;
@@ -159,6 +152,8 @@ export class PostItem extends Component {
       nextProps.postliked != this.props.postliked ||
       nextProps.posterusername != this.props.posterusername ||
       nextProps.postshared != this.props.postshared ||
+      nextProps.pendingpostshared != this.props.pendingpostshared ||
+      nextProps.pendingpostliked != this.props.pendingpostliked ||
       nextProps.deleted != this.props.deleted ||
       nextProps.numlikes != this.props.numlikes ||
       nextProps.numshares != this.props.numshares ||
@@ -972,35 +967,37 @@ export default class PostList extends React.Component {
     let onRefresh = this.props.data < 1 ? null : this.props.onRefresh;
     return (
       <View style={styles.containerStyle}>
-        <Header
-          headertext={this.headertext}
-          headerTextStyle={{color: colors.text}}
-          headerStyle={{elevation: 0}}
-          headertextsize={responsiveFontSize(2.5)}
-          lefticon={this.leftIcon}
-          leftIconPress={() => {
-            Navigation.push('POST_HOME_SCREEN', {
-              component: {
-                name: 'CreatePost',
-                passProps: {
-                  navparent: true,
+        {this.props.hideHeader != true && (
+          <Header
+            headertext={this.headertext}
+            headerTextStyle={{color: colors.text}}
+            headerStyle={{elevation: 0}}
+            headertextsize={responsiveFontSize(2.5)}
+            lefticon={this.leftIcon}
+            leftIconPress={() => {
+              Navigation.push('POST_HOME_SCREEN', {
+                component: {
+                  name: 'CreatePost',
+                  passProps: {
+                    navparent: true,
+                  },
                 },
-              },
-            });
-          }}
-          rightIconPress={() =>
-            Navigation.showModal({
-              component: {
-                name: 'PostSetting',
-                passProps: {
-                  navparent: true,
-                  screentype: 'modal',
+              });
+            }}
+            rightIconPress={() =>
+              Navigation.showModal({
+                component: {
+                  name: 'PostSetting',
+                  passProps: {
+                    navparent: true,
+                    screentype: 'modal',
+                  },
                 },
-              },
-            })
-          }
-          righticon={this.rightIcon}
-        />
+              })
+            }
+            righticon={this.rightIcon}
+          />
+        )}
 
         <FlatList
           viewabilityConfig={this.viewabilityConfig}
@@ -1021,7 +1018,9 @@ export default class PostList extends React.Component {
           keyExtractor={this._keyExtractor}
           ListEmptyComponent={this._setEmptyPlaceholder()}
           ListFooterComponent={
-            this.props.data.length > 0 ? this._setFooterComponent() : null
+            this.props.data.length > 0 && this.props.hideFooter != true
+              ? this._setFooterComponent()
+              : null
           }
         />
         <ConfirmModal
@@ -1154,13 +1153,12 @@ const styles = StyleSheet.create({
   },
   imageIndexTextStyle: {
     backgroundColor: 'black',
-    opacity: 0.9,
-    //padding: 20,
+    opacity: 0.8,
+    padding: 6,
     marginVertical: 10,
     width: 35,
-    borderRadius: 20,
-    fontSize: responsiveFontSize(1.8),
-    padding: 2,
+    borderRadius: 15,
+    fontSize: responsiveFontSize(1.2),
     color: 'white',
     textAlign: 'center',
   },
@@ -1173,13 +1171,14 @@ const styles = StyleSheet.create({
   postImageOptions: {
     alignSelf: 'flex-end',
     alignItems: 'center',
-    width: 80,
-    marginVertical: 10,
-    flex: 1,
+    // justifyContent
+    //borderColor: 'green',
+    // borderWidth: 1,
+    marginRight: 10,
   },
   postListItemBottomBarText: {
     color: colors.text,
-    marginHorizontal: 1,
+    marginHorizontal: 6,
     fontSize: responsiveFontSize(2),
   },
   postTextContainer: {

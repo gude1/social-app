@@ -2075,12 +2075,12 @@ export const shareTimelinePostAction = (data = []) => {
     if (checkData(postid) != true || checkData(sharestatus) != true) {
       return null;
     }
-    dispatch(deleteOfflineAction({id: `shareTimelinePostAction${postid}`}));
 
     let postitem = timelinepostform.timelineposts.find(
       item => item.postid == postid,
     );
     let numshares = !isEmpty(postitem) ? Number(postitem.num_post_shares) : 0;
+
     if (!isEmpty(postitem)) {
       if (postitem.postshared == sharestatus) {
         dispatch(
@@ -2094,9 +2094,11 @@ export const shareTimelinePostAction = (data = []) => {
         return;
       }
       if (sharestatus != postitem.pendingpostshared) {
-        if (sharestatus == 'postshared')
+        if (sharestatus == 'postshared') {
           numshares = numshares + 1 < 0 ? 1 : numshares + 1;
-        elsenumshares = numshares - 1 < 0 ? 0 : numshares - 1;
+        } else {
+          numshares = numshares - 1 < 0 ? 0 : numshares - 1;
+        }
       }
       dispatch(
         updateTimelinePostForm({
@@ -2121,8 +2123,12 @@ export const shareTimelinePostAction = (data = []) => {
       switch (status) {
         case 200:
           console.warn('share done');
-          dispatch(updateTimelinePost({...postdetails}));
-          dispatch(updateTimelinePostForm({...postdetails}));
+          dispatch(
+            updateTimelinePost({...postdetails, pendingpostshared: null}),
+          );
+          dispatch(
+            updateTimelinePostForm({...postdetails, pendingpostshared: null}),
+          );
           break;
         default:
           Toast(errmsg || 'action failed please try again');
@@ -2585,7 +2591,7 @@ export const postSettingUpdate = toupdatedata => {
     if (!checkData(toupdatedata)) {
       return;
     }
-    const {user} = store.getState();
+    const {user, postsetting} = store.getState();
     let prevpostsetting = store.getState().postsetting;
     dispatch(updatePostSetting(toupdatedata));
     dispatch(setProcessing(true, 'postsettingprocess'));
@@ -2604,7 +2610,7 @@ export const postSettingUpdate = toupdatedata => {
         case 200:
           dispatch(updatePostSetting(postsetting));
           dispatch(setProcessing(false, 'postsettingprocess'));
-          Toast(message, ToastAndroid.LONG);
+          Toast(message);
           break;
         case 401:
           dispatch(setProcessing(false, 'postsettingprocess'));
@@ -2613,7 +2619,7 @@ export const postSettingUpdate = toupdatedata => {
         default:
           dispatch(updatePostSetting(prevpostsetting));
           dispatch(setProcessing(false, 'postsettingprocess'));
-          (errmsg && Toast(errmsg, ToastAndroid.LONG)) ||
+          (errmsg && Toast(errmsg)) ||
             Toast('something went wrong please try again', ToastAndroid.LONG);
           break;
       }
@@ -2649,19 +2655,12 @@ export const getPostSetting = () => {
           dispatch(setProcessing(false, 'postsettingprocess'));
           logOut(() => persistor.purge());
           break;
-        case 404:
-          dispatch(
-            updatePostSetting({
-              timeline_post_range: 'all',
-            }),
-          );
-          break;
         default:
-          errmsg && Toast(errmsg, ToastAndroid.LONG);
+          errmsg && Toast(errmsg);
           break;
       }
     } catch (e) {
-      //console.warn(e.toString());
+      console.warn(e.toString());
       if (e.toString().indexOf('Network Error') != -1) {
         Toast('Network Error!', ToastAndroid.LONG);
       } else {
