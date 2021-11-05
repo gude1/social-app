@@ -405,9 +405,8 @@ export const logIn = ({email, password, Navigation, componentId}) => {
           getAppInfo(store.getState().profile, 'profile') == 'profiletrue'
             ? dispatch(setAppInfo({editprofileinformed: true}))
             : null;
-          getAppInfo(store.getState().posts, 'post') == 'posttrue'
-            ? dispatch(setAppInfo({postinformed: true}))
-            : null;
+          getAppInfo(store.getState().postform.savedposts, 'post') ==
+            'posttrue' && dispatch(setAppInfo({postinformed: true}));
           Toast('Login successful', ToastAndroid.SHORT);
           dispatch(setProcessing(false, 'login'));
           dispatch(setReset('login'));
@@ -1496,8 +1495,8 @@ export const setUpdatedPostFormImage = data => {
 export const makePost = (postimages, posttext, okAction, failedAction) => {
   return async dispatch => {
     dispatch(setProcessing(true, 'POSTFORM'));
-    const {user, posts} = store.getState();
-    let postcompleted = getAppInfo(posts, 'post');
+    const {user, postform} = store.getState();
+    let postcompleted = getAppInfo(postform.savedposts, 'post');
     if (checkData(postimages) != true || postimages.length < 1) {
       dispatch(setProcessing(false, 'POSTFORM'));
       Toast('Post Images not found', ToastAndroid.LONG, ToastAndroid.CENTER);
@@ -1522,6 +1521,7 @@ export const makePost = (postimages, posttext, okAction, failedAction) => {
         'Error occured while processing image please try again',
         ToastAndroid.LONG,
         ToastAndroid.CENTER,
+        cd,
       );
       return;
     }
@@ -1550,7 +1550,7 @@ export const makePost = (postimages, posttext, okAction, failedAction) => {
           Toast('Posted!', ToastAndroid.LONG);
           if (checkData(perror)) {
             Toast(perror, ToastAndroid.LONG);
-            //perror from backend means not all images were succefull uploaded to backend
+            //perror from backend means not all images were succefully uploaded to backend
           }
           if (checkData(post)) {
             dispatch(savePost(post));
@@ -1562,7 +1562,8 @@ export const makePost = (postimages, posttext, okAction, failedAction) => {
           //if user didnt have any post before now probably the user is new to platform so navigate to homescreen
           if (
             postcompleted == 'postfalse' &&
-            getAppInfo(store.getState().posts, 'post') == 'posttrue'
+            getAppInfo(store.getState().postform.savedposts, 'post') ==
+              'posttrue'
           ) {
             setRoute(store.getState());
           }
@@ -1584,12 +1585,6 @@ export const makePost = (postimages, posttext, okAction, failedAction) => {
           } else {
             Toast('something went wrong please try again', ToastAndroid.LONG);
           }
-          deleteMultiImage(resizedimgcaches);
-          dispatch(setProcessing(false, 'POSTFORM'));
-          failedAction && failedAction();
-          break;
-        case 500:
-          Toast(errmsg, ToastAndroid.LONG);
           deleteMultiImage(resizedimgcaches);
           dispatch(setProcessing(false, 'POSTFORM'));
           failedAction && failedAction();

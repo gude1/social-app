@@ -36,7 +36,6 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import ToolTip from 'react-native-tooltip';
 import {Navigation} from 'react-native-navigation';
 import {ViewPager} from '../../components/reusable/viewpager';
 
@@ -51,7 +50,6 @@ const CreatePostScreen = ({
   componentId,
   username,
   setAppInfo,
-  posts,
   postform,
   makePost,
   postinfo,
@@ -61,6 +59,7 @@ const CreatePostScreen = ({
   screentype,
   setProcessing,
 }) => {
+  //console.warn(postform.savedposts);
   const placeholderColor = '#606060';
   const [anonymous, setAnonymous] = useState(true);
   const [postshowheader, setPostShowHeader] = useState(false);
@@ -68,9 +67,6 @@ const CreatePostScreen = ({
     screeninfomodal: false,
   });
   const [loaded, setLoaded] = useState(false);
-  const ref = React.createRef('toast');
-  const anonymousicon = anonymous == true ? 'eye' : 'eye-off';
-  let resheight = responsiveHeight(80) >= 450 ? 450 : responsiveHeight(80);
   let reswidth = responsiveWidth(80) >= 450 ? 450 : responsiveWidth(80);
   let fontsize = responsiveFontSize(2);
   let {toposttext, topostimages, isprocessing} = postform;
@@ -95,7 +91,10 @@ const CreatePostScreen = ({
    */
   useEffect(() => {
     //to show toast modal if profile is not here completed and pageinfo modal has already being shown
-    if (postinfo == true && getAppInfo(posts, 'post') == 'postfalse') {
+    if (
+      postinfo == true &&
+      getAppInfo(postform.savedposts, 'post') == 'postfalse'
+    ) {
       Toast(
         'You need to have a post to continue into the app',
         ToastAndroid.LONG,
@@ -142,11 +141,11 @@ const CreatePostScreen = ({
   };
   const createPost = () => {};
 
-  const setPostImages = (imagearr) => {
+  const setPostImages = imagearr => {
     if (!Array.isArray(imagearr) || imagearr.length < 1) {
       return;
     }
-    imagearr = imagearr.map((item) => item.imageuri);
+    imagearr = imagearr.map(item => item.imageuri);
     setUpdatedPostFormImage(imagearr);
     Navigation.dismissAllModals();
   };
@@ -166,8 +165,7 @@ const CreatePostScreen = ({
           fontSize: responsiveFontSize(2.8),
           opacity: 0.1,
           color: '#2196F3',
-        }}
-      >
+        }}>
         Post
       </Text>
     );
@@ -180,8 +178,7 @@ const CreatePostScreen = ({
         style={{
           fontSize: responsiveFontSize(2.8),
           color: '#2196F3',
-        }}
-      >
+        }}>
         Post
       </Text>
     );
@@ -249,8 +246,7 @@ const CreatePostScreen = ({
         />
         <TouchableOpacity
           style={{alignSelf: 'center', margin: 3}}
-          onPressIn={() => setUpdatedPostFormImage([])}
-        >
+          onPressIn={() => setUpdatedPostFormImage([])}>
           <Icon
             type="feather"
             name="trash-2"
@@ -266,9 +262,8 @@ const CreatePostScreen = ({
    */
   return (
     <SafeAreaView
-      style={[styles.containerStyle, {backgroundColor: colors.background}]}
-    >
-      {postform.postshow && checkData(posts[0]) ? (
+      style={[styles.containerStyle, {backgroundColor: colors.background}]}>
+      {postform.postshow && checkData(postform.savedposts[0]) ? (
         <Header
           headercolor={colors.card}
           headertext="View Post"
@@ -279,8 +274,7 @@ const CreatePostScreen = ({
               style={{
                 fontSize: responsiveFontSize(2.8),
                 color: '#2196F3',
-              }}
-            >
+              }}>
               View
             </Text>
           }
@@ -291,7 +285,7 @@ const CreatePostScreen = ({
                 passProps: {
                   navparent: true,
                   screentype: 'modal',
-                  toshowpost: posts[0],
+                  toshowpost: postform.savedposts[0],
                 },
               },
             })
@@ -320,21 +314,18 @@ const CreatePostScreen = ({
       />
       <Overlay
         isVisible={isprocessing}
-        overlayStyle={{padding: 0, backgroundColor: colors.card}}
-      >
+        overlayStyle={{padding: 0, backgroundColor: colors.card}}>
         <Animatable.View
           animation="bounceIn"
           useNativeDriver={true}
-          style={{alignItems: 'center'}}
-        >
+          style={{alignItems: 'center'}}>
           <View style={[styles.overlayChildViewStyle]}>
             <ActivityIndicator size="large" color="#2196F3" />
             <Text
               style={[
                 styles.overlayTextStyle,
                 {color: colors.text, marginHorizontal: 5},
-              ]}
-            >
+              ]}>
               Uploading Post
             </Text>
           </View>
@@ -348,16 +339,14 @@ const CreatePostScreen = ({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{flex: 1}}
           keyboardShouldPersistTaps="always"
-          keyboardDismissMode={'on-drag'}
-        >
+          keyboardDismissMode={'on-drag'}>
           <Animatable.View
             animation="fadeIn"
             useNativeDriver={true}
             style={[
               styles.containerStyle,
               {backgroundColor: colors.backgroundColor},
-            ]}
-          >
+            ]}>
             <View style={[styles.topContainerStyle, {}]}>
               <Avatar
                 rounded
@@ -389,7 +378,7 @@ const CreatePostScreen = ({
                 inputStyle={{color: colors.text}}
                 maxLength={100}
                 disableFullscreenUI={true}
-                onChangeText={(text) => setUpdatedPostFormText(text)}
+                onChangeText={text => setUpdatedPostFormText(text)}
                 value={toposttext}
                 label={`${toposttextlength}/100`}
                 labelStyle={[styles.labelStyle, {color: placeholderColor}]}
@@ -427,8 +416,7 @@ CreatePostScreen.options = {
   },
 };
 
-const mapStateToProps = (state) => ({
-  posts: state.posts,
+const mapStateToProps = state => ({
   username: state.user.username,
   postinfo: state.appinfo.postinformed,
   profileimage: state.profile.avatar[1],
@@ -487,4 +475,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToProps, actions)(CreatePostScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(CreatePostScreen);

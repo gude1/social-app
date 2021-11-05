@@ -4,8 +4,9 @@ import userReducer from './userReducer';
 import AuthReducer from './AuthReducer';
 import ProfileReducer from './ProfileReducer';
 import ProfileFormReducer from './ProfileFormReducer';
-import PostReducer from './PostReducer';
-import PostFormReducer from './PostFormReducer';
+import MakePostFormReducer, {
+  MakePostFormListConfig,
+} from './MakePostFormReducer';
 import PhotoGalleryReducer from './PhotoGalleryReducer';
 import AppInfoReducer from './AppInfoReducer';
 import TimelinePostReducer from './TimelinePostReducer';
@@ -41,8 +42,7 @@ export default combineReducers({
   auth: AuthReducer,
   profileform: ProfileFormReducer,
   profile: ProfileReducer,
-  posts: PostReducer,
-  postform: PostFormReducer,
+  postform: persistReducer(MakePostFormListConfig, MakePostFormReducer),
   postsetting: PostSettingReducer,
   timelineposts: TimelinePostReducer,
   timelinepostform: TimelinePostFormReducer,

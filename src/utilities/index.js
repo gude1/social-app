@@ -150,7 +150,7 @@ export const rnPath = data => {
 };
 
 export const setRoute = store => {
-  let {user, profile, posts, timelinepostform, timelineposts} = store;
+  let {user, profile, postform, timelinepostform, timelineposts} = store;
   if (
     checkData(user) == false ||
     checkData(user.gender) == false ||
@@ -168,12 +168,12 @@ export const setRoute = store => {
   ) {
     Navigation.setRoot(SETUPPROFILEROUTE);
   } else if (
-    posts == undefined ||
-    posts == null ||
-    posts == '' ||
-    posts == NaN ||
-    posts.length < 1 ||
-    posts.length == undefined
+    postform == undefined ||
+    postform == null ||
+    postform == '' ||
+    postform == NaN ||
+    postform.savedposts.length < 1 ||
+    postform.savedposts.length == undefined
   ) {
     Navigation.setRoot(SETUPPOSTROUTE);
     //console.warn(user);
@@ -335,6 +335,7 @@ export const handleTime = data => {
   if (!checkData(data)) {
     return data;
   }
+  return data;
   let toparsedata = moment(data);
   let diffsec = Math.floor(rightnow.diff(data, 'seconds', true));
   let diffmin = Math.floor(rightnow.diff(data, 'minutes', true));

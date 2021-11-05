@@ -51,7 +51,7 @@ const LikesListFormReducer = (state = INITIAL_STATE, action) => {
     case SET_LIKES_LIST_FORM_LINK:
       return {...state, nextpageurl: action.payload};
     case UPDATE_LIKES_LIST_FORM:
-      let updatedstate = state.likeslist.map((item) => {
+      let updatedstate = state.likeslist.map(item => {
         return item.profile.profile_id == action.payload.profile.profile_id
           ? {...item, ...action.payload}
           : item;

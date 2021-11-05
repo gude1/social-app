@@ -26,7 +26,7 @@ const OfflineActionsDispatcher = ({
     ];
     if (offlineActions.length >= 1 && connected == true) {
       //alert(connected)
-      offlineActions.forEach((offlineaction) => {
+      offlineActions.forEach(offlineaction => {
         let funcName = offlineaction.funcName;
         if (checkData(funcName) && checkData(reduceractions[funcName])) {
           store.dispatch(reduceractions[funcName](offlineaction.param));
@@ -39,7 +39,7 @@ const OfflineActionsDispatcher = ({
   return null;
 };
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   connected: state.network.isConnected,
   offlineactions: state.offlineactionslist,
 });

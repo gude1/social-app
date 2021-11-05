@@ -1,19 +1,26 @@
 import {
   UPDATE_POST_FORM_IMAGE_CHANGED,
   UPDATE_POST_FORM_TEXT_CHANGED,
+  UPDATE_POST,
   PROCESSING,
   RESET,
 } from '../actions/types';
 import {checkData} from '../utilities';
+import AsyncStorage from '@react-native-community/async-storage';
 
-const INITIAL_STATE = {
+const secondState = {
   isprocessing: false,
   toposttext: '',
-  postshow: false,
   topostimages: [],
+  postshow: false,
 };
 
-const arrangePost = (data: Array) => {
+const INITIAL_STATE = {
+  savedposts: [],
+  ...secondState,
+};
+
+const arrangePost = (data = []) => {
   if (!Array.isArray(data) || data.length < 1) {
     return data;
   }
@@ -43,7 +50,7 @@ const handleProcessing = (key, value, state) => {
   }
 };
 
-const PostFormReducer = (state = INITIAL_STATE, action) => {
+const MakePostFormReducer = (state = INITIAL_STATE, action) => {
   if (checkData(action.payload)) {
     var {key, value} = action.payload;
   }
@@ -54,11 +61,20 @@ const PostFormReducer = (state = INITIAL_STATE, action) => {
     case UPDATE_POST_FORM_IMAGE_CHANGED:
       return {...state, topostimages: arrangePost([...action.payload])};
       break;
+    case UPDATE_POST:
+      return {...state, savedposts: [{...action.payload}]};
+      break;
     case PROCESSING:
       return handleProcessing(action.payload.key, action.payload.value, state);
       break;
     case RESET:
-      return key == 'POSTFORM' ? INITIAL_STATE : state;
+      if (key == 'POSTFORM') {
+        return {...state, ...secondState};
+      } else if (key == 'POSTFORMALL') {
+        return INITIAL_STATE;
+      } else {
+        return state;
+      }
       break;
     default:
       return state;
@@ -66,4 +82,10 @@ const PostFormReducer = (state = INITIAL_STATE, action) => {
   }
 };
 
-export default PostFormReducer;
+export const MakePostFormListConfig = {
+  key: 'makepostform',
+  storage: AsyncStorage,
+  whitelist: ['savedposts', 'topostimages', 'toposttext'],
+};
+
+export default MakePostFormReducer;

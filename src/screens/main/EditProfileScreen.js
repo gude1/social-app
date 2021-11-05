@@ -104,7 +104,7 @@ const EditProfileScreen = ({
       updatedgender: user.gender,
     });
     //fetch users profile
-    fetchAProfile(profile.profile_id, null, (profile) => {
+    fetchAProfile(profile.profile_id, null, profile => {
       setProfileData(profile);
       updateUser(profile.user);
     });
@@ -172,10 +172,10 @@ const EditProfileScreen = ({
       cropperToolbarColor: '#2196F3',
       cropperStatusBarColor: 'black',
     })
-      .then((image) => {
+      .then(image => {
         uploadProfilePic(image);
       })
-      .catch((err) => {});
+      .catch(err => {});
   };
   const openModal = () => {
     setModalState({...modalstate, chooseimagestate: true});
@@ -196,10 +196,10 @@ const EditProfileScreen = ({
       cropperToolbarColor: '#2196F3',
       cropperStatusBarColor: 'black',
     })
-      .then((image) => {
+      .then(image => {
         uploadProfilePic(image);
       })
-      .catch((err) => {});
+      .catch(err => {});
   };
   /**
    * component function ends here
@@ -259,8 +259,7 @@ const EditProfileScreen = ({
         style={{
           fontSize: responsiveFontSize(2.8),
           color: '#2196F3',
-        }}
-      >
+        }}>
         Next
       </Text>
     );
@@ -280,8 +279,7 @@ const EditProfileScreen = ({
 
   return (
     <SafeAreaView
-      style={[styles.containerStyle, {backgroundColor: colors.background}]}
-    >
+      style={[styles.containerStyle, {backgroundColor: colors.background}]}>
       <Header
         headercolor={colors.card}
         headertext="Edit Profile"
@@ -324,21 +322,18 @@ const EditProfileScreen = ({
 
       <Overlay
         isVisible={profilemodalstate}
-        overlayStyle={{padding: 0, backgroundColor: colors.card}}
-      >
+        overlayStyle={{padding: 0, backgroundColor: colors.card}}>
         <Animatable.View
           animation="bounceIn"
           useNativeDriver={true}
-          style={{alignItems: 'center'}}
-        >
+          style={{alignItems: 'center'}}>
           <View style={[styles.overlayChildViewStyle]}>
             <ActivityIndicator size="large" color="#2196F3" />
             <Text
               style={[
                 styles.overlayTextStyle,
                 {color: colors.text, marginHorizontal: 5},
-              ]}
-            >
+              ]}>
               {profilemodaltext}
             </Text>
           </View>
@@ -349,18 +344,15 @@ const EditProfileScreen = ({
         onBackdropPress={() =>
           setModalState({...modalstate, chooseimagestate: false})
         }
-        overlayStyle={{padding: 0, backgroundColor: colors.card, opacity: 0.8}}
-      >
+        overlayStyle={{padding: 0, backgroundColor: colors.card, opacity: 0.8}}>
         <Animatable.View
           animation="bounceIn"
           useNativeDriver={true}
-          style={{alignItems: 'center'}}
-        >
+          style={{alignItems: 'center'}}>
           <View style={[styles.overlayImageChildViewStyle]}>
             <TouchableOpacity
               onPressIn={() => openDeviceCamera()}
-              style={[styles.imageModalListStyle]}
-            >
+              style={[styles.imageModalListStyle]}>
               <Icon
                 name="camera"
                 type="evilicon"
@@ -374,8 +366,7 @@ const EditProfileScreen = ({
             <Divider />
             <TouchableOpacity
               onPressIn={() => openDeviceGallery()}
-              style={[styles.imageModalListStyle]}
-            >
+              style={[styles.imageModalListStyle]}>
               <Icon
                 name="image"
                 type="evilicon"
@@ -405,16 +396,14 @@ const EditProfileScreen = ({
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="always"
-          keyboardDismissMode={'on-drag'}
-        >
+          keyboardDismissMode={'on-drag'}>
           <Animatable.View
             animation="fadeIn"
             useNativeDriver={true}
             style={[
               styles.containerStyle,
               {backgroundColor: colors.background},
-            ]}
-          >
+            ]}>
             <View style={styles.formContainerStyle}>
               <View style={styles.formHeadContainerStyle}>
                 <Avatar
@@ -453,8 +442,7 @@ const EditProfileScreen = ({
                   style={{
                     color: colors.text,
                     fontSize: responsiveFontSize(2.5),
-                  }}
-                >
+                  }}>
                   {' '}
                   {profile_name}
                 </Text>
@@ -462,8 +450,7 @@ const EditProfileScreen = ({
                   style={{
                     color: colors.iconcolor,
                     fontSize: responsiveFontSize(2.1),
-                  }}
-                >
+                  }}>
                   {' '}
                   {username}
                 </Text>
@@ -511,7 +498,7 @@ const EditProfileScreen = ({
                   leftIconContainerStyle={styles.leftIconContainerStyle}
                   placeholderTextColor={placeholderColor}
                   value={updatedprofile_name}
-                  onChangeText={(txt) =>
+                  onChangeText={txt =>
                     setUpdateProfileChange({
                       updatedprofile_name: txt,
                     })
@@ -541,7 +528,7 @@ const EditProfileScreen = ({
                   leftIconContainerStyle={styles.leftIconContainerStyle}
                   placeholderTextColor={placeholderColor}
                   value={updatedbio}
-                  onChangeText={(txt) => setUpdateBio(txt)}
+                  onChangeText={txt => setUpdateBio(txt)}
                   multiline={true}
                   leftIcon={{
                     type: 'feather',
@@ -566,7 +553,7 @@ const EditProfileScreen = ({
                     {borderColor: colors.border},
                   ]}
                   placeholder="eg: +234"
-                  onChangeText={(txt) =>
+                  onChangeText={txt =>
                     setUpdateProfileChange({
                       updatedphone: txt,
                     })
@@ -643,7 +630,7 @@ const EditProfileScreen = ({
                   leftIconContainerStyle={styles.leftIconContainerStyle}
                   placeholderTextColor={placeholderColor}
                   value={updatedcampus}
-                  onChangeText={(txt) => setUpdateCampus(txt)}
+                  onChangeText={txt => setUpdateCampus(txt)}
                   multiline={true}
                   leftIcon={{
                     type: 'antdesign',
@@ -670,7 +657,7 @@ EditProfileScreen.options = {
     visible: false,
   },
 };
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   user: state.user,
   editprofileinfo: state.appinfo.editprofileinformed,
   posts: state.posts,
@@ -758,4 +745,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToProps, actions)(EditProfileScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(EditProfileScreen);
