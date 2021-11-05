@@ -14,6 +14,7 @@ import {
   SET_TIMELINE_POST_FORM,
 } from '../actions/types';
 import {checkData} from '../utilities/index';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const INITIAL_STATE = {
   timelineposts: [],
@@ -175,6 +176,12 @@ const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
       return state;
       break;
   }
+};
+
+export const TimelinePostFormConfig = {
+  key: 'timelineposts',
+  storage: AsyncStorage,
+  whitelist: ['timelineposts', 'profileschanges', 'links'],
 };
 
 export default TimelinePostFormReducer;

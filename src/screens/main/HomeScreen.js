@@ -33,12 +33,10 @@ const {colors} = useTheme();
 const HomeScreen = ({
   componentId,
   setChatPics,
-  timelineposts,
   blackListTimelinePost,
   fetchMoreTimelinePost,
   setTimelinePostForm,
   setTimelinePostFormLinks,
-  removeProfileTimeLinePost,
   removeProfileTimeLinePostForm,
   privatechatlistform,
   setProcessing,
@@ -52,7 +50,6 @@ const HomeScreen = ({
   profileactionform,
   setTimelinepostRefresh,
   setTimelinePostFormProfileChanges,
-  updateTimelinePostProfileChanges,
   updateTimelinePostFormProfileChanges,
   fetchTimelinePost,
   timelinepostform,
@@ -78,14 +75,7 @@ const HomeScreen = ({
   const [loaded, setLoaded] = useState(false);
   /**compoent function goes here */
   useEffect(() => {
-    refreshTimelinePost([
-      () => {
-        // console.warn(timelinepostform.timelineposts);
-      },
-      () => {
-        start();
-      },
-    ]);
+    refreshTimelinePost();
 
     Entypo.getImageSource('home', 100).then(e => {
       Navigation.mergeOptions('POST_HOME_SCREEN', {
@@ -137,18 +127,6 @@ const HomeScreen = ({
     }
     return <OfflineActionsDispatcher />;
   }
-
-  const start = () => {
-    //console.warn(timelineposts);
-    if (
-      timelineposts.timelineposts.length > 0 &&
-      timelinepostform.timelineposts.length < 1
-    ) {
-      setTimelinePostForm(timelineposts.timelineposts);
-      setTimelinePostFormLinks(timelineposts.links);
-      setTimelinePostFormProfileChanges(timelineposts.profileschanges);
-    }
-  };
 
   const updatePostItemLiked = postid => {
     alert('liked');
@@ -244,11 +222,9 @@ const HomeScreen = ({
                 profileschanges={timelinepostform.profileschanges}
                 updatePostItem={updateTimelinePostForm}
                 updateProfileChanges={dataobj => {
-                  updateTimelinePostProfileChanges(dataobj);
                   updateTimelinePostFormProfileChanges(dataobj);
                 }}
                 removeProfilePosts={id => {
-                  removeProfileTimeLinePost(id);
                   removeProfileTimeLinePostForm(id);
                 }}
                 refreshing={timelinepostform.refreshing}
@@ -281,7 +257,7 @@ HomeScreen.options = {
 };
 
 const mapStateToProps = state => ({
-  timelineposts: state.timelineposts,
+  //timelineposts: state.timelineposts,
   timelinepostform: state.timelinepostform,
   profileactionform: state.profileactionform,
   privatechatlistform: state.privatechatlistform,

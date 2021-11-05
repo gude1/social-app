@@ -1673,70 +1673,6 @@ export const removePost = (postid: String) => {
 };
 
 /**
- * ACTION CREATOR FOR TIMELINEPOST REDUCER
- */
-export const addTimelinePost = timelinepost => {
-  return {
-    type: ADD_TIMELINE_POST,
-    payload: timelinepost,
-  };
-};
-
-export const setTimelinePost = (data: Array) => {
-  return {
-    type: SET_TIMELINE_POST,
-    payload: data,
-  };
-};
-
-export const prependTimelinePost = (timelinepost: Array) => {
-  return {
-    type: PREPEND_TIMELINE_POST,
-    payload: timelinepost,
-  };
-};
-
-export const updateTimelinePost = timelinepost => {
-  return {
-    type: UPDATE_TIMELINE_POST,
-    payload: timelinepost,
-  };
-};
-
-export const setTimelinePostLinks = data => {
-  return {
-    type: SET_TIMELINE_POST_LINKS,
-    payload: data,
-  };
-};
-
-export const deleteTimeLinePost = postid => {
-  return {
-    type: DELETE_TIMELINE_POST,
-    payload: postid,
-  };
-};
-
-export const setTimelinePostProfileChanges = (data: Array) => {
-  return {
-    type: SET_TIMELINE_POST_PROFILE_CHANGES,
-    payload: data,
-  };
-};
-export const updateTimelinePostProfileChanges = (data: Object) => {
-  return {
-    type: UPDATE_TIMELINE_POST_PROFILE_CHANGES,
-    payload: data,
-  };
-};
-export const removeProfileTimeLinePost = profileid => {
-  return {
-    type: REMOVE_PROFILE_TIMELINE_POST,
-    payload: profileid,
-  };
-};
-
-/**
  * ACTION CREATOR FOR TIMELINEPOSTFORM REDUCER
  */
 export const addTimelinePostForm = data => {
@@ -1899,9 +1835,7 @@ export const refreshTimelinePost = (data = []) => {
       switch (status) {
         case 200:
           dispatch(setTimelinePostForm(timelineposts));
-          dispatch(setTimelinePost(timelineposts));
           dispatch(setTimelinePostFormLinks(links));
-          dispatch(setTimelinePostLinks(links));
           checkData(okAction) && okAction();
           break;
         default:
@@ -2001,10 +1935,6 @@ export const likeTimelinePostAction = (data = []) => {
       //console.warn(response.data)
       switch (status) {
         case 200:
-          //console.warn('like done');
-          dispatch(
-            updateTimelinePost({...postdetails, pendingpostliked: null}),
-          );
           dispatch(
             updateTimelinePostForm({...postdetails, pendingpostliked: null}),
           );
@@ -2117,10 +2047,7 @@ export const shareTimelinePostAction = (data = []) => {
       const {message, errmsg, postdetails, status} = response.data;
       switch (status) {
         case 200:
-          console.warn('share done');
-          dispatch(
-            updateTimelinePost({...postdetails, pendingpostshared: null}),
-          );
+          //console.warn('share done');
           dispatch(
             updateTimelinePostForm({...postdetails, pendingpostshared: null}),
           );
@@ -2198,7 +2125,6 @@ export const archiveTimelinePost = (postid, postprofileid) => {
       switch (status) {
         case 200:
           dispatch(setProcessing(false, 'processarchivetimelinepostform'));
-          dispatch(deleteTimeLinePost(postid));
           dispatch(deleteTimelinePostForm(postid));
           dispatch(removePost(postid));
           //alert(JSON.stringify(resetpost));
@@ -2275,7 +2201,6 @@ export const blackListTimelinePost = (postid, postprofileid) => {
       switch (status) {
         case 200:
           dispatch(setProcessing(false, 'processblacklisttimelinepostform'));
-          dispatch(deleteTimeLinePost(postid));
           dispatch(deleteTimelinePostForm(postid));
           Toast(message, ToastAndroid.LONG);
           break;
@@ -2342,7 +2267,6 @@ export const muteProfileTimelinePost = profileid => {
         case 200:
           dispatch(setProcessing(false, 'processmutetimelinepostform'));
           dispatch(removeProfileTimeLinePostForm(profileid));
-          dispatch(removeProfileTimeLinePost(profileid));
           Toast(message, ToastAndroid.LONG);
           break;
         case 400:
@@ -2409,7 +2333,6 @@ export const deleteTimelinePost = (postid, postprofileid) => {
       switch (status) {
         case 200:
           dispatch(setProcessing(false, 'processdeletetimelinepostform'));
-          dispatch(deleteTimeLinePost(postid));
           dispatch(deleteTimelinePostForm(postid));
           dispatch(removePost(postid));
           if (checkData(resetpost)) {
@@ -2485,9 +2408,7 @@ export const fetchMoreTimelinePost = () => {
       switch (status) {
         case 200:
           dispatch(addTimelinePostForm(timelineposts));
-          dispatch(addTimelinePost(timelineposts));
           dispatch(setTimelinePostFormLinks(links));
-          dispatch(setTimelinePostLinks(links));
           break;
         default:
           if (status == 401) {
@@ -2534,20 +2455,14 @@ export const fetchTimelinePost = () => {
         case 'all':
           dispatch(setProcessing(false, 'timelinepostform'));
           dispatch(addTimelinePostForm([...followedposts, ...generalposts]));
-          dispatch(addTimelinePost([...followedposts, ...generalposts]));
-          // dispatch(setTimelinepostLinks([followedpostnexturl, generalpostnexturl]));
           break;
         case 'campus':
           dispatch(setProcessing(false, 'timelinepostform'));
           dispatch(addTimelinePostForm([...followedposts, ...generalposts]));
-          dispatch(addTimelinePost([...followedposts, ...generalposts]));
-          //dispatch(setTimelinepostLinks([followedpostnexturl, withincampuspostsnexturl]));
           break;
         case 'followedpost':
           dispatch(setProcessing(false, 'timelinepostform'));
           dispatch(addTimelinePostForm([...followedposts, ...generalposts]));
-          dispatch(addTimelinePost([...followedposts, ...generalposts]));
-          //dispatch(setTimelinepostLinks([followedpostnexturl]));
           break;
         default:
           dispatch(setProcessing('failed', 'timelinepostform'));

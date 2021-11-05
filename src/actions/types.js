@@ -39,31 +39,12 @@ export const NEW_PROFILE_PIC = 'new_profile_pic';
 export const SET_PROFILE_DATA = 'set_profile_data';
 
 /**
- * TYPE CONSTANT FOR POST REDUCER
+ * TYPE CONSTANT FOR POSTFORM REDUCER
  */
 export const UPDATE_POST = 'update_post';
 export const REMOVE_POST = 'remove_post';
-
-/**
- * TYPE CONSTANT FOR POSTFORM REDUCER
- */
 export const UPDATE_POST_FORM_TEXT_CHANGED = 'update_post_text_changed';
 export const UPDATE_POST_FORM_IMAGE_CHANGED = 'update_post_image_changed';
-
-/**
- * TYPE CONSTANT FOR TIMELINEPOST REDUCER
- */
-export const ADD_TIMELINE_POST = 'add_timeline_post';
-export const UPDATE_TIMELINE_POST = 'update_timeline_post';
-export const DELETE_TIMELINE_POST = 'delete_timeline_post';
-export const REMOVE_PROFILE_TIMELINE_POST = 'remove_profile_timeline_post';
-export const SET_TIMELINE_POST_LINKS = 'set_timeline_post_links';
-export const SET_TIMELINE_POST = 'set_timeline_post';
-export const PREPEND_TIMELINE_POST = 'prepend_timeline_post';
-export const UPDATE_TIMELINE_POST_PROFILE_CHANGES =
-  'update_timeline_post_profile_changes';
-export const SET_TIMELINE_POST_PROFILE_CHANGES =
-  'set_timeline_post_profile_changes';
 
 /**
  * TYPE CONSTANT FOR TIMELINEPOSTFORM REDUCER
@@ -179,7 +160,7 @@ export const SET_OTHERS_VIEWPROFILEFORM_LINK =
   'set_others_viewprofileform_link';
 
 /**
- * TYPE CONSTANT FOR PRIVATECHATLIST REDUCER
+ * TYPE CONSTANT FOR SEARCHLIST REDUCER
  */
 export const SET_PROFILES_LIST = 'set_profiles_list';
 export const ADD_PROFILES_LIST = 'add_profiles_list';

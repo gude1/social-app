@@ -126,8 +126,7 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
         }
         //style={{ borderWidth: 2, borderColor: colors.text }}
         keyboardShouldPersistTaps="always"
-        keyboardDismissMode={'on-drag'}
-      >
+        keyboardDismissMode={'on-drag'}>
         <View style={styles.avatarIconCtn}>
           {isprofileowner != true ? (
             <Icon
@@ -238,8 +237,7 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                 color: colors.iconcolor,
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.2),
-              }}
-            >
+              }}>
               {profile.campus}
             </Text>
           </View>
@@ -255,8 +253,7 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                 color: colors.iconcolor,
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1.2),
-              }}
-            >
+              }}>
               {profile.user.gender}
             </Text>
           </View>
@@ -281,16 +278,14 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                   },
                 },
               })
-            }
-          >
+            }>
             <View style={{alignItems: 'center'}}>
               <Text
                 style={{
                   color: colors.text,
                   fontWeight: 'bold',
                   fontSize: responsiveFontSize(2.3),
-                }}
-              >
+                }}>
                 {profile.num_followers}
               </Text>
               <Text
@@ -298,8 +293,7 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                   color: colors.iconcolor,
                   fontWeight: 'bold',
                   fontSize: responsiveFontSize(1),
-                }}
-              >
+                }}>
                 Followers
               </Text>
             </View>
@@ -324,16 +318,14 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                   },
                 },
               })
-            }
-          >
+            }>
             <View style={{alignItems: 'center'}}>
               <Text
                 style={{
                   color: colors.text,
                   fontWeight: 'bold',
                   fontSize: responsiveFontSize(2.3),
-                }}
-              >
+                }}>
                 {profile.num_following}
               </Text>
               <Text
@@ -341,8 +333,7 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                   color: colors.iconcolor,
                   fontWeight: 'bold',
                   fontSize: responsiveFontSize(1),
-                }}
-              >
+                }}>
                 Following
               </Text>
             </View>
@@ -354,8 +345,7 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                 color: colors.text,
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(2.3),
-              }}
-            >
+              }}>
               {profile.num_posts}
             </Text>
             <Text
@@ -363,8 +353,7 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                 color: colors.iconcolor,
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(1),
-              }}
-            >
+              }}>
               Posts
             </Text>
           </View>
@@ -404,8 +393,7 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                   },
                 },
               })
-            }
-          >
+            }>
             {profile.known_followers_info}
           </Text>
         )}
@@ -470,8 +458,7 @@ const BottomSection = ({
       <IndicatorViewPager
         indicatorposition={'top'}
         style={{flex: 1}}
-        indicator={renderTabIndicator()}
-      >
+        indicator={renderTabIndicator()}>
         <View key={1}>
           <PostImageGallery
             data={viewprofileform.viewprofileposts}
@@ -489,7 +476,6 @@ const BottomSection = ({
 
 const ViewProfileScreen = ({
   componentId,
-  state,
   authprofile,
   navparent,
   reqprofile,
@@ -590,7 +576,7 @@ const ViewProfileScreen = ({
   });
 
   useEffect(() => {
-    EntypoIcon.getImageSource('user', 100).then((e) =>
+    EntypoIcon.getImageSource('user', 100).then(e =>
       Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
         bottomTab: {
           icon: e,
@@ -654,7 +640,7 @@ const ViewProfileScreen = ({
       fetchAProfile(
         toshowprofile.profile_id,
         null,
-        (profile) => {
+        profile => {
           if (useowner) {
             setProfileData({...profile});
             updateUser(profile.user);
@@ -663,7 +649,7 @@ const ViewProfileScreen = ({
           }
           setLoaded(true);
         },
-        (action) => {
+        action => {
           action == 'cancel' ? setLoaded('failed') : setLoaded(true);
         },
       );
@@ -869,7 +855,7 @@ const ViewProfileScreen = ({
             : setProcessing(false, 'othersviewprofileformpostloading');
           checkData(end) && end();
         },
-        (action) => {
+        action => {
           if (action == 'cancel') {
             useowner
               ? setProcessing('failed', 'userviewprofileformpostloading')
@@ -911,7 +897,7 @@ const ViewProfileScreen = ({
           ? setProcessing(false, 'userviewprofileformpostloadingmore')
           : setProcessing(false, 'othersviewprofileformpostloadingmore');
       },
-      (action) => {
+      action => {
         if (action == 'cancel') {
           useowner
             ? setProcessing('failed', 'userviewprofileformpostloadingmore')
@@ -1068,8 +1054,7 @@ const ViewProfileScreen = ({
           style={[
             styles.contentContainerStyle,
             tabcalled && {marginBottom: 55},
-          ]}
-        >
+          ]}>
           {hideparallax ? null : (
             <TopSection
               profile={toshowprofile}
@@ -1129,8 +1114,7 @@ const ViewProfileScreen = ({
     } else if (loaded == 'retry') {
       torenderview = (
         <View
-          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}
-        >
+          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}>
           <Icon
             onPress={handleFecthViewProfile}
             color={colors.text}
@@ -1182,7 +1166,7 @@ const ViewProfileScreen = ({
   );
 };
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   authprofile: {...state.profile, user: state.user},
   userviewprofileform: state.userviewprofileform,
   othersviewprofileform: state.othersviewprofileform,
@@ -1289,4 +1273,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToProps, actions)(ViewProfileScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(ViewProfileScreen);

@@ -23,12 +23,10 @@ const PostShowScreen = ({
   profileactionform,
   blackListTimelinePost,
   removeProfileTimeLinePostForm,
-  removeProfileTimeLinePost,
   archiveTimelinePost,
   deleteTimelinePost,
   updateTimelinePostForm,
   deleteTimelinePostForm /*offline*/,
-  updateTimelinePostProfileChanges,
   setTimelinepostRefresh,
   updateTimelinePostFormProfileChanges,
   likeTimelinePostAction,
@@ -156,14 +154,12 @@ const PostShowScreen = ({
               }}
               onDeletePress={deleteTimelinePost}
               removeProfilePosts={id => {
-                removeProfileTimeLinePost(id);
                 removeProfileTimeLinePostForm(id);
               }}
               onArchivePress={archiveTimelinePost}
               userprofile={profile}
               profileschanges={timelinepostform.profileschanges}
               updateProfileChanges={dataobj => {
-                updateTimelinePostProfileChanges(dataobj);
                 updateTimelinePostFormProfileChanges(dataobj);
               }}
               onBlackListPress={blackListTimelinePost}

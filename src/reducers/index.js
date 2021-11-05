@@ -9,8 +9,9 @@ import MakePostFormReducer, {
 } from './MakePostFormReducer';
 import PhotoGalleryReducer from './PhotoGalleryReducer';
 import AppInfoReducer from './AppInfoReducer';
-import TimelinePostReducer from './TimelinePostReducer';
-import TimelinePostFormReducer from './TimelinePostFormReducer';
+import TimelinePostFormReducer, {
+  TimelinePostFormConfig,
+} from './TimelinePostFormReducer';
 import PostCommentFormReducer from './PostCommentFormReducer';
 import PostCommentReplyFormReducer from './PostCommentReplyFormReducer';
 import LikesListFormReducer from './LikesListFormReducer';
@@ -44,8 +45,10 @@ export default combineReducers({
   profile: ProfileReducer,
   postform: persistReducer(MakePostFormListConfig, MakePostFormReducer),
   postsetting: PostSettingReducer,
-  timelineposts: TimelinePostReducer,
-  timelinepostform: TimelinePostFormReducer,
+  timelinepostform: persistReducer(
+    TimelinePostFormConfig,
+    TimelinePostFormReducer,
+  ),
   postcommentform: PostCommentFormReducer,
   postcommentreplyform: PostCommentReplyFormReducer,
   userviewprofileform: UserViewProfileReducer,

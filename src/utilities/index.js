@@ -150,7 +150,7 @@ export const rnPath = data => {
 };
 
 export const setRoute = store => {
-  let {user, profile, postform, timelinepostform, timelineposts} = store;
+  let {user, profile, postform, timelinepostform} = store;
   if (
     checkData(user) == false ||
     checkData(user.gender) == false ||
