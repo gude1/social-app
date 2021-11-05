@@ -1546,7 +1546,6 @@ export const makePost = (postimages, posttext, okAction, failedAction) => {
       switch (status) {
         case 200:
           dispatch(prependTimelinePostForm([post]));
-          dispatch(prependTimelinePost([post]));
           Toast('Posted!', ToastAndroid.LONG);
           if (checkData(perror)) {
             Toast(perror, ToastAndroid.LONG);
@@ -1603,6 +1602,7 @@ export const makePost = (postimages, posttext, okAction, failedAction) => {
           break;
       }
     } catch (e) {
+      console.warn(e.toString());
       //alert(e.toString());
       deleteMultiImage(resizedimgcaches);
       dispatch(setProcessing(false, 'POSTFORM'));
