@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, useState} from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -6,9 +6,7 @@ import {
   Text,
   View,
   ActivityIndicator,
-  Linking,
   TouchableOpacity,
-  TouchableHighlight,
 } from 'react-native';
 import {
   Header,
@@ -35,6 +33,7 @@ import {
   handleTime,
   hasProperty,
   LinkingHandler,
+  isEmpty,
 } from '../../utilities/index';
 import {Navigation} from 'react-native-navigation';
 import {store} from '../../store/index';
@@ -46,13 +45,44 @@ const {colors} = useTheme();
 const postwidth = responsiveWidth(94) > 1240 ? 1240 : responsiveWidth(94);
 const postheight = postwidth + 110;
 
+const ReloadableImage = props => {
+  const [state, setState] = useState({key: 1, error: false});
+  const onError = () => {
+    setState({...state, error: true});
+  };
+  const onPress = () => {
+    if (state.error) setState({...state, key: state.key + 1, error: false});
+    else !isEmpty(props.onPress) && props.onPress();
+  };
+
+  const returnPlaceholder = () => {
+    if (state.error)
+      return (
+        <Text style={{color: colors.text}}>
+          Failed to load image tap to retry
+        </Text>
+      );
+    else return <ActivityIndicator size="large" color={'#B0B0B0'} />;
+  };
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={1}>
+      <Image
+        progressiveRenderingEnabled
+        {...props}
+        PlaceholderContent={returnPlaceholder()}
+        key={`image-${state.key}`}
+        onError={onError}>
+        {props.children}
+      </Image>
+    </TouchableOpacity>
+  );
+};
+
 class PostImageViewPager extends Component {
   constructor(prop) {
     super(prop);
-    this.pagerItems = this._createPagers(
-      this.props.images,
-      <ActivityIndicator size="large" color={'#B0B0B0'} />,
-    );
+    this.pagerItems = this._createPagers(this.props.images);
     this.viewpager = null;
   }
 
@@ -86,7 +116,7 @@ class PostImageViewPager extends Component {
     });
   };
 
-  _createPagers = (data, placeholder) => {
+  _createPagers = data => {
     if (checkData(data) != true || data.length < 1 || !Array.isArray(data)) {
       return null;
     }
@@ -94,26 +124,23 @@ class PostImageViewPager extends Component {
     let arr = [];
     data.map((image, index) => {
       arr.push(
-        <TouchableOpacity
+        <ReloadableImage
+          source={{uri: image}}
           key={index + 1}
-          activeOpacity={1}
-          onPress={() => this._viewImage([image])}>
-          <Image
-            source={{uri: image}}
-            PlaceholderContent={placeholder}
-            resizeMode="cover"
-            style={styles.postImageStyle}
-            placeholderStyle={styles.postImagePlaceHolderStyle}
-            containerStyle={styles.postListItemContainerAvatar}>
-            <View style={styles.postImageOptions}>
-              {total < 2 ? null : (
-                <Text style={[styles.imageIndexTextStyle]}>
-                  {`${index + 1}/${total}`}
-                </Text>
-              )}
-            </View>
-          </Image>
-        </TouchableOpacity>,
+          onPress={() => this._viewImage([image])}
+          progressiveRenderingEnabled={true}
+          resizeMode="cover"
+          style={styles.postImageStyle}
+          placeholderStyle={styles.postImagePlaceHolderStyle}
+          containerStyle={styles.postListItemContainerAvatar}>
+          <View style={styles.postImageOptions}>
+            {total < 2 ? null : (
+              <Text style={[styles.imageIndexTextStyle]}>
+                {`${index + 1}/${total}`}
+              </Text>
+            )}
+          </View>
+        </ReloadableImage>,
       );
     });
     return arr;
