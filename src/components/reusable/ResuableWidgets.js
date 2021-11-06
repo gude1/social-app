@@ -18,7 +18,7 @@ import {
   Input,
   Button,
 } from 'react-native-elements';
-import {checkData} from '../../utilities';
+import {checkData, isEmpty} from '../../utilities';
 import {
   responsiveFontSize,
   responsiveWidth,
