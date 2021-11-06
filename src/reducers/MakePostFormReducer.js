@@ -2,6 +2,7 @@ import {
   UPDATE_POST_FORM_IMAGE_CHANGED,
   UPDATE_POST_FORM_TEXT_CHANGED,
   UPDATE_POST,
+  REMOVE_POST,
   PROCESSING,
   RESET,
 } from '../actions/types';
@@ -49,7 +50,7 @@ const handleProcessing = (key, value, state) => {
       break;
   }
 };
-
+let reducerdata = null;
 const MakePostFormReducer = (state = INITIAL_STATE, action) => {
   if (checkData(action.payload)) {
     var {key, value} = action.payload;
@@ -63,6 +64,12 @@ const MakePostFormReducer = (state = INITIAL_STATE, action) => {
       break;
     case UPDATE_POST:
       return {...state, savedposts: [{...action.payload}]};
+      break;
+    case REMOVE_POST:
+      reducerdata = state.savedposts.filter(item => {
+        return item.postid != action.payload;
+      });
+      return {...state, savedposts: reducerdata};
       break;
     case PROCESSING:
       return handleProcessing(action.payload.key, action.payload.value, state);

@@ -39,7 +39,7 @@ export const NEW_PROFILE_PIC = 'new_profile_pic';
 export const SET_PROFILE_DATA = 'set_profile_data';
 
 /**
- * TYPE CONSTANT FOR POSTFORM REDUCER
+ * TYPE CONSTANT FOR MAKEPOSTFORM REDUCER
  */
 export const UPDATE_POST = 'update_post';
 export const REMOVE_POST = 'remove_post';
