@@ -1,16 +1,14 @@
-import React, {Component, useState} from 'react';
+import React, {Component} from 'react';
 import {
   FlatList,
   StyleSheet,
-  RefreshControl,
   Text,
   View,
   ActivityIndicator,
-  TouchableOpacity,
 } from 'react-native';
 import {
   Header,
-  ImageViewPager,
+  ReloadableImage,
   BottomListModal,
   ConfirmModal,
   PanelMsg,
@@ -21,19 +19,16 @@ import {useTheme} from '../../assets/themes/index';
 import {
   responsiveWidth,
   responsiveFontSize,
-  responsiveHeight,
 } from 'react-native-responsive-dimensions';
-import {Icon, Avatar, Image, Overlay, Button} from 'react-native-elements';
+import {Icon, Avatar, Button} from 'react-native-elements';
 import FastImage from 'react-native-fast-image';
 //import { ViewPager, IndicatorViewPager, PagerDotIndicator } from '';
 import * as Animatable from 'react-native-animatable';
 import {
   checkData,
-  toHumanReadableTime,
   handleTime,
   hasProperty,
   LinkingHandler,
-  isEmpty,
 } from '../../utilities/index';
 import {Navigation} from 'react-native-navigation';
 import {store} from '../../store/index';
@@ -44,40 +39,6 @@ import ParsedText from 'react-native-parsed-text';
 const {colors} = useTheme();
 const postwidth = responsiveWidth(94) > 1240 ? 1240 : responsiveWidth(94);
 const postheight = postwidth + 110;
-
-const ReloadableImage = props => {
-  const [state, setState] = useState({key: 1, error: false});
-  const onError = () => {
-    setState({...state, error: true});
-  };
-  const onPress = () => {
-    if (state.error) setState({...state, key: state.key + 1, error: false});
-    else !isEmpty(props.onPress) && props.onPress();
-  };
-
-  const returnPlaceholder = () => {
-    if (state.error)
-      return (
-        <Text style={{color: colors.text}}>
-          Failed to load image tap to retry
-        </Text>
-      );
-    else return <ActivityIndicator size="large" color={'#B0B0B0'} />;
-  };
-
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={1}>
-      <Image
-        progressiveRenderingEnabled
-        {...props}
-        PlaceholderContent={returnPlaceholder()}
-        key={`image-${state.key}`}
-        onError={onError}>
-        {props.children}
-      </Image>
-    </TouchableOpacity>
-  );
-};
 
 class PostImageViewPager extends Component {
   constructor(prop) {

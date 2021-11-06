@@ -58,8 +58,7 @@ export class Header extends React.PureComponent {
             width: responsiveWidth(18),
             height: responsiveHeight(8),
           }}
-          onPressIn={leftIconPress}
-        >
+          onPressIn={leftIconPress}>
           {lefticon}
         </TouchableScale>
       );
@@ -74,8 +73,7 @@ export class Header extends React.PureComponent {
             width: responsiveWidth(18),
             height: responsiveHeight(8),
           }}
-          onPressIn={rightIconPress}
-        >
+          onPressIn={rightIconPress}>
           {righticon}
         </TouchableScale>
       );
@@ -92,8 +90,7 @@ export class Header extends React.PureComponent {
             width: responsiveWidth(18),
             height: responsiveHeight(8),
           }}
-          onPressIn={rightIcon2Press}
-        >
+          onPressIn={rightIcon2Press}>
           {righticon2}
         </TouchableScale>
       );
@@ -102,8 +99,7 @@ export class Header extends React.PureComponent {
         style={[
           styles.headerStyle,
           {backgroundColor: headercolor, ...headerStyle},
-        ]}
-      >
+        ]}>
         {lefticon}
         <Text
           style={{
@@ -111,8 +107,7 @@ export class Header extends React.PureComponent {
             marginHorizontal: 15,
             color: headertextcolor,
             ...headerTextStyle,
-          }}
-        >
+          }}>
           {headertext}
         </Text>
         {righticon2}
@@ -158,8 +153,7 @@ export class HeaderWithImage extends Component {
             alignItems: 'center',
             height: '100%',
             flex: 1,
-          }}
-        >
+          }}>
           {Icon1 && Icon1}
           <Avatar
             rounded
@@ -181,8 +175,7 @@ export class HeaderWithImage extends Component {
                 marginTop: 3,
                 maxWidth: responsiveWidth(40),
                 fontWeight: 'bold',
-              }}
-            >
+              }}>
               {title}
             </Text>
             {subTitle && (
@@ -194,8 +187,7 @@ export class HeaderWithImage extends Component {
                   marginTop: 3,
                   maxWidth: responsiveWidth(40),
                 }}
-                numberOfLines={1}
-              >
+                numberOfLines={1}>
                 {subTitle}
               </Text>
             )}
@@ -227,13 +219,11 @@ export const OverlayWithImage = ({
           backgroundColor: theme.card,
           ...overlaystyle,
         },
-      ]}
-    >
+      ]}>
       <Animatable.View
         animation="zoomInDown"
         useNativeDriver={true}
-        style={{alignItems: 'center'}}
-      >
+        style={{alignItems: 'center'}}>
         <View style={[styles.overlayChildStyle, style]}>
           <View style={[styles.overlayChildItemStyle, {}]}>
             <Avatar rounded source={imagesource} size={imagesize} />
@@ -245,16 +235,14 @@ export const OverlayWithImage = ({
                 padding: 10,
                 alignItems: 'center',
               },
-            ]}
-          >
+            ]}>
             <Text
               style={{
                 color: theme.text,
                 fontWeight: 'bold',
                 textAlign: 'center',
                 fontSize: 18,
-              }}
-            >
+              }}>
               {overlaytext}
             </Text>
             <TouchableOpacity onPressIn={onAccept}>
@@ -264,8 +252,7 @@ export const OverlayWithImage = ({
                   fontSize: 23,
                   margin: 5,
                   color: '#2196F3',
-                }}
-              >
+                }}>
                 OK
               </Text>
             </TouchableOpacity>
@@ -291,8 +278,7 @@ export class PanelMsg extends Component {
           alignItems: 'center',
           marginVertical: 5,
           backgroundColor: colors.background,
-        }}
-      >
+        }}>
         <Text style={{color: colors.iconcolor}}>{this.props.message}</Text>
         {this.props.buttonTitle && (
           <TouchableScale onPress={this.props.buttonPress}>
@@ -333,8 +319,7 @@ export class ImageViewPager extends React.Component {
             flex: 1,
             backgroundColor: colors.background,
             borderColor: colors.border,
-          }}
-        >
+          }}>
           <Image
             style={{width: reswidth, height: reswidth}}
             placeholderStyle={{
@@ -351,8 +336,7 @@ export class ImageViewPager extends React.Component {
               />
             }
             resizeMode="cover"
-            source={{uri: image}}
-          >
+            source={{uri: image}}>
             {total < 2 ? null : (
               <Text style={[styles.imageIndexTextStyle]}>
                 {`${index + 1}/${total}`}
@@ -375,8 +359,7 @@ export class ImageViewPager extends React.Component {
           backgroundColor: this.props.colors.border,
         }}
         initialPage={0}
-        keyboardDismissMode="none"
-      >
+        keyboardDismissMode="none">
         {this.pageritems}
       </ViewPager>
     );
@@ -410,13 +393,11 @@ export const LoaderScreen = ({
           backgroundColor: colors.background,
           justifyContent: 'center',
         },
-      ]}
-    >
+      ]}>
       <Animatable.View
         animation={animationType}
         useNativeDriver={true}
-        iterationCount={animationOff ? 1 : 'infinite'}
-      >
+        iterationCount={animationOff ? 1 : 'infinite'}>
         {loaderIcon}
       </Animatable.View>
       {showLoading ? (
@@ -471,8 +452,7 @@ export class BottomListModal extends Component {
         transparent={true}
         visible={this.props.visible}
         ModalComponent={Modal}
-        onRequestClose={this.props.onRequestClose}
-      >
+        onRequestClose={this.props.onRequestClose}>
         <View style={styles.modalChildContainer}>
           <View style={styles.optionListContainer}>
             <TouchableOpacity onPress={this.props.onRequestClose}>
@@ -522,8 +502,7 @@ export class ScrollableListOverLay extends Component {
               color: colors.text,
               textAlign: 'center',
               fontWeight: 'bold',
-            }}
-          >
+            }}>
             Failed to load
           </Text>
           <Button
@@ -556,8 +535,7 @@ export class ScrollableListOverLay extends Component {
             ...this.props.contentContainerStyle,
           }}
           keyboardShouldPersistTaps="always"
-          keyboardDismissMode={'on-drag'}
-        >
+          keyboardDismissMode={'on-drag'}>
           {children || (
             <Text
               style={{
@@ -566,8 +544,7 @@ export class ScrollableListOverLay extends Component {
                 fontWeight: 'bold',
                 marginVertical: 100,
                 color: colors.iconcolor,
-              }}
-            >
+              }}>
               List is Empty
             </Text>
           )}
@@ -598,16 +575,14 @@ export class ScrollableListOverLay extends Component {
           padding: 0,
           borderRadius: 10,
           backgroundColor: colors.card,
-        }}
-      >
+        }}>
         <View
           style={{
             width: width || 300,
             borderRadius: 10,
             height: height || 300,
             backgroundColor: colors.card,
-          }}
-        >
+          }}>
           <Header
             headertext={ListTitle}
             headerStyle={{elevation: 0}}
@@ -656,8 +631,7 @@ export const ConfirmModal = ({
         padding: 0,
         borderRadius: 10,
         backgroundColor: colors.background,
-      }}
-    >
+      }}>
       <View style={styles.confirmModalCard}>
         <Text style={styles.confirmModalText}>{confirmMsg}</Text>
         <View style={styles.confirmModalBtnCtn}>
@@ -724,16 +698,14 @@ export const AvatarNavModal = ({
         borderWidth: 0,
         borderColor: 'rgba(0,0,0,0.0)',
         backgroundColor: 'rgba(0,0,0,0.0)',
-      }}
-    >
+      }}>
       <Animatable.View animation={'bounceInUp'} useNativeDriver={true}>
         <View style={styles.avatarNavModal}>
           <TouchableScale activeScale={1} onPress={onAvatarPress}>
             <Image style={{width: 250, height: 250}} source={avatar}>
               <View style={styles.avatarNavModalImageHeader}>
                 <Text
-                  style={{color: 'white', fontSize: responsiveFontSize(2.5)}}
-                >
+                  style={{color: 'white', fontSize: responsiveFontSize(2.5)}}>
                   {headername}
                 </Text>
               </View>
@@ -753,7 +725,7 @@ export const ModalList = ({optionsArr, isVisible, onBackdropPress}) => {
   function renderModalList() {
     if (Array.isArray(optionsArr) && optionsArr.length > 0) {
       let list = [];
-      list = optionsArr.map((item) => {
+      list = optionsArr.map(item => {
         return (
           <Button
             type={'clear'}
@@ -785,16 +757,14 @@ export const ModalList = ({optionsArr, isVisible, onBackdropPress}) => {
         margin: 0,
         backgroundColor: colors.card,
         justifyContent: 'center',
-      }}
-    >
+      }}>
       <View
         style={{
           backgroundColor: colors.card,
           borderRadius: 20,
           width: 250,
           minHeight: 200,
-        }}
-      >
+        }}>
         {renderModalList()}
       </View>
     </Overlay>
@@ -1005,8 +975,7 @@ export class ListItem extends Component {
         onLongPress={longpress}
         activeScale={
           checkData(longpress) == true || checkData(onpress) == true ? 0.8 : 1
-        }
-      >
+        }>
         <View style={styles.listItemStyle}>
           <Avatar
             source={leftAvatar}
@@ -1068,8 +1037,7 @@ export class ActivityOverlay extends Component {
       <Overlay
         isVisible={isVisible}
         animationType="fade"
-        overlayStyle={styles.activityOverlay}
-      >
+        overlayStyle={styles.activityOverlay}>
         <View style={styles.activityOverlay}>
           <Text style={{color: colors.text}}>{text}</Text>
           <ActivityIndicator size={'small'} color={colors.border} />
@@ -1116,8 +1084,7 @@ export class ImageGalleryItem extends Component {
       <TouchableOpacity
         activeOpacity={0.7}
         style={{margin: 1}}
-        onPress={() => onPress()}
-      >
+        onPress={() => onPress()}>
         <Image
           source={smallavataruri}
           style={{width: this.reswidth, height: this.resheight}}
@@ -1164,16 +1131,14 @@ export class ImageGallery extends Component {
     if (this.props.loading == true) {
       return (
         <View
-          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}
-        >
+          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}>
           <ActivityIndicator size="large" color={'silver'} />
         </View>
       );
     } else if (this.props.loading == 'retry') {
       return (
         <View
-          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}
-        >
+          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}>
           <Button
             onPress={() => {
               checkData(this.props.Fetch) && this.props.Fetch();
@@ -1198,8 +1163,7 @@ export class ImageGallery extends Component {
     } else {
       return (
         <View
-          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}
-        >
+          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}>
           <Icon
             name="meh"
             type={'antdesign'}
@@ -1226,8 +1190,7 @@ export class ImageGallery extends Component {
             justifyContent: 'center',
             marginTop: 15,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size={30} color={'silver'} />
         </View>
       );
@@ -1314,6 +1277,40 @@ export class ImageGallery extends Component {
     );
   }
 }
+
+export const ReloadableImage = props => {
+  const [state, setState] = useState({key: 1, error: false});
+  const onError = () => {
+    setState({...state, error: true});
+  };
+  const onPress = () => {
+    if (state.error) setState({...state, key: state.key + 1, error: false});
+    else !isEmpty(props.onPress) && props.onPress();
+  };
+
+  const returnPlaceholder = () => {
+    if (state.error)
+      return (
+        <Text style={{color: colors.text}}>
+          Failed to load image tap to retry
+        </Text>
+      );
+    else return <ActivityIndicator size="large" color={'#B0B0B0'} />;
+  };
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={1}>
+      <Image
+        progressiveRenderingEnabled
+        {...props}
+        PlaceholderContent={returnPlaceholder()}
+        key={`image-${state.key}`}
+        onError={onError}>
+        {props.children}
+      </Image>
+    </TouchableOpacity>
+  );
+};
 
 export function optimizeComponent(WrappedComponent, update) {
   return class Optimize extends Component {
