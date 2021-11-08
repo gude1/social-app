@@ -14,7 +14,7 @@ import {
   responsiveHeight,
 } from 'react-native-responsive-dimensions';
 import {useTheme} from '../../assets/themes';
-import {checkData, handleTime, hasProperty} from '../../utilities';
+import {checkData, handleTime, hasProperty, isEmpty} from '../../utilities';
 import {Icon, Overlay, Text, Button} from 'react-native-elements';
 import {Navigation} from 'react-native-navigation';
 import TouchableScale from 'react-native-touchable-scale/src/TouchableScale';
@@ -261,16 +261,14 @@ export default class PostCommentList extends React.Component {
             alignItems: 'center',
             height: 200,
             justifyContent: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size="large" color={'silver'} />
         </View>
       );
     } else if (this.props.fetching == 'retry') {
       return (
         <View
-          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}
-        >
+          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}>
           <Icon
             onPress={() => this.props.onFetch(this.props.parentpost.postid)}
             color={colors.text}
@@ -299,13 +297,13 @@ export default class PostCommentList extends React.Component {
     }
   };
 
-  _setOthersModalList = (item) => {
+  _setOthersModalList = item => {
     if (!checkData(item) || !checkData(item.profile)) {
       return;
     }
     let adjustedlist = null;
     let profilechangemuted = this.props.profileschanges.find(
-      (item) => item.profileid == this.currentcommentownerid,
+      item => item.profileid == this.currentcommentownerid,
     );
     profilechangemuted = checkData(profilechangemuted)
       ? profilechangemuted.profilemuted
@@ -315,7 +313,7 @@ export default class PostCommentList extends React.Component {
       : item.profile.profilemuted;
     /*** for  profile muted */
     if (profilechangemuted) {
-      adjustedlist = this.state.othersbottommodallist.map((item) => {
+      adjustedlist = this.state.othersbottommodallist.map(item => {
         return item.id == 'muteprofile'
           ? {
               ...item,
@@ -332,7 +330,7 @@ export default class PostCommentList extends React.Component {
         profilemuted: profilechangemuted,
       });
     } else {
-      adjustedlist = this.state.othersbottommodallist.map((item) => {
+      adjustedlist = this.state.othersbottommodallist.map(item => {
         return item.id == 'muteprofile'
           ? {
               ...item,
@@ -357,7 +355,7 @@ export default class PostCommentList extends React.Component {
       return;
     }
     if (item.hidden == true) {
-      adjustedlist = this.state.othersbottommodallist.map((item) => {
+      adjustedlist = this.state.othersbottommodallist.map(item => {
         return item.id == 'hidec'
           ? {
               ...item,
@@ -374,7 +372,7 @@ export default class PostCommentList extends React.Component {
         commenthidden: item.hidden,
       });
     } else {
-      adjustedlist = this.state.othersbottommodallist.map((item) => {
+      adjustedlist = this.state.othersbottommodallist.map(item => {
         return item.id == 'hidec'
           ? {
               ...item,
@@ -452,7 +450,7 @@ export default class PostCommentList extends React.Component {
     this.props.onItemLike(commentid, likestatus, numlikes);
   };
 
-  _navShowLikes = (commentid) => {
+  _navShowLikes = commentid => {
     if (checkData(commentid) != true) {
       return;
     }
@@ -468,7 +466,7 @@ export default class PostCommentList extends React.Component {
     });
   };
 
-  _navShowReplies = (comment) => {
+  _navShowReplies = comment => {
     if (checkData(comment) != true) {
       return;
     }
@@ -542,15 +540,13 @@ export default class PostCommentList extends React.Component {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                }}
-              >
+                }}>
                 <Text
                   style={{
                     fontSize: responsiveFontSize(1.5),
                     color: 'silver',
                     margin: 2,
-                  }}
-                >
+                  }}>
                   {this.props.parentpost.num_post_comments} comments
                 </Text>
               </View>
@@ -570,8 +566,7 @@ export default class PostCommentList extends React.Component {
             justifyContent: 'center',
             margin: 6,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size={30} color={colors.border} />
         </View>
       );
@@ -583,8 +578,7 @@ export default class PostCommentList extends React.Component {
             justifyContent: 'center',
             margin: 6,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <Icon
             color={colors.text}
             size={responsiveFontSize(4)}
@@ -593,8 +587,7 @@ export default class PostCommentList extends React.Component {
             type="antdesign"
           />
           <Text
-            style={{color: colors.border, fontSize: responsiveFontSize(1.5)}}
-          >
+            style={{color: colors.border, fontSize: responsiveFontSize(1.5)}}>
             Tap to retry
           </Text>
         </View>
@@ -607,8 +600,7 @@ export default class PostCommentList extends React.Component {
             justifyContent: 'center',
             margin: 10,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <Icon
             color={colors.text}
             size={responsiveFontSize(5)}
@@ -623,10 +615,28 @@ export default class PostCommentList extends React.Component {
     }
   };
 
+  _onPress = item => {
+    if (
+      !isEmpty(item) &&
+      item.retry == true &&
+      checkData(this.props.makeComment)
+    ) {
+      this.props.makeComment([
+        this.props.parentpost.postid,
+        item.comment_text,
+        item.commentid,
+      ]);
+    } else {
+      return null;
+    }
+  };
+
   _renderItem = ({item}) => {
     if (
       !hasProperty(item, ['profile']) ||
-      !hasProperty(item.profile, ['user'])
+      !hasProperty(item.profile, ['user']) ||
+      item.profile.user.approved != true ||
+      item.profile.user.deleted == true
     ) {
       return <PanelMsg message={'Comment is unavailable'} />;
     } else if (item.profile.profilemuted == true && item.muted != false) {
@@ -665,11 +675,6 @@ export default class PostCommentList extends React.Component {
           buttonTitle={'Learn More'}
         />
       );
-    } else if (
-      item.profile.user.approved != true ||
-      item.profile.user.deleted == true
-    ) {
-      return null;
     }
 
     return (
@@ -679,7 +684,7 @@ export default class PostCommentList extends React.Component {
             ? item.sendingmsg
             : handleTime(Math.floor(item.created_at * 1000))
         }
-        onRetryPress={item.onRetry}
+        onPress={() => this._onPress(item)}
         onLongPress={() =>
           this._setSelected(item.commentid, item.profile.profile_id, item)
         }
@@ -722,7 +727,7 @@ export default class PostCommentList extends React.Component {
     return (
       <>
         <FlatList
-          ref={(ref) => {
+          ref={ref => {
             this.props.setFlatlistRef(ref);
           }}
           data={this.props.data}

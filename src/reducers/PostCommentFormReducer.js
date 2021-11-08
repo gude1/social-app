@@ -13,11 +13,15 @@ import {
   SET_POST_COMMENT_FORM_LINK,
   UPDATE_POST_COMMENT_ARRAY_FORM,
   SET_POST_COMMENT_FORM,
+  UPDATE_PENDING_POST_COMMENT,
+  REMOVE_PENDING_POST_COMMENT,
 } from '../actions/types';
 import {checkData} from '../utilities/index';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const INITIAL_STATE = {
   postcomments: [],
+  pendingpostcomments: [],
   profileschanges: [],
   ownerpost: null,
   fetching: false,
@@ -68,6 +72,8 @@ const arrangePostComment = (data: Array) => {
   return data.sort((item1, item2) => item2.created_at - item1.created_at);
 };
 
+let reducerdata = null;
+
 const PostCommentFormReducer = (state = INITIAL_STATE, action) => {
   switch (action.type) {
     case PROCESSING:
@@ -76,6 +82,22 @@ const PostCommentFormReducer = (state = INITIAL_STATE, action) => {
       break;
     case SET_POST_COMMENT_FORM_OWNER_POST:
       return {...state, ownerpost: action.payload};
+      break;
+    case UPDATE_PENDING_POST_COMMENT:
+      reducerdata = state.pendingpostcomments.map(item => {
+        return item.commentid == action.payload.commentid
+          ? {...item, ...action.payload}
+          : item;
+      });
+      reducerdata.find(item => item.commentid == action.payload.commentid) ==
+        undefined && reducerdata.push({...action.payload});
+      return {...state, pendingpostcomments: arrangePostComment(reducerdata)};
+      break;
+    case REMOVE_PENDING_POST_COMMENT:
+      reducerdata = state.pendingpostcomments.filter(item => {
+        return item.commentid != action.payload;
+      });
+      return {...state, pendingpostcomments: arrangePostComment(reducerdata)};
       break;
     case UPDATE_POST_COMMENT_FORM_OWNER_POST:
       return {...state, ownerpost: {...state.ownerpost, ...action.payload}};
@@ -102,13 +124,15 @@ const PostCommentFormReducer = (state = INITIAL_STATE, action) => {
       return {...state, postcomments: arrangePostComment(action.payload)};
       break;
     case UPDATE_POST_COMMENT_FORM:
-      let updatedstate = state.postcomments.map((item) => {
+      let updatedstate = state.postcomments.map(item => {
         return item.commentid == action.payload.commentid
           ? {...item, ...action.payload}
           : item;
       });
-      /*updatedstate.find(item => item.commentid == action.payload.commentid) == undefined ?
-                updatedstate.push({ ...action.payload }) : null;*/
+      updatedstate.find(item => item.commentid == action.payload.commentid) ==
+      undefined
+        ? updatedstate.push({...action.payload})
+        : null;
       return {...state, postcomments: arrangePostComment(updatedstate)};
       break;
     case SET_POST_COMMENT_FORM_LINK:
@@ -117,27 +141,33 @@ const PostCommentFormReducer = (state = INITIAL_STATE, action) => {
     case RESET:
       if (action.payload.key == 'postcommentform') {
         return INITIAL_STATE;
+      } else if (action.payload.key == 'postcomments') {
+        return {
+          ...INITIAL_STATE,
+          pendingpostcomments: state.pendingpostcomments,
+        };
+      } else {
+        return state;
       }
-      return state;
       break;
     case POST_COMMENT_FORM_REFRESH:
       return {...state, refreshing: action.payload};
       break;
     case UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES:
-      let updatedprofilestate = state.profileschanges.map((item) => {
+      let updatedprofilestate = state.profileschanges.map(item => {
         return item.profileid == action.payload.profileid
           ? {...item, ...action.payload}
           : item;
       });
       updatedprofilestate.find(
-        (item) => item.profileid == action.payload.profileid,
+        item => item.profileid == action.payload.profileid,
       ) == undefined
         ? updatedprofilestate.push({...action.payload})
         : null;
       return {...state, profileschanges: updatedprofilestate};
       break;
     case REMOVE_POST_COMMENT_FORM:
-      let newstate = state.postcomments.map((item) => {
+      let newstate = state.postcomments.map(item => {
         if (item.commentid == action.payload) {
           return {...item, deleted: true};
         }
@@ -149,6 +179,12 @@ const PostCommentFormReducer = (state = INITIAL_STATE, action) => {
       return state;
       break;
   }
+};
+
+export const PostCommentFormListConfig = {
+  key: 'pendingcomments',
+  storage: AsyncStorage,
+  whitelist: ['pendingpostcomments'],
 };
 
 export default PostCommentFormReducer;

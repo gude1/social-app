@@ -23,6 +23,7 @@ const PostCommentScreen = ({
   navparent,
   componentId,
   profile,
+  user,
   muteProfileAction,
   timelineposts,
   profileimage,
@@ -63,7 +64,7 @@ const PostCommentScreen = ({
   let righticonpress = '';
   /**component functions starts here */
   useEffect(() => {
-    setReset('postcommentform');
+    setReset('postcomments');
     setPostCommentFormOwnerPost(ownerpost);
     setPostCommentForm(postcomments || []);
     if (makerequest != false) {
@@ -89,7 +90,7 @@ const PostCommentScreen = ({
     };
   }, []);
 
-  const setFlatlistRef = (ref) => {
+  const setFlatlistRef = ref => {
     flatlistref = ref;
   };
   //function to determine dismiss of navigation based on screentype
@@ -128,7 +129,12 @@ const PostCommentScreen = ({
             userprofile={profile}
             setFlatlistRef={setFlatlistRef}
             parentpost={postcommentform.ownerpost}
-            data={postcommentform.postcomments}
+            data={[
+              ...postcommentform.pendingpostcomments.filter(
+                item => item.postid == postcommentform.ownerpost.postid,
+              ),
+              ...postcommentform.postcomments,
+            ]}
             updateComment={updatePostCommentForm}
             onItemLike={likePostComment}
             onLoadMore={loadMorePostComment}
@@ -143,6 +149,7 @@ const PostCommentScreen = ({
             onHide={hidePostCommentAction}
             hiding={postcommentform.hiding}
             onDelete={deletePostComment}
+            makeComment={makePostComment}
             deleting={postcommentform.deleting}
           />
           <InputBox
@@ -152,7 +159,7 @@ const PostCommentScreen = ({
             onSubmit={() => {
               //flatlistref.scrollToOffset({ offset: 0, animated: true })
               setInputText('');
-              makePostComment(ownerpost.postid, inputtext);
+              makePostComment([ownerpost.postid, inputtext]);
               if (checkData(inputtext)) {
                 flatlistref.scrollToOffset({offset: 0});
               }
@@ -187,10 +194,11 @@ PostCommentScreen.options = {
     visible: false,
   },
 };
-const mapStateToProps = (state) => {
+const mapStateToProps = state => {
   return {
     profileimage: state.profile.avatarlocal || state.profile.avatarremote,
     profile: state.profile,
+    user: state.user,
     timelineposts: state.timelinepostform.timelineposts,
     profileactionform: state.profileactionform,
     postcommentform: state.postcommentform,
@@ -209,4 +217,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToProps, actions)(PostCommentScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(PostCommentScreen);

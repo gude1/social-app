@@ -172,6 +172,8 @@ import {
   SET_NOTIFICATIONS,
   UPDATE_MENTIONS,
   SET_MENTIONS,
+  UPDATE_PENDING_POST_COMMENT,
+  REMOVE_PENDING_POST_COMMENT,
 } from './types';
 import {
   deleteFile,
@@ -426,6 +428,7 @@ export const logIn = ({email, password, Navigation, componentId}) => {
           break;
       }
     } catch (e) {
+      console.warn(e.toString());
       if (e.toString().indexOf('Network Error') > -1) {
         Toast(
           'Network error please check your internet connection',
@@ -449,7 +452,7 @@ export const addDeviceToken = () => {
       };
       const device_token = await messaging().getToken();
       const response = await session.post(
-        'user/addDeviceToken',
+        'user/adddevicetoken',
         {device_token},
         options,
       );
@@ -473,7 +476,10 @@ export const addDeviceToken = () => {
           }),
         );
       } else {
-        console.warn('addDeviceToken', 'Something went wrong please try again');
+        console.warn(
+          'addDeviceToken',
+          `Something went wrong please try again ${err.toString()}`,
+        );
       }
     }
   };
@@ -2583,28 +2589,42 @@ export const getPostSetting = () => {
 /**
  * ACTION CREATORS FOR POSTCOMMENTFORM REDUCER
  */
-export const addPostCommentForm = (data: Array) => {
+export const addPostCommentForm = (data = []) => {
   return {
     type: ADD_POST_COMMENT_FORM,
     payload: data,
   };
 };
 
-export const setPostCommentFormOwnerPost = (data: Object) => {
+export const updatePendingPostCommentForm = (data = {}) => {
+  return {
+    type: UPDATE_PENDING_POST_COMMENT,
+    payload: data,
+  };
+};
+
+export const removePendingPostCommentForm = (data = '') => {
+  return {
+    type: REMOVE_PENDING_POST_COMMENT,
+    payload: data,
+  };
+};
+
+export const setPostCommentFormOwnerPost = (data = {}) => {
   return {
     type: SET_POST_COMMENT_FORM_OWNER_POST,
     payload: data,
   };
 };
 
-export const updatePostCommentFormOwnerPost = (data: Object) => {
+export const updatePostCommentFormOwnerPost = (data = {}) => {
   return {
     type: UPDATE_POST_COMMENT_FORM_OWNER_POST,
     payload: data,
   };
 };
 
-export const updatePostCommentForm = (data: Object) => {
+export const updatePostCommentForm = (data = {}) => {
   return {
     type: UPDATE_POST_COMMENT_FORM,
     payload: data,
@@ -2696,7 +2716,6 @@ export const fetchPostComment = postid => {
           dispatch(setPostCommentForm(comments));
           dispatch(setPostCommentFormLink(nextpageurl));
           dispatch(updatePostCommentFormOwnerPost(ownerpost));
-          dispatch(updateTimelinePost(ownerpost));
           dispatch(updateTimelinePostForm(ownerpost));
           hiddens == true &&
             Toast(
@@ -2756,6 +2775,7 @@ export const retryPostComment = (postid, commentid, comment_text) => {
     };
     dispatch(
       updatePostCommentForm({
+        postid,
         onRetry: () => {},
         commentid: commentid,
         created_at: new Date().getTime(),
@@ -2781,7 +2801,6 @@ export const retryPostComment = (postid, commentid, comment_text) => {
           dispatch(removePostCommentForm(commentid));
           dispatch(prependPostCommentForm([comment]));
           dispatch(updatePostCommentFormOwnerPost(ownerpost));
-          dispatch(updateTimelinePost(ownerpost));
           dispatch(updateTimelinePostForm(ownerpost));
           //alert(JSON.stringify(comment));
           break;
@@ -2814,35 +2833,39 @@ export const retryPostComment = (postid, commentid, comment_text) => {
 };
 
 //to make a post comment starts here
-export const makePostComment = (postid, comment_text) => {
+export const makePostComment = (data = []) => {
   return async dispatch => {
+    let postid = data[0];
+    let comment_text = data[1];
+    let tempid = data[2];
     if (checkData(postid) != true || checkData(comment_text) != true) {
       return;
     }
+
     const {user, profile} = store.getState();
-    let tempid = String(Math.floor(Math.random() * 1000000));
+    tempid = tempid || String(Math.floor(Math.random() * 1000000));
+    data[2] = tempid;
     let onretryschema = {
       commentid: tempid,
-      created_at: new Date().getTime(),
+      postid,
+      retry: true,
+      //created_at: new Date().getTime(),
       sendingmsg: 'Tap to retry',
-      onRetry: () => dispatch(retryPostComment(postid, tempid, comment_text)),
     };
 
+    dispatch(deleteOfflineAction({id: `makePostComment${tempid}`}));
     dispatch(
-      prependPostCommentForm([
-        {
-          postid,
-          comment_text,
-          onRetry: () => {},
-          commentid: tempid,
-          created_at: new Date().getTime(),
-          sendingmsg: 'posting...',
-          profile: {
-            ...profile,
-            user: {...user},
-          },
+      updatePendingPostCommentForm({
+        postid,
+        comment_text,
+        commentid: tempid,
+        created_at: new Date().getTime(),
+        sendingmsg: 'posting...',
+        profile: {
+          ...profile,
+          user: {...user},
         },
-      ]),
+      }),
     );
 
     try {
@@ -2860,37 +2883,34 @@ export const makePostComment = (postid, comment_text) => {
       const {errmsg, ownerpost, message, status, comment} = response.data;
       switch (status) {
         case 201:
-          dispatch(removePostCommentForm(tempid));
+          dispatch(removePendingPostCommentForm(tempid));
           dispatch(prependPostCommentForm([comment]));
           dispatch(updatePostCommentFormOwnerPost(ownerpost));
-          dispatch(updateTimelinePost(ownerpost));
           dispatch(updateTimelinePostForm(ownerpost));
           //alert(JSON.stringify(comment));
           break;
-        case 400:
-          dispatch(updatePostCommentForm(onretryschema));
-          break;
-        case 404:
-          dispatch(removePostCommentForm(tempid));
-          break;
-        case 412:
-          dispatch(removePostCommentForm(tempid));
-          Toast(errmsg, ToastAndroid.LONG);
-          break;
         case 401:
-          dispatch(removePostCommentForm(tempid));
+          dispatch(removePendingPostCommentForm(tempid));
           logOut(() => persistor.purge());
           break;
-        case 500:
-          dispatch(updatePostCommentForm(onretryschema));
-          break;
         default:
-          dispatch(updatePostCommentForm(onretryschema));
+          dispatch(updatePendingPostCommentForm(onretryschema));
           break;
       }
     } catch (err) {
-      //console.warn(err.toString());
-      dispatch(updatePostCommentForm(onretryschema));
+      console.warn(err.toString());
+      dispatch(updatePendingPostCommentForm(onretryschema));
+      if (err.toString().indexOf('Network Error') > -1) {
+        dispatch(
+          addOfflineAction({
+            id: `makePostComment${tempid}`,
+            funcName: 'makePostComment',
+            persist: true,
+            param: data,
+            override: true,
+          }),
+        );
+      }
     }
   };
 };
@@ -3000,7 +3020,6 @@ export const refreshPostComment = postid => {
           dispatch(setPostCommentForm(comments));
           dispatch(setPostCommentFormLink(nextpageurl));
           dispatch(updatePostCommentFormOwnerPost(ownerpost));
-          dispatch(updateTimelinePost(ownerpost));
           dispatch(updateTimelinePostForm(ownerpost));
           hiddens == true &&
             Toast(
@@ -3019,6 +3038,7 @@ export const refreshPostComment = postid => {
           break;
         case 401:
           dispatch(setPostCommentFormRefresh(false));
+          console.warn(errmsg, user.token);
           logOut(() => persistor.purge());
           break;
         case 412:
@@ -3073,7 +3093,6 @@ export const loadMorePostComment = postid => {
           dispatch(addPostCommentForm(comments));
           dispatch(setPostCommentFormLink(nextpageurl));
           dispatch(updatePostCommentFormOwnerPost(ownerpost));
-          dispatch(updateTimelinePost(ownerpost));
           dispatch(updateTimelinePostForm(ownerpost));
           hiddens == true &&
             Toast(
@@ -3135,7 +3154,6 @@ export const deletePostComment = (postcommentid, ownerid) => {
         case 200:
           dispatch(setProcessing(false, 'postcommentformdeleting'));
           dispatch(updatePostCommentFormOwnerPost(ownerpost));
-          dispatch(updateTimelinePost(ownerpost));
           dispatch(updateTimelinePostForm(ownerpost));
           dispatch(removePostCommentForm(postcommentid));
           break;

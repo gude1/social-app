@@ -139,6 +139,7 @@ export class PostItem extends Component {
     if (
       nextProps.postliked != this.props.postliked ||
       nextProps.posterusername != this.props.posterusername ||
+      nextProps.posteravatar != this.props.posteravatar ||
       nextProps.postshared != this.props.postshared ||
       nextProps.pendingpostshared != this.props.pendingpostshared ||
       nextProps.pendingpostliked != this.props.pendingpostliked ||

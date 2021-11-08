@@ -81,6 +81,8 @@ export const PREPEND_POST_COMMENT_FORM = 'prepend_post_comment_form';
 export const REMOVE_POST_COMMENT_FORM = 'remove_post_comment_form';
 export const UPDATE_POST_COMMENT_FORM_PROFILE_CHANGES =
   'update_post_comment_form_profile_changes';
+export const UPDATE_PENDING_POST_COMMENT = 'update_pending_post_comment';
+export const REMOVE_PENDING_POST_COMMENT = 'remove_pending_post_comment';
 
 /**
  * TYPE CONSTANT FOR POSTCOMMENTREPLYFORM REDUCER
