@@ -3067,6 +3067,7 @@ export const deletePostComment = (postcommentid, ownerid, isretry) => {
       dispatch(deleteOfflineAction({id: `makePostComment${postcommentid}`}));
       dispatch(removePendingPostCommentForm(postcommentid));
       dispatch(setProcessing(false, 'postcommentformdeleting'));
+      return;
     }
     try {
       const options = {
