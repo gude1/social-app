@@ -64,7 +64,7 @@ const handleProcessing = (key, value, state) => {
   }
 };
 
-const arrangePostComment = (data: Array) => {
+const arrangePostComment = (data = []) => {
   if (!Array.isArray(data) || data.length < 1) {
     return data;
   }

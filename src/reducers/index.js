@@ -15,7 +15,9 @@ import TimelinePostFormReducer, {
 import PostCommentFormReducer, {
   PostCommentFormListConfig,
 } from './PostCommentFormReducer';
-import PostCommentReplyFormReducer from './PostCommentReplyFormReducer';
+import PostCommentReplyFormReducer, {
+  PostCommentReplyFormListConfig,
+} from './PostCommentReplyFormReducer';
 import LikesListFormReducer from './LikesListFormReducer';
 import SharesListFormReducer from './SharesListFormReducer';
 import ProfileActionFormReducer from './ProfileActionFormReducer';
@@ -55,7 +57,10 @@ export default combineReducers({
     PostCommentFormListConfig,
     PostCommentFormReducer,
   ),
-  postcommentreplyform: PostCommentReplyFormReducer,
+  postcommentreplyform: persistReducer(
+    PostCommentReplyFormListConfig,
+    PostCommentReplyFormReducer,
+  ),
   userviewprofileform: UserViewProfileReducer,
   othersviewprofileform: OthersViewProfileReducer,
   likeslistform: LikesListFormReducer,

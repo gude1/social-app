@@ -174,6 +174,8 @@ import {
   SET_MENTIONS,
   UPDATE_PENDING_POST_COMMENT,
   REMOVE_PENDING_POST_COMMENT,
+  UPDATE_PENDING_POST_COMMENT_REPLY_FORM,
+  REMOVE_PENDING_POST_COMMENT_REPLY_FORM,
 } from './types';
 import {
   deleteFile,
@@ -2754,84 +2756,6 @@ export const fetchPostComment = postid => {
   };
 };
 
-//to retry posting a comment if it fails
-export const retryPostComment = (postid, commentid, comment_text) => {
-  return async dispatch => {
-    if (
-      checkData(postid) != true ||
-      checkData(commentid) != true ||
-      checkData(comment_text) != true
-    ) {
-      //console.warn('yo');
-      return;
-    }
-    const {user} = store.getState();
-    let onretryschema = {
-      commentid,
-      created_at: new Date().getTime(),
-      sendingmsg: 'Tap to retry',
-      onRetry: () =>
-        dispatch(retryPostComment(postid, commentid, comment_text)),
-    };
-    dispatch(
-      updatePostCommentForm({
-        postid,
-        onRetry: () => {},
-        commentid: commentid,
-        created_at: new Date().getTime(),
-        sendingmsg: 'posting...',
-      }),
-    );
-
-    try {
-      const options = {
-        headers: {Authorization: `Bearer ${user.token}`},
-      };
-      const response = await session.post(
-        'postcomment',
-        {
-          postid,
-          comment_text,
-        },
-        options,
-      );
-      const {errmsg, ownerpost, message, status, comment} = response.data;
-      switch (status) {
-        case 201:
-          dispatch(removePostCommentForm(commentid));
-          dispatch(prependPostCommentForm([comment]));
-          dispatch(updatePostCommentFormOwnerPost(ownerpost));
-          dispatch(updateTimelinePostForm(ownerpost));
-          //alert(JSON.stringify(comment));
-          break;
-        case 400:
-          dispatch(updatePostCommentForm(onretryschema));
-          break;
-        case 404:
-          dispatch(removePostCommentForm(commentid));
-          break;
-        case 412:
-          dispatch(removePostCommentForm(commentid));
-          Toast(errmsg, ToastAndroid.LONG);
-          break;
-        case 401:
-          dispatch(removePostCommentForm(commentid));
-          logOut(() => persistor.purge());
-          break;
-        case 500:
-          dispatch(updatePostCommentForm(onretryschema));
-          break;
-        default:
-          dispatch(updatePostCommentForm(onretryschema));
-          break;
-      }
-    } catch (err) {
-      console.warn(err.toString());
-      dispatch(updatePostCommentForm(onretryschema));
-    }
-  };
-};
-
 //to make a post comment starts here
 export const makePostComment = (data = []) => {
   return async dispatch => {
@@ -2858,6 +2782,7 @@ export const makePostComment = (data = []) => {
       updatePendingPostCommentForm({
         postid,
         comment_text,
+        retry: false,
         commentid: tempid,
         created_at: new Date().getTime(),
         sendingmsg: 'posting...',
@@ -3127,7 +3052,7 @@ export const loadMorePostComment = postid => {
   };
 };
 
-export const deletePostComment = (postcommentid, ownerid) => {
+export const deletePostComment = (postcommentid, ownerid, isretry) => {
   return async dispatch => {
     const {user, profile} = store.getState();
     if (
@@ -3138,7 +3063,11 @@ export const deletePostComment = (postcommentid, ownerid) => {
       Toast('Could not delete comment', ToastAndroid.LONG);
       return;
     }
-    dispatch(setProcessing(true, 'postcommentformdeleting'));
+    if (isretry) {
+      dispatch(deleteOfflineAction({id: `makePostComment${postcommentid}`}));
+      dispatch(removePendingPostCommentForm(postcommentid));
+      dispatch(setProcessing(false, 'postcommentformdeleting'));
+    }
     try {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
@@ -3231,6 +3160,20 @@ export const hidePostCommentAction = (commentid, ownerid) => {
 /**
  * ACTION CREATORS FOR POSTCOMMENTREPLYFORM REDUCER
  */
+export const updatePendingPostCommentReplyForm = (data = {}) => {
+  return {
+    type: UPDATE_PENDING_POST_COMMENT_REPLY_FORM,
+    payload: data,
+  };
+};
+
+export const removePendingPostCommentReplyForm = (data = '') => {
+  return {
+    type: REMOVE_PENDING_POST_COMMENT_REPLY_FORM,
+    payload: data,
+  };
+};
+
 export const addPostCommentReplyForm = (data: Array) => {
   return {
     type: ADD_POST_COMMENT_REPLY_FORM,
@@ -3371,14 +3314,14 @@ export const fetchPostCommentReply = originid => {
     } catch (err) {
       //console.warn(err.toString());
       dispatch(setProcessing('retry', 'postcommentreplyformfetching'));
-      if (err.toString().indexOf('Network Error') != -1) {
+      /*if (err.toString().indexOf('Network Error') != -1) {
         Toast(
           'action failed please check your internet connection and try again',
           ToastAndroid.LONG,
         );
       } else {
         Toast(`could not fetch replies please try again`, ToastAndroid.LONG);
-      }
+      }*/
     }
   };
 };
@@ -3604,35 +3547,39 @@ export const refreshPostCommentReply = originid => {
 };
 
 //to make a postcommentreply starts here
-export const makePostCommentReply = (originid, reply_text) => {
+export const makePostCommentReply = (data = []) => {
   return async dispatch => {
+    let originid = data[0];
+    let reply_text = data[1];
+    let tempid = data[2];
     if (checkData(originid) != true || checkData(reply_text) != true) {
       return;
     }
     const {user, profile} = store.getState();
-    let tempid = String(Math.floor(Math.random() * 1000000));
+    tempid = tempid || String(Math.floor(Math.random() * 1000000));
+    data[2] = tempid;
+
     let onretryschema = {
       replyid: tempid,
+      retry: true,
       created_at: new Date().getTime(),
       sendingmsg: 'Tap to retry',
-      onRetry: () => dispatch(retryPostComment(originid, tempid, reply_text)),
     };
-
+    dispatch(deleteOfflineAction({id: `makePostCommentReply${tempid}`}));
     dispatch(
-      prependPostCommentReplyForm([
-        {
-          originid,
-          reply_text,
-          onRetry: () => {},
-          replyid: tempid,
-          sendingmsg: 'posting...',
-          created_at: new Date().getTime(),
-          profile: {
-            ...profile,
-            user: {...user},
-          },
+      updatePendingPostCommentReplyForm({
+        originid,
+        retry: false,
+        reply_text,
+        onRetry: () => {},
+        replyid: tempid,
+        sendingmsg: 'posting...',
+        created_at: new Date().getTime(),
+        profile: {
+          ...profile,
+          user: {...user},
         },
-      ]),
+      }),
     );
 
     try {
@@ -3651,7 +3598,7 @@ export const makePostCommentReply = (originid, reply_text) => {
       //console.warn(response.data);
       switch (status) {
         case 201:
-          dispatch(removePostCommentReplyForm(tempid));
+          dispatch(removePendingPostCommentReplyForm(tempid));
           dispatch(prependPostCommentReplyForm([reply]));
           checkData(origin.replyid)
             ? dispatch(updatePostCommentReplyForm(origin))
@@ -3659,119 +3606,34 @@ export const makePostCommentReply = (originid, reply_text) => {
           dispatch(updatePostCommentReplyFormOwnerComment(origin));
           //alert(JSON.stringify(comment));
           break;
-        case 400:
-          dispatch(updatePostCommentReplyForm(onretryschema));
-          break;
-        case 404:
-          dispatch(removePostCommentReplyForm(tempid));
-          break;
-        case 412:
-          dispatch(removePostCommentReplyForm(tempid));
-          Toast(errmsg, ToastAndroid.LONG);
-          break;
         case 401:
-          dispatch(removePostCommentReplyForm(tempid));
+          dispatch(removePendingPostCommentReplyForm(tempid));
           logOut(() => persistor.purge());
           break;
-        case 500:
-          dispatch(updatePostCommentReplyForm(onretryschema));
-          break;
         default:
-          dispatch(updatePostCommentReplyForm(onretryschema));
+          Toast(errmsg);
+          dispatch(updatePendingPostCommentReplyForm(onretryschema));
           break;
       }
     } catch (err) {
       //console.warn(err.toString());
-      dispatch(updatePostCommentReplyForm(onretryschema));
-      if (err.toString().indexOf('Network Error') != -1) {
-        Toast(
-          'action failed please check your internet connection and try again',
-          ToastAndroid.LONG,
+      dispatch(updatePendingPostCommentReplyForm(onretryschema));
+      if (err.toString().indexOf('Network Error') > -1) {
+        dispatch(
+          addOfflineAction({
+            id: `makePostCommentReply${tempid}`,
+            funcName: 'makePostCommentReply',
+            persist: true,
+            param: data,
+            override: true,
+          }),
         );
-      } else {
-        Toast(`could not post reply please try again`, ToastAndroid.LONG);
       }
     }
   };
 };
 
-//to retry posting a comment if it fails
-export const retryPostCommentReply = (originid, replyid, reply_text) => {
-  return async dispatch => {
-    if (
-      checkData(originid) != true ||
-      checkData(replyid) != true ||
-      checkData(reply_text) != true
-    ) {
-      //console.warn('yo');
-      return;
-    }
-    const {user} = store.getState();
-    let onretryschema = {
-      replyid,
-      created_at: 'Tap to retry',
-      onRetry: () => dispatch(retryPostComment(originid, replyid, reply_text)),
-    };
-    dispatch(
-      updatePostCommentReplyForm({
-        onRetry: () => {},
-        replyid,
-        created_at: 'posting...',
-      }),
-    );
-
-    try {
-      const options = {
-        headers: {Authorization: `Bearer ${user.token}`},
-      };
-      const response = await session.post(
-        'postcomment',
-        {
-          postid,
-          comment_text,
-        },
-        options,
-      );
-      const {errmsg, origin, message, status, reply} = response.data;
-      switch (status) {
-        case 201:
-          dispatch(removePostCommentReplyForm(replyid));
-          dispatch(prependPostCommentReplyForm([reply]));
-          checkData(origin.replyid)
-            ? dispatch(updatePostCommentReplyForm(origin))
-            : dispatch(updatePostCommentForm(origin));
-          dispatch(updatePostCommentReplyFormOwnerComment(origin));
-          //alert(JSON.stringify(comment));
-          break;
-        case 400:
-          dispatch(updatePostCommentReplyForm(onretryschema));
-          break;
-        case 404:
-          dispatch(removePostCommentReplyForm(replyid));
-          break;
-        case 412:
-          dispatch(removePostCommentReplyForm(replyid));
-          Toast(errmsg, ToastAndroid.LONG);
-          break;
-        case 401:
-          dispatch(removePostCommentReplyForm(replyid));
-          logOut(() => persistor.purge());
-          break;
-        case 500:
-          dispatch(updatePostCommentReplyForm(onretryschema));
-          break;
-        default:
-          dispatch(updatePostCommentReplyForm(onretryschema));
-          break;
-      }
-    } catch (err) {
-      console.warn(err.toString());
-      dispatch(updatePostCommentReplyForm(onretryschema));
-    }
-  };
-};
-
-export const deletePostCommentReply = (replyid, ownerid) => {
+export const deletePostCommentReply = (replyid, ownerid, isretry) => {
   return async dispatch => {
     const {user, profile} = store.getState();
     if (
@@ -3783,6 +3645,12 @@ export const deletePostCommentReply = (replyid, ownerid) => {
       return;
     }
     dispatch(setProcessing(true, 'postcommentreplyformdeleting'));
+    if (isretry) {
+      dispatch(deleteOfflineAction({id: `makePostCommentReply${replyid}`}));
+      dispatch(removePendingPostCommentReplyForm(replyid));
+      dispatch(setProcessing(false, 'postcommentreplyformdeleting'));
+      return;
+    }
     try {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},

@@ -104,6 +104,10 @@ export const PREPEND_POST_COMMENT_REPLY_FORM =
 export const REMOVE_POST_COMMENT_REPLY_FORM = 'remove_post_comment_reply_form';
 export const UPDATE_POST_COMMENT_REPLY_FORM_PROFILE_CHANGES =
   'update_post_comment_form_reply_profile_changes';
+export const UPDATE_PENDING_POST_COMMENT_REPLY_FORM =
+  'update_pending_post_comment_reply_form';
+export const REMOVE_PENDING_POST_COMMENT_REPLY_FORM =
+  'remove_pending_post_comment_reply_form';
 
 /**
  * TYPE CONSTANT FOR LikesListReducer

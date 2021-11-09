@@ -957,13 +957,11 @@ export class ListItem extends Component {
       leftAvatar,
     } = this.props;
     //onRetrypress has precedence
-    let longpress = null;
     let onpress = null;
     if (checkData(onRetryPress) || checkData(onPress)) {
       onpress = onPress || onRetryPress;
-    } else {
-      longpress = onLongPress;
     }
+
     if (this.props.deleted == true) {
       return null;
     }
@@ -972,9 +970,9 @@ export class ListItem extends Component {
         friction={90}
         tension={100}
         onPress={onpress}
-        onLongPress={longpress}
+        onLongPress={onLongPress}
         activeScale={
-          checkData(longpress) == true || checkData(onpress) == true ? 0.8 : 1
+          checkData(onLongPress) == true || checkData(onpress) == true ? 0.8 : 1
         }>
         <View style={styles.listItemStyle}>
           <Avatar

@@ -12,10 +12,14 @@ import {
   SET_POST_COMMENT_REPLY_FORM,
   SET_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
   UPDATE_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
+  UPDATE_PENDING_POST_COMMENT_REPLY_FORM,
+  REMOVE_PENDING_POST_COMMENT_REPLY_FORM,
 } from '../actions/types';
 import {checkData} from '../utilities/index';
+import AsyncStorage from '@react-native-community/async-storage';
 
 const INITIAL_STATE = {
+  pendingpostcommentreplies: [],
   postcommentreplies: [],
   profileschanges: [],
   ownercomment: null,
@@ -59,7 +63,7 @@ const handleProcessing = (key, value, state) => {
   }
 };
 
-const arrangePostCommentReply = (data: Array) => {
+const arrangePostCommentReply = (data = []) => {
   if (!Array.isArray(data) || data.length < 1) {
     return data;
   }
@@ -67,30 +71,7 @@ const arrangePostCommentReply = (data: Array) => {
   return data.sort((item1, item2) => item2.created_at - item1.created_at);
 };
 
-const handleReset = (action, state) => {
-  if (!checkData(action) || !checkData(state)) {
-    return state;
-  }
-  if (
-    action.payload.key == 'postcommentreplyform' &&
-    checkData(action.payload.value) == false
-  ) {
-    return INITIAL_STATE;
-  } else if (
-    action.payload.key == 'postcommentreplyform' &&
-    checkData(action.payload.value) == true
-  ) {
-    let postcommentreplies = state.postcommentreplies.filter(
-      (item) => item.replyid != action.payload.value,
-    );
-    return {
-      ...state,
-      postcommentreplies: arrangePostCommentReply(postcommentreplies),
-    };
-  } else {
-    return state;
-  }
-};
+let reducerdata = null;
 
 const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
   switch (action.type) {
@@ -100,6 +81,28 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
       break;
     case SET_POST_COMMENT_REPLY_FORM_OWNER_COMMENT:
       return {...state, ownercomment: action.payload};
+      break;
+    case UPDATE_PENDING_POST_COMMENT_REPLY_FORM:
+      reducerdata = state.pendingpostcommentreplies.map(item => {
+        return item.replyid == action.payload.replyid
+          ? {...item, ...action.payload}
+          : item;
+      });
+      reducerdata.find(item => item.replyid == action.payload.replyid) ==
+        undefined && reducerdata.push({...action.payload});
+      return {
+        ...state,
+        pendingpostcommentreplies: arrangePostCommentReply(reducerdata),
+      };
+      break;
+    case REMOVE_PENDING_POST_COMMENT_REPLY_FORM:
+      reducerdata = state.pendingpostcommentreplies.filter(item => {
+        return item.replyid != action.payload;
+      });
+      return {
+        ...state,
+        pendingpostcommentreplies: arrangePostCommentReply(reducerdata),
+      };
       break;
     case UPDATE_POST_COMMENT_REPLY_FORM_OWNER_COMMENT:
       return {
@@ -132,12 +135,12 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
       };
       break;
     case UPDATE_POST_COMMENT_REPLY_FORM:
-      let updatedstate = state.postcommentreplies.map((item) => {
+      let updatedstate = state.postcommentreplies.map(item => {
         return item.replyid == action.payload.replyid
           ? {...item, ...action.payload}
           : item;
       });
-      updatedstate.find((item) => item.replyid == action.payload.replyid) ==
+      updatedstate.find(item => item.replyid == action.payload.replyid) ==
       undefined
         ? updatedstate.push({...action.payload})
         : null;
@@ -150,26 +153,35 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
       return {...state, nexturl: action.payload};
       break;
     case RESET:
-      return handleReset(action, state);
+      if (action.payload.key == 'postcommentreplyform') {
+        return INITIAL_STATE;
+      } else if (action.payload.key == 'postcommentreplies') {
+        return {
+          ...INITIAL_STATE,
+          pendingpostcommentreplies: state.pendingpostcommentreplies,
+        };
+      } else {
+        return state;
+      }
       break;
     case POST_COMMENT_REPLY_FORM_REFRESH:
       return {...state, refreshing: action.payload};
       break;
     case UPDATE_POST_COMMENT_REPLY_FORM_PROFILE_CHANGES:
-      let updatedprofilestate = state.profileschanges.map((item) => {
+      let updatedprofilestate = state.profileschanges.map(item => {
         return item.profileid == action.payload.profileid
           ? {...item, ...action.payload}
           : item;
       });
       updatedprofilestate.find(
-        (item) => item.profileid == action.payload.profileid,
+        item => item.profileid == action.payload.profileid,
       ) == undefined
         ? updatedprofilestate.push({...action.payload})
         : null;
       return {...state, profileschanges: updatedprofilestate};
       break;
     case REMOVE_POST_COMMENT_REPLY_FORM:
-      let newstate = state.postcommentreplies.map((item) => {
+      let newstate = state.postcommentreplies.map(item => {
         if (item.replyid == action.payload) {
           return {...item, deleted: true};
         }
@@ -181,6 +193,12 @@ const PostCommentReplyFormReducer = (state = INITIAL_STATE, action) => {
       return state;
       break;
   }
+};
+
+export const PostCommentReplyFormListConfig = {
+  key: 'pendingreplies',
+  storage: AsyncStorage,
+  whitelist: ['pendingpostcommentreplies'],
 };
 
 export default PostCommentReplyFormReducer;

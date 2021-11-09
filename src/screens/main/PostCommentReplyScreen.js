@@ -60,10 +60,9 @@ const PostCommentReplyScreen = ({
   let lefticonpress = navparent == true ? () => setDismissNav() : null;
   let righticon = '';
   let righticonpress = '';
-
   /**component functions starts here */
   useEffect(() => {
-    setReset('postcommentreplyform'); // set the replies to empty
+    setReset('postcommentreplies'); // set the replies to empty
     setPostCommentReplyFormOwnerComment(ownercomment);
     setPostCommentReplyForm(replies || []);
     if (makerequest != false) {
@@ -130,11 +129,18 @@ const PostCommentReplyScreen = ({
             updatePostCommentReplyProfile={
               updatePostCommentReplyFormProfileChanges
             }
+            makeReply={makePostCommentReply}
             updateReply={updatePostCommentReplyForm}
             setFlatlistRef={setFlatlistRef}
             origin={postcommentreplyform.ownercomment}
             onItemLike={likePostCommentReply}
-            data={postcommentreplyform.postcommentreplies}
+            data={[
+              ...postcommentreplyform.pendingpostcommentreplies.filter(
+                item =>
+                  item.originid == postcommentreplyform.ownercomment.commentid,
+              ),
+              ...postcommentreplyform.postcommentreplies,
+            ]}
             onLoadMore={loadMorePostCommentReply}
             loadingmore={postcommentreplyform.loadmore}
             onMute={muteProfileAction}
@@ -153,7 +159,7 @@ const PostCommentReplyScreen = ({
             inputvalue={inputtext}
             onSubmit={() => {
               setInputText('');
-              makePostCommentReply(ownercomment.commentid, inputtext);
+              makePostCommentReply([ownercomment.commentid, inputtext]);
               if (checkData(inputtext)) {
                 flatlistref.scrollToOffset({offset: 0});
               }

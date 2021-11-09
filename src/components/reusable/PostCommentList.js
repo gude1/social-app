@@ -139,6 +139,7 @@ export default class PostCommentList extends React.Component {
       },
     };
     this.currentcommentid = null;
+    this.currentcomment = null;
     this.currentcommentownerprofile = null;
     this.currentcommentownerid = null;
     this.navmodallistitem = [
@@ -223,7 +224,7 @@ export default class PostCommentList extends React.Component {
         },
       },
     ];
-    if (
+    /*if (
       this.props.userprofile.profile_id ==
       this.props.parentpost.profile.profile_id
     ) {
@@ -242,7 +243,7 @@ export default class PostCommentList extends React.Component {
           },
         },
       ];
-    }
+    }*/
   }
   componentDidMount() {
     this.setState({
@@ -287,6 +288,7 @@ export default class PostCommentList extends React.Component {
     if (checkData(commentid) && checkData(ownerid) && checkData(item.profile)) {
       this.currentcommentid = commentid;
       this.currentcommentownerid = ownerid;
+      this.currentcomment = item;
       this.currentcommentownerprofile = item.profile;
     }
     if (ownerid == this.props.userprofile.profile_id) {
@@ -429,7 +431,11 @@ export default class PostCommentList extends React.Component {
 
   _onDeletePress = () => {
     this.setState({confirmdeletevisible: false});
-    this.props.onDelete(this.currentcommentid, this.currentcommentownerid);
+    this.props.onDelete(
+      this.currentcommentid,
+      this.currentcommentownerid,
+      this.currentcomment.retry,
+    );
   };
 
   _onItemLiked = (commentid, likestatus, numlikes) => {
@@ -535,6 +541,7 @@ export default class PostCommentList extends React.Component {
             }}
             subtitle={this.props.parentpost.post_text}
             timeTextStyle={{fontSize: responsiveFontSize(1.6)}}
+            update={this.props.parentpost.num_post_comments}
             BottomContainerItem={
               <View
                 style={{
@@ -685,9 +692,9 @@ export default class PostCommentList extends React.Component {
             : handleTime(Math.floor(item.created_at * 1000))
         }
         onPress={() => this._onPress(item)}
-        onLongPress={() =>
-          this._setSelected(item.commentid, item.profile.profile_id, item)
-        }
+        onLongPress={() => {
+          this._setSelected(item.commentid, item.profile.profile_id, item);
+        }}
         //replyPress={}
         leftAvatar={{uri: item.profile.avatar[1]}}
         onAvatarPress={() => {
