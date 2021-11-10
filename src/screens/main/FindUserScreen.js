@@ -23,7 +23,6 @@ const FindUserScreen = ({
   componentId,
   navparent,
   screentype,
-  timelineposts,
   fetchProfiles,
   fetchMoreProfiles,
   fetchSearchList,
@@ -91,16 +90,14 @@ const FindUserScreen = ({
               height: 200,
               alignItems: 'center',
               justifyContent: 'center',
-            }}
-          >
+            }}>
             <ActivityIndicator size={20} color={'silver'} />
             <Text
               style={{
                 marginHorizontal: 5,
                 fontSize: responsiveFontSize(2.1),
                 color: colors.border,
-              }}
-            >
+              }}>
               Searching
             </Text>
           </View>
@@ -113,16 +110,14 @@ const FindUserScreen = ({
               alignItems: 'center',
               height: 200,
               justifyContent: 'center',
-            }}
-          >
+            }}>
             <Text
               style={{
                 color: colors.border,
                 textAlign: 'center',
                 fontWeight: 'bold',
                 fontSize: responsiveFontSize(2.5),
-              }}
-            >
+              }}>
               Oops!, something went wrong
             </Text>
             <Button
@@ -160,15 +155,13 @@ const FindUserScreen = ({
               height: 200,
               alignItems: 'center',
               justifyContent: 'center',
-            }}
-          >
+            }}>
             <Text
               style={{
                 marginHorizontal: 5,
                 fontSize: responsiveFontSize(2.6),
                 color: colors.border,
-              }}
-            >
+              }}>
               No search result for "{searchText}"
             </Text>
           </View>
@@ -182,8 +175,7 @@ const FindUserScreen = ({
               height: 200,
               alignItems: 'center',
               justifyContent: 'center',
-            }}
-          >
+            }}>
             <Icon
               type="entypo"
               name="users"
@@ -212,7 +204,7 @@ const FindUserScreen = ({
       <View style={styles.contentContainerStyle}>
         <InputBox
           showAvatar={false}
-          onChangeText={(text) => {
+          onChangeText={text => {
             setSearchText(text);
             setProcessing(false, 'searchlistfetching');
             /* if (text.length > 0) {
@@ -247,10 +239,9 @@ const FindUserScreen = ({
         />
         <ViewPager
           initialPage={0}
-          ref={(viewpager) => setViewPager(viewpager)}
+          ref={viewpager => setViewPager(viewpager)}
           style={{flex: 1}}
-          keyboardDismissMode="none"
-        >
+          keyboardDismissMode="none">
           <View key={0} style={{flex: 1}}>
             <ProfileList2
               data={userslist.profileslist}
@@ -307,8 +298,7 @@ FindUserScreen.options = {
   },
 };
 
-const mapStateToProps = (state) => ({
-  timelineposts: state.timelineposts.timelineposts,
+const mapStateToProps = state => ({
   userslist: state.userslist,
 });
 
@@ -325,4 +315,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToProps, actions)(FindUserScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(FindUserScreen);

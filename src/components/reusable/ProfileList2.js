@@ -81,6 +81,7 @@ class ProfileList2Item extends Component {
           padding: 5,
           marginLeft: 20,
           backgroundColor: colors.background,
+          ...containerStyle,
         }}
         titleStyle={{
           color: colors.text,
@@ -183,8 +184,7 @@ class ProfileList2 extends React.PureComponent {
             justifyContent: 'center',
             marginTop: 15,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size={30} color={'silver'} />
         </View>
       );
@@ -242,16 +242,14 @@ class ProfileList2 extends React.PureComponent {
             alignItems: 'center',
             height: 200,
             justifyContent: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size="large" color={'silver'} />
         </View>
       );
     } else if (this.props.fetching == 'retry') {
       return (
         <View
-          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}
-        >
+          style={{alignItems: 'center', height: 200, justifyContent: 'center'}}>
           <Icon
             onPress={() => this.props.onFetch()}
             color={colors.text}
@@ -270,8 +268,7 @@ class ProfileList2 extends React.PureComponent {
           height: 200,
           alignItems: 'center',
           justifyContent: 'center',
-        }}
-      >
+        }}>
         <Icon
           type="entypo"
           name="users"
@@ -282,7 +279,7 @@ class ProfileList2 extends React.PureComponent {
       </View>
     );
   };
-  _setAvatarNavModal = (item) => {
+  _setAvatarNavModal = item => {
     if (!checkData(item)) {
       return;
     }
@@ -297,7 +294,7 @@ class ProfileList2 extends React.PureComponent {
     });
   };
 
-  _setFollowMsg = (item) => {
+  _setFollowMsg = item => {
     if (item.profile.following == true && item.profile.followsu == true) {
       return 'You follow each other';
     } else if (item.profile.following == true) {
@@ -354,7 +351,12 @@ class ProfileList2 extends React.PureComponent {
         }
         bio={item.profile.user.username}
         textStyle={{color: colors.text}}
-        containerStyle={{padding: 5, backgroundColor: colors.background}}
+        containerStyle={{
+          padding: 5,
+          marginTop: 8,
+          backgroundColor: colors.background,
+          borderBottomWidth: 0.3,
+        }}
         loading={false}
       />
     );

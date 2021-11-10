@@ -15,7 +15,7 @@ import {
 } from 'react-native-responsive-dimensions';
 import TouchableScale from 'react-native-touchable-scale';
 import {useTheme} from '../../assets/themes/index';
-import {checkData, cutText, Toast} from '../../utilities/index';
+import {checkData, cutText, isEmpty, Toast} from '../../utilities/index';
 import {AvatarNavModal, ModalList, ActivityOverlay} from './ResuableWidgets';
 import moment from 'moment';
 
@@ -515,35 +515,43 @@ class PrivateChatList extends Component {
 
   _setEmptyPlaceHolder = () => {
     if (this.props.chatlistform.loading == true) {
-      return <ActivityIndicator size="large" color={'silver'} />;
+      return (
+        <View style={styles.placeholderCtn}>
+          <ActivityIndicator size="large" color={'silver'} />
+        </View>
+      );
     } else if (this.props.chatlistform.loading == 'retry') {
       return (
-        <View style={{alignItems: 'center', justifyContent: 'center'}}>
+        <View style={styles.placeholderCtn}>
           <Text
             style={{
-              color: colors.text,
-              textAlign: 'center',
+              color: colors.iconcolor,
               fontWeight: 'bold',
-              fontSize: responsiveFontSize(3),
+              fontSize: responsiveFontSize(2),
+              textAlign: 'center',
             }}>
-            chat not fetched,something went wrong
+            Chat not fetched, something went wrong
           </Text>
           <Button
             type="outline"
-            onPress={() => this.props.fetchList()}
+            onPress={this.props.fetchList}
             icon={{
               name: 'sync',
               type: 'antdesign',
-              size: responsiveFontSize(2.7),
-              color: colors.text,
+              size: responsiveFontSize(2),
+              color: colors.iconcolor,
             }}
             title="Tap to retry"
-            titleStyle={{color: colors.text, fontSize: responsiveFontSize(2)}}
+            titleStyle={{
+              color: colors.iconcolor,
+              textAlign: 'center',
+              fontSize: responsiveFontSize(1.4),
+            }}
+            containerStyle={{marginTop: 20}}
             buttonStyle={{
-              marginTop: 40,
               borderColor: colors.iconcolor,
               borderRadius: 15,
-              width: 150,
+              width: 100,
               padding: 10,
             }}
           />
@@ -552,13 +560,13 @@ class PrivateChatList extends Component {
     }
 
     return (
-      <View style={{alignItems: 'center', justifyContent: 'center'}}>
+      <View style={styles.placeholderCtn}>
         <Text
           style={{
-            color: colors.text,
-            textAlign: 'center',
+            color: colors.iconcolor,
             fontWeight: 'bold',
-            fontSize: responsiveFontSize(3),
+            fontSize: responsiveFontSize(2),
+            textAlign: 'center',
           }}>
           Send and receive private messages
         </Text>
@@ -567,7 +575,7 @@ class PrivateChatList extends Component {
           icon={{
             name: 'chat',
             type: 'entypo',
-            size: responsiveFontSize(2.7),
+            size: responsiveFontSize(2),
             color: colors.text,
           }}
           title="Start Chat"
@@ -582,12 +590,16 @@ class PrivateChatList extends Component {
               },
             })
           }
-          titleStyle={{color: colors.text, fontSize: responsiveFontSize(2)}}
+          titleStyle={{
+            color: colors.iconcolor,
+            textAlign: 'center',
+            fontSize: responsiveFontSize(1.4),
+          }}
+          containerStyle={{marginTop: 20}}
           buttonStyle={{
-            marginTop: 40,
             borderColor: colors.iconcolor,
             borderRadius: 15,
-            width: 150,
+            width: 100,
             padding: 10,
           }}
         />
@@ -737,21 +749,17 @@ class PrivateChatList extends Component {
     let pinneddata = this._setData();
     this.headerdata = pinneddata[0];
     this.bodydata = pinneddata[1];
-    let emptyplaceholder = !checkData(this.bodydata) ? (
-      <View style={styles.listEmptyStyle}>{this._setEmptyPlaceHolder()}</View>
-    ) : null;
-
     return (
       <>
         <FlatList
           // data={this.bodydata}
-          data={[1]}
+          data={!isEmpty(this.bodydata) ? [1] : []}
           renderItem={this._renderItem}
           //extraData={this.props.chatlistform.chatlist}
           initialNumRender={10}
           getItemLayout={this._getItemLayout}
           keyExtractor={this._keyExtractor}
-          ListEmptyComponent={emptyplaceholder}
+          ListEmptyComponent={this._setEmptyPlaceHolder()}
           ListHeaderComponent={this._setListHeaderComponent()}
           keyboardShouldPersistTaps="always"
           keyboardDismissMode={'on-drag'}
@@ -858,6 +866,11 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     flex: 1,
     marginTop: 5,
+  },
+  placeholderCtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: responsiveHeight(80),
   },
 });
 

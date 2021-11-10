@@ -44,7 +44,7 @@ const NotificationScreen = ({
   let lefticonpress = navparent == true ? setDismissNav() : null;
   /***Component functtion starts here */
   useEffect(() => {
-    setReset('mynotes');
+    //setReset('mynotes');
     const listener = {
       componentDidAppear: () => {
         if (!loaded) {
@@ -60,7 +60,7 @@ const NotificationScreen = ({
     );
     return () => {
       // Make sure to unregister the listener during cleanup
-      setReset('mynotes');
+      //setReset('mynotes');
       unsubscribe.remove();
     };
   }, []);
