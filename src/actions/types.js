@@ -187,6 +187,7 @@ export const SET_SEARCH_LIST_RESET = 'set_search_list_reset';
 export const PREPEND_PRIVATECHATLIST = 'prepend_privatachatlist';
 export const ADD_PRIVATECHATLIST = 'add_privatechatlist';
 export const UPDATE_PRIVATECHATLIST = 'update_privatechatlist';
+export const UPDATE_PRIVATECHATLIST_ARR = 'update_privatechatlist_arr';
 export const UPDATE_PRIVATECHATLIST_CHATS = 'update_privatechatlist_chats';
 export const REMOVE_PRIVATECHATLIST_CHATS = 'remove_privatechatlist_chats';
 export const UPDATE_ARRAY_PRIVATECHATLIST = 'update_array_privatechatlist';

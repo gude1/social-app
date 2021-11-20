@@ -21,50 +21,6 @@ import moment from 'moment';
 
 const {colors} = useTheme();
 
-const ShowChatList = ({
-  data,
-  userprofile,
-  onLongPress,
-  leftAvatarPress,
-  onPress,
-}) => {
-  if (!Array.isArray(data) || data.length < 1) {
-    return null;
-  }
-  return data
-    .map((item, index) => {
-      let chatitem = item.chats.find(item => item.deleted != true);
-      chatitem = !checkData(chatitem) ? item.chats[0] : chatitem;
-      return (
-        <ChatListItem
-          key={index.toString()}
-          deleted={item.deleted}
-          item={{partnerprofile: item.partnerprofile, ...chatitem}}
-          userprofile={userprofile}
-          leftAvatarPress={leftAvatarPress}
-          onPress={() => {
-            Navigation.showModal({
-              component: {
-                name: 'PrivateChat',
-                // id: "privatchat",
-                passProps: {
-                  navparent: true,
-                  privatechatobj: item,
-                  screentype: 'modal',
-                },
-              },
-            });
-            checkData(onPress) && onPress(item);
-          }}
-          onLongPress={() => {
-            checkData(onLongPress) && onLongPress(item);
-          }}
-        />
-      );
-    })
-    .reverse();
-};
-
 class ChatListItem extends Component {
   constructor(props) {
     super(props);
@@ -310,7 +266,6 @@ class ChatListItem extends Component {
             : require('../../assets/images/download.jpeg'),
           size: 55,
           onPress: () => leftAvatarPress({...item, profile: profile}),
-          //onPress: () => { console.warn(item, item.created_at) },
           resizeMode: 'contain',
         }}
         rightTitle={this.getChatTime(item.created_at * 1000)}
@@ -403,16 +358,14 @@ class PrivateChatList extends Component {
 
   _setData = () => {
     let pinnedchatarr = this.props.chatlistform.pinnedchatarr;
-    //console.warn('pinned', pinnedchatarr)
     let chatlist = this.props.chatlistform.chatlist;
     if (pinnedchatarr.length < 1) {
       return [[], chatlist];
     }
-    //pinnedchatarr = pinnedchatarr.reverse();
     let headerdata = pinnedchatarr.map(id => {
       return chatlist.find(item => item.create_chatid == id);
     });
-    //console.warn(pinnedchatarr);
+
     let bodydata = chatlist.filter(item => {
       return !pinnedchatarr.includes(item.create_chatid);
     });
@@ -421,40 +374,20 @@ class PrivateChatList extends Component {
 
   _renderItem = ({item}) => {
     return (
-      <ShowChatList
-        data={this.bodydata}
-        onLongPress={data => {
-          this._setCurrentSelectedChat(data);
-          this.setState({modallistvisible: true});
+      <ChatListItem
+        item={{
+          partnerprofile: item.partnerprofile,
+          num_new_msg: item.num_new_msg,
+          ...item.chats[0],
         }}
-        leftAvatarPress={this._setAvatarNavModal}
+        onLongPress={() => {
+          checkData(this.props.pinPrivateChatList) &&
+            this.props.pinPrivateChatList(item);
+        }}
         userprofile={this.props.userprofile}
+        leftAvatarPress={this._setAvatarNavModal}
       />
     );
-    /*return (
-            <ChatListItem
-                item={{ renderid: item.renderid, partnerprofile: item.partnerprofile, ...item.chats[0] }}
-                userprofile={this.props.userprofile}
-                leftAvatarPress={this._setAvatarNavModal}
-                onPress={() => {
-                    Navigation.showModal({
-                        component: {
-                            name: 'PrivateChat',
-                            id: "privatchat",
-                            passProps: {
-                                navparent: true,
-                                privatechatobj: item,
-                                screentype: 'modal'
-                            },
-                        }
-                    })
-                }}
-                onLongPress={() => {
-                    this._setCurrentSelectedChat(item);
-                    this.setState({ modallistvisible: true });
-                }}
-            />
-        );*/
   };
 
   _setListHeaderComponent = () => {
@@ -694,38 +627,12 @@ class PrivateChatList extends Component {
           <ActivityIndicator size={30} color={'silver'} />
         </View>
       );
-    } else if (this.props.chatlistform.loadingmore == 'retry') {
-      return (
-        <Button
-          type="clear"
-          onPress={() => {
-            this.props.fetchMoreList();
-          }}
-          icon={{
-            name: 'sync',
-            type: 'antdesign',
-            size: responsiveFontSize(2.7),
-            color: colors.text,
-          }}
-          title="Retry"
-          titleStyle={{color: colors.text, fontSize: responsiveFontSize(2)}}
-          buttonStyle={{
-            alignSelf: 'center',
-            marginTop: 10,
-            borderColor: colors.iconcolor,
-            borderRadius: 15,
-            padding: 10,
-          }}
-        />
-      );
     } else if (this.props.chatlistform.loadingmore == 'done') {
       return null;
     }
     return (
       <Button
-        onPress={() => {
-          this.props.fetchMoreList();
-        }}
+        onPress={this.props.fetchMoreList}
         type="clear"
         icon={{
           name: 'plus',
@@ -752,10 +659,10 @@ class PrivateChatList extends Component {
     return (
       <>
         <FlatList
-          // data={this.bodydata}
-          data={!isEmpty(this.bodydata) ? [1] : []}
+          data={this.bodydata}
+          refreshing={this.props.chatlistform.loading}
+          onRefresh={this.props.fetchList}
           renderItem={this._renderItem}
-          //extraData={this.props.chatlistform.chatlist}
           initialNumRender={10}
           getItemLayout={this._getItemLayout}
           keyExtractor={this._keyExtractor}

@@ -176,6 +176,7 @@ import {
   REMOVE_PENDING_POST_COMMENT,
   UPDATE_PENDING_POST_COMMENT_REPLY_FORM,
   REMOVE_PENDING_POST_COMMENT_REPLY_FORM,
+  UPDATE_PRIVATECHATLIST_ARR,
 } from './types';
 import {
   deleteFile,
@@ -3869,28 +3870,35 @@ export const setOthersViewProfileFormLink = data => {
  * ACTION CREATOR FOR PRIVATECHATLIST REDUCER
  *
  */
-export const prependPrivateChatList = (data: Array) => {
+export const prependPrivateChatList = (data = []) => {
   return {
     type: PREPEND_PRIVATECHATLIST,
     payload: data,
   };
 };
 
-export const addPrivateChatList = (data: Array) => {
+export const addPrivateChatList = (data = []) => {
   return {
     type: ADD_PRIVATECHATLIST,
     payload: data,
   };
 };
 
-export const updatePrivateChatList = (data: Object) => {
+export const updatePrivateChatList = (data = {}) => {
   return {
     type: UPDATE_PRIVATECHATLIST,
     payload: data,
   };
 };
 
-export const deletePrivateChatList = (data: String) => {
+export const updatePrivateChatListArr = (data = []) => {
+  return {
+    type: UPDATE_PRIVATECHATLIST_ARR,
+    payload: data,
+  };
+};
+
+export const deletePrivateChatList = (data = '') => {
   return {
     type: DELETE_PRIVATECHATLIST,
     payload: data,
@@ -3948,18 +3956,10 @@ export const fetchPrivateChatList = () => {
         headers: {Authorization: `Bearer ${user.token}`},
       };
       const response = await session.post('privatechatlist', null, options);
-      const {status, chatlist, errmsg} = response.data;
-      //console.warn(response.data.chatlist);
-      //console.warn(response.data.chatlist.length)
+      const {status, chatlist, count, errmsg} = response.data;
       switch (status) {
         case 200:
-          chatlist.forEach(item => {
-            dispatch(updatePrivateChatList(item));
-          });
-          //dispatch(addPrivateChatListEachChatArr(each_related_chat_arr));
-          dispatch(setProcessing(false, 'privatechatlistloading'));
-          break;
-        case 404:
+          dispatch(updatePrivateChatListArr(chatlist));
           dispatch(setProcessing(false, 'privatechatlistloading'));
           break;
         case 401:
@@ -3980,8 +3980,8 @@ export const fetchPrivateChatList = () => {
         default:
           dispatch(setProcessing(false, 'privatechatlistloading'));
           Toast(
-            'something went wrong chatlist could not be fetched',
-            ToastAndroid.LONG,
+            errmsg || 'something went wrong chatlist could not be fetched',
+            null,
             ToastAndroid.CENTER,
           );
           break;
@@ -3996,7 +3996,6 @@ export const fetchPrivateChatList = () => {
             funcName: 'fetchPrivateChatList',
             param: null,
             override: true,
-            //persist: true,
           }),
         );
       } else if (err.indexOf('500') != -1) {
@@ -4006,7 +4005,6 @@ export const fetchPrivateChatList = () => {
             funcName: 'fetchPrivateChatList',
             param: null,
             override: true,
-            //persist: true,
           }),
         );
       }
@@ -4014,7 +4012,7 @@ export const fetchPrivateChatList = () => {
   };
 };
 
-export const fetchPreviousChatList = () => {
+export const fetchMoreChatList = () => {
   return async dispatch => {
     const {user, privatechatlistform} = store.getState();
     if (
@@ -4024,10 +4022,6 @@ export const fetchPreviousChatList = () => {
       return;
     }
     dispatch(setProcessing(true, 'privatechatlistloadingmore'));
-    let chat_list = privatechatlistform.chatlist;
-    let max_chat = chat_list[0];
-    let min_chat = chat_list[chat_list.length - 1];
-    let blacklist = chat_list.map(item => item.create_chatid);
     try {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
@@ -4035,22 +4029,16 @@ export const fetchPreviousChatList = () => {
       const response = await session.post(
         'privatechatlist',
         {
-          limiter: [max_chat.id, min_chat.id],
-          black_list: blacklist,
+          min: privatechatlistform.lowest,
         },
         options,
       );
-      const {status, chatlist, errmsg} = response.data;
-      //console.warn(response.data);
+      const {status, chatlist, count, errmsg} = response.data;
+
       switch (status) {
         case 200:
-          chatlist.forEach(item => {
-            dispatch(updatePrivateChatList(item));
-          });
+          dispatch(updatePrivateChatListArr(chatlist));
           dispatch(setProcessing(false, 'privatechatlistloadingmore'));
-          break;
-        case 404:
-          dispatch(setProcessing('done', 'privatechatlistloadingmore'));
           break;
         case 401:
           dispatch(setProcessing(false, 'privatechatlistloadingmore'));
@@ -4059,22 +4047,15 @@ export const fetchPreviousChatList = () => {
         default:
           dispatch(setProcessing('failed', 'privatechatlistloadingmore'));
           Toast(
-            'something went wrong chatlist could not be fetched',
-            ToastAndroid.LONG,
+            errmsg || 'something went wrong chatlist could not be fetched',
+            null,
             ToastAndroid.CENTER,
           );
           break;
       }
     } catch (err) {
-      console.warn('fetchPreviousChatList', err.toString());
+      console.warn('fetchMoreChatList', err.toString());
       dispatch(setProcessing(false, 'privatechatlistloadingmore'));
-      /*if (err.toString().indexOf('Network Error') != -1) {
-                Toast(
-                    'Nework error!',
-                    ToastAndroid.LONG,
-                    ToastAndroid.CENTER
-                );
-            }*/
     }
   };
 };

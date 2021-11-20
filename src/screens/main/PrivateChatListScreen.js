@@ -1,11 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {
-  StyleSheet,
-  SafeAreaView,
-  ActivityIndicator,
-  Text,
-  View,
-} from 'react-native';
+import {StyleSheet, SafeAreaView, View} from 'react-native';
 import {Icon, Button} from 'react-native-elements';
 import {Header} from '../../components/reusable/ResuableWidgets';
 import {LoaderScreen} from '../../components/reusable/ResuableWidgets';
@@ -14,11 +8,7 @@ import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import {Navigation} from 'react-native-navigation';
-import {
-  responsiveHeight,
-  responsiveFontSize,
-  responsiveWidth,
-} from 'react-native-responsive-dimensions';
+import {responsiveFontSize} from 'react-native-responsive-dimensions';
 import PrivateChatList from '../../components/reusable/PrivateChatList';
 //import OfflineActionsDispatcher from '../../components/reusable/OfflineActionsDispatcher';
 
@@ -27,14 +17,9 @@ const {colors} = useTheme();
 const PrivateChatListScreen = ({
   componentId,
   privatechatlistform,
-  test1,
-  addOfflineAction,
-  setChatListArrayRead,
-  offlineactions,
-  //setProcessing,
   updatePrivateChatList,
   fetchPrivateChatList,
-  fetchPreviousChatList,
+  fetchMoreChatList,
   pinPrivateChatList,
   unPinPrivateChatList,
   delPrivateChatList,
@@ -87,43 +72,26 @@ const PrivateChatListScreen = ({
     });
 
   /**compoent function goes here */
-
-  //console.warn('PERSISTED', privatechatlistform.persistedchatlist);
-  // console.warn('CHATLIST', privatechatlistform.chatlist);
   useEffect(() => {
-    if (privatechatlistform.tosetreadarr.length > 0) {
-      setChatListArrayRead();
-    }
-  }, [privatechatlistform.tosetreadarr.toString()]);
-  useEffect(() => {
-    EntypoIcon.getImageSource('chat', 100).then((e) =>
+    EntypoIcon.getImageSource('chat', 100).then(e =>
       Navigation.mergeOptions(componentId, {
         bottomTab: {
           icon: e,
         },
+        bottomTabs: {
+          visible: true,
+        },
       }),
     );
-    Navigation.mergeOptions(componentId, {
-      bottomTabs: {
-        visible: true,
-      },
-    });
+
     if (
       privatechatlistform.chatlist.length < 1 &&
       privatechatlistform.persistedchatlist.length > 0
     ) {
-      let chatlist = privatechatlistform.persistedchatlist.filter(
-        (item) => item.deleted != true,
-      );
-      chatlist.forEach((item) => {
-        updatePrivateChatList(item);
-      });
+      updatePrivateChatList({chatlist: privatechatlistform.persistedchatlist});
     }
-    if (privatechatlistform.tosetreadarr.length > 0) {
-      setChatListArrayRead([() => fetchPrivateChatList(), null]);
-    } else {
-      fetchPrivateChatList();
-    }
+    fetchPrivateChatList();
+
     const listener = {
       componentDidAppear: () => {
         setLoaded(true);
@@ -158,7 +126,6 @@ const PrivateChatListScreen = ({
       return (
         <LoaderScreen
           animationOff={true}
-          //showLoading={true}
           loaderIcon={
             <Icon
               type="entypo"
@@ -176,7 +143,7 @@ const PrivateChatListScreen = ({
           <PrivateChatList
             chatlistform={privatechatlistform}
             fetchList={fetchPrivateChatList}
-            fetchMoreList={fetchPreviousChatList}
+            fetchMoreList={fetchMoreChatList}
             deletePrivateChatList={delPrivateChatList}
             pinPrivateChatList={pinPrivateChatList}
             unPinPrivateChatList={unPinPrivateChatList}
@@ -200,14 +167,6 @@ const PrivateChatListScreen = ({
         righticon2={righticon2}
         rightIcon2Press={righticon2press}
       />
-      {/*<Button title="Press" onPress={() => {
-                console.warn(`chatlist ${privatechatlistform.chatlist.length}`, privatechatlistform.chatlist);
-                console.warn(`persistedchatlist ${privatechatlistform.persistedchatlist.length}`, privatechatlistform.persistedchatlist);
-                privatechatlistform.chatlist.forEach((item, index) => {
-                    console.warn(index, item.chats)
-                });
-                console.warn(privatechatlistform.chatlist.length);
-            }} />*/}
       {renderView()}
     </SafeAreaView>
   );
@@ -224,7 +183,7 @@ PrivateChatListScreen.options = {
   },
 };
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   profile: state.profile,
   privatechatlistform: state.privatechatlistform,
   offlineactions: state.offlineactionslist,
@@ -242,4 +201,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default connect(mapStateToProps, actions)(PrivateChatListScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(PrivateChatListScreen);
