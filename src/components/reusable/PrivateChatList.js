@@ -382,7 +382,9 @@ class PrivateChatList extends Component {
         }}
         onLongPress={() => {
           checkData(this.props.pinPrivateChatList) &&
-            this.props.pinPrivateChatList(item);
+            this.props.pinPrivateChatList(
+              item.create_chatid || item?.partnerprofile?.profile_id,
+            );
         }}
         userprofile={this.props.userprofile}
         leftAvatarPress={this._setAvatarNavModal}
