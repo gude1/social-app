@@ -362,29 +362,37 @@ class PrivateChatList extends Component {
     if (pinnedchatarr.length < 1) {
       return [[], chatlist];
     }
-    let headerdata = pinnedchatarr.map(id => {
-      return chatlist.find(item => item.create_chatid == id);
-    });
+    let headerdata = pinnedchatarr
+      .map(id => {
+        return chatlist.find(item => {
+          return (
+            item.created_chatid == id || item?.partnerprofile?.profile_id == id
+          );
+        });
+      })
+      .filter(item => checkData(item));
 
     let bodydata = chatlist.filter(item => {
-      return !pinnedchatarr.includes(item.create_chatid);
+      return !pinnedchatarr.includes(
+        item.created_chatid || item?.partnerprofile?.profile_id,
+      );
     });
     return [headerdata, bodydata];
   };
 
   _renderItem = ({item}) => {
+    let chatitem =
+      Array.isArray(item.chats) && item.chats.length > 0 ? item.chats[0] : {};
     return (
       <ChatListItem
         item={{
           partnerprofile: item.partnerprofile,
           num_new_msg: item.num_new_msg,
-          ...item.chats[0],
+          ...chatitem,
         }}
         onLongPress={() => {
-          checkData(this.props.pinPrivateChatList) &&
-            this.props.pinPrivateChatList(
-              item.create_chatid || item?.partnerprofile?.profile_id,
-            );
+          this._setCurrentSelectedChat(item);
+          this.setState({modallistvisible: true});
         }}
         userprofile={this.props.userprofile}
         leftAvatarPress={this._setAvatarNavModal}
@@ -396,47 +404,46 @@ class PrivateChatList extends Component {
     if (!Array.isArray(this.headerdata) || this.headerdata.length < 1) {
       return null;
     }
-    //console.warn(data[0]);
-    //console.warn('----------------------------------------');
-    //console.warn(data[1]);
 
-    let pinnedlist = this.headerdata
-      .map((item, index) => {
-        let chatitem = item.chats.find(item => item.deleted != true);
-        chatitem = !checkData(chatitem) ? item.chats[0] : chatitem;
-        return (
-          <ChatListItem
-            key={index.toString()}
-            deleted={item.deleted}
-            item={{partnerprofile: item.partnerprofile, ...chatitem}}
-            checkmark={{
-              name: 'thumb-tack',
-              color: colors.iconcolor,
-              size: responsiveFontSize(2.2),
-              type: 'font-awesome',
-            }}
-            userprofile={this.props.userprofile}
-            leftAvatarPress={this._setAvatarNavModal}
-            onPress={() => {
-              Navigation.showModal({
-                component: {
-                  name: 'PrivateChat',
-                  passProps: {
-                    navparent: true,
-                    privatechatobj: item,
-                    screentype: 'modal',
-                  },
+    let pinnedlist = this.headerdata.map((item, index) => {
+      let chatitem =
+        Array.isArray(item.chats) && item.chats.length > 0 ? item.chats[0] : {};
+      return (
+        <ChatListItem
+          key={index.toString()}
+          deleted={item.deleted}
+          item={{
+            partnerprofile: item.partnerprofile,
+            num_new_msg: item.num_new_msg,
+            ...chatitem,
+          }}
+          checkmark={{
+            name: 'thumb-tack',
+            color: colors.iconcolor,
+            size: responsiveFontSize(2.2),
+            type: 'font-awesome',
+          }}
+          userprofile={this.props.userprofile}
+          leftAvatarPress={this._setAvatarNavModal}
+          onPress={() => {
+            Navigation.showModal({
+              component: {
+                name: 'PrivateChat',
+                passProps: {
+                  navparent: true,
+                  privatechatobj: item,
+                  screentype: 'modal',
                 },
-              });
-            }}
-            onLongPress={() => {
-              this._setCurrentSelectedChat(item);
-              this.setState({modallistvisible: true});
-            }}
-          />
-        );
-      })
-      .reverse();
+              },
+            });
+          }}
+          onLongPress={() => {
+            this._setCurrentSelectedChat(item);
+            this.setState({modallistvisible: true});
+          }}
+        />
+      );
+    });
     return (
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -551,12 +558,12 @@ class PrivateChatList extends Component {
           title: 'Pin chat',
           onPress: () => {
             this.setState({modallistvisible: false});
-            if (!checkData(this.currentselectedchat.create_chatid)) {
+            if (!checkData(this.currentselectedchat.created_chatid)) {
               Toast("can't pin chat now");
               return;
             }
             this.props.pinPrivateChatList(
-              this.currentselectedchat.create_chatid,
+              this.currentselectedchat.created_chatid,
             );
           },
           icon: {
@@ -569,7 +576,7 @@ class PrivateChatList extends Component {
       ];
     }
     let check = this.headerdata.find(
-      item => item.create_chatid == this.currentselectedchat.create_chatid,
+      item => item.created_chatid == this.currentselectedchat.created_chatid,
     );
     if (!checkData(check)) {
       return [
@@ -577,12 +584,12 @@ class PrivateChatList extends Component {
           title: 'Pin chat',
           onPress: () => {
             this.setState({modallistvisible: false});
-            if (!checkData(this.currentselectedchat.create_chatid)) {
+            if (!checkData(this.currentselectedchat.created_chatid)) {
               Toast("can't pin chat now");
               return;
             }
             this.props.pinPrivateChatList(
-              this.currentselectedchat.create_chatid,
+              this.currentselectedchat.created_chatid,
             );
           },
           icon: {
@@ -600,7 +607,7 @@ class PrivateChatList extends Component {
           onPress: () => {
             this.setState({modallistvisible: false});
             this.props.unPinPrivateChatList(
-              this.currentselectedchat.create_chatid,
+              this.currentselectedchat.created_chatid,
             );
           },
           icon: {
@@ -668,7 +675,9 @@ class PrivateChatList extends Component {
           initialNumRender={10}
           getItemLayout={this._getItemLayout}
           keyExtractor={this._keyExtractor}
-          ListEmptyComponent={this._setEmptyPlaceHolder()}
+          ListEmptyComponent={
+            this.headerdata.length < 1 && this._setEmptyPlaceHolder()
+          }
           ListHeaderComponent={this._setListHeaderComponent()}
           keyboardShouldPersistTaps="always"
           keyboardDismissMode={'on-drag'}
@@ -693,7 +702,7 @@ class PrivateChatList extends Component {
                       text: 'Yes',
                       onPress: () =>
                         this.props.deletePrivateChatList(
-                          item.create_chatid || item.partnerprofile.profile_id,
+                          item.created_chatid || item.partnerprofile.profile_id,
                         ),
                     },
                     {

@@ -207,17 +207,49 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
       return {...state, ...action.payload};
       break;
     case PIN_PRIVATECHATLIST:
-      findDebug('PIN_PRIVATECHATLIST');
       return {
         ...state,
-        pinnedchatarr: [...state.pinnedchatarr, action.payload],
+        pinnedchatarr: [action.payload, ...state.pinnedchatarr],
       };
     case UNPIN_PRIVATECHATLIST:
-      findDebug('UNPIN_PRIVATECHATLIST');
       reducerdata = state.pinnedchatarr.filter(
         created_chatid => created_chatid != action.payload,
       );
       return {...state, pinnedchatarr: reducerdata};
+      break;
+    case DELETE_PRIVATECHATLIST:
+      reducerdata = state.chatlist.filter(item => {
+        return item.created_chatid != action.payload;
+      });
+      reducerdata = makeList(reducerdata);
+      return {
+        ...state,
+        chatlist: reducerdata,
+        persistedchatlist: arrayReduce(reducerdata),
+        highest: reducerdata[0].chats[0].id,
+        lowest: reducerdata[reducerdata.length - 1].chats[0].id,
+      };
+      break;
+    case REMOVE_PRIVATECHATLIST_CHATS:
+      reducerdata = state.chatlist.map(chatlistitem => {
+        if (chatlistitem.created_chatid == action.payload.created_chatid) {
+          let chats = chatlistitem.chats.map(chatitem => {
+            return chatitem.private_chatid == action.payload.private_chatid
+              ? {...chatitem, deleted: true}
+              : chatitem;
+          });
+          return {...chatlistitem, chats};
+        }
+        return chatlistitem;
+      });
+      reducerdata = makeList(reducerdata);
+      return {
+        ...state,
+        chatlist: reducerdata,
+        persistedchatlist: arrayReduce(reducerdata),
+        highest: reducerdata[0].chats[0].id,
+        lowest: reducerdata[reducerdata.length - 1].chats[0].id,
+      };
       break;
     case PROCESSING:
       return handleProcessing(action.payload.key, action.payload.value, state);
@@ -234,7 +266,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
 export const PrivateChatListConfig = {
   key: 'privatechat',
   storage: AsyncStorage,
-  whitelist: ['persistedchatlist', 'lowest', 'highest','pinnedchatarr'],
+  whitelist: ['persistedchatlist', 'lowest', 'highest', 'pinnedchatarr'],
 };
 
 export default PrivateChatListReducer;
