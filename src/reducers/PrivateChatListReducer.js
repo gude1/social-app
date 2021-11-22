@@ -221,10 +221,14 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
       reducerdata = state.chatlist.filter(item => {
         return item.created_chatid != action.payload;
       });
+      let pinnedchatarr = state.pinnedchatarr.filter(
+        created_chatid => created_chatid != action.payload,
+      );
       reducerdata = makeList(reducerdata);
       return {
         ...state,
         chatlist: reducerdata,
+        pinnedchatarr,
         persistedchatlist: arrayReduce(reducerdata),
         highest: reducerdata[0].chats[0].id,
         lowest: reducerdata[reducerdata.length - 1].chats[0].id,
@@ -237,6 +241,36 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
             return chatitem.private_chatid == action.payload.private_chatid
               ? {...chatitem, deleted: true}
               : chatitem;
+          });
+          return {...chatlistitem, chats};
+        }
+        return chatlistitem;
+      });
+      reducerdata = makeList(reducerdata);
+      return {
+        ...state,
+        chatlist: reducerdata,
+        persistedchatlist: arrayReduce(reducerdata),
+        highest: reducerdata[0].chats[0].id,
+        lowest: reducerdata[reducerdata.length - 1].chats[0].id,
+      };
+      break;
+    case 'SET_FCM_PRIVATECHAT_READ_STATUS':
+      console.warn(action.payload);
+      reducerdata = state.chatlist.map(chatlistitem => {
+        if (chatlistitem.created_chatid == action.payload.created_chatid) {
+          let chats = chatlistitem.chats.map(chatitem => {
+            if (action.payload.min) {
+              return chatitem.id <= action.payload.min
+                ? {...chatitem, read: action.payload.status}
+                : chatitem;
+            } else if (action.payload.max) {
+              return chatitem.id >= action.payload.max
+                ? {...chatitem, read: action.payload.status}
+                : chatitem;
+            } else {
+              return chatitem;
+            }
           });
           return {...chatlistitem, chats};
         }

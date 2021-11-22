@@ -65,10 +65,10 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
         showWhen: true,
         when: remoteMessage.sentTime,
         data: responseData,
-        title: notification.title,
+        title: notification.title || '',
         largeIconUrl: notification.largeIconUrl,
         bigPictureUrl: notification.bigPictureUrl,
-        message: notification.body,
+        message: notification.body || '',
       });
     }
     if (!isEmpty(responseData)) {
@@ -98,16 +98,16 @@ const setTheDefault = store => {
         : null;
       if (!isEmpty(remoteMessage.data.notification)) {
         let notification = JSON.parse(remoteMessage.data.notification);
+        console.warn(notification, remoteMessage);
         PushNotification.localNotification({
           channelId: NOTIFICATION_CHANNEL_ID,
           showWhen: true,
           when: remoteMessage.sentTime,
-          //navdata: { t: "cute" },
           data: responseData,
-          title: notification.title,
+          title: notification.title || '',
           largeIconUrl: notification.largeIconUrl,
           bigPictureUrl: notification.bigPictureUrl,
-          message: notification.body,
+          message: notification.body || '',
         });
       }
       if (!isEmpty(responseData)) {

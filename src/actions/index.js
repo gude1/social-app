@@ -4214,10 +4214,6 @@ export const delPrivateChatList = (created_chatid = '') => {
 
     if (isEmpty(chatlistitem.last_id)) {
       dispatch(deletePrivateChatList(created_chatid));
-      dispatch({
-        type: UNPIN_PRIVATECHATLIST,
-        payload: created_chatid,
-      });
       dispatch(setProcessing(false, 'privatechatlistdeleting'));
       return;
     }
@@ -4239,10 +4235,6 @@ export const delPrivateChatList = (created_chatid = '') => {
       switch (status) {
         case 200:
           dispatch(deletePrivateChatList(created_chatid));
-          dispatch({
-            type: UNPIN_PRIVATECHATLIST,
-            payload: created_chatid,
-          });
           dispatch(setProcessing(false, 'privatechatlistdeleting'));
           break;
         default:
