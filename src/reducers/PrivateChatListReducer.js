@@ -17,7 +17,7 @@ import {
   UPDATE_PRIVATECHATLIST_ARR,
 } from '../actions/types';
 import AsyncStorage from '@react-native-community/async-storage';
-import {checkData} from '../utilities/index';
+import {checkData, isEmpty} from '../utilities/index';
 import {store} from '../store/index';
 
 const INITIAL_STATE = {
@@ -256,17 +256,28 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
       };
       break;
     case 'SET_FCM_PRIVATECHAT_READ_STATUS':
-      console.warn(action.payload);
+      // console.warn(action.payload);
       reducerdata = state.chatlist.map(chatlistitem => {
-        if (chatlistitem.created_chatid == action.payload.created_chatid) {
+        let payload = action.payload.find(
+          item => item.created_chatid == chatlistitem.created_chatid,
+        );
+        if (!isEmpty(payload)) {
           let chats = chatlistitem.chats.map(chatitem => {
-            if (action.payload.min) {
-              return chatitem.id <= action.payload.min
-                ? {...chatitem, read: action.payload.status}
+            if (payload.min) {
+              return chatitem.id <= payload.min
+                ? {
+                    ...chatitem,
+                    read:
+                      chatitem.read != 'true' ? payload.status : chatitem.read,
+                  }
                 : chatitem;
-            } else if (action.payload.max) {
-              return chatitem.id >= action.payload.max
-                ? {...chatitem, read: action.payload.status}
+            } else if (payload.max) {
+              return chatitem.id >= payload.max
+                ? {
+                    ...chatitem,
+                    read:
+                      chatitem.read != 'true' ? payload.status : chatitem.read,
+                  }
                 : chatitem;
             } else {
               return chatitem;

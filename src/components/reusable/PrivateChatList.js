@@ -663,13 +663,16 @@ class PrivateChatList extends Component {
 
   render() {
     let pinneddata = this._setData();
+    let refreshing = [true, false].includes(this.props.chatlistform.loading)
+      ? this.props.chatlistform.loading
+      : false;
     this.headerdata = pinneddata[0];
     this.bodydata = pinneddata[1];
     return (
       <>
         <FlatList
           data={this.bodydata}
-          refreshing={this.props.chatlistform.loading}
+          refreshing={refreshing}
           onRefresh={this.props.fetchList}
           renderItem={this._renderItem}
           initialNumRender={10}

@@ -3988,7 +3988,7 @@ export const fetchPrivateChatList = () => {
       }
     } catch (err) {
       console.warn('fetchPrivateChatList', err.toString());
-      dispatch(setProcessing('retry', 'privatechatlistloading'));
+      dispatch(setProcessing(false, 'privatechatlistloading'));
       if (err.toString().indexOf('Network Error') != -1) {
         dispatch(
           addOfflineAction({
