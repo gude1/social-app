@@ -37,22 +37,23 @@ const handleProcessing = (key, value, state) => {
 
 const SearchPrivateChatListReducer = (state = INITIAL_STATE, action) => {
   let reducerdata = [];
-  let boolval = false;
   switch (action.type) {
     case UPDATE_SEARCH_PRIVATE_CHATLIST:
-      reducerdata = [];
-      boolval = false;
-      reducerdata = state.searchresults.map((item) => {
-        if (item.profile.profile_id == action.payload.profile.profile_id) {
-          boolval = true;
-          return {...item, ...action.payload};
+      let excluded = [];
+      reducerdata = state.searchresults.map(item => {
+        let payload = action.payload.find(
+          newitem => item.profile.profile_id == newitem.profile_id,
+        );
+        if (payload) {
+          excluded.push(payload.profile.profile_id);
+          return {...item, ...payload};
         }
         return item;
       });
-      if (boolval != true) {
-        reducerdata.push({...action.payload});
-      }
-      return {...state, searchresults: reducerdata};
+      let added = action.payload.filter(
+        item => !excluded.includes(item.profile.profile_id),
+      );
+      return {...state, searchresults: [...reducerdata, ...added]};
       break;
     case SET_SEARCH_PRIVATE_CHATLIST_NEXTURL:
       return {...state, next_url: action.payload};

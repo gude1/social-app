@@ -24,28 +24,7 @@ class PostImageItem extends Component {
     super(props);
     this.reswidth = responsiveWidth(50);
     this.resheight = responsiveWidth(50) - 2;
-    this.leftchild = (
-      <Icon
-        iconStyle={{margin: 5}}
-        type="feather"
-        onPress={() =>
-          Navigation.showModal({
-            component: {
-              name: 'PostShow',
-              passProps: {
-                navparent: true,
-                screentype: 'modal',
-                toshowpost: this.props.item,
-              },
-            },
-          })
-        }
-        name="eye"
-        color="white"
-        size={responsiveFontSize(3)}
-      />
-    );
-    this.rightchild =
+    this.child =
       this.props.item.post_image.length > 1 ? (
         <Icon
           iconStyle={{margin: 5}}
@@ -61,25 +40,37 @@ class PostImageItem extends Component {
     return false;
   }
 
+  _onPress = () => {
+    Navigation.showModal({
+      component: {
+        name: 'PostShow',
+        passProps: {
+          navparent: true,
+          screentype: 'modal',
+          toshowpost: this.props.item,
+        },
+      },
+    });
+  };
+
   render() {
     let {item} = this.props;
     return (
-      <Image
-        source={{
-          uri: item.post_image[0].postimage,
-          //priority: FastImage.priority.high
-        }}
-        //ImageComponent={FastImage}
-        placeholderStyle={{backgroundColor: colors.border}}
-        containerStyle={{
-          margin: 0.5,
-        }}
-        style={{height: this.resheight, width: this.reswidth}}>
-        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-          {this.leftchild}
-          {this.rightchild}
-        </View>
-      </Image>
+      <TouchableOpacity activeOpacity={1} onPress={this._onPress}>
+        <Image
+          source={{
+            uri: item.post_image[0].postimage,
+          }}
+          placeholderStyle={{backgroundColor: colors.border}}
+          containerStyle={{
+            margin: 0.5,
+          }}
+          style={{height: this.resheight, width: this.reswidth}}>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+            {this.child}
+          </View>
+        </Image>
+      </TouchableOpacity>
     );
   }
 }

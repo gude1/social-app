@@ -4271,7 +4271,7 @@ export const delPrivateChatList = (created_chatid = '') => {
  *
  */
 
-export const updateSearchPrivateChatList = (data = {}) => {
+export const updateSearchPrivateChatList = (data = []) => {
   return {
     type: UPDATE_SEARCH_PRIVATE_CHATLIST,
     payload: data,
@@ -4305,16 +4305,18 @@ export const searchPrivateChatList = (name: String) => {
     if (network.isConnected != true) {
       //console.warn('newtoek', network.isConnected);
       if (name[0] == '@') {
-        name = name.substring(1);
+        name = name.substring(1).toLowerCase();
         profiles = chatlistform.chatlist.filter(chatitem =>
-          chatitem.partnerprofile.user.username.includes(name),
+          chatitem.partnerprofile.user.username.toLowerCase().includes(name),
         );
       } else {
-        profiles = chatlistform.chatlist.filter(chatitem =>
-          chatitem.partnerprofile.profile_name.includes(name),
-        );
+        profiles = chatlistform.chatlist.filter(chatitem => {
+          return chatitem.partnerprofile.profile_name
+            .toLowerCase()
+            .includes(name.toLowerCase());
+        });
       }
-      if (!checkData(profiles) || profiles.length > 1) {
+      if (isEmpty(profiles) || profiles.length > 1) {
         dispatch(setProcessing('none c', 'searchprivatechatlistfetching'));
         return;
       }
@@ -4339,9 +4341,7 @@ export const searchPrivateChatList = (name: String) => {
       const {status, lists, next_url, message} = response.data;
       switch (status) {
         case 200:
-          lists.forEach(searchitem => {
-            dispatch(updateSearchPrivateChatList(searchitem));
-          });
+          dispatch(updateSearchPrivateChatList(lists));
           dispatch(setSearchPrivateChatListSearchWord(name));
           dispatch(setSearchPrivateChatListNextUrl(next_url));
           dispatch(setProcessing(false, 'searchprivatechatlistfetching'));
@@ -4358,11 +4358,6 @@ export const searchPrivateChatList = (name: String) => {
     } catch (err) {
       console.warn(err.toString());
       dispatch(setProcessing('failed', 'searchprivatechatlistfetching'));
-      /* if (err.toString().indexOf('Network Error') != -1) {
-                 dispatch(setProcessing('none c', 'searchprivatechatlistfetching'));
-             } else {
-                 dispatch(setProcessing('failed', 'searchprivatechatlistfetching'));
-             }*/
     }
   };
 };

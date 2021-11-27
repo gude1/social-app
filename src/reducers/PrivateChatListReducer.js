@@ -219,7 +219,10 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
       break;
     case DELETE_PRIVATECHATLIST:
       reducerdata = state.chatlist.filter(item => {
-        return item.created_chatid != action.payload;
+        return (
+          item.created_chatid != action.payload ||
+          item.partnerprofile.profile_id != action.payload
+        );
       });
       let pinnedchatarr = state.pinnedchatarr.filter(
         created_chatid => created_chatid != action.payload,
@@ -256,7 +259,6 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
       };
       break;
     case 'SET_FCM_PRIVATECHAT_READ_STATUS':
-      // console.warn(action.payload);
       reducerdata = state.chatlist.map(chatlistitem => {
         let payload = action.payload.find(
           item => item.created_chatid == chatlistitem.created_chatid,
@@ -287,6 +289,44 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
         }
         return chatlistitem;
       });
+      reducerdata = makeList(reducerdata);
+      return {
+        ...state,
+        chatlist: reducerdata,
+        persistedchatlist: arrayReduce(reducerdata),
+        highest: reducerdata[0].chats[0].id,
+        lowest: reducerdata[reducerdata.length - 1].chats[0].id,
+      };
+      break;
+    case 'SET_FCM_PRIVATECHAT':
+      let newchat = action.payload[0];
+      let partnerprofile = action.payload[1];
+      let found = false;
+      reducerdata = state.chatlist.map(chatlistitem => {
+        if (
+          chatlistitem.created_chatid == action.payload.created_chatid ||
+          (!isEmpty(chatlistitem?.partnerprofile?.profile_id) &&
+            chatlistitem?.partnerprofile?.profile_id ==
+              partnerprofile?.profile_id)
+        ) {
+          return {
+            ...chatlistitem,
+            chats: [...chatlistitem.chats, action.payload],
+          };
+          found = true;
+        }
+        return chatlistitem;
+      });
+      found == false &&
+        reducerdata.push({
+          created_chatid: newchat.created_chatid,
+          num_new_msg: 1,
+          partnerprofile,
+          chats: [newchat],
+          first_id: newchat.id,
+          last_id: newchat.id,
+        });
+
       reducerdata = makeList(reducerdata);
       return {
         ...state,

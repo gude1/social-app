@@ -23,8 +23,6 @@ const {colors} = useTheme();
 
 const SearchPrivateChatListScreen = ({
   componentId,
-  authprofile,
-  offlineactionslist,
   searchprivatechatlist,
   searchPrivateChatList,
   searchMorePrivateChatList,
@@ -60,16 +58,14 @@ const SearchPrivateChatListScreen = ({
               height: responsiveHeight(60),
               alignItems: 'center',
               justifyContent: 'center',
-            }}
-          >
+            }}>
             <ActivityIndicator size={20} color={'silver'} />
             <Text
               style={{
                 marginHorizontal: 5,
                 fontSize: responsiveFontSize(2.1),
                 color: colors.border,
-              }}
-            >
+              }}>
               Searching
             </Text>
           </View>
@@ -82,8 +78,7 @@ const SearchPrivateChatListScreen = ({
               alignItems: 'center',
               justifyContent: 'center',
               height: responsiveHeight(60),
-            }}
-          >
+            }}>
             <View style={{flexDirection: 'row'}}>
               <Icon
                 color={colors.border}
@@ -106,8 +101,7 @@ const SearchPrivateChatListScreen = ({
               alignItems: 'center',
               justifyContent: 'center',
               height: responsiveHeight(60),
-            }}
-          >
+            }}>
             <View style={{flexDirection: 'row'}}>
               <Icon
                 color={colors.border}
@@ -129,31 +123,7 @@ const SearchPrivateChatListScreen = ({
               alignItems: 'center',
               justifyContent: 'center',
               height: responsiveHeight(60),
-            }}
-          >
-            <View style={{flexDirection: 'row'}}>
-              <Icon
-                color={colors.border}
-                name={'exclamation'}
-                size={responsiveFontSize(8)}
-                type={'evilicon'}
-              />
-            </View>
-            <Text style={{color: colors.border, textAlign: 'center'}}>
-              No results found
-            </Text>
-          </View>
-        );
-        break;
-      case 'none':
-        return (
-          <View
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: responsiveHeight(60),
-            }}
-          >
+            }}>
             <View style={{flexDirection: 'row'}}>
               <Icon
                 color={colors.border}
@@ -175,8 +145,7 @@ const SearchPrivateChatListScreen = ({
               alignItems: 'center',
               justifyContent: 'center',
               height: responsiveHeight(60),
-            }}
-          >
+            }}>
             <View style={{flexDirection: 'row'}}>
               <Icon
                 color={colors.border}
@@ -224,7 +193,14 @@ const SearchPrivateChatListScreen = ({
           color: colors.text,
         }}
         rightIcon={{
-          size: responsiveFontSize(6),
+          size: responsiveFontSize(3),
+          onPress: () => {
+            setReset('searchprivatechatlist');
+            searchPrivateChatList(inputtxt);
+          },
+          name: 'search1',
+          type: 'antdesign',
+          color: colors.text,
         }}
         onSubmit={() => {
           setReset('searchprivatechatlist');
@@ -237,7 +213,7 @@ const SearchPrivateChatListScreen = ({
           data={searchprivatechatlist.searchresults}
           fetching={searchprivatechatlist.searching}
           updateItem={updateSearchPrivateChatList}
-          onPress={(item) => {
+          onPress={item => {
             Navigation.showModal({
               component: {
                 name: 'PrivateChat',
@@ -273,10 +249,13 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   authprofile: state.profile,
   searchprivatechatlist: state.searchprivatechatlist,
   offlineactions: state.offlineactionslist,
 });
 
-export default connect(mapStateToProps, actions)(SearchPrivateChatListScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(SearchPrivateChatListScreen);
