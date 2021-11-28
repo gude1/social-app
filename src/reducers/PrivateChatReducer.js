@@ -17,14 +17,12 @@ import {checkData, formatDate} from '../utilities/index';
 
 const INITIAL_STATE = {
   partnerprofile: null,
-  fetchstatus: 0,
   privatechatinfo: null,
   fetchingchatinfo: 'false',
   deleting: false,
   create_chatid: null,
   loadingmore: false,
   chats: [],
-  last_fetch_arr: [],
 };
 const arrangeChat = data => {
   if (!Array.isArray(data) || data.length < 1) {

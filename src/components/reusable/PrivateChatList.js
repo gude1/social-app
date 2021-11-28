@@ -390,6 +390,18 @@ class PrivateChatList extends Component {
           num_new_msg: item.num_new_msg,
           ...chatitem,
         }}
+        onPress={() => {
+          Navigation.showModal({
+            component: {
+              name: 'PrivateChat',
+              passProps: {
+                navparent: true,
+                privatechatobj: item,
+                screentype: 'modal',
+              },
+            },
+          });
+        }}
         onLongPress={() => {
           this._setCurrentSelectedChat(item);
           this.setState({modallistvisible: true});

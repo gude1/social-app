@@ -33,16 +33,14 @@ const ShowChat = ({data, userprofile, onLongPress, onPress}) => {
   if (!Array.isArray(data) || data.length < 1) {
     return null;
   }
-  return data
-    .map((item, index) => (
-      <PrivateChatItem
-        item={item}
-        key={index}
-        onLongPress={() => (item.read == 'sending' ? {} : onLongPress(item))}
-        userprofile={userprofile}
-      />
-    ))
-    .reverse();
+  return data.map((item, index) => (
+    <PrivateChatItem
+      item={item}
+      key={index}
+      onLongPress={() => (item.read == 'sending' ? {} : onLongPress(item))}
+      userprofile={userprofile}
+    />
+  ));
 };
 
 class PrivateChatItem extends Component {
@@ -63,13 +61,17 @@ class PrivateChatItem extends Component {
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     if (
-      (this.props.item.sender_id == this.props.userprofile.profile_id &&
-        (this.props.item.read != nextProps.item.read ||
-          this.props.item.deleted != nextProps.item.deleted)) ||
-      this.state.update != nextState.update
+      this.state.update != nextState.update ||
+      this.props.item.id != nextProps.item.id
     ) {
-      //console.warn(`${this.props.item.read}`, nextProps.item.read);
       return true;
+    } else if (nextProps.item.sender_id == this.props.userprofile) {
+      if (
+        this.props.item.read != nextProps.item.read ||
+        this.props.item.deleted != nextProps.item.deleted
+      )
+        return true;
+      else return false;
     }
     return false;
   }
@@ -88,7 +90,7 @@ class PrivateChatItem extends Component {
     ));
   };
 
-  _onImageLoadErr = (isowner) => {
+  _onImageLoadErr = isowner => {
     let data = this.props.item.chat_pics[0];
     if (isowner == true) {
       this.setState({
@@ -105,7 +107,7 @@ class PrivateChatItem extends Component {
     }
   };
 
-  formatChatTime = (time) => {
+  formatChatTime = time => {
     if (isEmpty(time)) {
       return time;
     }
@@ -124,8 +126,7 @@ class PrivateChatItem extends Component {
       return (
         <TouchableOpacity
           onPress={this.props.onPress}
-          onLongPress={this.props.onLongPress}
-        >
+          onLongPress={this.props.onLongPress}>
           <View style={{marginVertical: 5, alignItems: 'flex-end'}}>
             {checkData(this.props.item.newdate) && (
               <Text
@@ -133,8 +134,7 @@ class PrivateChatItem extends Component {
                   alignSelf: 'center',
                   color: colors.text,
                   marginVertical: 10,
-                }}
-              >
+                }}>
                 {this.props.item.newdate}
               </Text>
             )}
@@ -146,8 +146,7 @@ class PrivateChatItem extends Component {
                   color: this.ownerchattextcolor,
                   backgroundColor: this.ownerchatbgcolor,
                 },
-              ]}
-            >
+              ]}>
               {this.props.item.chat_msg}
             </Text>
             {this.renderCheck(this.item)}
@@ -164,7 +163,7 @@ class PrivateChatItem extends Component {
     }
   };
 
-  renderOwnerChatImages = (chatimages) => {
+  renderOwnerChatImages = chatimages => {
     if (!Array.isArray(chatimages) || chatimages.length < 1) {
       return null;
     }
@@ -184,8 +183,7 @@ class PrivateChatItem extends Component {
                   },
                 });
               }}
-              onLongPress={this.props.onLongPress}
-            >
+              onLongPress={this.props.onLongPress}>
               <Image
                 containerStyle={[
                   styles.ownerChatImageContainer,
@@ -204,16 +202,14 @@ class PrivateChatItem extends Component {
                   />
                 }
                 resizeMode="cover"
-                source={{uri: this.state.chatimageuri}}
-              >
+                source={{uri: this.state.chatimageuri}}>
                 {checkData(this.item.chat_msg) && (
                   <View
                     style={{
                       height: '100%',
                       justifyContent: 'flex-end',
                       alignItems: 'flex-end',
-                    }}
-                  >
+                    }}>
                     <Icon
                       type="antdesign"
                       name="edit"
@@ -236,7 +232,7 @@ class PrivateChatItem extends Component {
     });
   };
 
-  renderCheck = (item) => {
+  renderCheck = item => {
     if (
       !checkData(item) ||
       item.sender_id != this.props.userprofile.profile_id
@@ -252,8 +248,7 @@ class PrivateChatItem extends Component {
             marginHorizontal: 25,
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
-          }}
-        >
+          }}>
           {this.formatChatTime(this.item.created_at * 1000)}{' '}
           <Text style={{letterSpacing: -1, color: colors.blue}}>√√</Text>
         </Text>
@@ -266,8 +261,7 @@ class PrivateChatItem extends Component {
             marginHorizontal: 25,
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
-          }}
-        >
+          }}>
           {this.formatChatTime(this.item.created_at * 1000)}{' '}
           <Text style={{letterSpacing: -1}}>√√</Text>
         </Text>
@@ -280,8 +274,7 @@ class PrivateChatItem extends Component {
             marginHorizontal: 25,
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
-          }}
-        >
+          }}>
           <Text style={{letterSpacing: -1}}>sending...</Text>
         </Text>
       );
@@ -310,8 +303,7 @@ class PrivateChatItem extends Component {
             marginHorizontal: 25,
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
-          }}
-        >
+          }}>
           {this.formatChatTime(this.item.created_at * 1000)}{' '}
           <Text style={{letterSpacing: -1}}>√</Text>
         </Text>
@@ -331,8 +323,7 @@ class PrivateChatItem extends Component {
       return (
         <TouchableOpacity
           onPress={this.props.onPress}
-          onLongPress={this.props.onLongPress}
-        >
+          onLongPress={this.props.onLongPress}>
           <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
             <Text style={styles.othersChatText}>{this.item.chat_msg}</Text>
             <Text style={styles.othersChatTime}>
@@ -351,7 +342,7 @@ class PrivateChatItem extends Component {
     }
   };
 
-  showImageDownloadBtn = (size) => {
+  showImageDownloadBtn = size => {
     //console.warn('download', this.state.imageloaded);
     if (!checkData(size)) {
       return null;
@@ -360,8 +351,7 @@ class PrivateChatItem extends Component {
       case 'false':
         return (
           <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}
-          >
+            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             <Button
               onPress={() => this.downloadOtherChatImage()}
               type="clear"
@@ -386,8 +376,7 @@ class PrivateChatItem extends Component {
       case 'downloading':
         return (
           <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}
-          >
+            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             <View
               style={{
                 width: 40,
@@ -395,8 +384,7 @@ class PrivateChatItem extends Component {
                 justifyContent: 'center',
                 alignItems: 'center',
                 backgroundColor: 'rgba(0,0,0,0.3)',
-              }}
-            >
+              }}>
               <ActivityIndicator size={30} color={'silver'} />
             </View>
           </View>
@@ -419,7 +407,7 @@ class PrivateChatItem extends Component {
       path: `/storage/emulated/0/CampusMeetup/ChatImages/${imagename}`,
     })
       .fetch('GET', arrchatpics[0].chatpic)
-      .then((res) => {
+      .then(res => {
         //console.warn('downloader', res.path());
         this.setState({
           update: Math.random() * 100000,
@@ -427,7 +415,7 @@ class PrivateChatItem extends Component {
           imageloaded: null,
         });
       })
-      .catch((err) => {
+      .catch(err => {
         this.setState({
           update: Math.random() * 100000,
           imageloaded: 'false',
@@ -436,7 +424,7 @@ class PrivateChatItem extends Component {
       });
   };
 
-  renderOtherChatImages = (chatimages) => {
+  renderOtherChatImages = chatimages => {
     if (!Array.isArray(chatimages) || chatimages.length < 1) {
       return null;
     }
@@ -446,8 +434,7 @@ class PrivateChatItem extends Component {
         <TouchableOpacity
           key={index}
           //onPress={this.props.onPress}
-          onLongPress={this.props.onLongPress}
-        >
+          onLongPress={this.props.onLongPress}>
           <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
             <TouchableOpacity
               onPress={() => {
@@ -461,8 +448,7 @@ class PrivateChatItem extends Component {
                   },
                 });
               }}
-              onLongPress={this.props.onLongPress}
-            >
+              onLongPress={this.props.onLongPress}>
               <Image
                 onError={() => this._onImageLoadErr(false)}
                 containerStyle={styles.othersChatImageContainer}
@@ -487,8 +473,7 @@ class PrivateChatItem extends Component {
                   />
                 }
                 resizeMode="cover"
-                source={{uri: this.state.chatimageuri}}
-              >
+                source={{uri: this.state.chatimageuri}}>
                 <View style={{height: '100%'}}>
                   {this.showImageDownloadBtn(item.size)}
                   {checkData(this.item.chat_msg) && (
@@ -497,8 +482,7 @@ class PrivateChatItem extends Component {
                         flex: 1,
                         justifyContent: 'flex-end',
                         alignItems: 'flex-end',
-                      }}
-                    >
+                      }}>
                       <Icon
                         type="antdesign"
                         name="edit"
@@ -549,7 +533,7 @@ class PrivateChats extends Component {
   constructor(props) {
     super(props);
     this.state = {modallistvisible: false};
-    this.previousdata = this.props.data.map((item) => item.id);
+    this.previousdata = this.props.data.map(item => item.id);
     this.currentselectedchatitem = null;
     this.flatlistref = null;
     this.viewabilityConfig = {
@@ -560,7 +544,7 @@ class PrivateChats extends Component {
   }
 
   _setListHeaderComponent = () => {
-    let data = this.props.data.filter((item) => item.deleted != true);
+    let data = this.props.data.filter(item => item.deleted != true);
     if (this.props.loaded == false || !Array.isArray(data) || data.length < 1) {
       return null;
     }
@@ -573,8 +557,7 @@ class PrivateChats extends Component {
             justifyContent: 'center',
             marginTop: 15,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size={30} color={'silver'} />
         </View>
       );
@@ -612,16 +595,14 @@ class PrivateChats extends Component {
             height: responsiveHeight(70),
             justifyContent: 'center',
             alignItems: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size="large" color={'silver'} />
         </View>
       );
-      return null;
     }
   };
 
-  _setCurrentSelectedChatItem = (chatitem) => {
+  _setCurrentSelectedChatItem = chatitem => {
     this.currentselectedchatitem = chatitem;
   };
 
@@ -668,33 +649,33 @@ class PrivateChats extends Component {
     return {length: 150, offset: 150 * index, index};
   };
 
-  _keyExtractor = (item, index) => index.toString();
+  onLongPress = data => {
+    let imagearr = data.chat_pics;
+    if (
+      checkData(data.private_chatid) &&
+      Array.isArray(imagearr) &&
+      imagearr.length > 0
+    ) {
+      imagearr = data.chat_pics.map(item => {
+        let imageuri = item.chatpic.split('/')[6];
+        return {
+          chatpic: rnPath(
+            `/storage/emulated/0/CampusMeetup/ChatImages/${imageuri}`,
+          ),
+        };
+      });
+    }
+    this._setCurrentSelectedChatItem({...data, chat_pics: imagearr});
+    this.setState({modallistvisible: true});
+  };
 
+  _keyExtractor = (item, index) => index.toString();
   _renderItem = ({item, index}) => {
     return (
-      <ShowChat
-        data={this.props.data}
-        // data={[]}
+      <PrivateChatItem
+        item={item}
+        onLongPress={() => (item.read == 'sending' ? {} : onLongPress(item))}
         userprofile={this.props.userprofile}
-        onLongPress={(data) => {
-          let imagearr = data.chat_pics;
-          if (
-            checkData(data.private_chatid) &&
-            Array.isArray(imagearr) &&
-            imagearr.length > 0
-          ) {
-            imagearr = data.chat_pics.map((item) => {
-              let imageuri = item.chatpic.split('/')[6];
-              return {
-                chatpic: rnPath(
-                  `/storage/emulated/0/CampusMeetup/ChatImages/${imageuri}`,
-                ),
-              };
-            });
-          }
-          this._setCurrentSelectedChatItem({...data, chat_pics: imagearr});
-          this.setState({modallistvisible: true});
-        }}
       />
     );
   };
@@ -703,7 +684,7 @@ class PrivateChats extends Component {
     return (
       <>
         <FlatList
-          ref={(ref) => {
+          ref={ref => {
             this.flatlistref = ref;
             this.props.setFlatListRef(ref);
           }}
@@ -714,7 +695,7 @@ class PrivateChats extends Component {
           initialNumRender={1}
           getItemLayout={this._getItemLayout}
           //data={this.props.loaded == false && [] || [...this.props.data].reverse()}
-          data={(this.props.loaded == false && []) || [1]}
+          data={this.props.loaded ? this.props.data : []}
           //maxToRenderPerBatch={1}
           inverted
           //updateCellsBatchingPeriod={0}

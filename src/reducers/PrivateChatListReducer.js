@@ -15,6 +15,7 @@ import {
   UPDATE_PRIVATECHATLIST_CHATS,
   REMOVE_PRIVATECHATLIST_CHATS,
   UPDATE_PRIVATECHATLIST_ARR,
+  SET_PRIVATE_CHAT_READ_STATUS,
 } from '../actions/types';
 import AsyncStorage from '@react-native-community/async-storage';
 import {checkData, isEmpty} from '../utilities/index';
@@ -151,16 +152,25 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
       let to_exclude_ids = [];
       reducerdata = state.chatlist.map(item => {
         let chatlistitem = action.payload.find(
-          newitem => newitem.created_chatid == item.created_chatid,
+          newitem =>
+            newitem.created_chatid == item.created_chatid ||
+            item?.partnerprofile?.profile_id ==
+              newitem?.partnerprofile?.profile_id,
         );
         if (chatlistitem) {
-          to_exclude_ids = [...to_exclude_ids, item.created_chatid];
+          to_exclude_ids = [
+            ...to_exclude_ids,
+            item.created_chatid || item?.partnerprofile?.profile_id,
+          ];
           return {...item, ...chatlistitem};
         }
         return item;
       });
       let to_add_list = action.payload.filter(
-        item => !to_exclude_ids.includes(item.created_chatid),
+        item =>
+          !to_exclude_ids.includes(
+            item.created_chatid || item?.partnerprofile?.profile_id,
+          ),
       );
       reducerdata = makeList([...reducerdata, ...to_add_list]);
       return {
@@ -173,7 +183,11 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
       break;
     case UPDATE_PRIVATECHATLIST_CHATS:
       reducerdata = state.chatlist.map(chatlistitem => {
-        if (chatlistitem.created_chatid == action.payload.created_chatid) {
+        if (
+          chatlistitem.created_chatid == action.payload.created_chatid ||
+          chatlistitem?.partnerprofile?.profile_id ==
+            action.payload?.partnerprofile?.profile_id
+        ) {
           let to_exclude_ids = [];
           let newchats = chatlistitem.chats.map(chatitem => {
             let chat = action.payload.chats.find(newchatitem => {
@@ -258,7 +272,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
         lowest: reducerdata[reducerdata.length - 1].chats[0].id,
       };
       break;
-    case 'SET_FCM_PRIVATECHAT_READ_STATUS':
+    case SET_PRIVATE_CHAT_READ_STATUS:
       reducerdata = state.chatlist.map(chatlistitem => {
         let payload = action.payload.find(
           item => item.created_chatid == chatlistitem.created_chatid,
@@ -311,6 +325,9 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
         ) {
           return {
             ...chatlistitem,
+            created_chatid: newchat.created_chatid,
+            num_new_msg: chatlistitem.num_new_msg + 1,
+            first_id: action.payload.id,
             chats: [...chatlistitem.chats, action.payload],
           };
           found = true;
