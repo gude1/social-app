@@ -334,7 +334,6 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
         }
         return chatlistitem;
       });
-      console.warn(found);
       found == false &&
         reducerdata.push({
           created_chatid: newchat.created_chatid,

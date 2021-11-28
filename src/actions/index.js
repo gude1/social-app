@@ -4533,7 +4533,7 @@ export const setPrivateChatToRead = (data = []) => {
       console.warn(response.data);
       switch (status) {
         case 200:
-          setPrivateChatStatus([{created_chatid, min, max}]);
+          dispatch(setPrivateChatStatus([{created_chatid, min, max}]));
           break;
         case 500:
           dispatch(
@@ -4955,7 +4955,7 @@ export const sendPrivateChat = (data: Object) => {
   };
 };
 
-export const getPrivateChatInfo = (created_chatid = '', ok,fail) => {
+export const getPrivateChatInfo = (created_chatid = '', ok, fail) => {
   return async dispatch => {
     if (!checkData(created_chatid)) {
       return;

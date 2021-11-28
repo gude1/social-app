@@ -129,8 +129,8 @@ const PrivateChatScreen = ({
         chatlistitem.first_id,
       ]);
     }
-  }, [chatlistitem.first_id]);
-
+  }, [chatlistitem.first_id, loaded]);
+  console.warn(chatlistitem.first_id);
   function startScreen() {
     if (
       !checkData(privatechatobj?.partnerprofile) ||
