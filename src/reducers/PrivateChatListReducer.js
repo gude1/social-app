@@ -323,17 +323,18 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
             chatlistitem?.partnerprofile?.profile_id ==
               partnerprofile?.profile_id)
         ) {
+          found = true;
           return {
             ...chatlistitem,
             created_chatid: newchat.created_chatid,
             num_new_msg: chatlistitem.num_new_msg + 1,
             first_id: action.payload.id,
-            chats: [...chatlistitem.chats, action.payload],
+            chats: [...chatlistitem.chats, newchat],
           };
-          found = true;
         }
         return chatlistitem;
       });
+      console.warn(found);
       found == false &&
         reducerdata.push({
           created_chatid: newchat.created_chatid,

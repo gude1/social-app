@@ -91,7 +91,7 @@ const HomeScreen = ({
       },
     });
     const listener = {
-      componentDidAppear: async () => {
+      componentDidAppear: () => {
         Navigation.mergeOptions('POST_HOME_SCREEN', {
           bottomTabs: {
             visible: true,
@@ -114,7 +114,6 @@ const HomeScreen = ({
 
   /**determines whether to open screen or not */
   if (!loaded) {
-    //console.warn('ye');
     setLoaded(true);
   }
 
