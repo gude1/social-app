@@ -507,7 +507,7 @@ export class ScrollableListOverLay extends Component {
           </Text>
           <Button
             type="outline"
-            onPress={() => (checkData(reLoad) ? reLoad() : null)}
+            onPress={reLoad}
             icon={{
               name: 'sync',
               type: 'antdesign',

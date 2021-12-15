@@ -3958,6 +3958,7 @@ export const fetchPrivateChatList = () => {
       };
       const response = await session.post('privatechatlist', null, options);
       const {status, chatlist, count, errmsg} = response.data;
+      //console.warn(response.data);
       switch (status) {
         case 200:
           dispatch(updatePrivateChatListArr(chatlist));
@@ -4586,7 +4587,6 @@ export const fetchPrivateChats = data => {
       Toast('chat not fetched missing values');
       return;
     }
-
     dispatch(
       deleteOfflineAction({
         id: `fetchprivatechat${created_chatid || partner_id}`,
@@ -4607,7 +4607,7 @@ export const fetchPrivateChats = data => {
       const {status, message, errmsg, chatlistitem} = response.data;
       switch (status) {
         case 200:
-          console.warn(message);
+          //console.warn(message);
           dispatch(updatePrivateChatListArr([chatlistitem]));
           break;
         case 401:
@@ -4651,38 +4651,34 @@ export const fetchPrivateChats = data => {
   };
 };
 
-const setChatPics = async (chatpics = []) => {
-  //return async (dispatch) => {
-  if (!Array.isArray(chatpics) || chatpics.length < 1) {
-    return [];
+const setChatPic = async imageuri => {
+  if (isEmpty(imageuri)) {
+    console.warn('setChatPic', 'imageuri is empty');
+    return;
   }
   let {fs} = RNFetchBlob;
-  return (chatpics = await Promise.all(
-    chatpics.map(async (item, index) => {
-      let {type, size, path, filename} = await getFileInfo(item.chatpic);
-      let thumbchatpic = await resizeImage(item.chatpic, 50, 50);
-      //console.warn(size);
-      if (size >= 8000000) {
-        item.chatpic = await resizeImage(item.chatpic, 1000, 1000);
-      } else {
-        let newpath = `${fs.dirs.MainBundleDir}/${Math.floor(
-          Math.random() * 10000,
-        )}.jpg`;
-        let moved = await cpFile(item.chatpic, newpath);
-        if (moved == true) {
-          item.chatpic = newpath;
-        }
-      }
-      return {chatpic: rnPath(item.chatpic), thumbchatpic};
-    }),
-  ));
-  //}
+  let chatpic = imageuri;
+  let thumbchatpic = await resizeImage(imageuri, 50, 50);
+  let {file, size, path, filename} = await getFileInfo(imageuri);
+  let ext = filename.split('.')[1];
+  if (size > 8000000) {
+    chatpic = await resizeImage(imageuri, 1000, 1000);
+  } else {
+    let newpath = `${fs.dirs.MainBundleDir}/${Math.floor(
+      Math.random() * 10000,
+    )}.${ext}`;
+    let moved = await cpFile(imageuri, newpath);
+    if (moved) {
+      chatpic = newpath;
+    }
+  }
+
+  return {chatpic: rnPath(chatpic), thumbchatpic, ext};
 };
 
-const saveChatPics = async (from: String, to: String) => {
+const saveChatPic = async (from = '', to = '') => {
   let {fs} = RNFetchBlob;
-  //console.warn('directory',fs.dirs);
-  let chatimagedir = `/storage/emulated/0/CampusMeetup/ChatImages/`;
+  let chatimagedir = `/storage/emulated/0/CampusMeetup/ChatImages/sent/`;
   try {
     let isdir = await fs.isDir(chatimagedir);
     if (!isdir) {
@@ -4690,11 +4686,11 @@ const saveChatPics = async (from: String, to: String) => {
     }
     cpFile(from, to, true);
   } catch (err) {
-    // console.warn('save pics', err.toString());
+    console.warn('save pics', err.toString());
   }
 };
 
-export const sendPrivateChat = (data: Object) => {
+export const sendPrivateChat = (data = {}) => {
   return async dispatch => {
     if (
       !checkData(data) ||
@@ -4705,18 +4701,15 @@ export const sendPrivateChat = (data: Object) => {
       return;
     }
     let {user} = store.getState();
-    let receiver_id = data.chatSchema.receiver_id;
     try {
       dispatch(
         deleteOfflineAction({id: `sendprivatechat${data.chatSchema.id}`}),
       );
-      dispatch(
-        addPrivateChat([data.chatSchema], data.created_chatid || receiver_id),
-      );
+      //console.warn(data.chatSchema);
       dispatch(
         updatePrivateChatListChats({
           chats: [data.chatSchema],
-          partnerprofile: data.chatSchema.partnerprofile,
+          partnerprofile: data.partnerprofile,
           created_chatid: data.created_chatid,
         }),
       );
@@ -4728,27 +4721,23 @@ export const sendPrivateChat = (data: Object) => {
         formData.append('chat_msg', data.reqobj.chat_msg);
       }
       formData.append('receiver_id', data.reqobj.receiver_id);
-      if (
-        Array.isArray(data.reqobj.chat_pics) &&
-        data.reqobj.chat_pics.length > 0
-      ) {
-        //console.warn('e reach b=here')
-        if (data.chatSchema.imagehandled != 'yes') {
-          data.reqobj.chat_pics = await setChatPics(data.reqobj.chat_pics);
+      if (!isEmpty(data.reqobj.chat_pics)) {
+        if (data.chatSchema.imagehandled != true) {
+          data.reqobj.chat_pics = await setChatPic(
+            data.reqobj.chat_pics.chatpic,
+          );
         }
-        data.reqobj.chat_pics.forEach(imageObj => {
-          formData.append('chat_pics[]', {
-            uri: imageObj.chatpic,
-            type: 'image/jpeg',
-            name: imageObj.chatpic,
-          });
-          formData.append('thumb_chat_pics[]', {
-            uri: imageObj.thumbchatpic,
-            type: 'image/jpeg',
-            name: imageObj.thumbchatpic,
-          });
+        formData.append('chat_pic', {
+          uri: data.reqobj.chat_pics.chatpic,
+          type: 'image/jpeg',
+          name: data.reqobj.chat_pics.chatpic,
         });
-        data.chatSchema.imagehandled = 'yes';
+        formData.append('thumb_chat_pic', {
+          uri: data.reqobj.chat_pics.thumbchatpic,
+          type: 'image/jpeg',
+          name: data.reqobj.chat_pics.thumbchatpic,
+        });
+        data.chatSchema.imagehandled = true;
         data.chatSchema.chat_pics = data.reqobj.chat_pics;
       }
       const response = await session.post('sendprivatechat', formData, options);
@@ -4763,32 +4752,13 @@ export const sendPrivateChat = (data: Object) => {
       } = response.data;
       switch (status) {
         case 200:
-          if (
-            Array.isArray(private_chat.chat_pics) &&
-            private_chat.chat_pics.length > 0
-          ) {
-            let {fs} = RNFetchBlob;
-            let dbimgname = private_chat.chat_pics[0].chatpic.split('/')[6];
-            dbimgname = `/storage/emulated/0/CampusMeetup/ChatImages/${dbimgname}`;
-            await saveChatPics(data.reqobj.chat_pics[0].chatpic, dbimgname);
+          if (!isEmpty(private_chat.chat_pics)) {
+            let dbimgname = private_chat.chat_pics.chatpic.split('/')[6];
+            dbimgname = `/storage/emulated/0/CampusMeetup/ChatImages/sent/${dbimgname}`;
+            await saveChatPic(data.reqobj.chat_pics.chatpic, dbimgname);
           }
-          // if (partnerprofile.profileblockedu != true) {
           dispatch(
-            setPrivateChatPartnerProfile(
-              partnerprofile,
-              data.created_chatid || receiver_id,
-            ),
-          );
-          //}
-          dispatch(
-            removePrivateChat(
-              data.chatSchema,
-              data.created_chatid || receiver_id,
-            ),
-          );
-          dispatch(removePrivateChatListChats(data.chatSchema));
-          dispatch(
-            addPrivateChat([private_chat], data.created_chatid || receiver_id),
+            removePrivateChatListChats({...data.chatSchema, partnerprofile}),
           );
           dispatch(
             updatePrivateChatListChats({
@@ -4797,97 +4767,9 @@ export const sendPrivateChat = (data: Object) => {
               created_chatid,
             }),
           );
-          checkData(created_chatid) &&
-            dispatch(
-              setPrivateChatCreateChatid(
-                created_chatid,
-                data.created_chatid || receiver_id,
-              ),
-            );
-          break;
-        case 400:
-          Toast(errmsg);
-          dispatch(
-            addPrivateChat(
-              [
-                {
-                  ...data.chatSchema,
-                  chat_pics: data.reqobj.chat_pics,
-                  read: 'failed',
-                },
-              ],
-              data.created_chatid,
-            ),
-          );
-          dispatch(
-            updatePrivateChatListChats({
-              chats: [
-                {
-                  ...data.chatSchema,
-                  chat_pics: data.reqobj.chat_pics,
-                  read: 'failed',
-                },
-              ],
-              partnerprofile: data.chatSchema.partnerprofile,
-              created_chatid: data.created_chatid,
-            }),
-          );
-          break;
-        case 401:
-          break;
-        case 412:
-          Toast(errmsg);
-          break;
-        case 500:
-          dispatch(
-            addPrivateChat(
-              [
-                {
-                  ...data.chatSchema,
-                  chat_pics: data.reqobj.chat_pics,
-                  read: 'failed',
-                },
-              ],
-              data.created_chatid,
-            ),
-          );
-          dispatch(
-            updatePrivateChatListChats({
-              chats: [
-                {
-                  ...data.chatSchema,
-                  chat_pics: data.reqobj.chat_pics,
-                  read: 'failed',
-                },
-              ],
-              partnerprofile: data.chatSchema.partnerprofile,
-              created_chatid: data.created_chatid,
-            }),
-          );
-          dispatch(
-            addOfflineAction({
-              id: `sendprivatechat${data.chatSchema.id}`,
-              funcName: 'sendPrivateChat',
-              param: data,
-              persist: true,
-              override: true,
-            }),
-          );
           break;
         default:
           dispatch(
-            addPrivateChat(
-              [
-                {
-                  ...data.chatSchema,
-                  chat_pics: data.reqobj.chat_pics,
-                  read: 'failed',
-                },
-              ],
-              data.created_chatid,
-            ),
-          );
-          dispatch(
             updatePrivateChatListChats({
               chats: [
                 {
@@ -4896,7 +4778,7 @@ export const sendPrivateChat = (data: Object) => {
                   read: 'failed',
                 },
               ],
-              partnerprofile: data.chatSchema.partnerprofile,
+              partnerprofile: data.partnerprofile,
               created_chatid: data.created_chatid,
             }),
           );
@@ -4904,18 +4786,6 @@ export const sendPrivateChat = (data: Object) => {
       }
     } catch (err) {
       console.warn('sendchat', err.toString());
-      dispatch(
-        addPrivateChat(
-          [
-            {
-              ...data.chatSchema,
-              chat_pics: data.reqobj.chat_pics,
-              read: 'failed',
-            },
-          ],
-          data.created_chatid,
-        ),
-      );
       dispatch(
         updatePrivateChatListChats({
           chats: [
@@ -4925,7 +4795,7 @@ export const sendPrivateChat = (data: Object) => {
               read: 'failed',
             },
           ],
-          partnerprofile: data.chatSchema.partnerprofile,
+          partnerprofile: data.partnerprofile,
           created_chatid: data.created_chatid,
         }),
       );
@@ -7143,7 +7013,7 @@ const setConvPic = async imageuri => {
   let {file, size, path, filename} = await getFileInfo(imageuri);
   let ext = filename.split('.')[1];
   if (size > 6000000) {
-    chat_pic = await resizeImage(imageuri, 1000, 1000);
+    chat_pics = await resizeImage(imageuri, 1000, 1000);
   } else {
     let newpath = `${fs.dirs.MainBundleDir}/${Math.floor(
       Math.random() * 10000,
@@ -7206,26 +7076,26 @@ export const sendMeetConversation = (data = []) => {
       convschema['chat_msg'] = data[2];
     }
     if (!isEmpty(data[3])) {
-      let chat_pic = null;
+      let chat_pics = null;
       if (data[3].processed != true) {
-        chat_pic = await setConvPic(data[3].chat_pic);
+        chat_pics = await setConvPic(data[3].chat_pics);
       } else {
-        chat_pic = data[3];
+        chat_pics = data[3];
       }
-      let {chatpic, thumbchatpic, ext} = chat_pic;
-      formdata.append('chat_pic', {
+      let {chatpic, thumbchatpic, ext} = chat_pics;
+      formdata.append('chat_pics', {
         uri: chatpic,
         type: `image/${ext}`,
         name: chatpic,
       });
-      formdata.append('thumb_chat_pic', {
+      formdata.append('thumb_chat_pics', {
         uri: thumbchatpic,
         type: `image/${ext}`,
         name: thumbchatpic,
       });
 
       data[3] = {chatpic, thumbchatpic, ext, processed: true};
-      convschema['chat_pic'] = data[3];
+      convschema['chat_pics'] = data[3];
     }
 
     dispatch(updateMeetupConversation(convschema, data[0]));
@@ -7243,8 +7113,8 @@ export const sendMeetConversation = (data = []) => {
       switch (status) {
         case 200:
           console.warn(200);
-          if (!isEmpty(conv.chat_pic)) {
-            await saveConvPic(conv.chat_pic.chatpic, data[3].chatpic);
+          if (!isEmpty(conv.chat_pics)) {
+            await saveConvPic(conv.chat_pics.chatpic, data[3].chatpic);
           }
           dispatch(removeMeetupConversation(convschema, data[0]));
           dispatch(updateMeetupConversation(conv, data[0]));

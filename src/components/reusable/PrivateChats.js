@@ -1,246 +1,98 @@
+import React, {Component} from 'react';
 import {
-  FlatList,
   StyleSheet,
   View,
-  ActivityIndicator,
-  Alert,
+  FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-import {Text, Button, Image, Avatar, Icon} from 'react-native-elements';
-import React, {PureComponent, Component} from 'react';
+import * as Animatable from 'react-native-animatable';
+import {Text, Button, Icon, Image} from 'react-native-elements';
 import {useTheme} from '../../assets/themes/index';
 import {
-  responsiveWidth,
-  responsiveHeight,
   responsiveFontSize,
+  responsiveHeight,
+  responsiveWidth,
 } from 'react-native-responsive-dimensions';
-import FastImage from 'react-native-fast-image';
 import {
+  isEmpty,
   checkData,
-  formatDate,
   rnPath,
   convertByteToKbMb,
-  isEmpty,
+  LinkingHandler,
+  image_exists,
 } from '../../utilities/index';
-import {ModalList, ActivityOverlay} from './ResuableWidgets';
 import moment from 'moment';
-import RNFetchBlob from 'rn-fetch-blob';
+import ParsedText from 'react-native-parsed-text';
 import {Navigation} from 'react-native-navigation';
+import RNFetchBlob from 'rn-fetch-blob';
+import {ActivityOverlay, ModalList} from './ResuableWidgets';
 
 const {colors} = useTheme();
-
-const ShowChat = ({data, userprofile, onLongPress, onPress}) => {
-  if (!Array.isArray(data) || data.length < 1) {
-    return null;
-  }
-  return data.map((item, index) => (
-    <PrivateChatItem
-      item={item}
-      key={index}
-      onLongPress={() => (item.read == 'sending' ? {} : onLongPress(item))}
-      userprofile={userprofile}
-    />
-  ));
-};
 
 class PrivateChatItem extends Component {
   constructor(props) {
     super(props);
-    this.state = {chatimageuri: this.returnChatImageUri()};
-    this.reswidth = responsiveWidth(100);
-    this.resheight = responsiveHeight(100);
+    this.state = {
+      partnerimageuri: '',
+      loadingpartnerimage: false,
+    };
     this.ownerchattextcolor = '#181818';
     this.ownerchatbgcolor = 'rgb(237,237,237)';
+    this.imageplacholdericon = (
+      <Icon
+        type="feather"
+        name="image"
+        color={'white'}
+        size={responsiveFontSize(4)}
+      />
+    );
 
     if (colors.theme == 'black') {
       this.ownerchatbgcolor = colors.border;
       this.ownerchattextcolor = colors.text;
     }
-    //let t = this.setImageUri();
   }
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     if (
-      this.state.update != nextState.update ||
-      this.props.item.id != nextProps.item.id
+      this.props.item.id != nextProps.item.id ||
+      this.state.partnerimageuri != nextState.partnerimageuri ||
+      this.state.loadingpartnerimage != nextState.loadingpartnerimage ||
+      (this.props.item.id == nextProps.item.id &&
+        this.props.item.read != nextProps.item.read)
     ) {
       return true;
-    } else if (nextProps.item.sender_id == this.props.userprofile) {
-      if (
-        this.props.item.read != nextProps.item.read ||
-        this.props.item.deleted != nextProps.item.deleted
-      )
-        return true;
-      else return false;
     }
+
     return false;
   }
 
-  returnChatImageUri = () => {
-    let data = this.props.item.chat_pics;
-    if (!Array.isArray(data) || data.length < 1) {
-      return '';
-    } else if (!checkData(this.props.item.private_chatid)) {
-      return this.props.item.chat_pics[0].chatpic;
-    }
-
-    let imageuri = data[0].chatpic.split('/')[6];
-    return (imageuri = rnPath(
-      `/storage/emulated/0/CampusMeetup/ChatImages/${imageuri}`,
-    ));
-  };
-
-  _onImageLoadErr = isowner => {
-    let data = this.props.item.chat_pics[0];
-    if (isowner == true) {
-      this.setState({
-        update: Math.random() * 100000,
-        chatimageuri: data.thumbchatpic,
-      });
-    } else if (isowner == false) {
-      //console.warn('was here')
-      this.setState({
-        update: Math.random() * 100000,
-        chatimageuri: data.thumbchatpic,
-        imageloaded: 'false',
-      });
-    }
-  };
-
-  formatChatTime = time => {
-    if (isEmpty(time)) {
-      return time;
-    }
-    return moment(time).format('MMM DD YYYY @ h:mm a');
-  };
-
-  renderOwnerChat = () => {
-    this.item = this.props.item;
-    if (this.item.sender_id != this.props.userprofile.profile_id) {
-      return null;
-    }
-    if (
-      checkData(this.item.chat_msg) &&
-      (!Array.isArray(this.item.chat_pics) || this.item.chat_pics.length < 1)
-    ) {
-      return (
-        <TouchableOpacity
-          onPress={this.props.onPress}
-          onLongPress={this.props.onLongPress}>
-          <View style={{marginVertical: 5, alignItems: 'flex-end'}}>
-            {checkData(this.props.item.newdate) && (
-              <Text
-                style={{
-                  alignSelf: 'center',
-                  color: colors.text,
-                  marginVertical: 10,
-                }}>
-                {this.props.item.newdate}
-              </Text>
-            )}
-
-            <Text
-              style={[
-                styles.ownerChatText,
-                {
-                  color: this.ownerchattextcolor,
-                  backgroundColor: this.ownerchatbgcolor,
-                },
-              ]}>
-              {this.props.item.chat_msg}
-            </Text>
-            {this.renderCheck(this.item)}
-          </View>
-        </TouchableOpacity>
-      );
-    } else if (
-      Array.isArray(this.item.chat_pics) ||
-      this.item.chat_pics.length > 0
-    ) {
-      return this.renderOwnerChatImages(this.item.chat_pics);
-    } else {
-      return null;
-    }
-  };
-
-  renderOwnerChatImages = chatimages => {
-    if (!Array.isArray(chatimages) || chatimages.length < 1) {
-      return null;
-    }
-    return chatimages.map((item, index) => {
-      return (
-        <TouchableOpacity key={index} onLongPress={this.props.onLongPress}>
-          <View style={{marginVertical: 5, alignItems: 'flex-end'}}>
-            <TouchableOpacity
-              onPress={() => {
-                Navigation.showModal({
-                  component: {
-                    name: 'PhotoViewer',
-                    passProps: {
-                      navparent: true,
-                      photos: [this.state.chatimageuri],
-                    },
-                  },
-                });
-              }}
-              onLongPress={this.props.onLongPress}>
-              <Image
-                containerStyle={[
-                  styles.ownerChatImageContainer,
-                  {
-                    borderColor: this.ownerchatbgcolor,
-                  },
-                ]}
-                onError={() => this._onImageLoadErr(true)}
-                placeholderStyle={styles.ownerChatImagePlaceholder}
-                PlaceholderContent={
-                  <Icon
-                    type="feather"
-                    name="image"
-                    color={'white'}
-                    size={responsiveFontSize(4)}
-                  />
-                }
-                resizeMode="cover"
-                source={{uri: this.state.chatimageuri}}>
-                {checkData(this.item.chat_msg) && (
-                  <View
-                    style={{
-                      height: '100%',
-                      justifyContent: 'flex-end',
-                      alignItems: 'flex-end',
-                    }}>
-                    <Icon
-                      type="antdesign"
-                      name="edit"
-                      color={'white'}
-                      iconStyle={{
-                        fontWeight: 'bold',
-                        padding: 5,
-                        backgroundColor: 'rgba(0,0,0,0.2)',
-                      }}
-                      size={responsiveFontSize(3)}
-                    />
-                  </View>
-                )}
-              </Image>
-            </TouchableOpacity>
-            {this.renderCheck(this.item)}
-          </View>
-        </TouchableOpacity>
-      );
-    });
-  };
+  componentDidMount() {
+    (async () => {
+      let {item, userprofile} = this.props;
+      if (
+        !isEmpty(item.chat_pics) &&
+        item.receiver_id == userprofile.profile_id
+      ) {
+        let imagename = item.chat_pics.chatpic.split('/')[6];
+        let imagepath = rnPath(
+          `/storage/emulated/0/CampusMeetup/ChatImages/received/${imagename}`,
+        );
+        let res = await image_exists(imagepath);
+        if (res) {
+          this.setState({partnerimageuri: imagepath});
+        }
+      }
+    })();
+  }
 
   renderCheck = item => {
-    if (
-      !checkData(item) ||
-      item.sender_id != this.props.userprofile.profile_id
-    ) {
+    if (isEmpty(item) || item.sender_id != this.props.userprofile.profile_id) {
       return null;
     }
 
-    if (item.read == true || item.read == 'true') {
+    if (item.read == 'read') {
       return (
         <Text
           style={{
@@ -249,11 +101,11 @@ class PrivateChatItem extends Component {
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
           }}>
-          {this.formatChatTime(this.item.created_at * 1000)}{' '}
+          {this.formatConvTime(item.created_at * 1000)}{' '}
           <Text style={{letterSpacing: -1, color: colors.blue}}>√√</Text>
         </Text>
       );
-    } else if (item.read == 'delivered') {
+    } else if (item.read == 'delievered') {
       return (
         <Text
           style={{
@@ -262,7 +114,7 @@ class PrivateChatItem extends Component {
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
           }}>
-          {this.formatChatTime(this.item.created_at * 1000)}{' '}
+          {this.formatConvTime(item.created_at * 1000)}{' '}
           <Text style={{letterSpacing: -1}}>√√</Text>
         </Text>
       );
@@ -273,7 +125,7 @@ class PrivateChatItem extends Component {
             color: '#a0a0a0',
             marginHorizontal: 25,
             textAlign: 'justify',
-            fontSize: responsiveFontSize(1.2),
+            fontSize: responsiveFontSize(1.5),
           }}>
           <Text style={{letterSpacing: -1}}>sending...</Text>
         </Text>
@@ -304,228 +156,360 @@ class PrivateChatItem extends Component {
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
           }}>
-          {this.formatChatTime(this.item.created_at * 1000)}{' '}
+          {this.formatConvTime(item.created_at * 1000)}{' '}
           <Text style={{letterSpacing: -1}}>√</Text>
         </Text>
       );
     }
   };
 
-  renderOtherChat = () => {
-    this.item = this.props.item;
-    if (this.item.receiver_id != this.props.userprofile.profile_id) {
-      return null;
+  formatConvTime = time => {
+    if (isEmpty(time)) {
+      return time;
     }
-    if (
-      checkData(this.item.chat_msg) &&
-      (!Array.isArray(this.item.chat_pics) || this.item.chat_pics.length < 1)
-    ) {
+    return moment(time).format('MMM DD YYYY @ h:mm a');
+  };
+
+  returnPartnerImageUri = async () => {};
+
+  returnOwnerImageUri = (dbconvpic, pending) => {
+    if (isEmpty(dbconvpic) || !isEmpty(pending)) {
+      return dbconvpic;
+    }
+    let convpicdir = '/storage/emulated/0/CampusMeetup/ChatImages/sent/';
+    return rnPath(`${convpicdir}${dbconvpic.split('/')[6]}`);
+  };
+
+  renderOwnerChat = () => {
+    let {item, sendConv} = this.props;
+    let onPress = null;
+    if (checkData(sendConv) && !isEmpty(item.data)) {
+      onPress = () => sendConv(item.data);
+    }
+
+    if (!isEmpty(item.chat_msg) && isEmpty(item.chat_pics)) {
       return (
-        <TouchableOpacity
-          onPress={this.props.onPress}
-          onLongPress={this.props.onLongPress}>
-          <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
-            <Text style={styles.othersChatText}>{this.item.chat_msg}</Text>
-            <Text style={styles.othersChatTime}>
-              {this.formatChatTime(this.item.created_at * 1000)}
-            </Text>
+        <Animatable.View useNativeDriver={true}>
+          <View style={{marginVertical: 5, alignItems: 'flex-end'}}>
+            <TouchableOpacity onPress={onPress}>
+              <ParsedText
+                style={[
+                  styles.ownerChatText,
+                  {
+                    color: this.ownerchattextcolor,
+                    backgroundColor: this.ownerchatbgcolor,
+                  },
+                ]}
+                parse={[
+                  {
+                    type: 'url',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handleUrlPress,
+                    renderText: this.renderUrlText,
+                  },
+                  {
+                    type: 'phone',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handlePhonePress,
+                  },
+                  {
+                    type: 'email',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handleEmailPress,
+                  },
+                  {pattern: /@(\w+)/, style: styles.parsedText},
+                ]}>
+                {item.chat_msg}
+              </ParsedText>
+            </TouchableOpacity>
+            {this.renderCheck(item)}
           </View>
-        </TouchableOpacity>
+        </Animatable.View>
       );
-    } else if (
-      Array.isArray(this.item.chat_pics) ||
-      this.item.chat_pics.length > 0
-    ) {
-      return this.renderOtherChatImages(this.item.chat_pics);
+    } else if (!isEmpty(item.chat_msg) && !isEmpty(item.chat_pics)) {
+      let imageuri = this.returnOwnerImageUri(
+        item.chat_pics.chatpic,
+        item.pending,
+      );
+      return (
+        <Animatable.View useNativeDriver={true}>
+          <View style={{marginVertical: 5, alignItems: 'flex-end'}}>
+            <TouchableOpacity
+              onPress={
+                checkData(onPress)
+                  ? onPress
+                  : () =>
+                      Navigation.showModal({
+                        component: {
+                          name: 'PhotoViewer',
+                          passProps: {
+                            navparent: true,
+                            photos: [imageuri],
+                          },
+                        },
+                      })
+              }
+              activeOpacity={0.9}>
+              <Image
+                containerStyle={[
+                  styles.ownerChatImageContainer,
+                  {
+                    borderColor: this.ownerchatbgcolor,
+                  },
+                ]}
+                onPress={onPress}
+                //onError={() => this._onImageLoadErr(true)}
+                placeholderStyle={styles.ownerChatImagePlaceholder}
+                PlaceholderContent={this.imageplacholdericon}
+                resizeMode="cover"
+                source={{
+                  uri: imageuri,
+                }}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onPress}>
+              <ParsedText
+                style={[
+                  styles.ownerChatText,
+                  {
+                    color: this.ownerchattextcolor,
+                    backgroundColor: this.ownerchatbgcolor,
+                  },
+                ]}>
+                {item.chat_msg}
+              </ParsedText>
+            </TouchableOpacity>
+            {this.renderCheck(item)}
+          </View>
+        </Animatable.View>
+      );
+    } else if (isEmpty(item.chat_msg) && !isEmpty(item.chat_pics)) {
+      let imageuri = this.returnOwnerImageUri(
+        item.chat_pics.chatpic,
+        item.pending,
+      );
+      //console.warn(imageuri, item.chat_pics);
+      return (
+        <Animatable.View useNativeDriver={true}>
+          <View style={{marginVertical: 5, alignItems: 'flex-end'}}>
+            <TouchableOpacity
+              onPress={
+                checkData(onPress)
+                  ? onPress
+                  : () =>
+                      Navigation.showModal({
+                        component: {
+                          name: 'PhotoViewer',
+                          passProps: {
+                            navparent: true,
+                            photos: [imageuri],
+                          },
+                        },
+                      })
+              }
+              activeOpacity={0.9}>
+              <Image
+                containerStyle={[
+                  styles.ownerChatImageContainer,
+                  {
+                    borderColor: this.ownerchatbgcolor,
+                  },
+                ]}
+                //onError={() => this._onImageLoadErr(true)}
+                placeholderStyle={styles.ownerChatImagePlaceholder}
+                PlaceholderContent={this.imageplacholdericon}
+                resizeMode="cover"
+                source={{
+                  uri: imageuri,
+                }}
+              />
+            </TouchableOpacity>
+            {this.renderCheck(item)}
+          </View>
+        </Animatable.View>
+      );
     } else {
       return null;
     }
   };
 
-  showImageDownloadBtn = size => {
-    //console.warn('download', this.state.imageloaded);
-    if (!checkData(size)) {
+  renderDownloadBtn = size => {
+    if (isEmpty(size) || !isEmpty(this.state.partnerimageuri)) {
       return null;
     }
-    switch (this.state.imageloaded) {
-      case 'false':
-        return (
-          <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <Button
-              onPress={() => this.downloadOtherChatImage()}
-              type="clear"
-              icon={{
-                name: 'download',
-                type: 'antdesign',
-                size: responsiveFontSize(3),
-                color: 'white',
-              }}
-              title={convertByteToKbMb(size)}
-              titleStyle={{color: 'white', fontSize: responsiveFontSize(2)}}
-              buttonStyle={{
-                borderColor: colors.iconcolor,
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                borderRadius: 15,
-                padding: 10,
-              }}
-            />
-          </View>
-        );
-        break;
-      case 'downloading':
-        return (
-          <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'rgba(0,0,0,0.3)',
-              }}>
-              <ActivityIndicator size={30} color={'silver'} />
-            </View>
-          </View>
-        );
-        break;
-      default:
-        return null;
-        break;
-    }
+    return (
+      <View
+        style={{
+          width: '100%',
+          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <Button
+          onPress={this.downloadPartnerImage}
+          loading={this.state.loadingpartnerimage}
+          disabled={this.state.loadingpartnerimage}
+          type="clear"
+          title={convertByteToKbMb(size)}
+          icon={{
+            name: 'download',
+            type: 'antdesign',
+            size: responsiveFontSize(2),
+            color: 'white',
+          }}
+          titleStyle={{
+            color: 'white',
+            fontWeight: 'normal',
+          }}
+          buttonStyle={{
+            borderRadius: 15,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            padding: 10,
+          }}
+        />
+      </View>
+    );
   };
 
-  downloadOtherChatImage = () => {
-    let arrchatpics = this.props.item.chat_pics;
-    let imagename = arrchatpics[0].chatpic.split('/')[6];
+  downloadPartnerImage = () => {
+    let {item} = this.props;
+    if (isEmpty(item.chat_pics.chatpic)) {
+      return;
+    }
+    let imagename = item.chat_pics.chatpic.split('/')[6];
     this.setState({
-      update: Math.random() * 100000,
-      imageloaded: 'downloading',
+      loadingpartnerimage: true,
     });
     RNFetchBlob.config({
-      path: `/storage/emulated/0/CampusMeetup/ChatImages/${imagename}`,
+      path: `/storage/emulated/0/CampusMeetup/ChatImages/received/${imagename}`,
     })
-      .fetch('GET', arrchatpics[0].chatpic)
+      .fetch('GET', item.chat_pics.chatpic)
       .then(res => {
-        //console.warn('downloader', res.path());
         this.setState({
-          update: Math.random() * 100000,
-          chatimageuri: rnPath(res.path()),
-          imageloaded: null,
+          loadingpartnerimage: false,
+          partnerimageuri: rnPath(res.path()),
         });
       })
       .catch(err => {
+        console.warn(err.toString());
         this.setState({
-          update: Math.random() * 100000,
-          imageloaded: 'false',
+          loadingpartnerimage: false,
         });
         // console.warn('downloader err', err.toString());
       });
   };
 
-  renderOtherChatImages = chatimages => {
-    if (!Array.isArray(chatimages) || chatimages.length < 1) {
-      return null;
-    }
-    return chatimages.map((item, index) => {
-      //console.warn(this.state.chatimageuri);
+  renderPartnerChat = () => {
+    let {item} = this.props;
+    if (!isEmpty(item.chat_msg) && isEmpty(item.chat_pics)) {
       return (
-        <TouchableOpacity
-          key={index}
-          //onPress={this.props.onPress}
-          onLongPress={this.props.onLongPress}>
+        <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
+          <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
+            <ParsedText style={styles.othersChatText}>
+              {item.chat_msg}
+            </ParsedText>
+            <Text style={styles.othersChatTime}>
+              {this.formatConvTime(item.created_at * 1000)}
+            </Text>
+          </View>
+        </Animatable.View>
+      );
+    } else if (!isEmpty(item.chat_msg) && !isEmpty(item.chat_pics)) {
+      return (
+        <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
           <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
             <TouchableOpacity
-              onPress={() => {
-                Navigation.showModal({
-                  component: {
-                    name: 'PhotoViewer',
-                    passProps: {
-                      navparent: true,
-                      photos: [this.state.chatimageuri],
-                    },
-                  },
-                });
-              }}
-              onLongPress={this.props.onLongPress}>
+              onPress={
+                isEmpty(this.state.partnerimageuri)
+                  ? null
+                  : () =>
+                      Navigation.showModal({
+                        component: {
+                          name: 'PhotoViewer',
+                          passProps: {
+                            navparent: true,
+                            photos: [this.state.partnerimageuri],
+                          },
+                        },
+                      })
+              }
+              activeOpacity={0.9}>
               <Image
-                onError={() => this._onImageLoadErr(false)}
+                //onError={() => this._onImageLoadErr(false)}
                 containerStyle={styles.othersChatImageContainer}
                 placeholderStyle={styles.othersChatImagePlaceholder}
-                onPress={() => {
-                  Navigation.showModal({
-                    component: {
-                      name: 'PhotoViewer',
-                      passProps: {
-                        navparent: true,
-                        photos: [this.state.chatimageuri],
-                      },
-                    },
-                  });
-                }}
-                PlaceholderContent={
-                  <Icon
-                    type="feather"
-                    name="image"
-                    color={'white'}
-                    size={responsiveFontSize(4)}
-                  />
-                }
+                PlaceholderContent={this.imageplacholdericon}
                 resizeMode="cover"
-                source={{uri: this.state.chatimageuri}}>
-                <View style={{height: '100%'}}>
-                  {this.showImageDownloadBtn(item.size)}
-                  {checkData(this.item.chat_msg) && (
-                    <View
-                      style={{
-                        flex: 1,
-                        justifyContent: 'flex-end',
-                        alignItems: 'flex-end',
-                      }}>
-                      <Icon
-                        type="antdesign"
-                        name="edit"
-                        color={'white'}
-                        iconStyle={{
-                          fontWeight: 'bold',
-                          padding: 5,
-                          backgroundColor: 'rgba(0,0,0,0.2)',
-                        }}
-                        size={responsiveFontSize(3)}
-                      />
-                    </View>
-                  )}
-                </View>
+                source={{
+                  uri: isEmpty(this.state.partnerimageuri)
+                    ? item.chat_pics.thumbchatpic
+                    : this.state.partnerimageuri,
+                }}>
+                {this.renderDownloadBtn(item.chat_pics.size)}
+              </Image>
+            </TouchableOpacity>
+            <ParsedText style={styles.othersChatText}>
+              {item.chat_msg}
+            </ParsedText>
+            <Text style={styles.othersChatTime}>
+              {this.formatConvTime(item.created_at * 1000)}
+            </Text>
+          </View>
+        </Animatable.View>
+      );
+    } else if (isEmpty(item.chat_msg) && !isEmpty(item.chat_pics)) {
+      return (
+        <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
+          <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
+            <TouchableOpacity
+              onPress={
+                isEmpty(this.state.partnerimageuri)
+                  ? null
+                  : () =>
+                      Navigation.showModal({
+                        component: {
+                          name: 'PhotoViewer',
+                          passProps: {
+                            navparent: true,
+                            photos: [this.state.partnerimageuri],
+                          },
+                        },
+                      })
+              }
+              activeOpacity={0.9}>
+              <Image
+                //onError={() => this._onImageLoadErr(false)}
+                containerStyle={styles.othersChatImageContainer}
+                placeholderStyle={styles.othersChatImagePlaceholder}
+                PlaceholderContent={this.imageplacholdericon}
+                resizeMode="cover"
+                source={{
+                  uri: isEmpty(this.state.partnerimageuri)
+                    ? item.chat_pics.thumbchatpic
+                    : this.state.partnerimageuri,
+                }}>
+                {this.renderDownloadBtn(item.chat_pics.size)}
               </Image>
             </TouchableOpacity>
             <Text style={styles.othersChatTime}>
-              {this.formatChatTime(this.item.created_at * 1000)}
+              {this.formatConvTime(item.created_at * 1000)}
             </Text>
           </View>
-        </TouchableOpacity>
+        </Animatable.View>
       );
-    });
+    } else {
+      return null;
+    }
   };
 
   render() {
-    let {item, userprofile} = this.props;
-
-    /**/
-    if (
-      item.deleted == true ||
-      (item.sender_deleted == true &&
-        item.sender_id == userprofile.profile_id) ||
-      (item.receiver_deleted == true &&
-        item.receiver_id == userprofile.profile_id)
-    ) {
-      return null;
-    }
-    let privatechats =
+    let {userprofile, item} = this.props;
+    //console.warn('meetconvchatitem', item.id);
+    let content =
       item.sender_id == userprofile.profile_id
         ? this.renderOwnerChat()
-        : this.renderOtherChat();
-    return privatechats;
+        : this.renderPartnerChat();
+    return content;
   }
 }
 
@@ -763,6 +747,9 @@ class PrivateChats extends Component {
 }
 
 const styles = StyleSheet.create({
+  parsedText: {
+    color: colors.blue,
+  },
   othersChatImageContainer: {
     marginHorizontal: 20,
     width: responsiveWidth(60),
@@ -786,7 +773,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     fontSize: responsiveFontSize(2.1),
     color: colors.text,
-    textAlign: 'justify',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderBottomRightRadius: 30,
@@ -820,7 +806,6 @@ const styles = StyleSheet.create({
   ownerChatText: {
     marginHorizontal: 20,
     fontSize: responsiveFontSize(2.1),
-    textAlign: 'justify',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 12,

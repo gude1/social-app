@@ -139,11 +139,7 @@ class ChatListItem extends Component {
     ) {
       return null;
     }
-    if (
-      checkData(item.chat_msg) &&
-      Array.isArray(item.chat_pics) &&
-      item.chat_pics.length > 0
-    ) {
+    if (checkData(item.chat_msg) && !isEmpty(item.chat_pics)) {
       return (
         <View
           style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}>
@@ -182,7 +178,7 @@ class ChatListItem extends Component {
           </Text>
         </View>
       );
-    } else if (Array.isArray(item.chat_pics) && item.chat_pics.length > 0) {
+    } else if (!isEmpty(item.chat_pics)) {
       return (
         <View
           style={{flexDirection: 'row', alignItems: 'center', marginTop: 5}}>

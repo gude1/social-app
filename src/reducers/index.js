@@ -33,7 +33,6 @@ import {reducer as network} from 'react-native-offline';
 import OfflineActionsReducer, {
   offlineActionsListConfig,
 } from './OfflineActionsReducer';
-import PrivateChatReducer from './PrivateChatReducer';
 import SearchPrivateChatListReducer from './SearchPrivateChatListReducer';
 import MeetupFormReducer from './MeetupFormReducer';
 import GiphyGalleryReducer from './GiphyGalleryReducer';
@@ -76,7 +75,6 @@ export default combineReducers({
   giphygallery: GiphyGalleryReducer,
   meetupconvlist: MeetupConvListReducer,
   meetupconvs: MeetupConversationReducer,
-  privatechatform: PrivateChatReducer,
   followinfo: FollowInfoReducer,
   userslist: UsersListReducer,
   appinfo: AppInfoReducer,

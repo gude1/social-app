@@ -27,15 +27,12 @@ const {colors} = useTheme();
 const PrivateChatScreen = ({
   componentId,
   connected,
-  addPrivateChat,
   setPrivateChatToRead,
   sendPrivateChat,
-  setPrivateChat,
   deleteAPrivateChat,
   clearAPrivateChat,
   updatePrivateChatListArr,
   updatePrivateChatList,
-  setPrivateChatPartnerProfile,
   getPrivateChatInfo,
   privatechatlistform,
   blockProfileAction,
@@ -64,6 +61,7 @@ const PrivateChatScreen = ({
         last_id: privatechatobj.last_id,
       }
     : chatlistitem;
+  // console.warn(chatlistitem.partnerprofile);
   const [loaded, setLoaded] = useState(false);
   const [screenstate, setScreenState] = useState({
     privatechatinfo: null,
@@ -116,21 +114,28 @@ const PrivateChatScreen = ({
 
   useEffect(() => {
     if (loaded)
-      fetchPrivateChats([
-        chatlistitem.created_chatid,
-        chatlistitem?.partnerprofile?.profile_id,
-      ]);
+      if (chatlistitem.num_new_msg > 0)
+        updatePrivateChatListArr([
+          {
+            created_chatid: chatlistitem.created_chatid,
+            num_new_msg: 0,
+            partnerprofile: chatlistitem?.partnerprofile,
+          },
+        ]);
+    fetchPrivateChats([
+      chatlistitem.created_chatid,
+      chatlistitem?.partnerprofile?.profile_id,
+    ]);
   }, [loaded]);
-
   useEffect(() => {
     if (loaded && chatlistitem.first_id > 0) {
       setPrivateChatToRead([
         chatlistitem.created_chatid,
         chatlistitem.first_id,
       ]);
+      checkData(flatlistref) && flatlistref.scrollToOffset({offset: 0});
     }
   }, [chatlistitem.first_id, loaded]);
-  console.warn(chatlistitem.first_id);
   function startScreen() {
     if (
       !checkData(privatechatobj?.partnerprofile) ||
@@ -141,37 +146,37 @@ const PrivateChatScreen = ({
     }
     return true;
   }
+  const sendImages = data => {
+    if (!Array.isArray(data) || data.length < 1) {
+      return;
+    }
+    data.forEach(item => {
+      sendPrivateChat({
+        created_chatid: chatlistitem.created_chatid,
+        partnerprofile: chatlistitem.partnerprofile,
+        chatSchema: {
+          id: Math.round(new Date().getTime()),
+          pending: true,
+          created_chatid: chatlistitem.created_chatid,
+          sender_id: authprofile.profile_id,
+          private_chatid: `${Math.round(new Date().getTime())}`,
+          read: 'sending',
+          chat_pics: {chatpic: item.imageuri},
+          receiver_id: chatlistitem.partnerprofile.profile_id,
+          created_at: `${Math.round(new Date().getTime())}`,
+          chat_msg: item.inputtxt,
+        },
+        reqobj: {
+          chat_msg: item.inputtxt,
+          chat_pics: {chatpic: item.imageuri},
+          receiver_id: chatlistitem.partnerprofile.profile_id,
+        },
+      });
+    });
+    checkData(flatlistref) && flatlistref.scrollToOffset({offset: 0});
+  };
 
   function sendChatImages() {
-    const sendImages = data => {
-      if (!Array.isArray(data) || data.length < 1) {
-        return;
-      }
-      data.map(item => {
-        sendPrivateChat({
-          created_chatid: chatlistitem.created_chatid,
-          chatSchema: {
-            id: Math.round(new Date().getTime() / 1000) - 30,
-            partnerprofile: chatlistitem.partnerprofile,
-            created_chatid: chatlistitem.created_chatid,
-            sender_id: authprofile.profile_id,
-            read: 'sending',
-            chat_pics: [{chatpic: item.imageuri}],
-            receiver_id: chatlistitem.partnerprofile.profile_id,
-            created_at: `${Math.round(new Date().getTime() / 1000) - 30}`,
-            chat_msg: item.inputtxt,
-          },
-          reqobj: {
-            chat_msg: item.inputtxt,
-            chat_pics: [{chatpic: item.imageuri}],
-            setread: 'ok',
-            receiver_id: chatlistitem.partnerprofile.profile_id,
-          },
-        });
-      });
-      checkData(flatlistref) && flatlistref.scrollToOffset({offset: 0});
-    };
-
     Navigation.showModal({
       component: {
         name: 'PhotoList',
@@ -214,19 +219,19 @@ const PrivateChatScreen = ({
             checkData(flatlistref) && flatlistref.scrollToOffset({offset: 0});
             sendPrivateChat({
               created_chatid: chatlistitem.created_chatid,
+              partnerprofile: chatlistitem.partnerprofile,
               chatSchema: {
-                id: Math.round(new Date().getTime() / 1000) - 30,
-                partnerprofile: chatlistitem.partnerprofile,
+                id: Math.round(new Date().getTime()),
                 created_chatid: chatlistitem.created_chatid,
                 sender_id: authprofile.profile_id,
+                private_chatid: `${Math.round(new Date().getTime())}`,
                 read: 'sending',
                 receiver_id: chatlistitem.partnerprofile.profile_id,
-                created_at: `${Math.round(new Date().getTime() / 1000) - 30}`,
+                created_at: `${Math.round(new Date().getTime())}`,
                 chat_msg: inputtxt,
               },
               reqobj: {
                 chat_msg: inputtxt,
-                setread: 'ok',
                 receiver_id: chatlistitem.partnerprofile.profile_id,
               },
             });
@@ -335,6 +340,7 @@ const PrivateChatScreen = ({
           ListTitle={'Chat History'}
           onBackdropPress={() => setChatInfoVisible(false)}
           reLoad={() => {
+            setScreenState({...screenstate, fetchingchatinfo: true});
             getPrivateChatInfo(
               chatlistitem.created_chatid,
               chatinfo => {
@@ -425,16 +431,13 @@ const PrivateChatScreen = ({
                         },
                         () => {
                           setShowActivityModal(false);
-                          setPrivateChat(
-                            [],
-                            chatlistitem.created_chatid ||
-                              chatlistitem.partnerprofile.profile_id,
-                          );
-                          updatePrivateChatList({
-                            created_chatid: chatlistitem.created_chatid,
-                            partnerprofile: chatlistitem.partnerprofile,
-                            chats: updatedchats,
-                          });
+                          updatePrivateChatListArr([
+                            {
+                              created_chatid: chatlistitem.created_chatid,
+                              partnerprofile: chatlistitem.partnerprofile,
+                              chats: updatedchats,
+                            },
+                          ]);
                           Toast(`Chat cleared`);
                         },
                         () => {
