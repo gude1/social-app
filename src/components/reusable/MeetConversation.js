@@ -80,7 +80,7 @@ class MeetConversationItem extends Component {
     })();
   }
 
-  renderCheck = (item) => {
+  renderCheck = item => {
     if (isEmpty(item) || item.sender_id != this.props.authprofile.profile_id) {
       return null;
     }
@@ -93,8 +93,7 @@ class MeetConversationItem extends Component {
             marginHorizontal: 25,
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
-          }}
-        >
+          }}>
           {this.formatConvTime(item.created_at * 1000)}{' '}
           <Text style={{letterSpacing: -1, color: colors.blue}}>√√</Text>
         </Text>
@@ -107,8 +106,7 @@ class MeetConversationItem extends Component {
             marginHorizontal: 25,
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
-          }}
-        >
+          }}>
           {this.formatConvTime(item.created_at * 1000)}{' '}
           <Text style={{letterSpacing: -1}}>√√</Text>
         </Text>
@@ -121,8 +119,7 @@ class MeetConversationItem extends Component {
             marginHorizontal: 25,
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.5),
-          }}
-        >
+          }}>
           <Text style={{letterSpacing: -1}}>sending...</Text>
         </Text>
       );
@@ -151,8 +148,7 @@ class MeetConversationItem extends Component {
             marginHorizontal: 25,
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
-          }}
-        >
+          }}>
           {this.formatConvTime(item.created_at * 1000)}{' '}
           <Text style={{letterSpacing: -1}}>√</Text>
         </Text>
@@ -160,7 +156,7 @@ class MeetConversationItem extends Component {
     }
   };
 
-  formatConvTime = (time) => {
+  formatConvTime = time => {
     if (isEmpty(time)) {
       return time;
     }
@@ -196,8 +192,7 @@ class MeetConversationItem extends Component {
                     color: this.ownerchattextcolor,
                     backgroundColor: this.ownerchatbgcolor,
                   },
-                ]}
-              >
+                ]}>
                 {item.chat_msg}
               </ParsedText>
             </TouchableOpacity>
@@ -228,8 +223,7 @@ class MeetConversationItem extends Component {
                         },
                       })
               }
-              activeOpacity={0.9}
-            >
+              activeOpacity={0.9}>
               <Image
                 containerStyle={[
                   styles.ownerChatImageContainer,
@@ -255,8 +249,7 @@ class MeetConversationItem extends Component {
                     color: this.ownerchattextcolor,
                     backgroundColor: this.ownerchatbgcolor,
                   },
-                ]}
-              >
+                ]}>
                 {item.chat_msg}
               </ParsedText>
             </TouchableOpacity>
@@ -288,8 +281,7 @@ class MeetConversationItem extends Component {
                         },
                       })
               }
-              activeOpacity={0.9}
-            >
+              activeOpacity={0.9}>
               <Image
                 containerStyle={[
                   styles.ownerChatImageContainer,
@@ -315,7 +307,7 @@ class MeetConversationItem extends Component {
     }
   };
 
-  renderDownloadBtn = (size) => {
+  renderDownloadBtn = size => {
     if (isEmpty(size) || !isEmpty(this.state.partnerimageuri)) {
       return null;
     }
@@ -326,8 +318,7 @@ class MeetConversationItem extends Component {
           height: '100%',
           alignItems: 'center',
           justifyContent: 'center',
-        }}
-      >
+        }}>
         <Button
           onPress={this.downloadPartnerImage}
           loading={this.state.loadingpartnerimage}
@@ -367,14 +358,14 @@ class MeetConversationItem extends Component {
       path: `/storage/emulated/0/CampusMeetup/MeetConversations/received/${imagename}`,
     })
       .fetch('GET', item.chat_pic.chatpic)
-      .then((res) => {
+      .then(res => {
         //console.warn('downloader', res.path());
         this.setState({
           loadingpartnerimage: true,
           partnerimageuri: rnPath(res.path()),
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.warn(err.toString());
         this.setState({
           loadingpartnerimage: false,
@@ -417,8 +408,7 @@ class MeetConversationItem extends Component {
                         },
                       })
               }
-              activeOpacity={0.9}
-            >
+              activeOpacity={0.9}>
               <Image
                 //onError={() => this._onImageLoadErr(false)}
                 containerStyle={styles.othersChatImageContainer}
@@ -429,8 +419,7 @@ class MeetConversationItem extends Component {
                   uri: isEmpty(this.state.partnerimageuri)
                     ? item.chat_pic.thumbchatpic
                     : this.state.partnerimageuri,
-                }}
-              >
+                }}>
                 {this.renderDownloadBtn(item.chat_pic.size)}
               </Image>
             </TouchableOpacity>
@@ -462,8 +451,7 @@ class MeetConversationItem extends Component {
                         },
                       })
               }
-              activeOpacity={0.9}
-            >
+              activeOpacity={0.9}>
               <Image
                 //onError={() => this._onImageLoadErr(false)}
                 containerStyle={styles.othersChatImageContainer}
@@ -474,8 +462,7 @@ class MeetConversationItem extends Component {
                   uri: isEmpty(this.state.partnerimageuri)
                     ? item.chat_pic.thumbchatpic
                     : this.state.partnerimageuri,
-                }}
-              >
+                }}>
                 {this.renderDownloadBtn(item.chat_pic.size)}
               </Image>
             </TouchableOpacity>
@@ -547,44 +534,6 @@ class MeetConversation extends Component {
         }}
       />
     );
-
-    /*if (this.props.loadingprev == true) {
-            return (
-                <View
-                    style={{
-                        flex: 1,
-                        justifyContent: "center",
-                        marginTop: 15,
-                        alignItems: "center"
-                    }}
-                >
-                    <ActivityIndicator size={30} color={'silver'} />
-                </View>
-            );
-        } else {
-            return (
-                <Button
-                    onPress={() => { this.props.loadPrev() }}
-                    type="clear"
-                    icon={{
-                        name: 'plus',
-                        type: "evilicon",
-                        size: responsiveFontSize(4),
-                        color: colors.text
-                    }}
-                    titleStyle={{
-                        color: colors.text,
-                        fontSize: responsiveFontSize(2)
-                    }}
-                    containerStyle={{
-                        alignSelf: 'center',
-                        borderColor: colors.iconcolor,
-                        borderRadius: 15,
-                        padding: 10
-                    }}
-                />
-            );
-        }*/
   };
 
   renderParentMeetReq = () => {
@@ -608,8 +557,7 @@ class MeetConversation extends Component {
         contentContainerStyle={{marginLeft: 0}}
         visible={showparentmeet}
         ListTitle={'Meet Request'}
-        height={300}
-      >
+        height={300}>
         <ListItem
           leftAvatar={{uri: meet_profile.meetup_avatar}}
           onAvatarPress={() => {
@@ -661,7 +609,7 @@ class MeetConversation extends Component {
       <>
         <FlatList
           data={conv_list}
-          ref={(ref) => {
+          ref={ref => {
             this.props.setFlatListRef && this.props.setFlatListRef(ref);
           }}
           contentContainerStyle={{marginTop: 10}}

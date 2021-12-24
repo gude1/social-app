@@ -31,7 +31,7 @@ const {colors} = useTheme();
 const MeetupConversationScreen = ({
   navparent,
   meetconvobj,
-  chatitem,
+  meetconvlistitem,
   authprofile,
   authmeetprofile,
   meetupconvlist,
@@ -39,43 +39,51 @@ const MeetupConversationScreen = ({
   componentId,
   fetchMeetConversations,
   setMeetupConversation,
-  updateMeetConvList,
+  updateMeetConvListConvsArr,
   sendMeetConversation,
   setProcessing,
   setMeetupConvStatus,
   setReset,
 }) => {
+  /**CONDITIONAL STATEMENT STARTS HERE */
+  if (!checkData(startScreen())) {
+    Navigation.dismissModal(componentId);
+    return null;
+  }
+  /**CONDITIONAL STATEMENT ENDS HERE */
   const [loaded, setLoaded] = useState(false);
   const [showparentmeet, setShowParentMeet] = useState(false);
   const [flatlistref, setFlatListRef] = useState(null);
+  const [screenstate, setScreenState] = useState({
+    msgcount: 10,
+    loadingprev: false,
+  });
   const [inputtxt, setInputTxt] = useState('');
-  const [msgcount, setMsgCount] = useState(10);
 
-  chatitem = !isEmpty(meetconvobj.conversation_id)
-    ? {...chatitem, ...meetconvobj}
-    : chatitem;
+  let meetconvlistitem = meetupconvlist.list.find(
+    item =>
+      item?.conversation_id == meetconvobj?.conversation_id ||
+      item?.alternate_id == meetconvobj?.alternate_id,
+  );
+  meetconvlistitem = !isEmpty(meetconvlistitem)
+    ? {...meetconvobj, ...meetconvlistitem}
+    : {
+        conv_list: [],
+        num_new_msg: 0,
+        ...meetconvobj,
+      };
+
   let chatlistitemschema = {
-    id: chatitem.id,
-    conversation_id: chatitem.conversation_id,
+    id: meetconvlistitem.id,
+    conversation_id: meetconvlistitem.conversation_id,
     sender_meet_profile: authmeetprofile,
-    conv_list: chatitem.conv_list,
-    receiver_meet_profile: chatitem.partnermeetprofile,
-    origin_meet_request: chatitem.meet_request,
+    conv_list: meetconvlistitem.conv_list,
+    receiver_meet_profile: meetconvlistitem.partnermeetprofile,
+    origin_origin_meet_request: meetconvlistitem.origin_meet_request,
   };
 
   /**COMPONENT FUNCTIONS */
   useEffect(() => {
-    setReset('meetupconversation');
-    let listitem = meetupconvlist.list.find(
-      (item) => item.conversation_id == chatitem.conversation_id,
-    );
-    //console.warn(listitem.conv_list);
-    if (!isEmpty(listitem) && Array.isArray(listitem.conv_list)) {
-      setMeetupConversation({...chatitem, conv_list: listitem.conv_list});
-    } else {
-      updateMeetConvList(chatlistitemschema);
-      setMeetupConversation(chatitem);
-    }
     const listener = {
       componentDidAppear: () => {
         setLoaded(true);
@@ -91,33 +99,56 @@ const MeetupConversationScreen = ({
     return () => {
       // Make sure to unregister the listener during cleanup
       unsubscribe.remove();
-      setReset('meetupconversation');
     };
   }, []);
 
   useEffect(() => {
-    if (meetconvobj.conversation_id == chatitem.conversation_id) {
-      updateMeetConvList({
-        conversation_id: chatitem.conversation_id,
-        num_new_msg: null,
-      });
+    if (loaded) {
+      if (meetconvlistitem.num_new_msg > 0) {
+        updateMeetConvListConvsArr([
+          {
+            conversation_id: meetconvlistitem.conversation_id,
+            alternate_id: meetconvlistitem.alternate_id,
+            num_new_msg: 0,
+          },
+        ]);
+      }
       fetchMeetConversations([
-        chatitem.conversation_id,
-        chatitem.meet_request.request_id,
+        meetconvlistitem.conversation_id,
+        meetconvlistitem.origin_meet_request.request_id,
       ]);
     }
-  }, [meetconvobj?.conversation_id]);
+  }, [loaded]);
 
   //to handle new messages gotten in realtime
   useEffect(() => {
-    if (meetconvobj.conversation_id == chatitem.conversation_id) {
-      updateMeetConvList({
-        conversation_id: chatitem.conversation_id,
-        num_new_msg: null,
-      });
-      flatlistref && flatlistref.scrollToOffset({offset: 0});
+    if (loaded && meetconvlistitem.latest_id > 0) {
+      updateMeetConvListConvsArr([
+        {
+          conversation_id: meetconvlistitem.conversation_id,
+          alternate_id: meetconvlistitem.alternate_id,
+          num_new_msg: 0,
+        },
+      ]);
     }
-  }, [chatitem?.conv_list[0]?.id]);
+    flatlistref && flatlistref.scrollToOffset({offset: 0});
+  }, [meetconvlistitem?.latest_id, loaded]);
+
+  function startScreen() {
+    if (
+      isEmpty(meetconvobj) ||
+      (isEmpty(meetconvobj.conversation_id) &&
+        isEmpty(meetconvobj.alternate_id)) ||
+      isEmpty(meetconvobj.partnermeetprofile) ||
+      isEmpty(meetconvobj.origin_meet_request) ||
+      meetconvobj.origin_meet_request.deleted == true ||
+      !Array.isArray(meetconvobj.conv_list)
+    ) {
+      Toast('conversation not found');
+      return null;
+    }
+    return true;
+  }
 
   const renderConvInfo = () => {
     return (
@@ -136,18 +167,16 @@ const MeetupConversationScreen = ({
             colors.theme == 'white' ? 'rgb(237,237,237)' : colors.card,
         }}
         animation={'slideInRight'}
-        useNativeDriver={true}
-      >
+        useNativeDriver={true}>
         <Text
           style={{
             textAlign: 'justify',
             fontSize: responsiveFontSize(1.2),
             color: colors.placeholder,
-          }}
-        >
-          Meet Conversations disappear as soon as the meet expires. Avoid
-          sharing personal information and only meet with strangers at public
-          places
+          }}>
+          Meet Conversations disappear as soon as the meet is deleted or
+          expires. Avoid sharing personal information and only meet with
+          strangers at public places
         </Text>
       </Animatable.View>
     );
@@ -157,10 +186,12 @@ const MeetupConversationScreen = ({
     if (!Array.isArray(data) || isEmpty(data)) {
       return;
     }
-    data.forEach((dataobj) => {
+    data.forEach(dataobj => {
       sendMeetConversation([
-        chatitem.conversation_id,
-        chatitem.meet_request.request_id,
+        meetconvlistitem.conversation_id,
+        meetconvlistitem.alternate_id,
+        meetconvlistitem.origin_meet_request,
+        meetconvlistitem.partnermeetprofile,
         dataobj.inputtxt,
         {chat_pic: dataobj.imageuri},
       ]);
@@ -169,16 +200,7 @@ const MeetupConversationScreen = ({
   }
 
   function renderView() {
-    if (
-      isEmpty(chatitem) ||
-      isEmpty(chatitem.conversation_id) ||
-      isEmpty(chatitem.partnermeetprofile) ||
-      isEmpty(chatitem.meet_request) ||
-      chatitem.meet_request.deleted == true ||
-      //isEmpty(chatitem.partnerprofile) ||
-      //isEmpty(chatitem.partnerprofile.user) ||
-      !Array.isArray(chatitem.conv_list)
-    ) {
+    if (!startScreen()) {
       return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <Text style={{textAlign: 'center', color: colors.text}}>
@@ -219,9 +241,8 @@ const MeetupConversationScreen = ({
                     color: colors.text,
                     marginVertical: 5,
                     fontSize: responsiveFontSize(3),
-                  }}
-                >
-                  {chatitem.partnermeetprofile.meetup_name}
+                  }}>
+                  {meetconvlistitem?.partnermeetprofile?.meetup_name}
                 </Text>
                 <Icon
                   type={'evilicon'}
@@ -237,16 +258,16 @@ const MeetupConversationScreen = ({
       return (
         <>
           <HeaderWithImage
-            title={chatitem.partnermeetprofile.meetup_name}
-            avatarUri={{uri: chatitem.partnermeetprofile.meetup_avatar}}
+            title={meetconvlistitem.partnermeetprofile.meetup_name}
+            avatarUri={{uri: meetconvlistitem.partnermeetprofile.meetup_avatar}}
             onAvatarPress={() => {
               Navigation.showModal({
                 component: {
                   name: 'PhotoViewer',
                   passProps: {
                     navparent: true,
-                    headerText: chatitem.partnermeetprofile.meetup_name,
-                    photos: [chatitem.partnermeetprofile.meetup_avatar],
+                    headerText: meetconvlistitem.partnermeetprofile.meetup_name,
+                    photos: [meetconvlistitem.partnermeetprofile.meetup_avatar],
                     screentype: 'modal',
                   },
                 },
@@ -283,13 +304,13 @@ const MeetupConversationScreen = ({
             setFlatListRef={setFlatListRef}
             authprofile={authprofile}
             authmeetprofile={authmeetprofile}
-            loadingprev={chatitem.loadingprev}
+            loadingprev={screenstate.loadingprev}
             loadPrev={loadPrevConvChat}
             showparentmeet={showparentmeet}
             setShowParentMeet={setShowParentMeet}
             sendConv={sendMeetConversation}
-            meet_request={chatitem.meet_request}
-            partnermeetprofile={chatitem.partnermeetprofile}
+            origin_meet_request={meetconvlistitem.origin_meet_request}
+            partnermeetprofile={meetconvlistitem.partnermeetprofile}
           />
 
           <InputBox
@@ -301,8 +322,9 @@ const MeetupConversationScreen = ({
             multiline={true}
             onSubmit={() => {
               sendMeetConversation([
-                chatitem.conversation_id,
-                chatitem.meet_request.request_id,
+                meetconvlistitem.conversation_id,
+                meetconvlistitem.alternate_id,
+                meetconvlistitem.origin_meet_request.request_id,
                 inputtxt,
               ]);
               //flatlistref && flatlistref.scrollToOffset({ offset: 0 });
@@ -317,7 +339,7 @@ const MeetupConversationScreen = ({
                     passProps: {
                       navparent: true,
                       showinput: true,
-                      onSubmit: (data) => {
+                      onSubmit: data => {
                         Navigation.dismissModal('PHOTO_VIEWER');
                         Navigation.dismissModal('PHOTO_LIST_CHAT');
                         sendImageConv(data);
@@ -349,42 +371,37 @@ const MeetupConversationScreen = ({
     else return Navigation.dismissModal(componentId);
   }
 
-  function getChatItem() {
-    if (isEmpty(chatitem) || isEmpty(meetconvobj)) {
-      return chatitem;
-    } else if (chatitem.conversat) {
-    }
-  }
-
   function loadPrevConvChat() {
-    let newcount = msgcount + 10;
-    if (chatitem.conv_list.length < 1) {
+    let newcount = screenstate.msgcount + 10;
+    if (meetconvlistitem.conv_list.length < 1) {
       return;
     }
-    setProcessing(true, 'meetupconvloadingprev');
-    if (chatitem.conv_list.length < newcount) {
+    setScreenState({...screenstate, loadingprev: false});
+    if (meetconvlistitem.conv_list.length < newcount) {
       fetchMeetConversations(
         [
-          chatitem.conversation_id,
-          chatitem.meet_request.request_id,
-          chatitem.conv_list[chatitem.conv_list.length - 1].id,
+          meetconvlistitem.conversation_id,
+          meetconvlistitem.origin_meet_request.request_id,
+          meetconvlistitem.conv_list[meetconvlistitem.conv_list.length - 1].id,
         ],
         () => {
-          setMsgCount(newcount);
+          setScreenState({
+            ...screenstate,
+            msgcount: newcount,
+            loadingprev: false,
+          });
         },
         () => {
-          //console.warn(chatitem.conv_list.length, chatitem.conv_list[chatitem.conv_list.length - 1]);
-          setProcessing(false, 'meetupconvloadingprev');
+          setScreenState({...screenstate, loadingprev: false});
         },
       );
     } else {
-      setProcessing(false, 'meetupconvloadingprev');
-      setMsgCount(newcount);
+      setScreenState({...screenstate, msgcount: newcount, loadingprev: false});
     }
   }
 
   function getConvList() {
-    let conv_list = chatitem.conv_list.slice(0, msgcount);
+    let conv_list = meetconvlistitem.conv_list.slice(0, screenstate.msgcount);
     return conv_list;
   }
 
@@ -416,7 +433,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   authprofile: state.profile,
   meetupconvlist: state.meetupconvlist,
   authmeetprofile: {
@@ -424,7 +441,9 @@ const mapStateToProps = (state) => ({
     meetup_avatar: state.meetupform.meetup_avatar,
     owner_id: state.profile.profile_id,
   },
-  meetconvobj: state.meetupconvs,
 });
 
-export default connect(mapStateToProps, actions)(MeetupConversationScreen);
+export default connect(
+  mapStateToProps,
+  actions,
+)(MeetupConversationScreen);

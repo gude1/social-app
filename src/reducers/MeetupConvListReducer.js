@@ -44,7 +44,7 @@ const handleProcessing = (key, value, state) => {
   }
 };
 
-const arrangeConvs = (data) => {
+const arrangeConvs = data => {
   if (!Array.isArray(data) || data.length < 1) {
     return data;
   }
@@ -59,15 +59,11 @@ const arrangeConvList = (data: Array) => {
 
   return data.sort((item1, item2) => {
     let id1 =
-      item1.conv_list &&
-      Array.isArray(item1.conv_list) &&
-      item1.conv_list.length > 0
+      Array.isArray(item1.conv_list) && item1.conv_list.length > 0
         ? item1.conv_list[0].id
         : item1.id;
     let id2 =
-      item2.conv_list &&
-      Array.isArray(item2.conv_list) &&
-      item2.conv_list.length > 0
+      Array.isArray(item2.conv_list) && item2.conv_list.length > 0
         ? item2.conv_list[0].id
         : item2.id;
 
@@ -83,61 +79,42 @@ const MeetupConvListReducer = (state = INITIAL_STATE, action) => {
       return {...state, ...action.payload};
       break;
     case UPDATE_MEETCONVLIST:
-      if (isEmpty(action.payload.conversation_id)) {
+      if (
+        isEmpty(action.payload.conversation_id) &&
+        isEmpty(action.payload.alternate_id)
+      ) {
         return state;
       }
-      reducerdata = state.list.map((listitem) => {
-        return listitem.conversation_id == action.payload.conversation_id
-          ? {...listitem, ...action.payload}
-          : listitem;
+      reducerdata = state.list.map(convlistitem => {
+        return convlistitem.conversation_id == action.payload.conversation_id ||
+          convlistitem?.alternate_id == action.payload.alternate_id
+          ? {...convlistitem, ...action.payload}
+          : convlistitem;
       });
       reducerdata.find(
-        (listitem) =>
-          listitem.conversation_id == action.payload.conversation_id,
-      ) == undefined && reducerdata.push(action.payload);
-      return {...state, list: arrangeConvList(reducerdata)};
-      break;
-    case UPDATE_MEETCONVLIST_CONVS:
-      if (isEmpty(action.payload.conversation_id)) {
-        return state;
-      }
-      reducerdata = state.list.map((listitem) => {
-        if (listitem.conversation_id == action.payload.conversation_id) {
-          let convlist = listitem.conv_list.map((item) => {
-            return item.id == action.payload.id &&
-              !hasProperty(action.payload, ['conv_list'])
-              ? {...item, ...action.payload}
-              : item;
-          });
-          let found = convlist.find((item) => item.id == action.payload.id);
-          if (!found && hasProperty(action.payload, ['conv_list']) == false) {
-            convlist.push(action.payload);
-          }
-          return {
-            ...listitem,
-            ...action.payload,
-            conv_list: arrangeConvs(convlist),
-          };
-        }
-        return listitem;
-      });
-      reducerdata.find(
-        (listitem) =>
-          listitem.conversation_id == action.payload.conversation_id,
+        convlistitem =>
+          convlistitem.conversation_id == action.payload.conversation_id ||
+          convlistitem?.alternate_id == action.payload.alternate_id,
       ) == undefined && reducerdata.push(action.payload);
       return {...state, list: arrangeConvList(reducerdata)};
       break;
     case UPDATE_MEETCONVLIST_CONVS_ARR:
-      if (isEmpty(action.payload.conversation_id)) {
-        return state;
-      }
-      reducerdata = state.list.map((listitem) => {
-        if (action.payload.conversation_id == listitem.conversation_id) {
-          if (!isEmpty(action.payload.conv_list)) {
+      let exclude_convlist_ids = [];
+      reducerdata = state.list.map(convlistitem => {
+        let foundconvlistitem = action.payload.find(
+          newlistitem =>
+            newlistitem.conversation_id == convlistitem.conversation_id ||
+            newlistitem.alternate_id == convlistitem.alternate_id,
+        );
+        if (foundconvlistitem) {
+          exclude_convlist_ids.push(
+            foundconvlistitem.conversation_id || foundconvlistitem.alternate_id,
+          );
+          if (!isEmpty(foundconvlistitem.conv_list)) {
             let excludeconvs = [];
-            let newconvs = listitem.conv_list.map((convitem) => {
-              let foundconvitem = action.payload.conv_list.find(
-                (newconvitem) => newconvitem.id == convitem.id,
+            let newconvs = convlistitem.conv_list.map(convitem => {
+              let foundconvitem = foundconvlistitem.conv_list.find(
+                newconvitem => newconvitem.id == convitem.id,
               );
               if (foundconvitem) {
                 excludeconvs.push(foundconvitem.id);
@@ -146,90 +123,102 @@ const MeetupConvListReducer = (state = INITIAL_STATE, action) => {
                 return convitem;
               }
             });
-            let tobeaddedconvs = action.payload.conv_list.filter(
-              (newconvitem) => !excludeconvs.includes(newconvitem.id),
+            let tobeaddedconvs = foundconvlistitem.conv_list.filter(
+              newconvitem => !excludeconvs.includes(newconvitem.id),
             );
             newconvs = [...newconvs, ...tobeaddedconvs];
             return {
-              ...listitem,
-              ...action.payload,
+              ...convlistitem,
+              ...foundconvlistitem,
               conv_list: arrangeConvs(newconvs),
             };
           } else {
-            return {...listitem, ...action.payload};
+            return {...convlistitem, ...foundconvlistitem};
           }
         }
-        return listitem;
+        return convlistitem;
       });
-      reducerdata.find(
-        (listitem) =>
-          listitem.conversation_id == action.payload.conversation_id,
-      ) == undefined && reducerdata.push(action.payload);
+      let to_add_list = action.payload.filter(listitem => {
+        if (exclude_convlist_ids.includes(listitem.conversation_id))
+          return false;
+        else if (exclude_convlist_ids.includes(listitem.alternate_id))
+          return false;
+        else return true;
+      });
+      reducerdata = [...reducerdata, ...to_add_list];
       return {...state, list: arrangeConvList(reducerdata)};
       break;
     case REMOVE_MEETCONVLIST_CONVS:
-      reducerdata = state.list.map((listitem) => {
-        if (listitem.conversation_id == action.payload.conversation_id) {
-          let convlist = listitem.conv_list.filter(
-            (item) => item.id != action.payload.id,
+      reducerdata = state.list.map(convlistitem => {
+        if (
+          convlistitem.conversation_id == action.payload.conversation_id ||
+          convlistitem.alternate_id == action.payload.alternate_id
+        ) {
+          let convlist = convlistitem.conv_list.filter(
+            item => item.id != action.payload.id,
           );
-          return {...listitem, conv_list: arrangeConvs(convlist)};
+          return {...convlistitem, conv_list: arrangeConvs(convlist)};
         }
-        return listitem;
+        return convlistitem;
       });
       return {...state, list: arrangeConvList(reducerdata)};
       break;
     case REMOVE_MEETCONVLIST:
-      reducerdata = state.list.filter((listitem) => {
-        return !action.payload.includes(listitem.conversation_id);
+      reducerdata = state.list.filter(convlistitem => {
+        if (action.payload.includes(convlistitem.conversation_id)) return false;
+        else if (action.payload.includes(convlistitem.alternate_id))
+          return false;
+        else return true;
       });
       return {...state, list: arrangeConvList(reducerdata)};
       break;
     case SET_FCM_MEET_CONV_TO_READ:
-      reducerdata = state.list.map((listitem) => {
-        if (listitem.conversation_id == action.conv_id) {
-          let convlist = listitem.conv_list.map((item) => {
+      reducerdata = state.list.map(convlistitem => {
+        if (convlistitem.conversation_id == action.conv_id) {
+          let convlist = convlistitem.conv_list.map(item => {
             return item.id <= action.payload ? {...item, status: 'read'} : item;
           });
-          return {...listitem, conv_list: arrangeConvs(convlist)};
+          return {...convlistitem, conv_list: arrangeConvs(convlist)};
         }
-        return listitem;
+        return convlistitem;
       });
       return {...state, list: arrangeConvList(reducerdata)};
       break;
     case SET_FCM_MEET_CONV_TO_DELIVERED:
-      reducerdata = state.list.map((listitem) => {
-        if (listitem.conversation_id == action.conv_id) {
-          let convlist = listitem.conv_list.map((item) => {
+      reducerdata = state.list.map(convlistitem => {
+        if (convlistitem.conversation_id == action.conv_id) {
+          let convlist = convlistitem.conv_list.map(item => {
             return item.id <= action.payload
               ? {...item, status: 'delievered'}
               : item;
           });
-          return {...listitem, conv_list: arrangeConvs(convlist)};
+          return {...convlistitem, conv_list: arrangeConvs(convlist)};
         }
-        return listitem;
+        return convlistitem;
       });
       return {...state, list: arrangeConvList(reducerdata)};
       break;
     case ADD_FCM_MEET_CONV:
       let found = false;
-      reducerdata = state.list.map((listitem) => {
-        if (listitem.conversation_id == action.conv_id) {
-          let convlist = listitem.conv_list;
+      reducerdata = state.list.map(convlistitem => {
+        if (convlistitem.conversation_id == action.conv_id) {
+          let convlist = convlistitem.conv_list;
           convlist.push(action.payload);
           found = true;
           return {
-            ...listitem,
+            ...convlistitem,
             ...action.payload,
-            num_new_msg: (listitem.num_new_msg || 0) + 1,
+            num_new_msg: (convlistitem.num_new_msg || 0) + 1,
+            latest_id: action.payload.id,
             conv_list: arrangeConvs(convlist),
           };
         }
-        return listitem;
+        return convlistitem;
       });
       found == false &&
         reducerdata.push({
           ...action.payload,
+          latest_id: action.payload.id,
           num_new_msg: 1,
           conv_list: [action.payload],
         });

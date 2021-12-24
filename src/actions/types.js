@@ -270,19 +270,10 @@ export const REMOVE_PROFILE_MEETUPMAIN = 'remove_profile_meetupmain';
  *TYPE CONSTANT FOR MEETUPCONVLIST REDUCER
  */
 export const UPDATE_MEETCONVLIST = 'update_meetconvlist';
-export const UPDATE_MEETCONVLIST_CONVS = 'update_meetconvlist_convs';
 export const UPDATE_MEETCONVLIST_CONVS_ARR = 'update_meetconvlist_convs_arr';
 export const REMOVE_MEETCONVLIST_CONVS = 'remove_meetconvlist_convs';
 export const REMOVE_MEETCONVLIST = 'remove_meetconvlist';
 export const SET_MEETCONVLIST = 'set_meetconvlist';
-
-/**
- *TYPE CONSTANT FOR MEETUPCONVERSATION REDUCER
- */
-export const UPDATE_MEETUPCONVERSATION = 'update_meetupconversation';
-export const UPDATE_MEETUPCONVERSATION_ARR = 'update_meetupconversation_arr';
-export const SET_MEETUPCONVERSATION = 'set_meetupconversation';
-export const REMOVE_MEETUPCONVERSATION = 'remove_meetupconversation';
 
 /***
  * TYPE CONSTANT FOR FCM

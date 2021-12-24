@@ -33,10 +33,10 @@ class ConversationItem extends Component {
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     let prevconvlist = Array.isArray(this.props.item.conv_list)
       ? this.props.item.conv_list
-      : [{}];
+      : [];
     let nextconvlist = Array.isArray(nextProps.item.conv_list)
       ? nextProps.item.conv_list
-      : [{}];
+      : [];
 
     if (
       nextProps.item.id != this.props.item.id ||
@@ -46,8 +46,8 @@ class ConversationItem extends Component {
     } else if (
       this.props.item.conversation_id == nextProps.item.conversation_id &&
       (this.props.item.num_new_msg != nextProps.item.num_new_msg ||
-        prevconvlist[0].id != nextconvlist[0].id ||
-        prevconvlist[0].status != nextconvlist[0].status)
+        prevconvlist[0]?.id != nextconvlist[0]?.id ||
+        prevconvlist[0]?.status != nextconvlist[0]?.status)
     ) {
       return true;
     }

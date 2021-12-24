@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {
   StyleSheet,
   View,
+  Alert,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
@@ -29,6 +30,22 @@ import RNFetchBlob from 'rn-fetch-blob';
 import {ActivityOverlay, ModalList} from './ResuableWidgets';
 
 const {colors} = useTheme();
+
+const ShowChats = ({data, onLongPress = () => {}, userprofile}) => {
+  return data
+    .sort((item1, item2) => item1.created_at - item2.created_at)
+    .map(item => {
+      return (
+        <PrivateChatItem
+          key={item.id}
+          item={item}
+          onLongPress={() => (item.read == 'sending' ? {} : onLongPress(item))}
+          userprofile={userprofile}
+        />
+      );
+    })
+    .reverse();
+};
 
 class PrivateChatItem extends Component {
   constructor(props) {
@@ -181,17 +198,16 @@ class PrivateChatItem extends Component {
   };
 
   renderOwnerChat = () => {
-    let {item, sendConv} = this.props;
+    let {item, sendConv, onLongPress} = this.props;
     let onPress = null;
     if (checkData(sendConv) && !isEmpty(item.data)) {
       onPress = () => sendConv(item.data);
     }
-
     if (!isEmpty(item.chat_msg) && isEmpty(item.chat_pics)) {
       return (
         <Animatable.View useNativeDriver={true}>
           <View style={{marginVertical: 5, alignItems: 'flex-end'}}>
-            <TouchableOpacity onPress={onPress}>
+            <TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
               <ParsedText
                 style={[
                   styles.ownerChatText,
@@ -249,7 +265,8 @@ class PrivateChatItem extends Component {
                         },
                       })
               }
-              activeOpacity={0.9}>
+              activeOpacity={0.9}
+              onLongPress={onLongPress}>
               <Image
                 containerStyle={[
                   styles.ownerChatImageContainer,
@@ -293,6 +310,7 @@ class PrivateChatItem extends Component {
         <Animatable.View useNativeDriver={true}>
           <View style={{marginVertical: 5, alignItems: 'flex-end'}}>
             <TouchableOpacity
+              onLongPress={onLongPress}
               onPress={
                 checkData(onPress)
                   ? onPress
@@ -400,7 +418,7 @@ class PrivateChatItem extends Component {
   };
 
   renderPartnerChat = () => {
-    let {item} = this.props;
+    let {item, onLongPress} = this.props;
     if (!isEmpty(item.chat_msg) && isEmpty(item.chat_pics)) {
       return (
         <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
@@ -419,6 +437,7 @@ class PrivateChatItem extends Component {
         <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
           <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
             <TouchableOpacity
+              onLongPress={onLongPress}
               onPress={
                 isEmpty(this.state.partnerimageuri)
                   ? null
@@ -462,6 +481,7 @@ class PrivateChatItem extends Component {
         <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
           <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
             <TouchableOpacity
+              onLongPress={onLongPress}
               onPress={
                 isEmpty(this.state.partnerimageuri)
                   ? null
@@ -548,7 +568,7 @@ class PrivateChats extends Component {
     } else if (this.props.loadingmore == false) {
       return (
         <Button
-          onPress={() => {}}
+          onPress={this.props.loadMore}
           type="clear"
           icon={{
             name: 'plus',
@@ -592,37 +612,25 @@ class PrivateChats extends Component {
 
   _reSendChat = () => {
     let tosendchatdata = this.currentselectedchatitem;
-    if (!checkData(tosendchatdata)) {
+    if (
+      isEmpty(tosendchatdata) ||
+      (tosendchatdata.pending != true || tosendchatdata.read != 'failed')
+    ) {
       alert('Can not resend');
       return;
     }
     let chatSchema = {
       ...tosendchatdata,
       read: 'sending',
-      partnerprofile: this.props.partnerprofile,
     };
-    if (checkData(tosendchatdata.private_chatid)) {
-      /*alert(JSON.stringify(tosendchatdata));
-            return;*/
-      chatSchema = {
-        ...chatSchema,
-        private_chatid: null,
-        imagehandled: null,
-        id: Math.round(new Date().getTime()),
-        sender_id: this.props.userprofile.profile_id,
-        receiver_id: this.props.partnerprofile.profile_id,
-        created_at: `${Math.round(new Date().getTime())}`,
-      };
-      checkData(this.flatlistref) &&
-        this.flatlistref.scrollToOffset({offset: 0});
-    }
+
     this.props.sendPrivateChat({
       create_chatid: tosendchatdata.create_chatid,
+      partnerprofile: this.props.partnerprofile,
       chatSchema,
       reqobj: {
         chat_msg: tosendchatdata.chat_msg,
         chat_pics: tosendchatdata.chat_pics,
-        setread: 'ok',
         receiver_id: this.props.partnerprofile.profile_id,
       },
     });
@@ -634,32 +642,17 @@ class PrivateChats extends Component {
   };
 
   onLongPress = data => {
-    let imagearr = data.chat_pics;
-    if (
-      checkData(data.private_chatid) &&
-      Array.isArray(imagearr) &&
-      imagearr.length > 0
-    ) {
-      imagearr = data.chat_pics.map(item => {
-        let imageuri = item.chatpic.split('/')[6];
-        return {
-          chatpic: rnPath(
-            `/storage/emulated/0/CampusMeetup/ChatImages/${imageuri}`,
-          ),
-        };
-      });
-    }
-    this._setCurrentSelectedChatItem({...data, chat_pics: imagearr});
+    this._setCurrentSelectedChatItem({...data});
     this.setState({modallistvisible: true});
   };
 
   _keyExtractor = (item, index) => index.toString();
   _renderItem = ({item, index}) => {
     return (
-      <PrivateChatItem
-        item={item}
-        onLongPress={() => (item.read == 'sending' ? {} : onLongPress(item))}
+      <ShowChats
+        data={this.props.data}
         userprofile={this.props.userprofile}
+        onLongPress={this.onLongPress}
       />
     );
   };
@@ -679,7 +672,7 @@ class PrivateChats extends Component {
           initialNumRender={1}
           getItemLayout={this._getItemLayout}
           //data={this.props.loaded == false && [] || [...this.props.data].reverse()}
-          data={this.props.loaded ? this.props.data : []}
+          data={this.props.loaded ? [1] : []}
           //maxToRenderPerBatch={1}
           inverted
           //updateCellsBatchingPeriod={0}
@@ -693,7 +686,7 @@ class PrivateChats extends Component {
         />
 
         <ActivityOverlay
-          isVisible={this.props.deleting == 'true' ? true : false}
+          isVisible={this.props.deleting}
           text={'Deleting Chat'}
         />
 
@@ -701,7 +694,7 @@ class PrivateChats extends Component {
           isVisible={this.state.modallistvisible}
           onBackdropPress={() => this.setState({modallistvisible: false})}
           optionsArr={[
-            {
+            this.currentselectedchatitem?.pending == true && {
               title: 'Resend Message',
               onPress: () => {
                 this.setState({modallistvisible: false});

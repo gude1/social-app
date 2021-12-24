@@ -24,8 +24,6 @@ import {store} from '../store/index';
 const INITIAL_STATE = {
   chatlist: [],
   persistedchatlist: [],
-  lowest: null,
-  highest: null,
   pinnedchatarr: [],
   loading: false,
   deleting: false,
@@ -111,8 +109,24 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
             ...to_exclude_ids,
             item.created_chatid || item?.partnerprofile?.profile_id,
           ];
-          //console.warn(to_exclude_ids);
-          return {...item, ...chatlistitem};
+
+          let exclude_chat_ids = [];
+          let newchats = item.chats.map(chatitem => {
+            let chat = chatlistitem.chats.find(newchatitem => {
+              return newchatitem.private_chatid == chatitem.private_chatid;
+            });
+            if (chat) {
+              exclude_chat_ids = [...exclude_chat_ids, chat.private_chatid];
+              return {...chatitem, ...chat};
+            }
+            return chatitem;
+          });
+
+          let to_add_chats = chatlistitem.chats.filter(
+            item => !exclude_chat_ids.includes(item.private_chatid),
+          );
+          newchats = [...newchats, ...to_add_chats];
+          return {...item, ...chatlistitem, chats: newchats};
         }
         return item;
       });
@@ -187,10 +201,10 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
       break;
     case DELETE_PRIVATECHATLIST:
       reducerdata = state.chatlist.filter(item => {
-        return (
-          item.created_chatid != action.payload ||
-          item.partnerprofile.profile_id != action.payload
-        );
+        if (item.created_chatid == action.payload) return false;
+        else if (item?.partnerprofile?.profile_id == action.payload)
+          return false;
+        else return true;
       });
       let pinnedchatarr = state.pinnedchatarr.filter(
         created_chatid => created_chatid != action.payload,
@@ -201,14 +215,6 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
         chatlist: reducerdata,
         pinnedchatarr,
         persistedchatlist: arrayReduce(reducerdata),
-        highest:
-          !isEmpty(reducerdata) && !isEmpty(reducerdata[0].chats)
-            ? reducerdata[0].chats[0].id
-            : 0,
-        lowest:
-          !isEmpty(reducerdata) && !isEmpty(reducerdata[0].chats)
-            ? reducerdata[reducerdata.length - 1].chats[0].id
-            : 0,
       };
       break;
     case REMOVE_PRIVATECHATLIST_CHATS:
@@ -232,14 +238,6 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
         ...state,
         chatlist: reducerdata,
         persistedchatlist: arrayReduce(reducerdata),
-        highest:
-          !isEmpty(reducerdata) && !isEmpty(reducerdata[0].chats)
-            ? reducerdata[0].chats[0].id
-            : 0,
-        lowest:
-          !isEmpty(reducerdata) && !isEmpty(reducerdata[0].chats)
-            ? [reducerdata.length - 1].chats[0].id
-            : 0,
       };
       break;
     case SET_PRIVATE_CHAT_READ_STATUS:

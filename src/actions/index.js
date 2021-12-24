@@ -23,35 +23,25 @@ import {
   UPDATE_POST_FORM_IMAGE_CHANGED,
   SET_GALLERY_PHOTOS,
   SET_SELECTED_LIST,
-  UNSET_SELECTED_LIST,
   SET_GALLERY_PHOTOS_NUM,
   UPDATE_POST,
   REMOVE_POST,
-  ADD_TIMELINE_POST,
-  UPDATE_TIMELINE_POST,
   ADD_TIMELINE_POST_FORM,
-  DELETE_TIMELINE_POST,
   DELETE_TIMELINE_POST_FORM,
   SET_TIMELINE_POST_FORM_LINKS,
-  SET_TIMELINE_POST_LINKS,
   UPDATE_TIMELINE_POST_FORM,
   TIMELINE_POST_FORM_REFRESH,
-  REMOVE_PROFILE_TIMELINE_POST,
   REMOVE_PROFILE_TIMELINE_POST_FORM,
   ADD_POST_COMMENT_FORM,
   PREPEND_TIMELINE_POST_FORM,
   UPDATE_TIMELINE_POST_FORM_PROFILE_CHANGES,
-  UPDATE_TIMELINE_POST_PROFILE_CHANGES,
-  PREPEND_TIMELINE_POST,
   POST_COMMENT_FORM_REFRESH,
-  POST_COMMENT_FORM_DELETE,
   PREPEND_POST_COMMENT_FORM,
   REMOVE_POST_COMMENT_FORM,
   UPDATE_POST_COMMENT_FORM,
   SET_POST_COMMENT_FORM_LINK,
   ADD_POST_COMMENT_REPLY_FORM,
   PREPEND_POST_COMMENT_REPLY_FORM,
-  POST_COMMENT_REPLY_FORM_DELETE,
   POST_COMMENT_REPLY_FORM_REFRESH,
   REMOVE_POST_COMMENT_REPLY_FORM,
   UPDATE_POST_COMMENT_REPLY_FORM,
@@ -69,7 +59,6 @@ import {
   RESET,
   BOOKMARK,
   SET_TIMELINE_POST_FORM_PROFILE_CHANGES,
-  SET_TIMELINE_POST_PROFILE_CHANGES,
   UPDATE_POST_SETTINGS,
   ADD_USER_VIEWPROFILEFORM_POSTS,
   PREPEND_USER_VIEWPROFILEFORM_POSTS,
@@ -95,7 +84,6 @@ import {
   SET_USER_VIEWPROFILEFORM_POSTS,
   SET_POST_COMMENT_REPLY_FORM,
   SET_TIMELINE_POST_FORM,
-  SET_TIMELINE_POST,
   SET_PROFILES_LIST,
   ADD_PROFILES_LIST,
   PREPEND_PROFILES_LIST,
@@ -109,7 +97,6 @@ import {
   UPDATE_PROFILES_LIST,
   UPDATE_SEARCH_LIST,
   UPDATE_PROFILE_CHANGED,
-  SET_POST_COMMENT_OWNER_POST,
   SET_POST_COMMENT_FORM_OWNER_POST,
   UPDATE_POST_COMMENT_FORM_OWNER_POST,
   UPDATE_POST_COMMENT_REPLY_FORM_OWNER_COMMENT,
@@ -122,12 +109,9 @@ import {
   ADD_OFFLINE_ACTION,
   DELETE_OFFLINE_ACTION,
   DELETE_OFFLINE_ACTIONS,
-  ADD_PRIVATECHATLIST_EACH_CHAT_ARR,
   ADD_PRIVATECHAT,
   SET_PRIVATECHAT,
   SET_PRIVATECHATFORM,
-  SET_PRIVATECHAT_LAST_FETCH_ARR,
-  ADD_PRIVATECHAT_LAST_FETCH_ARR,
   REMOVE_PRIVATECHAT_LAST_FETCH_ARR,
   UPDATE_PRIVATECHATLIST_CHATS,
   REMOVE_PRIVATECHAT,
@@ -149,7 +133,6 @@ import {
   SET_MEETUPMAIN_URL,
   SET_MEETUPMAIN,
   SET_MEETUPMAIN_ERRORS,
-  SET_MEETUPMAIN_MY_REQUESTS,
   ADD_MEETUPMAIN_MY_REQUESTS,
   UPDATE_MEETUPMAIN_MY_REQUESTS,
   REMOVE_MEETUPMAIN_REQUESTS,
@@ -157,14 +140,8 @@ import {
   REMOVE_PROFILE_MEETUPMAIN,
   SET_MEETCONVLIST,
   UPDATE_MEETCONVLIST,
-  SET_MEETUPCONVERSATION,
-  UPDATE_MEETUPCONVERSATION,
-  REMOVE_MEETUPCONVERSATION,
-  UPDATE_ARRAY_PRIVATECHATLIST,
-  UPDATE_MEETCONVLIST_CONVS,
   REMOVE_MEETCONVLIST_CONVS,
   UPDATE_MEETCONVLIST_CONVS_ARR,
-  UPDATE_MEETUPCONVERSATION_ARR,
   REMOVE_MEETUPMAIN_MY_REQUESTS_ARR,
   REMOVE_MEETUPMAIN_REQUESTS_ARR,
   REMOVE_MEETCONVLIST,
@@ -183,17 +160,13 @@ import {
   deleteFile,
   rnPath,
   setRoute,
-  shouldNav,
   getAppInfo,
-  test,
   checkData,
   getImageSize,
   resizeImage,
-  image_exists,
   Toast,
   logOut,
   getFileInfo,
-  mvFile,
   cpFile,
   isEmpty,
 } from '../utilities';
@@ -4023,6 +3996,8 @@ export const fetchMoreChatList = () => {
     ) {
       return;
     }
+
+    let chats = privatechatlistform.chats || [];
     dispatch(setProcessing(true, 'privatechatlistloadingmore'));
     try {
       const options = {
@@ -4031,7 +4006,7 @@ export const fetchMoreChatList = () => {
       const response = await session.post(
         'privatechatlist',
         {
-          min: privatechatlistform.lowest,
+          min: chats[chats.length - 1]?.id,
         },
         options,
       );
@@ -4203,19 +4178,23 @@ export const setChatListArrayRead = data => {
 export const delPrivateChatList = (created_chatid = '') => {
   return async dispatch => {
     const {user, privatechatlistform} = store.getState();
+
     let chatlistitem = privatechatlistform.chatlist.find(
       item =>
         item.created_chatid == created_chatid ||
         item.partnerprofile.profile_id == created_chatid,
     );
+
     if (isEmpty(created_chatid) || isEmpty(chatlistitem)) {
       Toast('cannot delete chat incomplete request');
       return;
     }
     dispatch(setProcessing(true, 'privatechatlistdeleting'));
 
-    if (isEmpty(chatlistitem.last_id)) {
-      dispatch(deletePrivateChatList(created_chatid));
+    let latest_chat = chatlistitem.chats.filter(item => !item.pending)[0];
+
+    if (isEmpty(latest_chat)) {
+      Toast('chats not deleted');
       dispatch(setProcessing(false, 'privatechatlistdeleting'));
       return;
     }
@@ -4228,23 +4207,19 @@ export const delPrivateChatList = (created_chatid = '') => {
         'deleteprivatechat',
         {
           created_chatid,
-          limit_id: chatlistitem.last_id,
+          limit_id: latest_chat.id,
         },
         options,
       );
       const {status, errmsg, message} = response.data;
-      // console.warn(response.data);
+      //console.warn(response.data);
       switch (status) {
         case 200:
           dispatch(deletePrivateChatList(created_chatid));
           dispatch(setProcessing(false, 'privatechatlistdeleting'));
           break;
         default:
-          Toast(
-            errmsg || 'something went wrong please try again',
-            null,
-            ToastAndroid.CENTER,
-          );
+          Toast(errmsg || 'something went wrong please try again');
           dispatch(setProcessing(false, 'privatechatlistdeleting'));
           break;
       }
@@ -4252,17 +4227,9 @@ export const delPrivateChatList = (created_chatid = '') => {
       console.warn(err.toString());
       dispatch(setProcessing(false, 'privatechatlistdeleting'));
       if (err.toString().indexOf('Network Error') != -1) {
-        Toast(
-          'chat not deleted please check your network',
-          null,
-          ToastAndroid.CENTER,
-        );
+        Toast('chat not deleted please check your network');
       } else {
-        Toast(
-          'chat not deleted something went wrong please try again',
-          null,
-          ToastAndroid.CENTER,
-        );
+        Toast('chat not deleted something went wrong please try again');
       }
     }
   };
@@ -4578,13 +4545,16 @@ export const setPrivateChatToRead = (data = []) => {
   };
 };
 
-export const fetchPrivateChats = data => {
+export const fetchPrivateChats = (data, ok, fail) => {
   return async dispatch => {
     let {user} = store.getState(); //showprivatechatandupdatedelievered
     let created_chatid = data[0];
     let partner_id = data[1];
+    let min = data[2];
+    let max = data[3];
     if (isEmpty(created_chatid) && isEmpty(partner_id)) {
       Toast('chat not fetched missing values');
+      checkData(fail) && fail();
       return;
     }
     dispatch(
@@ -4601,16 +4571,19 @@ export const fetchPrivateChats = data => {
         {
           created_chatid,
           partner_id,
+          min,
+          max,
         },
         options,
       );
       const {status, message, errmsg, chatlistitem} = response.data;
       switch (status) {
         case 200:
-          //console.warn(message);
           dispatch(updatePrivateChatListArr([chatlistitem]));
+          checkData(ok) && ok();
           break;
         case 401:
+          checkData(fail) && fail();
           break;
         case 500:
           dispatch(
@@ -4621,13 +4594,16 @@ export const fetchPrivateChats = data => {
               override: true,
             }),
           );
+          checkData(fail) && fail();
           break;
         default:
           Toast(errmsg || 'chats not updated');
+          checkData(fail) && fail();
           break;
       }
     } catch (err) {
       console.warn(err.toString());
+      checkData(fail) && fail();
       if (err.toString().indexOf('Network Error') != -1) {
         dispatch(
           addOfflineAction({
@@ -4828,6 +4804,7 @@ export const sendPrivateChat = (data = {}) => {
 export const getPrivateChatInfo = (created_chatid = '', ok, fail) => {
   return async dispatch => {
     if (!checkData(created_chatid)) {
+      checkData(fail) && fail();
       return;
     }
     try {
@@ -4855,188 +4832,63 @@ export const getPrivateChatInfo = (created_chatid = '', ok, fail) => {
   };
 };
 
-export const clearAPrivateChat = (initAction, okAction, failedAction) => {
+export const deleteAPrivateChat = (data = [], ok, fail) => {
   return async dispatch => {
-    try {
-      const {user, privatechatform} = store.getState();
-      if (
-        !checkData(privatechatform) ||
-        !checkData(privatechatform.chats) ||
-        !Array.isArray(privatechatform.chats) ||
-        privatechatform.chats.length < 1
-      ) {
-        alert(`No chat to clear`);
-        return;
-      }
-      const options = {
-        headers: {Authorization: `Bearer ${user.token}`},
-      };
-      checkData(initAction) && initAction();
-      let limiter_chat = [...privatechatform.chats]
-        .sort((item1, item2) => item2.created_at - item1.created_at)
-        .find(item => item.deleted != true && checkData(item.private_chatid));
-      if (!checkData(limiter_chat)) {
-        checkData(okAction) && okAction();
-        return;
-      }
+    let chatitem = data[0];
+    let partnerprofile = data[1];
 
-      const response = await session.post(
-        'deleteprivatechat',
-        {
-          created_chatid: privatechatform.created_chatid,
-          limit_id: limiter_chat.id,
-        },
-        options,
-      );
-      const {status, errmsg, message} = response.data;
-      switch (status) {
-        case 200:
-          checkData(okAction) && okAction();
-          break;
-        case 500:
-          Toast(errmsg, null, ToastAndroid.CENTER);
-          checkData(failedAction) && failedAction();
-          break;
-        case 400:
-          Toast(errmsg, null, ToastAndroid.CENTER);
-          checkData(failedAction) && failedAction();
-          break;
-        default:
-          Toast(
-            'something went wrong please try again',
-            null,
-            ToastAndroid.CENTER,
-          );
-          checkData(failedAction) && failedAction();
-          break;
-      }
-    } catch (e) {
-      console.warn(`${e.toString()}`);
-      if (err.toString().indexOf('Network Error') != -1) {
-        Toast(
-          'chat not cleared please check your network',
-          null,
-          ToastAndroid.CENTER,
-        );
-      } else {
-        Toast(
-          'chat not cleared something went wrong please try again',
-          null,
-          ToastAndroid.CENTER,
-        );
-      }
-      checkData(failedAction) && failedAction();
-    }
-  };
-};
-
-export const deleteAPrivateChat = (chatitem: Object) => {
-  return async dispatch => {
-    if (!checkData(chatitem)) {
+    if (isEmpty(chatitem) || isEmpty(partnerprofile)) {
       Toast('chat not deleted missing values to continue');
     }
     try {
-      const {user, profile, privatechatform} = store.getState();
-      let partner_id =
-        chatitem.sender_id == profile.profile_id
-          ? chatitem.receiver_id
-          : chatitem.sender_id;
+      const {user} = store.getState();
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
       };
-      if (chatitem.read == 'failed' && !checkData(chatitem.private_chatid)) {
-        //console.warn('failedgrowth', chatitem);
-        dispatch(
-          addPrivateChat(
-            [{...chatitem, deleted: true}],
-            chatitem.created_chatid || partner_id,
-          ),
-        );
-        //dispatch(removePrivateChat(chatitem, chatitem.created_chatid));
+      if (chatitem.pending) {
+        dispatch(deleteOfflineAction({id: `sendprivatechat${chatitem.id}`}));
+        if (!isEmpty(chatitem.chat_pics)) {
+          deleteFile(`${chatitem.chat_pics.chatpic}`);
+        }
         dispatch(
           removePrivateChatListChats({
             ...chatitem,
-            partnerprofile: privatechatform.partnerprofile,
+            partnerprofile: partnerprofile,
           }),
         );
-        dispatch(deleteOfflineAction({id: `sendprivatechat${chatitem.id}`}));
-        if (
-          Array.isArray(chatitem.chat_pics) &&
-          chatitem.chat_pics.length > 0
-        ) {
-          chatitem.chat_pics.forEach(item => {
-            deleteFile(`${item.chatpic}`);
-          });
-        }
+        checkData(ok) && ok();
+
         return;
       }
-      // console.warn('Inside function', chatitem);
-      dispatch(
-        setProcessing(
-          true + `*${chatitem.created_chatid || partner_id}`,
-          'privatechatformdeleting',
-        ),
-      );
+
       const response = await session.post(
         'deleteaprivatechat',
         {chatid: chatitem.private_chatid},
         options,
       );
       const {status, errmsg, message} = response.data;
-      dispatch(
-        setProcessing(
-          false + `*${chatitem.created_chatid || partner_id}`,
-          'privatechatformdeleting',
-        ),
-      );
+
       switch (status) {
         case 200:
           dispatch(
-            addPrivateChat(
-              [{...chatitem, deleted: true}],
-              chatitem.created_chatid || partner_id,
-            ),
-          );
-          dispatch(
             removePrivateChatListChats({
               ...chatitem,
-              partnerprofile: privatechatform.partnerprofile,
+              partnerprofile: partnerprofile,
             }),
           );
-          dispatch(deleteOfflineAction({id: `sendprivatechat${chatitem.id}`}));
-          if (
-            Array.isArray(chatitem.chat_pics) &&
-            chatitem.chat_pics.length > 0
-          ) {
-            chatitem.chat_pics.forEach(item => {
-              let imageuri = item.chatpic.split('/');
-              imageuri = imageuri[imageuri.length - 1];
-              deleteFile(
-                `/storage/emulated/0/CampusMeetup/ChatImages/${imageuri}`,
-              );
-            });
-          }
+          checkData(ok) && ok();
           break;
         case 401:
-          break;
-        case 400:
-          Toast('Chat not deleted please try again');
-          break;
-        case 500:
-          Toast('Chat not deleted please try again');
+          checkData(fail) && fail();
           break;
         default:
-          Toast('Chat not deleted please try again');
+          checkData(fail) && fail();
+          Toast(errmsg || 'Chat not deleted please try again');
           break;
       }
     } catch (err) {
+      checkData(fail) && fail();
       console.warn(err.toString());
-      dispatch(
-        setProcessing(
-          false + `*${chatitem.created_chatid || partner_id}`,
-          'privatechatformdeleting',
-        ),
-      );
       Toast('Chat not deleted please try again');
     }
   };
@@ -6691,15 +6543,7 @@ export const updateMeetConvList = (data = {}) => {
     payload: data,
   };
 };
-
-export const updateMeetConvListConvs = (data = {}) => {
-  return {
-    type: UPDATE_MEETCONVLIST_CONVS,
-    payload: data,
-  };
-};
-
-export const updateMeetConvListConvsArr = (data = {}) => {
+export const updateMeetConvListConvsArr = (data = []) => {
   return {
     type: UPDATE_MEETCONVLIST_CONVS_ARR,
     payload: data,
@@ -6733,10 +6577,7 @@ export const fetchMeetConv = () => {
       switch (status) {
         case 200:
           dispatch(setProcessing(false, 'meetupconvlistfetching'));
-          meet_convs.forEach(item => {
-            dispatch(updateMeetConvListConvsArr(item));
-          });
-          break;
+          dispatch(updateMeetConvListConvsArr(meet_convs));
         case 404:
           dispatch(setProcessing('retry', 'meetupconvlistfetching'));
           break;
@@ -6774,9 +6615,7 @@ export const fetchNewMeetConv = () => {
       switch (status) {
         case 200:
           dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
-          meet_convs.map(item => {
-            dispatch(updateMeetConvListConvsArr(item));
-          });
+          dispatch(updateMeetConvListConvsArr(meet_convs));
           break;
         case 404:
           dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
@@ -6814,9 +6653,7 @@ export const fetchLaterMeetConv = () => {
       switch (status) {
         case 200:
           dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
-          meet_convs.map(item => {
-            dispatch(updateMeetConvListConvsArr(item));
-          });
+          dispatch(updateMeetConvListConvsArr(meet_convs));
           break;
         case 404:
           dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
@@ -6829,45 +6666,6 @@ export const fetchLaterMeetConv = () => {
       dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
       console.warn(`${err.toString()}`);
     }
-  };
-};
-
-/**
- * ACTION CREATORS FOR MEETUPCONVERSATION REDUCER
- *
- */
-
-export const setMeetupConversation = (data = {}) => {
-  return {
-    type: SET_MEETUPCONVERSATION,
-    payload: data,
-  };
-};
-
-export const updateMeetupConversation = (data = {}, conversation_id = '') => {
-  return {
-    type: UPDATE_MEETUPCONVERSATION,
-    payload: data,
-    conversation_id,
-  };
-};
-
-export const updateMeetupConversationArr = (
-  data = [],
-  conversation_id = '',
-) => {
-  return {
-    type: UPDATE_MEETUPCONVERSATION_ARR,
-    payload: data,
-    conversation_id,
-  };
-};
-
-export const removeMeetupConversation = (data = {}, conversation_id = '') => {
-  return {
-    type: REMOVE_MEETUPCONVERSATION,
-    payload: data,
-    conversation_id,
   };
 };
 
@@ -6949,22 +6747,19 @@ export const fetchMeetConversations = (data, okAction, afterAction) => {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
       };
-      const response = await session.post(
-        'getandreadmeetconvs',
-        reqobj,
-        options,
-      );
-      const {status, errmsg, convs} = response.data;
+      const response = await session.post('getmeetconvs', reqobj, options);
+      const {status, errmsg, conversation_id, convs} = response.data;
       switch (status) {
         case 200:
           //console.warn('successfull', convs);
           dispatch(
-            updateMeetConvListConvsArr({
-              conversation_id: data[0],
-              conv_list: convs,
-            }),
+            updateMeetConvListConvsArr([
+              {
+                conversation_id: conversation_id,
+                conv_list: convs,
+              },
+            ]),
           );
-          dispatch(updateMeetupConversationArr(convs, data[0]));
           checkData(okAction) && okAction();
           checkData(afterAction) && afterAction();
           break;
@@ -7051,36 +6846,48 @@ export const sendMeetConversation = (data = []) => {
     if (
       !Array.isArray(data) ||
       data.length < 1 ||
-      isEmpty(data[0]) ||
-      isEmpty(data[1]) ||
-      (isEmpty(data[2]) && isEmpty(data[3]))
+      (isEmpty(data[0]) && isEmpty(data[1])) ||
+      isEmpty(data[2]) ||
+      isEmpty(data[3]) ||
+      (isEmpty(data[4]) && isEmpty(data[5]))
     ) {
       return;
     }
-    dispatch(deleteOfflineAction({id: `sendMeetConversation${data[0]}`}));
-    let {user, profile, meetupconvs} = store.getState();
+    let conversation_id = data[0];
+    let alternate_id = data[1];
+    let origin_meet_request = data[2];
+    let partnermeetprofile = data[3];
+    let conv_txt = data[4];
+    let conv_image = data[5];
+    dispatch(
+      deleteOfflineAction({
+        id: `sendMeetConversation${conversation_id || alternate_id}`,
+      }),
+    );
+    let {user, profile} = store.getState();
     let formdata = new FormData();
     let convschema = {
-      conversation_id: data[0],
+      conversation_id,
+      alternate_id,
       created_at: Math.round(new Date().getTime() / 1000),
       sender_id: profile.profile_id,
       status: 'sending',
-      id: data[4] || `${new Date().getTime()}`,
+      id: data[6] || `${new Date().getTime()}`,
     };
-    data[4] = convschema.id;
+    data[6] = convschema.id;
 
-    formdata.append('request_id', data[1]);
+    formdata.append('request_id', origin_meet_request.request_id);
 
     if (!isEmpty(data[2])) {
-      formdata.append('chat_msg', data[2]);
-      convschema['chat_msg'] = data[2];
+      formdata.append('chat_msg', conv_txt);
+      convschema['chat_msg'] = conv_txt;
     }
-    if (!isEmpty(data[3])) {
+    if (!isEmpty(conv_image)) {
       let chat_pics = null;
       if (data[3].processed != true) {
-        chat_pics = await setConvPic(data[3].chat_pics);
+        chat_pics = await setConvPic(conv_image.chat_pics);
       } else {
-        chat_pics = data[3];
+        chat_pics = conv_image;
       }
       let {chatpic, thumbchatpic, ext} = chat_pics;
       formdata.append('chat_pics', {
@@ -7094,12 +6901,10 @@ export const sendMeetConversation = (data = []) => {
         name: thumbchatpic,
       });
 
-      data[3] = {chatpic, thumbchatpic, ext, processed: true};
-      convschema['chat_pics'] = data[3];
+      conv_image = {chatpic, thumbchatpic, ext, processed: true};
+      convschema['chat_pics'] = conv_image;
     }
-
-    dispatch(updateMeetupConversation(convschema, data[0]));
-    dispatch(updateMeetConvListConvs(convschema));
+    dispatch(updateMeetConvListConvsArr([convschema]));
     try {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
@@ -7109,67 +6914,55 @@ export const sendMeetConversation = (data = []) => {
         formdata,
         options,
       );
-      const {status, errmsg, message, conv} = response.data;
+      const {
+        status,
+        errmsg,
+        message,
+        conversation_id,
+        origin_meet_request,
+        partner_meet_profile,
+        conv,
+      } = response.data;
       switch (status) {
         case 200:
           console.warn(200);
           if (!isEmpty(conv.chat_pics)) {
-            await saveConvPic(conv.chat_pics.chatpic, data[3].chatpic);
+            await saveConvPic(conv.chat_pics.chatpic, conv_image.chatpic);
           }
-          dispatch(removeMeetupConversation(convschema, data[0]));
-          dispatch(updateMeetupConversation(conv, data[0]));
-          dispatch(removeMeetConvListConvs(convschema));
-          dispatch(updateMeetConvListConvs(conv));
+          dispatch(updateMeetConvListConvsArr([convschema]));
+          dispatch(updateMeetConvListConvsArr([{...convschema, ...conv}]));
           break;
         default:
           Toast(errmsg);
           //console.warn('sendMeetConversation', errmsg);
           dispatch(
-            updateMeetupConversation(
+            updateMeetConvListConvsArr([
               {
                 ...convschema,
-                status: 'failed',
                 data,
+                status: 'failed',
               },
-              data[0],
-            ),
-          );
-
-          dispatch(
-            updateMeetConvListConvs({
-              ...convschema,
-              data,
-              status: 'failed',
-            }),
+            ]),
           );
           break;
       }
     } catch (err) {
       console.warn('sendMeetConversation', err.toString());
       dispatch(
-        updateMeetupConversation(
+        updateMeetConvListConvsArr([
           {
             ...convschema,
             status: 'failed',
             data,
           },
-          data[0],
-        ),
-      );
-
-      dispatch(
-        updateMeetConvListConvs({
-          ...convschema,
-          status: 'failed',
-          data,
-        }),
+        ]),
       );
 
       if (err.toString().indexOf('Network Error') != -1) {
         //Toast('network error!');
         dispatch(
           addOfflineAction({
-            id: `sendMeetConversation${data[0]}`,
+            id: `sendMeetConversation${conversation_id || alternate_id}`,
             funcName: 'sendMeetConversation',
             param: data,
             persist: true,

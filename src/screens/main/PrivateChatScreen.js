@@ -28,9 +28,9 @@ const PrivateChatScreen = ({
   componentId,
   connected,
   setPrivateChatToRead,
+  delPrivateChatList,
   sendPrivateChat,
   deleteAPrivateChat,
-  clearAPrivateChat,
   updatePrivateChatListArr,
   updatePrivateChatList,
   getPrivateChatInfo,
@@ -65,6 +65,7 @@ const PrivateChatScreen = ({
   const [loaded, setLoaded] = useState(false);
   const [screenstate, setScreenState] = useState({
     privatechatinfo: null,
+    msgcount: 10,
     fetchingchatinfo: false,
     deleting: false,
     loadingmore: false,
@@ -127,6 +128,7 @@ const PrivateChatScreen = ({
       chatlistitem?.partnerprofile?.profile_id,
     ]);
   }, [loaded]);
+
   useEffect(() => {
     if (loaded && chatlistitem.first_id > 0) {
       setPrivateChatToRead([
@@ -136,16 +138,22 @@ const PrivateChatScreen = ({
       checkData(flatlistref) && flatlistref.scrollToOffset({offset: 0});
     }
   }, [chatlistitem.first_id, loaded]);
-  function startScreen() {
-    if (
-      !checkData(privatechatobj?.partnerprofile) ||
-      privatechatobj?.partnerprofile?.profile_id == authprofile?.profile_id
-    ) {
-      Toast('chat not found');
-      return null;
+
+  const deleteChat = chatitem => {
+    if (isEmpty(chatitem)) {
+      return;
     }
-    return true;
-  }
+
+    setScreenState({...screenstate, deleting: true});
+    deleteAPrivateChat(
+      [chatitem, chatlistitem.partnerprofile],
+      () => {
+        setScreenState({...screenstate, deleting: false});
+      },
+      () => setScreenState({...screenstate, deleting: false}),
+    );
+  };
+
   const sendImages = data => {
     if (!Array.isArray(data) || data.length < 1) {
       return;
@@ -175,6 +183,61 @@ const PrivateChatScreen = ({
     });
     checkData(flatlistref) && flatlistref.scrollToOffset({offset: 0});
   };
+
+  function startScreen() {
+    if (
+      !checkData(privatechatobj?.partnerprofile) ||
+      privatechatobj?.partnerprofile?.profile_id == authprofile?.profile_id
+    ) {
+      Toast('chat not found');
+      return null;
+    }
+    return true;
+  }
+
+  function loadPrevChat() {
+    let newcount = screenstate.msgcount + 10;
+    if (chatlistitem.chats.length < 1) {
+      return;
+    }
+    setScreenState({...screenstate, loadingmore: true});
+    if (chatlistitem.chats.length < newcount) {
+      fetchPrivateChats(
+        [
+          chatlistitem.created_chatid,
+          chatlistitem?.partnerprofile?.profile_id,
+          chatlistitem.chats[chatlistitem.chats.length - 1]?.id,
+        ],
+        () => {
+          console.warn(
+            'ok',
+            chatlistitem.chats[chatlistitem.chats.length - 1]?.id,
+          );
+          setScreenState({
+            ...screenstate,
+            msgcount: newcount,
+            loadingmore: false,
+          });
+        },
+        () => {
+          setScreenState({
+            ...screenstate,
+            loadingmore: false,
+          });
+        },
+      );
+    } else {
+      setScreenState({
+        ...screenstate,
+        loadingmore: false,
+        msgcount: newcount,
+      });
+    }
+  }
+
+  function getChats() {
+    return chatlistitem.chats.slice(0, screenstate.msgcount);
+  }
 
   function sendChatImages() {
     Navigation.showModal({
@@ -224,6 +287,7 @@ const PrivateChatScreen = ({
                 id: Math.round(new Date().getTime()),
                 created_chatid: chatlistitem.created_chatid,
                 sender_id: authprofile.profile_id,
+                pending: true,
                 private_chatid: `${Math.round(new Date().getTime())}`,
                 read: 'sending',
                 receiver_id: chatlistitem.partnerprofile.profile_id,
@@ -323,13 +387,14 @@ const PrivateChatScreen = ({
         />
         <PrivateChats
           loaded={loaded}
+          loadMore={loadPrevChat}
           setFlatListRef={setFlatListRef}
           sendPrivateChat={sendPrivateChat}
-          deletePrivateChat={deleteAPrivateChat}
+          deletePrivateChat={deleteChat}
           updatePrivateChatList={updatePrivateChatList}
           deleting={screenstate.deleting}
           partnerprofile={chatlistitem.partnerprofile}
-          data={[...chatlistitem.chats]}
+          data={getChats()}
           userprofile={authprofile}
           loadingmore={screenstate.loadingmore}
         />
@@ -395,7 +460,8 @@ const PrivateChatScreen = ({
                               {
                                 partnerprofile: {
                                   ...chatlistitem?.partnerprofile,
-                                  ublockedprofile: false,
+                                  ublockedprofile: !chatlistitem.partnerprofile
+                                    .ublockedprofile,
                                 },
                                 created_chatid: chatlistitem?.created_chatid,
                               },
@@ -422,27 +488,9 @@ const PrivateChatScreen = ({
                   {
                     text: 'Yes',
                     onPress: () => {
-                      let updatedchats = chatlistitem.chats.map(item => {
-                        return {...item, deleted: true};
-                      });
-                      clearAPrivateChat(
-                        () => {
-                          setShowActivityModal(true);
-                        },
-                        () => {
-                          setShowActivityModal(false);
-                          updatePrivateChatListArr([
-                            {
-                              created_chatid: chatlistitem.created_chatid,
-                              partnerprofile: chatlistitem.partnerprofile,
-                              chats: updatedchats,
-                            },
-                          ]);
-                          Toast(`Chat cleared`);
-                        },
-                        () => {
-                          setShowActivityModal(false);
-                        },
+                      delPrivateChatList(
+                        chatlistitem?.created_chatid ||
+                          chatlistitem?.partnerprofile?.profile_id,
                       );
                     },
                   },
