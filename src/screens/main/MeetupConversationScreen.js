@@ -59,17 +59,17 @@ const MeetupConversationScreen = ({
     loadingprev: false,
   });
   const [inputtxt, setInputTxt] = useState('');
-
   let meetconvlistitem = meetupconvlist.list.find(
-    item =>
-      item?.conversation_id == meetconvobj?.conversation_id ||
-      item?.alternate_id == meetconvobj?.alternate_id,
+    item => item?.conversation_id == meetconvobj?.conversation_id,
   );
   meetconvlistitem = !isEmpty(meetconvlistitem)
     ? {...meetconvobj, ...meetconvlistitem}
     : {
         conv_list: [],
         num_new_msg: 0,
+        conversation_id: `${meetconvobj?.origin_meet_request?.request_id}${
+          meetconvobj?.origin_meet_request?.requester_id
+        }${authmeetprofile.owner_id}`,
         ...meetconvobj,
       };
 
@@ -108,7 +108,6 @@ const MeetupConversationScreen = ({
         updateMeetConvListConvsArr([
           {
             conversation_id: meetconvlistitem.conversation_id,
-            alternate_id: meetconvlistitem.alternate_id,
             num_new_msg: 0,
           },
         ]);
@@ -126,9 +125,13 @@ const MeetupConversationScreen = ({
       updateMeetConvListConvsArr([
         {
           conversation_id: meetconvlistitem.conversation_id,
-          alternate_id: meetconvlistitem.alternate_id,
           num_new_msg: 0,
         },
+      ]);
+      setMeetupConvStatus([
+        '2',
+        meetconvlistitem.conversation_id,
+        meetconvlistitem.latest_id,
       ]);
     }
     flatlistref && flatlistref.scrollToOffset({offset: 0});
@@ -137,12 +140,13 @@ const MeetupConversationScreen = ({
   function startScreen() {
     if (
       isEmpty(meetconvobj) ||
-      (isEmpty(meetconvobj.conversation_id) &&
-        isEmpty(meetconvobj.alternate_id)) ||
       isEmpty(meetconvobj.partnermeetprofile) ||
       isEmpty(meetconvobj.origin_meet_request) ||
-      meetconvobj.origin_meet_request.deleted == true ||
-      !Array.isArray(meetconvobj.conv_list)
+      !Array.isArray(meetconvobj.conv_list) ||
+      (meetconvobj.origin_meet_request.requester_id ==
+        authmeetprofile.owner_id &&
+        meetconvobj.conv_list.length < 1) ||
+      meetconvobj.origin_meet_request.deleted == true
     ) {
       Toast('conversation not found');
       return null;
@@ -189,7 +193,6 @@ const MeetupConversationScreen = ({
     data.forEach(dataobj => {
       sendMeetConversation([
         meetconvlistitem.conversation_id,
-        meetconvlistitem.alternate_id,
         meetconvlistitem.origin_meet_request,
         meetconvlistitem.partnermeetprofile,
         dataobj.inputtxt,
@@ -323,7 +326,6 @@ const MeetupConversationScreen = ({
             onSubmit={() => {
               sendMeetConversation([
                 meetconvlistitem.conversation_id,
-                meetconvlistitem.alternate_id,
                 meetconvlistitem.origin_meet_request.request_id,
                 inputtxt,
               ]);

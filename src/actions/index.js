@@ -155,6 +155,8 @@ import {
   REMOVE_PENDING_POST_COMMENT_REPLY_FORM,
   UPDATE_PRIVATECHATLIST_ARR,
   SET_PRIVATE_CHAT_READ_STATUS,
+  SET_FCM_MEET_CONV_TO_DELIVERED,
+  SET_FCM_MEET_CONV_TO_READ,
 } from './types';
 import {
   deleteFile,
@@ -6673,31 +6675,47 @@ export const setMeetupConvStatus = (data = []) => {
   return async dispatch => {
     dispatch(deleteOfflineAction({id: `setMeetupConvStatus${String(data)}`}));
     let options = ['1', '2'];
+    let type = data[0];
+    let conv_id = data[1];
+    let min = data[2];
+    let max = data[3];
+
     if (
-      !Array.isArray(data) ||
-      data.length < 2 ||
-      !Array.isArray(data[0]) ||
-      data[0].length < 1 ||
-      !options.includes(data[1])
+      data.length < 3 ||
+      !options.includes(type) ||
+      isEmpty(conv_id) ||
+      (isEmpty(min) && isEmpty(max))
     ) {
       console.warn('setMeetupConvStatus', 'wrong input');
       return;
     }
-    let {user, meetupconvs} = store.getState();
-    let reqobj = {arr: data[0]};
-    if (!isEmpty(data[2]) && meetupconvs.conversation_id == data[2]) {
-      reqobj['type'] = options[1];
-    } else {
-      reqobj['type'] = data[1];
-    }
+    let {user} = store.getState();
+
     try {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
       };
-      const response = await session.post('setmeetconvstatus', reqobj, options);
+      const response = await session.post(
+        'setmeetconvstatus',
+        {
+          min,
+          max,
+          type,
+          conv_id,
+        },
+        options,
+      );
       const {status, errmsg, message} = response.data;
       switch (status) {
         case 200:
+          dispatch({
+            type:
+              type == '1'
+                ? SET_FCM_MEET_CONV_TO_DELIVERED
+                : SET_FCM_MEET_CONV_TO_READ,
+            conv_id: conversation_id,
+            payload: min || max,
+          });
           console.warn('setMeetupConvStatus', message);
           break;
         default:
@@ -6846,22 +6864,21 @@ export const sendMeetConversation = (data = []) => {
     if (
       !Array.isArray(data) ||
       data.length < 1 ||
-      (isEmpty(data[0]) && isEmpty(data[1])) ||
+      isEmpty(data[0]) ||
+      isEmpty(data[1]) ||
       isEmpty(data[2]) ||
-      isEmpty(data[3]) ||
-      (isEmpty(data[4]) && isEmpty(data[5]))
+      (isEmpty(data[3]) && isEmpty(data[4]))
     ) {
       return;
     }
     let conversation_id = data[0];
-    let alternate_id = data[1];
-    let origin_meet_request = data[2];
-    let partnermeetprofile = data[3];
-    let conv_txt = data[4];
-    let conv_image = data[5];
+    let origin_meet_request = data[1];
+    let partnermeetprofile = data[2];
+    let conv_txt = data[3];
+    let conv_image = data[4];
     dispatch(
       deleteOfflineAction({
-        id: `sendMeetConversation${conversation_id || alternate_id}`,
+        id: `sendMeetConversation${convschema.id}`,
       }),
     );
     let {user, profile} = store.getState();
@@ -6872,9 +6889,9 @@ export const sendMeetConversation = (data = []) => {
       created_at: Math.round(new Date().getTime() / 1000),
       sender_id: profile.profile_id,
       status: 'sending',
-      id: data[6] || `${new Date().getTime()}`,
+      id: data[5] || `${new Date().getTime()}`,
     };
-    data[6] = convschema.id;
+    data[5] = convschema.id;
 
     formdata.append('request_id', origin_meet_request.request_id);
 
@@ -6904,7 +6921,16 @@ export const sendMeetConversation = (data = []) => {
       conv_image = {chatpic, thumbchatpic, ext, processed: true};
       convschema['chat_pics'] = conv_image;
     }
-    dispatch(updateMeetConvListConvsArr([convschema]));
+    dispatch(
+      updateMeetConvListConvsArr([
+        {
+          conv_list: [convschema],
+          origin_meet_request,
+          partnermeetprofile,
+          conversation_id,
+        },
+      ]),
+    );
     try {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
@@ -6918,8 +6944,8 @@ export const sendMeetConversation = (data = []) => {
         status,
         errmsg,
         message,
-        conversation_id,
-        origin_meet_request,
+        conv_id,
+        meet_request,
         partner_meet_profile,
         conv,
       } = response.data;
@@ -6929,8 +6955,16 @@ export const sendMeetConversation = (data = []) => {
           if (!isEmpty(conv.chat_pics)) {
             await saveConvPic(conv.chat_pics.chatpic, conv_image.chatpic);
           }
-          dispatch(updateMeetConvListConvsArr([convschema]));
-          dispatch(updateMeetConvListConvsArr([{...convschema, ...conv}]));
+          dispatch(
+            updateMeetConvListConvsArr([
+              {
+                conv_list: [conv],
+                origin_meet_request: meet_request,
+                conversation_id: conv_id,
+                partnermeetprofile: partner_meet_profile,
+              },
+            ]),
+          );
           break;
         default:
           Toast(errmsg);
@@ -6938,9 +6972,14 @@ export const sendMeetConversation = (data = []) => {
           dispatch(
             updateMeetConvListConvsArr([
               {
-                ...convschema,
-                data,
-                status: 'failed',
+                conv_list: [
+                  {
+                    ...convschema,
+                    data,
+                    status: 'failed',
+                  },
+                ],
+                conversation_id,
               },
             ]),
           );
@@ -6951,18 +6990,22 @@ export const sendMeetConversation = (data = []) => {
       dispatch(
         updateMeetConvListConvsArr([
           {
-            ...convschema,
-            status: 'failed',
-            data,
+            conv_list: [
+              {
+                ...convschema,
+                data,
+                status: 'failed',
+              },
+            ],
+            conversation_id,
           },
         ]),
       );
-
       if (err.toString().indexOf('Network Error') != -1) {
         //Toast('network error!');
         dispatch(
           addOfflineAction({
-            id: `sendMeetConversation${conversation_id || alternate_id}`,
+            id: `sendMeetConversation${convschema.id}`,
             funcName: 'sendMeetConversation',
             param: data,
             persist: true,
