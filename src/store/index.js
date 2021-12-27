@@ -28,13 +28,12 @@ const persistConfig = {
     'othersviewprofileform',
     'privatechatlistform',
     'privatechatform',
+    'meetupconvlist',
     'followinfo',
     'userslist',
     'offlineactionslist',
     'searchprivatechatlist',
     'giphygallery',
-    'meetupconvs',
-    //'mynotes',
   ],
 };
 

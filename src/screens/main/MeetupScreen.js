@@ -172,6 +172,7 @@ export const MeetupScreen = ({
   fetchLaterMeetConv,
   blackListMeetProfile,
   deleteMeetRequest,
+  setMeetupConvList,
   //removeMeetupMainMyRequests,
   //removeMeetupMainRequests,
   removeMeetupMainRequestsArr,
@@ -246,6 +247,12 @@ export const MeetupScreen = ({
         },
       }),
     );
+    if (
+      meetupconvlist?.list?.length < 1 &&
+      meetupconvlist?.persistedlist?.length > 0
+    ) {
+      setMeetupConvList({list: meetupconvlist.persistedlist});
+    }
     if (meetupform.accepted == true) {
       fetchMeetRequests();
       fetchMyMeetRequests();

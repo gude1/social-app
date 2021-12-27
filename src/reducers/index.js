@@ -37,7 +37,9 @@ import SearchPrivateChatListReducer from './SearchPrivateChatListReducer';
 import MeetupFormReducer from './MeetupFormReducer';
 import GiphyGalleryReducer from './GiphyGalleryReducer';
 import MeetupMainReducer from './MeetupMainReducer';
-import MeetupConvListReducer from './MeetupConvListReducer';
+import MeetupConvListReducer, {
+  MeetConvListConfig,
+} from './MeetupConvListReducer';
 import MeetupConversationReducer from './MeetupConversationReducer';
 import NotificationReducer from './NotificationReducer';
 
@@ -73,8 +75,7 @@ export default combineReducers({
   meetupform: MeetupFormReducer,
   meetupmain: MeetupMainReducer,
   giphygallery: GiphyGalleryReducer,
-  meetupconvlist: MeetupConvListReducer,
-  meetupconvs: MeetupConversationReducer,
+  meetupconvlist: persistReducer(MeetupConvListReducer, MeetConvListConfig),
   followinfo: FollowInfoReducer,
   userslist: UsersListReducer,
   appinfo: AppInfoReducer,

@@ -6598,11 +6598,21 @@ export const fetchNewMeetConv = () => {
   return async dispatch => {
     const {user, profile, meetupconvlist} = store.getState();
     dispatch(setProcessing(true, 'meetupconvlistrefreshing'));
-    let max = meetupconvlist.list.reduce((item1, item2) => {
-      return Math.max(item1.id, item2.id);
-    });
-    max = typeof max == 'object' ? max.id : max;
-    if (!checkData(max)) {
+    let maxconvitem = meetupconvlist.list
+      .map(listitem => {
+        let conv_list = listitem?.conv_list || [];
+        conv_list = conv_list.filter(convitem => convitem?.pending != true);
+        return {...listitem, conv_list};
+      })
+      .filter(listitem => !isEmpty(listitem?.conv_list))
+      .reduce((item1, item2) => {
+        return Math.max(
+          item1?.conv_list[item1?.conv_list?.length - 1]?.id,
+          item2?.conv_list[item2?.conv_list?.length - 1]?.id,
+        );
+      });
+
+    if (isEmpty(maxconvitem)) {
       dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
       Toast('Missing values to continue');
       return;
@@ -6612,7 +6622,11 @@ export const fetchNewMeetConv = () => {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
       };
-      const response = await session.post('meetupreqconvlist', {max}, options);
+      const response = await session.post(
+        'meetupreqconvlist',
+        {max: maxconvitem.conv_list[0]?.id},
+        options,
+      );
       const {status, errmsg, message, meet_convs} = response.data;
       switch (status) {
         case 200:
@@ -6637,11 +6651,21 @@ export const fetchLaterMeetConv = () => {
   return async dispatch => {
     let {user, profile, meetupconvlist} = store.getState();
     dispatch(setProcessing(true, 'meetupconvlistloadingmore'));
-    let min = meetupconvlist.list.reduce((item1, item2) => {
-      return Math.min(item1.id, item2.id);
-    });
-    min = typeof min == 'object' ? min.id : min;
-    if (!checkData(min)) {
+    let minconvitem = meetupconvlist.list
+      .map(listitem => {
+        let conv_list = listitem?.conv_list || [];
+        conv_list = conv_list.filter(convitem => convitem?.pending != true);
+        return {...listitem, conv_list};
+      })
+      .filter(listitem => !isEmpty(listitem?.conv_list))
+      .reduce((item1, item2) => {
+        return Math.min(
+          item1?.conv_list[item1?.conv_list?.length - 1]?.id,
+          item2?.conv_list[item2?.conv_list?.length - 1]?.id,
+        );
+      });
+
+    if (isEmpty(minconvitem)) {
       dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
       Toast('Missing values to continue');
       return;
@@ -6650,7 +6674,13 @@ export const fetchLaterMeetConv = () => {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
       };
-      const response = await session.post('meetupreqconvlist', {min}, options);
+      const response = await session.post(
+        'meetupreqconvlist',
+        {
+          min: minconvitem.conv_list[minconvitem.conv_list.length - 1]?.id,
+        },
+        options,
+      );
       const {status, errmsg, message, meet_convs} = response.data;
       switch (status) {
         case 200:
@@ -6781,14 +6811,17 @@ export const fetchMeetConversations = (data, okAction, afterAction) => {
           checkData(okAction) && okAction();
           checkData(afterAction) && afterAction();
           break;
-        case 400:
-          Toast('failed to refresh conversations');
-          console.log(errmsg);
-          checkData(afterAction) && afterAction();
-          break;
         case 500:
           Toast('failed to refresh conversations');
           console.log(errmsg);
+          dispatch(
+            addOfflineAction({
+              id: `fetchMeetConversations${data[0]}`,
+              funcName: 'fetchMeetConversations',
+              param: data,
+              override: true,
+            }),
+          );
           checkData(afterAction) && afterAction();
           break;
         default:

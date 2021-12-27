@@ -31,12 +31,8 @@ class ConversationItem extends Component {
   }
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
-    let prevconvlist = Array.isArray(this.props.item.conv_list)
-      ? this.props.item.conv_list
-      : [];
-    let nextconvlist = Array.isArray(nextProps.item.conv_list)
-      ? nextProps.item.conv_list
-      : [];
+    let prevconvlist = this.props?.item?.conv_list || [];
+    let nextconvlist = nextProps?.item?.conv_list || [];
 
     if (
       nextProps.item.id != this.props.item.id ||

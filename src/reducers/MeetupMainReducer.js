@@ -37,12 +37,20 @@ const INITIAL_STATE = {
   loadingmore: false,
 };
 
-const arrangeRequests = (data: Array) => {
+const arrangeRequests = (data = []) => {
   if (!Array.isArray(data) || data.length < 1) {
     return data;
   }
-  data = [...data];
-  return data.sort((item1, item2) => item2.created_at - item1.created_at);
+  let current = new Date().getTime() - 60000; //1 min diff from curren time
+  return (data = [...data]
+    .filter(item => {
+      let expires_at = Math.floor(item.expires_at * 1000);
+      if (item.deleted == true || expires_at <= current) {
+        return true;
+      }
+      return false;
+    })
+    .sort((item1, item2) => item2.created_at - item1.created_at));
 };
 
 const handleProcessing = (key, value, state) => {
@@ -88,26 +96,25 @@ const MeetupMainReducer = (state = INITIAL_STATE, action) => {
       };
       break;
     case REMOVE_MEETUPMAIN_REQUESTS:
-      reducerdata = state.requests.filter((item) => {
+      reducerdata = state.requests.filter(item => {
         return item.request_id != action.payload;
       });
       return {...state, requests: arrangeRequests(reducerdata)};
       break;
     case REMOVE_MEETUPMAIN_REQUESTS_ARR:
-      reducerdata = state.requests.filter((item) => {
+      reducerdata = state.requests.filter(item => {
         return !action.payload.includes(item.request_id);
       });
       return {...state, requests: arrangeRequests(reducerdata)};
       break;
     case UPDATE_MEETUPMAIN_REQUEST:
-      let updatedstate = state.requests.map((item) => {
+      let updatedstate = state.requests.map(item => {
         return item.request_id == action.payload.request_id
           ? {...item, ...action.payload}
           : item;
       });
-      updatedstate.find(
-        (item) => item.request_id == action.payload.request_id,
-      ) == undefined && updatedstate.push(action.payload);
+      updatedstate.find(item => item.request_id == action.payload.request_id) ==
+        undefined && updatedstate.push(action.payload);
       return {...state, requests: arrangeRequests(updatedstate)};
       break;
     case SET_MEETUPMAIN_ERRORS:
@@ -120,32 +127,31 @@ const MeetupMainReducer = (state = INITIAL_STATE, action) => {
       };
       break;
     case REMOVE_MEETUPMAIN_MY_REQUESTS:
-      reducerdata = state.myrequests.filter((item) => {
+      reducerdata = state.myrequests.filter(item => {
         return item.request_id != action.payload;
       });
       return {...state, myrequests: arrangeRequests(reducerdata)};
       break;
     case REMOVE_MEETUPMAIN_MY_REQUESTS_ARR:
-      reducerdata = state.myrequests.filter((item) => {
+      reducerdata = state.myrequests.filter(item => {
         return !action.payload.includes(item.request_id);
       });
       return {...state, myrequests: arrangeRequests(reducerdata)};
       break;
     case REMOVE_PROFILE_MEETUPMAIN:
-      reducerdata = state.requests.filter((item) => {
+      reducerdata = state.requests.filter(item => {
         return item.requester_id != action.payload;
       });
       return {...state, requests: arrangeRequests(reducerdata)};
       break;
     case UPDATE_MEETUPMAIN_MY_REQUESTS:
-      reducerdata = state.myrequests.map((item) => {
+      reducerdata = state.myrequests.map(item => {
         return item.request_id == action.payload.request_id
           ? {...item, ...action.payload}
           : item;
       });
-      reducerdata.find(
-        (item) => item.request_id == action.payload.request_id,
-      ) == undefined && reducerdata.push(action.payload);
+      reducerdata.find(item => item.request_id == action.payload.request_id) ==
+        undefined && reducerdata.push(action.payload);
       return {...state, myrequests: arrangeRequests(reducerdata)};
       break;
     case SET_MEETUPMAIN:

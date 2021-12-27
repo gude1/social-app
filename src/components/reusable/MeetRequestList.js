@@ -46,8 +46,13 @@ export class BottomContainerItem extends Component {
   }
 
   render() {
-    const {request_mood, campus, request_category, expires_at, created_at} =
-      this.props;
+    const {
+      request_mood,
+      campus,
+      request_category,
+      expires_at,
+      created_at,
+    } = this.props;
     return (
       <View
         style={{
@@ -55,15 +60,13 @@ export class BottomContainerItem extends Component {
           flexDirection: 'row',
           flex: 1,
           justifyContent: 'space-between',
-        }}
-      >
+        }}>
         <Animatable.Text
           animation={'slideInUp'}
           ellipsizeMode={'tail'}
           numberOfLines={1}
           style={{color: colors.iconcolor, textAlign: 'center'}}
-          useNativeDriver={true}
-        >
+          useNativeDriver={true}>
           {created_at}
         </Animatable.Text>
 
@@ -72,8 +75,7 @@ export class BottomContainerItem extends Component {
           ellipsizeMode={'tail'}
           numberOfLines={1}
           style={{color: colors.text, textAlign: 'center', marginHorizontal: 5}}
-          useNativeDriver={true}
-        >
+          useNativeDriver={true}>
           {request_mood}
         </Animatable.Text>
 
@@ -82,8 +84,7 @@ export class BottomContainerItem extends Component {
           ellipsizeMode={'tail'}
           numberOfLines={1}
           style={{color: colors.text, textAlign: 'center', marginHorizontal: 5}}
-          useNativeDriver={true}
-        >
+          useNativeDriver={true}>
           {campus}
         </Animatable.Text>
 
@@ -92,8 +93,7 @@ export class BottomContainerItem extends Component {
           ellipsizeMode={'tail'}
           numberOfLines={1}
           style={{color: colors.iconcolor}}
-          useNativeDriver={true}
-        >
+          useNativeDriver={true}>
           {request_category} request
         </Animatable.Text>
       </View>
@@ -127,8 +127,7 @@ class MeetRequestList extends Component {
             width: '100%',
             justifyContent: 'center',
             alignItems: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size="large" color={'silver'} />
         </View>
       );
@@ -140,15 +139,13 @@ class MeetRequestList extends Component {
             justifyContent: 'center',
             height: responsiveHeight(70),
             width: '100%',
-          }}
-        >
+          }}>
           <Text
             style={{
               color: colors.iconcolor,
               width: '70%',
               textAlign: 'center',
-            }}
-          >
+            }}>
             {this.props.myrequests
               ? 'Your meets not fetched'
               : 'Meets not fetched'}
@@ -196,8 +193,7 @@ class MeetRequestList extends Component {
             justifyContent: 'center',
             margin: 6,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <ActivityIndicator size={30} color={colors.border} />
         </View>
       );
@@ -209,8 +205,7 @@ class MeetRequestList extends Component {
             justifyContent: 'center',
             margin: 10,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <Icon
             color={colors.text}
             size={responsiveFontSize(5)}
@@ -266,12 +261,14 @@ class MeetRequestList extends Component {
                     name: 'MeetupConversation',
                     passProps: {
                       navparent: true,
-                      chatitem: {
-                        conversation_id: `${this.currentselectmeet.request_id}${this.currentselectmeet.requester_id}${this.props.authprofile.profile_id}`,
+                      meetconvobj: {
+                        conversation_id: `${this.currentselectmeet.request_id}${
+                          this.currentselectmeet.requester_id
+                        }${this.props.authprofile.profile_id}`,
                         conv_list: [],
-                        meet_request: this.currentselectmeet,
-                        partnermeetprofile:
-                          this.currentselectmeet.requester_meet_profile,
+                        origin_meet_request: this.currentselectmeet,
+                        partnermeetprofile: this.currentselectmeet
+                          .requester_meet_profile,
                       },
                     },
                   },
@@ -358,8 +355,7 @@ class MeetRequestList extends Component {
             <Animatable.View
               animation={'slideInRight'}
               style={{alignItems: 'center', justifyContent: 'center'}}
-              useNativeDriver={true}
-            >
+              useNativeDriver={true}>
               <Icon
                 type="antdesign"
                 Component={TouchableScale}
