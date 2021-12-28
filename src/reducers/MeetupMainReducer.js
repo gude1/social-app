@@ -43,13 +43,13 @@ const arrangeRequests = (data = []) => {
   }
   let current = new Date().getTime() - 60000; //1 min diff from curren time
   return (data = [...data]
-    .filter(item => {
+    /*.filter(item => {
       let expires_at = Math.floor(item.expires_at * 1000);
       if (item.deleted == true || expires_at <= current) {
         return true;
       }
       return false;
-    })
+    })*/
     .sort((item1, item2) => item2.created_at - item1.created_at));
 };
 

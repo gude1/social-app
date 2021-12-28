@@ -140,16 +140,6 @@ class ConversationItem extends Component {
 
   renderMeetModal() {
     let item = this.props.item;
-    let {
-      sender_meet_profile,
-      receiver_meet_profile,
-      origin_meet_request,
-    } = item;
-    let meet_profile =
-      item.sender_meet_profile.owner_id == origin_meet_request.requester_id
-        ? item.sender_meet_profile
-        : item.receiver_meet_profile;
-
     return (
       <ScrollableListOverLay
         width={300}
@@ -158,10 +148,10 @@ class ConversationItem extends Component {
         }}
         contentContainerStyle={{marginLeft: 0}}
         visible={this.state.showparentmeet}
-        ListTitle={'Message on Meet Request :'}
+        ListTitle={'Meet'}
         height={300}>
         <CustomListItem
-          leftAvatar={{uri: meet_profile.meetup_avatar}}
+          leftAvatar={{uri: item?.partnermeetprofile?.meetup_avatar}}
           onAvatarPress={() => {
             this.setState({showparentmeet: false});
             Navigation.showModal({
@@ -169,13 +159,13 @@ class ConversationItem extends Component {
                 name: 'PhotoViewer',
                 passProps: {
                   navparent: true,
-                  headerText: meet_profile.meetup_name,
-                  photos: [meet_profile.meetup_avatar],
+                  headerText: item?.partnermeetprofile?.meetup_name,
+                  photos: [item?.partnermeetprofile?.meetup_avatar],
                 },
               },
             });
           }}
-          title={meet_profile.meetup_name}
+          title={item?.partnermeetprofile?.meetup_name}
           titleStyle={{color: colors.iconcolor}}
           subtitle={`   ${item.origin_meet_request.request_msg}`}
           subtitleStyle={{fontWeight: 'bold'}}
@@ -183,7 +173,7 @@ class ConversationItem extends Component {
             <BottomContainerItem
               request_category={item.origin_meet_request.request_category}
               request_mood={item.origin_meet_request.request_mood}
-              campus={meet_profile.campus}
+              campus={item?.partnermeetprofile?.campus}
               created_at={`expires ${moment(
                 item.origin_meet_request.expires_at * 1000,
               ).fromNow()}`}
@@ -293,10 +283,6 @@ class ConversationItem extends Component {
 
   render() {
     let {item, meetsetting, leftAvatarPress} = this.props;
-    let meetprofile =
-      item.sender_meet_profile.owner_id == meetsetting.owner_id
-        ? item.receiver_meet_profile
-        : item.sender_meet_profile;
     return (
       <>
         <ListItem
@@ -307,11 +293,11 @@ class ConversationItem extends Component {
                 name: 'MeetupConversation',
                 passProps: {
                   navparent: true,
-                  chatitem: {
+                  meetconvobj: {
                     conversation_id: item.conversation_id,
-                    conv_list: item.conv_list,
-                    meet_request: item.origin_meet_request,
-                    partnermeetprofile: meetprofile,
+                    conv_list: item.conv_list || [],
+                    origin_meet_request: item.origin_meet_request,
+                    partnermeetprofile: item.partnermeetprofile,
                   },
                 },
               },
@@ -338,8 +324,8 @@ class ConversationItem extends Component {
           badge={this.renderBadge()}
           containerStyle={styles.listItemContainerStyle}
           leftAvatar={{
-            source: checkData(meetprofile.meetup_avatar)
-              ? {uri: meetprofile.meetup_avatar}
+            source: checkData(item?.partnermeetprofile?.meetup_avatar)
+              ? {uri: item?.partnermeetprofile?.meetup_avatar}
               : require('../assets/images/download.jpeg'),
             onPress: () => {
               Navigation.showModal({
@@ -347,8 +333,8 @@ class ConversationItem extends Component {
                   name: 'PhotoViewer',
                   passProps: {
                     navparent: true,
-                    headerText: meetprofile.meetup_name,
-                    photos: [meetprofile.meetup_avatar],
+                    headerText: item?.partnermeetprofile?.meetup_name,
+                    photos: [item?.partnermeetprofile?.meetup_avatar],
                   },
                 },
               });
@@ -359,7 +345,7 @@ class ConversationItem extends Component {
           rightTitleProps={{ellipsizeMode: 'tail', numberOfLines: 1}}
           rightTitleStyle={this.rightTitleStyle()}
           contentContainerStyle={styles.listItemContentContainerStyle}
-          title={meetprofile.meetup_name}
+          title={item?.partnermeetprofile?.meetup_name}
           titleStyle={{color: colors.text, fontSize: responsiveFontSize(2)}}
           titleProps={{ellipsizeMode: 'tail', numberOfLines: 1}}
           subtitle={this.renderSubTitle()}
@@ -379,13 +365,12 @@ class MeetConversationList extends Component {
   componentDidMount() {
     checkData(this.props.fetchConvs) && this.props.fetchConvs();
   }
-
+  sender_meetprofile;
   renderItem = ({item, index}) => {
     if (
       !hasProperty(item, [
-        'sender_meet_profile',
         'conv_list',
-        'receiver_meet_profile',
+        'partnermeetprofile',
         'origin_meet_request',
       ])
     ) {

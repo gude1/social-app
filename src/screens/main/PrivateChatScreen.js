@@ -42,7 +42,7 @@ const PrivateChatScreen = ({
   privatechatobj,
 }) => {
   /**CONDITIONAL STATEMENT STARTS HERE */
-  if (!checkData(startScreen())) {
+  if (!startScreen()) {
     Navigation.dismissModal(componentId);
     return null;
   }

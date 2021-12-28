@@ -6904,37 +6904,38 @@ export const sendMeetConversation = (data = []) => {
     ) {
       return;
     }
+    let {user, profile} = store.getState();
+
     let conversation_id = data[0];
     let origin_meet_request = data[1];
     let partnermeetprofile = data[2];
     let conv_txt = data[3];
     let conv_image = data[4];
-    dispatch(
-      deleteOfflineAction({
-        id: `sendMeetConversation${convschema.id}`,
-      }),
-    );
-    let {user, profile} = store.getState();
-    let formdata = new FormData();
     let convschema = {
       conversation_id,
-      alternate_id,
       created_at: Math.round(new Date().getTime() / 1000),
+      pending: true,
       sender_id: profile.profile_id,
       status: 'sending',
       id: data[5] || `${new Date().getTime()}`,
     };
     data[5] = convschema.id;
 
+    dispatch(
+      deleteOfflineAction({
+        id: `sendMeetConversation${convschema.id}`,
+      }),
+    );
+    let formdata = new FormData();
     formdata.append('request_id', origin_meet_request.request_id);
 
-    if (!isEmpty(data[2])) {
+    if (!isEmpty(conv_txt)) {
       formdata.append('chat_msg', conv_txt);
       convschema['chat_msg'] = conv_txt;
     }
     if (!isEmpty(conv_image)) {
       let chat_pics = null;
-      if (data[3].processed != true) {
+      if (conv_image.processed != true) {
         chat_pics = await setConvPic(conv_image.chat_pics);
       } else {
         chat_pics = conv_image;
@@ -6984,10 +6985,12 @@ export const sendMeetConversation = (data = []) => {
       } = response.data;
       switch (status) {
         case 200:
-          console.warn(200);
+          //console.warn(200);
+          //console.warn('sendmetconv', {partner_meet_profile, meet_request});
           if (!isEmpty(conv.chat_pics)) {
             await saveConvPic(conv.chat_pics.chatpic, conv_image.chatpic);
           }
+          dispatch(removeMeetConvListConvs(convschema));
           dispatch(
             updateMeetConvListConvsArr([
               {

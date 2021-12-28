@@ -94,7 +94,7 @@ export class BottomContainerItem extends Component {
           numberOfLines={1}
           style={{color: colors.iconcolor}}
           useNativeDriver={true}>
-          {request_category} request
+          {request_category} meet
         </Animatable.Text>
       </View>
     );

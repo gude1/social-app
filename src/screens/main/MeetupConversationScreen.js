@@ -16,7 +16,13 @@ import {
   LoaderScreen,
 } from '../../components/reusable/ResuableWidgets';
 import {Navigation} from 'react-native-navigation';
-import {isEmpty, resizeImage, getFileInfo} from '../../utilities/index';
+import {
+  isEmpty,
+  checkData,
+  resizeImage,
+  getFileInfo,
+  Toast,
+} from '../../utilities/index';
 import {
   responsiveFontSize,
   responsiveHeight,
@@ -24,14 +30,12 @@ import {
 } from 'react-native-responsive-dimensions';
 import MeetConversation from '../../components/reusable/MeetConversation';
 import * as Animatable from 'react-native-animatable';
-import {Platform} from 'react-native';
 
 const {colors} = useTheme();
 
 const MeetupConversationScreen = ({
   navparent,
   meetconvobj,
-  meetconvlistitem,
   authprofile,
   authmeetprofile,
   meetupconvlist,
@@ -46,7 +50,7 @@ const MeetupConversationScreen = ({
   setReset,
 }) => {
   /**CONDITIONAL STATEMENT STARTS HERE */
-  if (!checkData(startScreen())) {
+  if (!startScreen()) {
     Navigation.dismissModal(componentId);
     return null;
   }
@@ -62,6 +66,8 @@ const MeetupConversationScreen = ({
   let meetconvlistitem = meetupconvlist.list.find(
     item => item?.conversation_id == meetconvobj?.conversation_id,
   );
+
+  Toast;
   meetconvlistitem = !isEmpty(meetconvlistitem)
     ? {...meetconvobj, ...meetconvlistitem}
     : {
@@ -76,10 +82,8 @@ const MeetupConversationScreen = ({
   let chatlistitemschema = {
     id: meetconvlistitem.id,
     conversation_id: meetconvlistitem.conversation_id,
-    sender_meet_profile: authmeetprofile,
     conv_list: meetconvlistitem.conv_list,
-    receiver_meet_profile: meetconvlistitem.partnermeetprofile,
-    origin_origin_meet_request: meetconvlistitem.origin_meet_request,
+    partnermeetprofile: meetconvlistitem.partnermeetprofile,
   };
 
   /**COMPONENT FUNCTIONS */
@@ -149,7 +153,7 @@ const MeetupConversationScreen = ({
       meetconvobj.origin_meet_request.deleted == true
     ) {
       Toast('conversation not found');
-      return null;
+      return false;
     }
     return true;
   }
@@ -324,9 +328,15 @@ const MeetupConversationScreen = ({
             inputvalue={inputtxt}
             multiline={true}
             onSubmit={() => {
-              sendMeetConversation([
+              console.warn([
                 meetconvlistitem.conversation_id,
                 meetconvlistitem.origin_meet_request.request_id,
+                inputtxt,
+              ]);
+              sendMeetConversation([
+                meetconvlistitem.conversation_id,
+                meetconvlistitem.origin_meet_request,
+                meetconvlistitem.partnermeetprofile,
                 inputtxt,
               ]);
               //flatlistref && flatlistref.scrollToOffset({ offset: 0 });

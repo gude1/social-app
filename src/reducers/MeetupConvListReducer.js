@@ -50,19 +50,19 @@ const arrangeConvs = data => {
   if (!Array.isArray(data) || data.length < 1) {
     return data;
   }
-  return data.sort((item1, item2) => item2.created_at - item1.created_at);
+  return data.sort((item1, item2) => item2.id - item1.id);
 };
 
 const arrangeConvList = (data = []) => {
   if (!Array.isArray(data) || data.length < 1) {
     return data;
   }
-  data = [...data];
+  data = [...data].filter(item => item?.origin_meet_request?.deleted != true);
   data = data.map(item => {
     return {...item, conv_list: arrangeConvs(item.conv_list)};
   });
   return data.sort((item1, item2) => {
-    return item2?.conv_list[0]?.created_at - item1?.conv_list[0]?.created_at;
+    return item2?.conv_list[0]?.id - item1?.conv_list[0]?.id;
   });
 };
 
@@ -70,7 +70,7 @@ const arrayReduce = data => {
   if (!Array.isArray(data) || data.length < 1) {
     return data;
   }
-  data = [...data].filter(item => item?.origin_meet_request?.deleted != true);
+  data = [...data];
   if (data.length > 100) {
     for (i = data.length; i > 100; i--) {
       data.shift();

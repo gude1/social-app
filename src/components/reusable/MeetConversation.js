@@ -535,17 +535,17 @@ class MeetConversation extends Component {
       />
     );
   };
-
+  meet_request;
   renderParentMeetReq = () => {
     let {
-      meet_request,
+      origin_meet_request,
       showparentmeet,
       setShowParentMeet,
       partnermeetprofile,
       authmeetprofile,
     } = this.props;
     let meet_profile =
-      meet_request.requester_id == authmeetprofile.owner_id
+      origin_meet_request.requester_id == authmeetprofile.owner_id
         ? authmeetprofile
         : partnermeetprofile;
     return (
@@ -575,15 +575,15 @@ class MeetConversation extends Component {
           }}
           title={meet_profile.meetup_name}
           titleStyle={{color: colors.iconcolor}}
-          subtitle={`   ${meet_request.request_msg}`}
+          subtitle={`   ${origin_meet_request.request_msg}`}
           subtitleStyle={{fontWeight: 'bold'}}
           BottomContainerItem={
             <BottomContainerItem
-              request_category={meet_request.request_category}
-              request_mood={meet_request.request_mood}
+              request_category={origin_meet_request.request_category}
+              request_mood={origin_meet_request.request_mood}
               campus={meet_profile.campus}
               created_at={`expires ${moment(
-                meet_request.expires_at * 1000,
+                origin_meet_request.expires_at * 1000,
               ).fromNow()}`}
             />
           }
