@@ -234,6 +234,7 @@ export const MeetupScreen = ({
   const [onscreen, setOnScreen] = useState(false);
   const [reqoptions, setReqOptions] = useState(meetupmain.options);
   const [viewpager, setViewPager] = useState(null);
+  const [viewedpages, setViewedPages] = useState([]);
   const [showmeetprofileopt, setShowMeetProfileOpt] = useState(false);
   let meetupreqobj = filterMeets();
   let category = meetupreqobj.options.request_category;
@@ -493,7 +494,11 @@ export const MeetupScreen = ({
           />
           <IndicatorViewPager
             initialPage={0}
-            offscreenPageLimit={1}
+            offscreenPageLimit={3}
+            onPageSelected={e => {
+              !viewedpages.includes(e.position) &&
+                setViewedPages([...viewedpages, e.position]);
+            }}
             ref={viewpager => setViewPager(viewpager)}
             style={{flex: 1, marginTop: 2, borderBottomWidth: 0}}
             indicatorposition={'top'}
@@ -501,7 +506,11 @@ export const MeetupScreen = ({
             keyboardDismissMode="none">
             <View key={0} style={{flex: 1}}>
               <MeetRequestList
-                meetupreqobj={meetupreqobj}
+                meetupreqobj={
+                  viewedpages.includes(0)
+                    ? meetupreqobj
+                    : {...meetupreqobj, fetching: true, requests: []}
+                }
                 authprofile={authprofile}
                 deleteMeetReq={deleteMeetRequest}
                 blackList={blackListMeetProfile}
@@ -512,7 +521,11 @@ export const MeetupScreen = ({
 
             <View key={1} style={{flex: 1}}>
               <MeetConversationList
-                meetupconvs={meetupconvlist}
+                meetupconvs={
+                  viewedpages.includes(1)
+                    ? meetupconvlist
+                    : {...meetupconvlist, fetching: true, list: []}
+                }
                 fetchConvs={fetchMeetConv}
                 meetsetting={meetupform}
                 authprofile={authprofile}
@@ -523,7 +536,11 @@ export const MeetupScreen = ({
 
             <View key={2} style={{flex: 1}}>
               <MeetRequestList
-                meetupreqobj={meetupreqobj}
+                meetupreqobj={
+                  viewedpages.includes(2)
+                    ? meetupreqobj
+                    : {...meetupreqobj, myreqfetching: true, myrequests: []}
+                }
                 blackList={blackListMeetProfile}
                 createMeetReq={createMeetRequest}
                 deleteMeetReq={deleteMeetRequest}
