@@ -6612,6 +6612,11 @@ export const fetchNewMeetConv = () => {
         );
       });
 
+    let max =
+      typeof maxconvitem == 'object'
+        ? maxconvitem.conv_list[maxconvitem.conv_list.length - 1]?.id
+        : maxconvitem;
+
     if (isEmpty(maxconvitem)) {
       dispatch(setProcessing(false, 'meetupconvlistrefreshing'));
       Toast('Missing values to continue');
@@ -6622,11 +6627,7 @@ export const fetchNewMeetConv = () => {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
       };
-      const response = await session.post(
-        'meetupreqconvlist',
-        {max: maxconvitem.conv_list[0]?.id},
-        options,
-      );
+      const response = await session.post('meetupreqconvlist', {max}, options);
       const {status, errmsg, message, meet_convs} = response.data;
       switch (status) {
         case 200:
@@ -6665,6 +6666,11 @@ export const fetchLaterMeetConv = () => {
         );
       });
 
+    let min =
+      typeof minconvitem == 'object'
+        ? minconvitem.conv_list[minconvitem.conv_list.length - 1]?.id
+        : minconvitem;
+
     if (isEmpty(minconvitem)) {
       dispatch(setProcessing(false, 'meetupconvlistloadingmore'));
       Toast('Missing values to continue');
@@ -6677,7 +6683,7 @@ export const fetchLaterMeetConv = () => {
       const response = await session.post(
         'meetupreqconvlist',
         {
-          min: minconvitem.conv_list[minconvitem.conv_list.length - 1]?.id,
+          min,
         },
         options,
       );
@@ -6743,7 +6749,7 @@ export const setMeetupConvStatus = (data = []) => {
               type == '1'
                 ? SET_FCM_MEET_CONV_TO_DELIVERED
                 : SET_FCM_MEET_CONV_TO_READ,
-            conv_id: conversation_id,
+            conv_id: conv_id,
             payload: min || max,
           });
           console.warn('setMeetupConvStatus', message);
@@ -6934,26 +6940,26 @@ export const sendMeetConversation = (data = []) => {
       convschema['chat_msg'] = conv_txt;
     }
     if (!isEmpty(conv_image)) {
-      let chat_pics = null;
+      let chat_pic = null;
       if (conv_image.processed != true) {
-        chat_pics = await setConvPic(conv_image.chat_pics);
+        chat_pic = await setConvPic(conv_image.chatpic);
       } else {
-        chat_pics = conv_image;
+        chat_pic = conv_image;
       }
-      let {chatpic, thumbchatpic, ext} = chat_pics;
-      formdata.append('chat_pics', {
+      let {chatpic, thumbchatpic, ext} = chat_pic;
+      formdata.append('chat_pic', {
         uri: chatpic,
         type: `image/${ext}`,
         name: chatpic,
       });
-      formdata.append('thumb_chat_pics', {
+      formdata.append('thumb_chat_pic', {
         uri: thumbchatpic,
         type: `image/${ext}`,
         name: thumbchatpic,
       });
 
       conv_image = {chatpic, thumbchatpic, ext, processed: true};
-      convschema['chat_pics'] = conv_image;
+      convschema['chat_pic'] = conv_image;
     }
     dispatch(
       updateMeetConvListConvsArr([
@@ -6987,10 +6993,10 @@ export const sendMeetConversation = (data = []) => {
         case 200:
           //console.warn(200);
           //console.warn('sendmetconv', {partner_meet_profile, meet_request});
-          if (!isEmpty(conv.chat_pics)) {
-            await saveConvPic(conv.chat_pics.chatpic, conv_image.chatpic);
-          }
           dispatch(removeMeetConvListConvs(convschema));
+          if (!isEmpty(conv.chat_pic)) {
+            await saveConvPic(conv.chat_pic.chatpic, conv_image.chatpic);
+          }
           dispatch(
             updateMeetConvListConvsArr([
               {

@@ -33,7 +33,7 @@ const {colors} = useTheme();
 
 const ShowChats = ({data, onLongPress = () => {}, userprofile}) => {
   return data
-    .sort((item1, item2) => item1.created_at - item2.created_at)
+    .sort((item1, item2) => item1.id - item2.id)
     .map(item => {
       return (
         <PrivateChatItem
@@ -109,7 +109,7 @@ class PrivateChatItem extends Component {
       return null;
     }
 
-    if (item.read == 'read') {
+    if (item.read == true || item.read == 'true') {
       return (
         <Text
           style={{
@@ -292,6 +292,25 @@ class PrivateChatItem extends Component {
                     color: this.ownerchattextcolor,
                     backgroundColor: this.ownerchatbgcolor,
                   },
+                ]}
+                parse={[
+                  {
+                    type: 'url',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handleUrlPress,
+                    renderText: this.renderUrlText,
+                  },
+                  {
+                    type: 'phone',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handlePhonePress,
+                  },
+                  {
+                    type: 'email',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handleEmailPress,
+                  },
+                  {pattern: /@(\w+)/, style: styles.parsedText},
                 ]}>
                 {item.chat_msg}
               </ParsedText>
@@ -421,101 +440,113 @@ class PrivateChatItem extends Component {
     let {item, onLongPress} = this.props;
     if (!isEmpty(item.chat_msg) && isEmpty(item.chat_pics)) {
       return (
-        <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
-          <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
-            <ParsedText style={styles.othersChatText}>
-              {item.chat_msg}
-            </ParsedText>
-            <Text style={styles.othersChatTime}>
-              {this.formatConvTime(item.created_at * 1000)}
-            </Text>
-          </View>
-        </Animatable.View>
+        <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
+          <ParsedText style={styles.othersChatText}>{item.chat_msg}</ParsedText>
+          <Text style={styles.othersChatTime}>
+            {this.formatConvTime(item.created_at * 1000)}
+          </Text>
+        </View>
       );
     } else if (!isEmpty(item.chat_msg) && !isEmpty(item.chat_pics)) {
       return (
-        <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
-          <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
-            <TouchableOpacity
-              onLongPress={onLongPress}
-              onPress={
-                isEmpty(this.state.partnerimageuri)
-                  ? null
-                  : () =>
-                      Navigation.showModal({
-                        component: {
-                          name: 'PhotoViewer',
-                          passProps: {
-                            navparent: true,
-                            photos: [this.state.partnerimageuri],
-                          },
+        <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
+          <TouchableOpacity
+            onLongPress={onLongPress}
+            onPress={
+              isEmpty(this.state.partnerimageuri)
+                ? null
+                : () =>
+                    Navigation.showModal({
+                      component: {
+                        name: 'PhotoViewer',
+                        passProps: {
+                          navparent: true,
+                          photos: [this.state.partnerimageuri],
                         },
-                      })
-              }
-              activeOpacity={0.9}>
-              <Image
-                //onError={() => this._onImageLoadErr(false)}
-                containerStyle={styles.othersChatImageContainer}
-                placeholderStyle={styles.othersChatImagePlaceholder}
-                PlaceholderContent={this.imageplacholdericon}
-                resizeMode="cover"
-                source={{
-                  uri: isEmpty(this.state.partnerimageuri)
-                    ? item.chat_pics.thumbchatpic
-                    : this.state.partnerimageuri,
-                }}>
-                {this.renderDownloadBtn(item.chat_pics.size)}
-              </Image>
-            </TouchableOpacity>
-            <ParsedText style={styles.othersChatText}>
-              {item.chat_msg}
-            </ParsedText>
-            <Text style={styles.othersChatTime}>
-              {this.formatConvTime(item.created_at * 1000)}
-            </Text>
-          </View>
-        </Animatable.View>
+                      },
+                    })
+            }
+            activeOpacity={0.9}>
+            <Image
+              //onError={() => this._onImageLoadErr(false)}
+              containerStyle={styles.othersChatImageContainer}
+              placeholderStyle={styles.othersChatImagePlaceholder}
+              PlaceholderContent={this.imageplacholdericon}
+              resizeMode="cover"
+              source={{
+                uri: isEmpty(this.state.partnerimageuri)
+                  ? item.chat_pics.thumbchatpic
+                  : this.state.partnerimageuri,
+              }}>
+              {this.renderDownloadBtn(item.chat_pics.size)}
+            </Image>
+          </TouchableOpacity>
+          <ParsedText
+            style={styles.othersChatText}
+            parse={[
+              {
+                type: 'url',
+                style: styles.parsedText,
+                onPress: LinkingHandler().handleUrlPress,
+                renderText: this.renderUrlText,
+              },
+              {
+                type: 'phone',
+                style: styles.parsedText,
+                onPress: LinkingHandler().handlePhonePress,
+              },
+              {
+                type: 'email',
+                style: styles.parsedText,
+                onPress: LinkingHandler().handleEmailPress,
+              },
+              {pattern: /@(\w+)/, style: styles.parsedText},
+            ]}>
+            {item.chat_msg}
+          </ParsedText>
+          <Text style={styles.othersChatTime}>
+            {this.formatConvTime(item.created_at * 1000)}
+          </Text>
+        </View>
       );
     } else if (isEmpty(item.chat_msg) && !isEmpty(item.chat_pics)) {
       return (
-        <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
-          <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
-            <TouchableOpacity
-              onLongPress={onLongPress}
-              onPress={
-                isEmpty(this.state.partnerimageuri)
-                  ? null
-                  : () =>
-                      Navigation.showModal({
-                        component: {
-                          name: 'PhotoViewer',
-                          passProps: {
-                            navparent: true,
-                            photos: [this.state.partnerimageuri],
-                          },
+        <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
+          <TouchableOpacity
+            onLongPress={onLongPress}
+            onPress={
+              isEmpty(this.state.partnerimageuri)
+                ? null
+                : () =>
+                    Navigation.showModal({
+                      component: {
+                        name: 'PhotoViewer',
+                        passProps: {
+                          navparent: true,
+                          photos: [this.state.partnerimageuri],
                         },
-                      })
-              }
-              activeOpacity={0.9}>
-              <Image
-                //onError={() => this._onImageLoadErr(false)}
-                containerStyle={styles.othersChatImageContainer}
-                placeholderStyle={styles.othersChatImagePlaceholder}
-                PlaceholderContent={this.imageplacholdericon}
-                resizeMode="cover"
-                source={{
-                  uri: isEmpty(this.state.partnerimageuri)
-                    ? item.chat_pics.thumbchatpic
-                    : this.state.partnerimageuri,
-                }}>
-                {this.renderDownloadBtn(item.chat_pics.size)}
-              </Image>
-            </TouchableOpacity>
-            <Text style={styles.othersChatTime}>
-              {this.formatConvTime(item.created_at * 1000)}
-            </Text>
-          </View>
-        </Animatable.View>
+                      },
+                    })
+            }
+            activeOpacity={0.9}>
+            <Image
+              //onError={() => this._onImageLoadErr(false)}
+              containerStyle={styles.othersChatImageContainer}
+              placeholderStyle={styles.othersChatImagePlaceholder}
+              PlaceholderContent={this.imageplacholdericon}
+              resizeMode="cover"
+              source={{
+                uri: isEmpty(this.state.partnerimageuri)
+                  ? item.chat_pics.thumbchatpic
+                  : this.state.partnerimageuri,
+              }}>
+              {this.renderDownloadBtn(item.chat_pics.size)}
+            </Image>
+          </TouchableOpacity>
+          <Text style={styles.othersChatTime}>
+            {this.formatConvTime(item.created_at * 1000)}
+          </Text>
+        </View>
       );
     } else {
       return null;

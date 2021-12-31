@@ -110,23 +110,26 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
             item.created_chatid || item?.partnerprofile?.profile_id,
           ];
 
-          let exclude_chat_ids = [];
-          let newchats = item.chats.map(chatitem => {
-            let chat = chatlistitem.chats.find(newchatitem => {
-              return newchatitem.private_chatid == chatitem.private_chatid;
+          if (!isEmpty(chatlistitem.chats)) {
+            let exclude_chat_ids = [];
+            let newchats = item.chats.map(chatitem => {
+              let chat = chatlistitem.chats.find(newchatitem => {
+                return newchatitem.private_chatid == chatitem.private_chatid;
+              });
+              if (chat) {
+                exclude_chat_ids = [...exclude_chat_ids, chat.private_chatid];
+                return {...chatitem, ...chat};
+              }
+              return chatitem;
             });
-            if (chat) {
-              exclude_chat_ids = [...exclude_chat_ids, chat.private_chatid];
-              return {...chatitem, ...chat};
-            }
-            return chatitem;
-          });
+            let to_add_chats = chatlistitem.chats.filter(
+              item => !exclude_chat_ids.includes(item.private_chatid),
+            );
+            newchats = [...newchats, ...to_add_chats];
+            return {...item, ...chatlistitem, chats: newchats};
+          }
 
-          let to_add_chats = chatlistitem.chats.filter(
-            item => !exclude_chat_ids.includes(item.private_chatid),
-          );
-          newchats = [...newchats, ...to_add_chats];
-          return {...item, ...chatlistitem, chats: newchats};
+          return {...item, ...chatlistitem};
         }
         return item;
       });

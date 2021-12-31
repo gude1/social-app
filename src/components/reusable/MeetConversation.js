@@ -14,6 +14,7 @@ import {
   rnPath,
   convertByteToKbMb,
   image_exists,
+  LinkingHandler,
 } from '../../utilities/index';
 import moment from 'moment';
 import ParsedText from 'react-native-parsed-text';
@@ -25,6 +26,15 @@ import {ScrollableListOverLay, ListItem} from './ResuableWidgets';
 const {colors} = useTheme();
 
 //const PressableWrapper = Animatable.createAnimatableComponent(TouchableOpacity);
+
+const ShowConvs = props => {
+  return props.data
+    .sort((item1, item2) => item1.id - item2.id)
+    .map(item => {
+      return <MeetConversationItem key={item.id} {...props} item={item} />;
+    })
+    .reverse();
+};
 
 class MeetConversationItem extends Component {
   constructor(props) {
@@ -192,6 +202,25 @@ class MeetConversationItem extends Component {
                     color: this.ownerchattextcolor,
                     backgroundColor: this.ownerchatbgcolor,
                   },
+                ]}
+                parse={[
+                  {
+                    type: 'url',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handleUrlPress,
+                    renderText: this.renderUrlText,
+                  },
+                  {
+                    type: 'phone',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handlePhonePress,
+                  },
+                  {
+                    type: 'email',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handleEmailPress,
+                  },
+                  {pattern: /@(\w+)/, style: styles.parsedText},
                 ]}>
                 {item.chat_msg}
               </ParsedText>
@@ -249,6 +278,25 @@ class MeetConversationItem extends Component {
                     color: this.ownerchattextcolor,
                     backgroundColor: this.ownerchatbgcolor,
                   },
+                ]}
+                parse={[
+                  {
+                    type: 'url',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handleUrlPress,
+                    renderText: this.renderUrlText,
+                  },
+                  {
+                    type: 'phone',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handlePhonePress,
+                  },
+                  {
+                    type: 'email',
+                    style: styles.parsedText,
+                    onPress: LinkingHandler().handleEmailPress,
+                  },
+                  {pattern: /@(\w+)/, style: styles.parsedText},
                 ]}>
                 {item.chat_msg}
               </ParsedText>
@@ -380,7 +428,27 @@ class MeetConversationItem extends Component {
       return (
         <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
           <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
-            <ParsedText style={styles.othersChatText}>
+            <ParsedText
+              style={styles.othersChatText}
+              parse={[
+                {
+                  type: 'url',
+                  style: styles.parsedText,
+                  onPress: LinkingHandler().handleUrlPress,
+                  renderText: this.renderUrlText,
+                },
+                {
+                  type: 'phone',
+                  style: styles.parsedText,
+                  onPress: LinkingHandler().handlePhonePress,
+                },
+                {
+                  type: 'email',
+                  style: styles.parsedText,
+                  onPress: LinkingHandler().handleEmailPress,
+                },
+                {pattern: /@(\w+)/, style: styles.parsedText},
+              ]}>
               {item.chat_msg}
             </ParsedText>
             <Text style={styles.othersChatTime}>
@@ -535,7 +603,7 @@ class MeetConversation extends Component {
       />
     );
   };
-  meet_request;
+
   renderParentMeetReq = () => {
     let {
       origin_meet_request,
@@ -594,8 +662,8 @@ class MeetConversation extends Component {
 
   renderItem = ({item}) => {
     return (
-      <MeetConversationItem
-        item={item}
+      <ShowConvs
+        data={this.props.conv_list}
         sendConv={this.props.sendConv}
         authprofile={this.props.authprofile}
       />
@@ -608,7 +676,7 @@ class MeetConversation extends Component {
     return (
       <>
         <FlatList
-          data={conv_list}
+          data={conv_list.length > 0 ? [1] : []}
           ref={ref => {
             this.props.setFlatListRef && this.props.setFlatListRef(ref);
           }}
@@ -627,6 +695,9 @@ class MeetConversation extends Component {
 }
 
 const styles = StyleSheet.create({
+  parsedText: {
+    color: colors.blue,
+  },
   ownerChatText: {
     marginHorizontal: 20,
     fontSize: responsiveFontSize(2.1),

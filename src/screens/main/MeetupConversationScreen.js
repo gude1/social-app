@@ -125,7 +125,11 @@ const MeetupConversationScreen = ({
 
   //to handle new messages gotten in realtime
   useEffect(() => {
-    if (loaded && meetconvlistitem.latest_id > 0) {
+    if (
+      loaded &&
+      meetconvlistitem?.conv_list[0]?.id > 0 &&
+      meetconvlistitem?.conv_list[0]?.pending != true
+    ) {
       updateMeetConvListConvsArr([
         {
           conversation_id: meetconvlistitem.conversation_id,
@@ -135,11 +139,11 @@ const MeetupConversationScreen = ({
       setMeetupConvStatus([
         '2',
         meetconvlistitem.conversation_id,
-        meetconvlistitem.latest_id,
+        meetconvlistitem?.conv_list[0]?.id,
       ]);
     }
     flatlistref && flatlistref.scrollToOffset({offset: 0});
-  }, [meetconvlistitem?.latest_id, loaded]);
+  }, [meetconvlistitem?.conv_list[0]?.id, loaded]);
 
   function startScreen() {
     if (
@@ -200,7 +204,7 @@ const MeetupConversationScreen = ({
         meetconvlistitem.origin_meet_request,
         meetconvlistitem.partnermeetprofile,
         dataobj.inputtxt,
-        {chat_pic: dataobj.imageuri},
+        {chatpic: dataobj.imageuri},
       ]);
     });
     !isEmpty(flatlistref) && flatlistref.scrollToOffset({offset: 0});
@@ -328,11 +332,6 @@ const MeetupConversationScreen = ({
             inputvalue={inputtxt}
             multiline={true}
             onSubmit={() => {
-              console.warn([
-                meetconvlistitem.conversation_id,
-                meetconvlistitem.origin_meet_request.request_id,
-                inputtxt,
-              ]);
               sendMeetConversation([
                 meetconvlistitem.conversation_id,
                 meetconvlistitem.origin_meet_request,
