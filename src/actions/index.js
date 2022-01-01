@@ -157,6 +157,8 @@ import {
   SET_PRIVATE_CHAT_READ_STATUS,
   SET_FCM_MEET_CONV_TO_DELIVERED,
   SET_FCM_MEET_CONV_TO_READ,
+  UPDATE_MEETUPMAIN_REQUEST_ARR,
+  UPDATE_MEETUPMAIN_MY_REQUEST_ARR,
 } from './types';
 import {
   deleteFile,
@@ -3998,8 +4000,31 @@ export const fetchMoreChatList = () => {
     ) {
       return;
     }
+    let minchatlistitem = privatechatlistform.chatlist
+      .map(listitem => {
+        let chats = listitem?.chats || [];
+        chats = chats.filter(chatitem => chatitem?.pending != true);
+        return {...listitem, chats};
+      })
+      .filter(listitem => !isEmpty(listitem?.chats))
+      .reduce((item1, item2) => {
+        return Math.min(
+          item1?.chats[item1?.chats?.length - 1]?.id,
+          item2?.chats[item2?.chats?.length - 1]?.id,
+        );
+      });
 
-    let chats = privatechatlistform.chats || [];
+    let min =
+      typeof minchatlistitem == 'object'
+        ? minchatlistitem.chats[minchatlistitem.chats.length - 1]?.id
+        : minchatlistitem;
+
+    console.warn('loadmorechatlist', min);
+    if (isEmpty(minchatlistitem)) {
+      dispatch(setProcessing(false, 'privatechatlistloadingmore'));
+      Toast('Missing values to continue');
+      return;
+    }
     dispatch(setProcessing(true, 'privatechatlistloadingmore'));
     try {
       const options = {
@@ -4008,7 +4033,7 @@ export const fetchMoreChatList = () => {
       const response = await session.post(
         'privatechatlist',
         {
-          min: chats[chats.length - 1]?.id,
+          min,
         },
         options,
       );
@@ -4091,13 +4116,6 @@ export const unPinPrivateChatList = id => {
   };
 };
 
-const arrangeToString = data => {
-  if (!Array.isArray(data)) {
-    return '';
-  }
-  return String(data.sort((item1, item2) => item1 - item2));
-};
-
 export const setChatListArrayRead = data => {
   return async dispatch => {
     const {user, privatechatlistform} = store.getState();
@@ -4126,8 +4144,6 @@ export const setChatListArrayRead = data => {
       const {status, message, set_to_read_arr, errmsg} = response.data;
       switch (status) {
         case 200:
-          dispatch(removePrivateChatListReadArr(set_to_read_arr));
-          //console.warn('PRIVATECHATLISTTREAD', 'worked');
           checkData(onSuccess) && onSuccess();
           break;
         case 401:
@@ -4500,9 +4516,16 @@ export const setPrivateChatToRead = (data = []) => {
         options,
       );
       const {status, message, errmsg} = response.data;
-      console.warn(response.data);
       switch (status) {
         case 200:
+          dispatch(
+            updatePrivateChatListArr([
+              {
+                created_chatid,
+                num_new_msg: 0,
+              },
+            ]),
+          );
           dispatch(setPrivateChatStatus([{created_chatid, min, max}]));
           break;
         case 500:
@@ -5982,6 +6005,13 @@ export const updateMeetupMainRequest = (data = {}) => {
   };
 };
 
+export const updateMeetupMainRequestArr = (data = []) => {
+  return {
+    type: UPDATE_MEETUPMAIN_REQUEST_ARR,
+    payload: data,
+  };
+};
+
 export const setMeetupMain = (data = {}) => {
   return {
     type: SET_MEETUPMAIN,
@@ -6024,6 +6054,13 @@ export const updateMeetupMainMyRequest = (data = {}) => {
   };
 };
 
+export const updateMeetupMainMyRequestArr = (data = []) => {
+  return {
+    type: UPDATE_MEETUPMAIN_MY_REQUEST_ARR,
+    payload: data,
+  };
+};
+
 export const removeProfileMeetupMain = (data = '') => {
   return {
     type: REMOVE_PROFILE_MEETUPMAIN,
@@ -6040,6 +6077,7 @@ export const setMeetupMainUrl = (data = '') => {
 
 export const fetchMyMeetSetting = (data = []) => {
   return async dispatch => {
+    dispatch(deleteOfflineAction({id: `fetchmymeetsetting`}));
     let okAction = data[0];
     let failedAction = data[1];
     try {
@@ -6115,11 +6153,7 @@ export const fetchMeetRequests = data => {
       switch (status) {
         case 200:
           dispatch(setProcessing(false, 'meetupmainfetching'));
-          //console.warn('meetup_list', meetup_list);
-          meetup_list.forEach(item => {
-            // console.warn('item', item);
-            if (item) dispatch(updateMeetupMainRequest(item));
-          });
+          dispatch(updateMeetupMainRequestArr(meetup_list));
           dispatch(setMeetupMainUrl(next_url));
           break;
         case 404:
@@ -6202,9 +6236,7 @@ export const fetchMoreMeetRequests = () => {
       switch (status) {
         case 200:
           dispatch(setProcessing(false, 'meetupmainloadingmore'));
-          meetup_list.forEach(item => {
-            if (item) dispatch(updateMeetupMainRequest(item));
-          });
+          dispatch(updateMeetupMainRequestArr(meetup_list));
           dispatch(setMeetupMainUrl(next_url));
           break;
         case 404:
@@ -6246,9 +6278,7 @@ export const fetchMyMeetRequests = () => {
       switch (status) {
         case 200:
           //console.warn('meet_reqs_mine', meetup_reqs);
-          meetup_reqs.forEach(item => {
-            dispatch(updateMeetupMainMyRequest(item));
-          });
+          dispatch(updateMeetupMainMyRequestArr(meetup_reqs));
           dispatch(setProcessing(false, 'meetupmainmyreqfetching'));
           break;
         case 404:
@@ -6744,14 +6774,14 @@ export const setMeetupConvStatus = (data = []) => {
       const {status, errmsg, message} = response.data;
       switch (status) {
         case 200:
-          dispatch({
-            type:
-              type == '1'
-                ? SET_FCM_MEET_CONV_TO_DELIVERED
-                : SET_FCM_MEET_CONV_TO_READ,
-            conv_id: conv_id,
-            payload: min || max,
-          });
+          dispatch(
+            updateMeetConvListConvsArr([
+              {
+                conversation_id: conv_id,
+                num_new_msg: 0,
+              },
+            ]),
+          );
           console.warn('setMeetupConvStatus', message);
           break;
         default:

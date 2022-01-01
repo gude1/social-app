@@ -950,6 +950,7 @@ export class ListItem extends Component {
       likes,
       replies,
       subtitle,
+      style,
       subtitleStyle,
       BottomContainerItem,
       replyPress,
@@ -974,7 +975,7 @@ export class ListItem extends Component {
         activeScale={
           checkData(onLongPress) == true || checkData(onpress) == true ? 0.8 : 1
         }>
-        <View style={styles.listItemStyle}>
+        <View style={{...styles.listItemStyle, ...style}}>
           <Avatar
             source={leftAvatar}
             onPress={onAvatarPress}

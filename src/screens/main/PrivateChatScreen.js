@@ -129,15 +129,20 @@ const PrivateChatScreen = ({
     ]);
   }, [loaded]);
 
+  //to add setting new messages received to read
   useEffect(() => {
-    if (loaded && chatlistitem.first_id > 0) {
+    if (
+      loaded &&
+      chatlistitem?.chats[0]?.id > 0 &&
+      chatlistitem?.chats[0]?.pending != true
+    ) {
       setPrivateChatToRead([
         chatlistitem.created_chatid,
-        chatlistitem.first_id,
+        chatlistitem?.chats[0]?.id,
       ]);
       checkData(flatlistref) && flatlistref.scrollToOffset({offset: 0});
     }
-  }, [chatlistitem.first_id, loaded]);
+  }, [chatlistitem?.chats[0]?.id, loaded]);
 
   const deleteChat = chatitem => {
     if (isEmpty(chatitem)) {

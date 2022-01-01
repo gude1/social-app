@@ -34,10 +34,7 @@ class ConversationItem extends Component {
     let prevconvlist = this.props?.item?.conv_list || [];
     let nextconvlist = nextProps?.item?.conv_list || [];
 
-    if (
-      nextProps.item.id != this.props.item.id ||
-      this.state.showparentmeet != nextState.showparentmeet
-    ) {
+    if (nextProps.item.id != this.props.item.id) {
       return true;
     } else if (
       this.props.item.conversation_id == nextProps.item.conversation_id &&
@@ -137,52 +134,6 @@ class ConversationItem extends Component {
       );
     }
   };
-
-  renderMeetModal() {
-    let item = this.props.item;
-    return (
-      <ScrollableListOverLay
-        width={300}
-        onBackdropPress={() => {
-          this.setState({showparentmeet: false});
-        }}
-        contentContainerStyle={{marginLeft: 0}}
-        visible={this.state.showparentmeet}
-        ListTitle={'Meet'}
-        height={300}>
-        <CustomListItem
-          leftAvatar={{uri: item?.partnermeetprofile?.meetup_avatar}}
-          onAvatarPress={() => {
-            this.setState({showparentmeet: false});
-            Navigation.showModal({
-              component: {
-                name: 'PhotoViewer',
-                passProps: {
-                  navparent: true,
-                  headerText: item?.partnermeetprofile?.meetup_name,
-                  photos: [item?.partnermeetprofile?.meetup_avatar],
-                },
-              },
-            });
-          }}
-          title={item?.partnermeetprofile?.meetup_name}
-          titleStyle={{color: colors.iconcolor}}
-          subtitle={`   ${item.origin_meet_request.request_msg}`}
-          subtitleStyle={{fontWeight: 'bold'}}
-          BottomContainerItem={
-            <BottomContainerItem
-              request_category={item.origin_meet_request.request_category}
-              request_mood={item.origin_meet_request.request_mood}
-              campus={item?.partnermeetprofile?.campus}
-              created_at={`expires ${moment(
-                item.origin_meet_request.expires_at * 1000,
-              ).fromNow()}`}
-            />
-          }
-        />
-      </ScrollableListOverLay>
-    );
-  }
 
   renderSubTitle = () => {
     let {item} = this.props;
@@ -307,7 +258,7 @@ class ConversationItem extends Component {
             <Icon
               size={responsiveFontSize(3)}
               onPress={() => {
-                this.setState({showparentmeet: true});
+                this.props.showMeet && this.props.showMeet(item);
               }}
               containerStyle={{
                 marginRight: 5,
@@ -350,7 +301,6 @@ class ConversationItem extends Component {
           titleProps={{ellipsizeMode: 'tail', numberOfLines: 1}}
           subtitle={this.renderSubTitle()}
         />
-        {this.renderMeetModal()}
       </>
     );
   }
@@ -359,13 +309,74 @@ class ConversationItem extends Component {
 class MeetConversationList extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {selectedconvitem: null, showparentmeet: false};
   }
 
   componentDidMount() {
     checkData(this.props.fetchConvs) && this.props.fetchConvs();
   }
-  sender_meetprofile;
+
+  _showMeet = data => {
+    if (isEmpty(data)) return;
+    this.setState({selectedconvitem: data, showparentmeet: true});
+  };
+
+  renderMeetModal() {
+    return (
+      <ScrollableListOverLay
+        onBackdropPress={() => {
+          this.setState({showparentmeet: false});
+        }}
+        contentContainerStyle={{marginLeft: 5}}
+        visible={this.state.showparentmeet}
+        ListTitle={'Meet'}>
+        <CustomListItem
+          leftAvatar={{
+            uri: this.state.selectedconvitem?.partnermeetprofile?.meetup_avatar,
+          }}
+          onAvatarPress={() => {
+            this.setState({showparentmeet: false});
+            Navigation.showModal({
+              component: {
+                name: 'PhotoViewer',
+                passProps: {
+                  navparent: true,
+                  headerText: this.state.selectedconvitem?.partnermeetprofile
+                    ?.meetup_name,
+                  photos: [
+                    this.state.selectedconvitem?.partnermeetprofile
+                      ?.meetup_avatar,
+                  ],
+                },
+              },
+            });
+          }}
+          title={this.state.selectedconvitem?.partnermeetprofile?.meetup_name}
+          titleStyle={{color: colors.iconcolor}}
+          subtitle={`   ${
+            this.state.selectedconvitem?.origin_meet_request?.request_msg
+          }`}
+          subtitleStyle={{fontWeight: 'bold'}}
+          BottomContainerItem={
+            <BottomContainerItem
+              request_category={
+                this.state.selectedconvitem?.origin_meet_request
+                  ?.request_category
+              }
+              request_mood={
+                this.state.selectedconvitem?.origin_meet_request?.request_mood
+              }
+              campus={this.state.selectedconvitem?.partnermeetprofile?.campus}
+              created_at={`expires ${moment(
+                this.state.selectedconvitem?.origin_meet_request.expires_at *
+                  1000,
+              ).fromNow()}`}
+            />
+          }
+        />
+      </ScrollableListOverLay>
+    );
+  }
   renderItem = ({item, index}) => {
     if (
       !hasProperty(item, [
@@ -379,7 +390,11 @@ class MeetConversationList extends Component {
       return <PanelMsg message={'This conversation is unavailable'} />;
     }
     return (
-      <ConversationItem meetsetting={this.props.meetsetting} item={item} />
+      <ConversationItem
+        meetsetting={this.props.meetsetting}
+        item={item}
+        showMeet={this._showMeet}
+      />
     );
   };
 
@@ -493,22 +508,25 @@ class MeetConversationList extends Component {
   render() {
     let {meetupconvs} = this.props;
     return (
-      <FlatList
-        data={meetupconvs.list}
-        keyExtractor={this._keyExtractor}
-        initialNumRender={5}
-        refreshing={
-          meetupconvs.list.length > 0 ? meetupconvs.refreshing : false
-        }
-        onRefresh={
-          meetupconvs.list.length > 0 ? this.props.fetchNewConvs : null
-        }
-        getItemLayout={this._getItemLayout}
-        showsVerticalScrollIndicator={false}
-        renderItem={this.renderItem}
-        ListEmptyComponent={this._setEmptyPlaceHolder()}
-        ListFooterComponent={this._setFooterComponent()}
-      />
+      <>
+        <FlatList
+          data={meetupconvs.list}
+          keyExtractor={this._keyExtractor}
+          initialNumRender={5}
+          refreshing={
+            meetupconvs.list.length > 0 ? meetupconvs.refreshing : false
+          }
+          onRefresh={
+            meetupconvs.list.length > 0 ? this.props.fetchNewConvs : null
+          }
+          getItemLayout={this._getItemLayout}
+          showsVerticalScrollIndicator={false}
+          renderItem={this.renderItem}
+          ListEmptyComponent={this._setEmptyPlaceHolder()}
+          ListFooterComponent={this._setFooterComponent()}
+        />
+        {this.renderMeetModal()}
+      </>
     );
   }
 }

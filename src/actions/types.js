@@ -255,6 +255,9 @@ export const UPDATE_MEETUP_FORM_ERRORS = 'update_meetup_form_errors';
 export const SET_MEETUPMAIN = 'set_meetupmain';
 export const ADD_MEETUPMAIN_REQUESTS = 'add_meetupmain_requests';
 export const UPDATE_MEETUPMAIN_REQUEST = 'update_meetupmain_request';
+export const UPDATE_MEETUPMAIN_MY_REQUEST_ARR =
+  'update_meetupmain_my_request_arr';
+export const UPDATE_MEETUPMAIN_REQUEST_ARR = 'update_meetupmain_request_arr';
 export const SET_MEETUPMAIN_URL = 'set_meetupmain_url';
 export const ADD_MEETUPMAIN_MY_REQUESTS = 'add_meetupmain_myrequests';
 export const UPDATE_MEETUPMAIN_MY_REQUESTS = 'update_meetupmain_myrequests';

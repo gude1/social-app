@@ -701,7 +701,6 @@ const styles = StyleSheet.create({
   ownerChatText: {
     marginHorizontal: 20,
     fontSize: responsiveFontSize(2.1),
-    textAlign: 'justify',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 12,
@@ -732,7 +731,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     fontSize: responsiveFontSize(2.1),
     color: colors.text,
-    textAlign: 'justify',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderBottomRightRadius: 30,

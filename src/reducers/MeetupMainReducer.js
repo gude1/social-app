@@ -8,6 +8,8 @@ import {
   SET_MEETUPMAIN,
   SET_MEETUPMAIN_ERRORS,
   ADD_MEETUPMAIN_MY_REQUESTS,
+  UPDATE_MEETUPMAIN_MY_REQUEST_ARR,
+  UPDATE_MEETUPMAIN_REQUEST_ARR,
   UPDATE_MEETUPMAIN_MY_REQUESTS,
   REMOVE_MEETUPMAIN_MY_REQUESTS,
   REMOVE_MEETUPMAIN_REQUESTS,
@@ -88,6 +90,7 @@ const handleProcessing = (key, value, state) => {
 
 const MeetupMainReducer = (state = INITIAL_STATE, action) => {
   let reducerdata = null;
+
   switch (action.type) {
     case ADD_MEETUPMAIN_REQUESTS:
       return {
@@ -105,6 +108,24 @@ const MeetupMainReducer = (state = INITIAL_STATE, action) => {
       reducerdata = state.requests.filter(item => {
         return !action.payload.includes(item.request_id);
       });
+      return {...state, requests: arrangeRequests(reducerdata)};
+      break;
+    case UPDATE_MEETUPMAIN_REQUEST_ARR:
+      let exclude_meet_req_ids = [];
+      reducerdata = state.requests.map(listitem => {
+        let foundlistitem = action.payload.find(
+          newlistitem => newlistitem.request_id == listitem.request_id,
+        );
+        if (foundlistitem) {
+          exclude_meet_req_ids.push(foundlistitem.request_id);
+          return {...listitem, ...foundlistitem};
+        }
+        return listitem;
+      });
+      let to_add_meet_reqs = action.payload.filter(
+        item => !exclude_meet_req_ids.includes(item.request_id),
+      );
+      reducerdata = [...reducerdata, ...to_add_meet_reqs];
       return {...state, requests: arrangeRequests(reducerdata)};
       break;
     case UPDATE_MEETUPMAIN_REQUEST:
@@ -143,6 +164,24 @@ const MeetupMainReducer = (state = INITIAL_STATE, action) => {
         return item.requester_id != action.payload;
       });
       return {...state, requests: arrangeRequests(reducerdata)};
+      break;
+    case UPDATE_MEETUPMAIN_MY_REQUEST_ARR:
+      let exclude_my_meet_req_ids = [];
+      reducerdata = state.myrequests.map(listitem => {
+        let foundlistitem = action.payload.find(
+          newlistitem => newlistitem.request_id == listitem.request_id,
+        );
+        if (foundlistitem) {
+          exclude_my_meet_req_ids.push(foundlistitem.request_id);
+          return {...listitem, ...foundlistitem};
+        }
+        return listitem;
+      });
+      let to_add_my_meet_reqs = action.payload.filter(
+        item => !exclude_my_meet_req_ids.includes(item.request_id),
+      );
+      reducerdata = [...reducerdata, ...to_add_my_meet_reqs];
+      return {...state, myrequests: arrangeRequests(reducerdata)};
       break;
     case UPDATE_MEETUPMAIN_MY_REQUESTS:
       reducerdata = state.myrequests.map(item => {
