@@ -1,5 +1,6 @@
 import notifee, {
   AndroidLaunchActivityFlag,
+  AndroidImportance,
   EventType,
 } from '@notifee/react-native';
 import {isEmpty} from '.';
@@ -155,6 +156,10 @@ export async function displayNote(groupchannel = {}, channel = {}, data = {}) {
     }
 
     //create a channel group
+    const groupChannelId = await notifee.createChannelGroup({
+      ...DEFAULT_GROUP_CHANNEL,
+      ...groupchannel,
+    });
 
     // Create a channel
     const channelId = await notifee.createChannel({

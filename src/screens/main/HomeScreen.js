@@ -11,6 +11,7 @@ import {
 import notifee, {
   AndroidGroupAlertBehavior,
   AndroidImportance,
+  AndroidStyle,
   AndroidLaunchActivityFlag,
 } from '@notifee/react-native';
 import {LoaderScreen} from '../../components/reusable/ResuableWidgets';
@@ -157,7 +158,6 @@ const HomeScreen = ({
       badge: true,
       groupId: groupChannelId,
     });
-
     notifee.displayNotification({
       subtitle: 'new',
       id: '334',
@@ -184,6 +184,20 @@ const HomeScreen = ({
         showTimestamp: true,
         groupId: groupChannelId,
         groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
+        style: {
+          type: AndroidStyle.MESSAGING,
+          person: {
+            name: 'John Doe',
+            icon:
+              'https://static2.srcdn.com/wordpress/wp-content/uploads/2021/02/Avatar-studios-Avatar-the-last-airbender-new-movie.jpg?q=50&fit=crop&w=960&h=500&dpr=1.5',
+          },
+          messages: [
+            {
+              text: 'Hey, how are you?',
+              timestamp: Date.now() - 600000, // 10 minutes ago
+            },
+          ],
+        },
         pressAction: {
           id: 'default',
           launchActivity: 'default',
