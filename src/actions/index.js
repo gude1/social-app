@@ -6181,9 +6181,7 @@ export const fetchMeetRequests = data => {
       console.warn(`${err.toString()}  from meetrequest`);
       dispatch(setProcessing('retry', 'meetupmainfetching'));
       if (err.toString().indexOf('Network Error') != -1) {
-        Toast(
-          'seems like their is no network connectivity meet requests will be fetched once network returns',
-        );
+        Toast('Network error');
         dispatch(
           addOfflineAction({
             id: `fetchmeetreq`,
@@ -6312,7 +6310,7 @@ export const fetchMyMeetRequests = () => {
 
 export const createMeetRequest = (data, initAction, failedAction) => {
   return async dispatch => {
-    //dispatch(deleteOfflineAction({ id: `createMeetRequest${data[6]}` }));
+    dispatch(deleteOfflineAction({id: `createMeetRequest${data[6]}`}));
     const {user, profile, meetupmain, meetupform} = store.getState();
     if (!Array.isArray(data) || data.length < 3) {
       Toast('Missing values to continue', null, ToastAndroid.CENTER);

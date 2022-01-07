@@ -2,6 +2,7 @@ import {SET_APP_INFO} from '../actions/types';
 
 const INITIAL_STATE = {
   editprofileinformed: false,
+  currentscreen: {name: '', id: ''}, //the currently appearing screen
   postinformed: false,
 };
 

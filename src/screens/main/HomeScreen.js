@@ -8,6 +8,11 @@ import {
   responsiveHeight,
   responsiveWidth,
 } from 'react-native-responsive-dimensions';
+import notifee, {
+  AndroidGroupAlertBehavior,
+  AndroidImportance,
+  AndroidLaunchActivityFlag,
+} from '@notifee/react-native';
 import {LoaderScreen} from '../../components/reusable/ResuableWidgets';
 import {Icon, Text} from 'react-native-elements';
 import {Header} from '../../components/reusable/ResuableWidgets';
@@ -19,7 +24,6 @@ import PostList from '../../components/reusable/PostList';
 import OfflineActionsDispatcher from '../../components/reusable/OfflineActionsDispatcher';
 import {getFileInfo, rnPath, cpFile} from '../../utilities/index';
 import RNFetchBlob from 'rn-fetch-blob';
-import PushNotification from 'react-native-push-notification';
 import messaging from '@react-native-firebase/messaging';
 import moment from 'moment';
 import {NOTIFICATION_CHANNEL_ID} from '../../env';
@@ -137,6 +141,111 @@ const HomeScreen = ({
     //updateTimelinePostForm({ postid, sharedstatus: "pending" });
   };
 
+  async function onDisplayNotification2() {
+    //create channel group
+    const groupChannelId = await notifee.createChannelGroup({
+      id: 'posts',
+      name: 'new group',
+    });
+
+    // Create a channel
+    const channelId = await notifee.createChannel({
+      id: 'test',
+      name: 'Test Channel',
+      sound: 'default',
+      importance: AndroidImportance.HIGH,
+      badge: true,
+      groupId: groupChannelId,
+    });
+
+    notifee.displayNotification({
+      subtitle: 'new',
+      id: '334',
+      android: {
+        channelId,
+        groupId: groupChannelId,
+        showTimestamp: true,
+        groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
+        pressAction: {
+          id: 'default',
+          launchActivity: 'default',
+          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+        },
+        groupSummary: true,
+      },
+    });
+
+    // Display a notification
+    await notifee.displayNotification({
+      title: String(new Date().getMilliseconds()),
+      body: 'Main body content of the notification',
+      android: {
+        channelId,
+        showTimestamp: true,
+        groupId: groupChannelId,
+        groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
+        pressAction: {
+          id: 'default',
+          launchActivity: 'default',
+          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+        },
+      },
+    });
+  }
+
+  async function onDisplayNotification() {
+    //create channel group
+    const groupChannelId = await notifee.createChannelGroup({
+      id: 'conversations',
+      name: 'Conversations',
+      description: 'categories all notifications related to chats or messages',
+    });
+
+    // Create a channel
+    const channelId = await notifee.createChannel({
+      id: 'test',
+      name: 'Test Channel',
+      sound: 'default',
+      importance: AndroidImportance.HIGH,
+      badge: true,
+      groupId: groupChannelId,
+    });
+
+    notifee.displayNotification({
+      subtitle: 'unread chats',
+      id: '164',
+      android: {
+        channelId,
+        groupId: groupChannelId,
+        showTimestamp: true,
+        groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
+        pressAction: {
+          id: 'default',
+          launchActivity: 'default',
+          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+        },
+        groupSummary: true,
+      },
+    });
+
+    // Display a notification
+    await notifee.displayNotification({
+      title: String(new Date().getMilliseconds()),
+      body: 'Main body content of the notification',
+      android: {
+        channelId,
+        showTimestamp: true,
+        groupId: groupChannelId,
+        groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
+        pressAction: {
+          id: 'default',
+          launchActivity: 'default',
+          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+        },
+      },
+    });
+  }
+
   /**compoent function ends here */
   return (
     <>
@@ -149,29 +258,41 @@ const HomeScreen = ({
             fontFamily: 'cursive',
             fontWeight: 'bold',
           }}
+          lefticon={<Text style={{color: colors.text}}>Hello</Text>}
+          leftIconPress={() => {
+            onDisplayNotification2();
+          }}
           headertextcolor={colors.text}
           headertextsize={responsiveFontSize(3.8)}
           righticon={righticon}
           rightIconPress={() => {
-            Navigation.showModal({
+            onDisplayNotification();
+            /*Navigation.showModal({
               component: {
                 name: 'Notification',
                 passProps: {
                   navparent: true,
                 },
               },
-            });
-            /*
-            PushNotification.localNotification({
-                        channelId: NOTIFICATION_CHANNEL_ID,
-                        showWhen: true,
-                        when: new Date().getTime(),
-                        largeIconUrl: "https://eportal.oauife.edu.ng/pic.php?image_id=ECN/2016/01320172",
-                        bigPictureUrl: "https://eportal.oauife.edu.ng/pic.php?image_id=ECN/2016/02020172",
-                        title: `Today 😊`,
-                        message: `📷 ${moment().format('LLLL')}`
-                    });'
-                    */
+            });*/
+
+            /* PushNotification.localNotification({
+              channelId: NOTIFICATION_CHANNEL_ID,
+              showWhen: true,
+              when: new Date().getTime(),
+              largeIconUrl:
+                'https://eportal.oauife.edu.ng/pic.php?image_id=ECN/2016/01320172',
+              bigPictureUrl:
+                'https://eportal.oauife.edu.ng/pic.php?image_id=ECN/2016/02020172',
+              title: `Today 😊`,
+              message: `📷 ${moment().format('LLLL')}`,
+              actions: [
+                {
+                  title: 'Yes',
+                  input: true,
+                },
+              ],
+            });*/
           }}
         />
         {loaded == false ? (

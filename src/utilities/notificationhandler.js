@@ -1,0 +1,185 @@
+import notifee, {
+  AndroidLaunchActivityFlag,
+  EventType,
+} from '@notifee/react-native';
+import {isEmpty} from '.';
+import appObj from '../../app.json';
+
+//GROUP CHANNELS
+export const DEFAULT_GROUP_CHANNEL = {
+  id: 'defaultnotegroup',
+  name: appObj.displayName,
+  description: 'Notifications from hello',
+};
+
+export const POST_GROUP_CHANNEL = {
+  id: 'post',
+  name: 'Posts',
+  description: 'Notifications from posts',
+};
+
+export const POSTCOMMENT_GROUP_CHANNEL = {
+  id: 'postcomment',
+  name: 'PostComment',
+  description: 'Notifications from postcomment',
+};
+
+export const POSTCOMMENTREPLY_GROUP_CHANNEL = {
+  id: 'postcommentreply',
+  name: 'PostCommentReply',
+  description: 'Notifications from postcommentreplies',
+};
+
+export const MEETCONV_GROUP_CHANNEL = {
+  id: 'meetconv',
+  name: 'Meet Conversations',
+  description: 'Notifications from meet conversations',
+};
+
+export const PRIVATECHAT_GROUP_CHANNEL = {
+  id: 'privatechat',
+  name: 'PrivateChat',
+  description: 'Notifications from private chats',
+};
+
+//CHANNELS
+export const DEFAULT_CHANNEL = {
+  id: `${appObj.name}default`,
+  name: `${appObj.displayName} Notes`,
+  sound: 'default',
+  importance: AndroidImportance.HIGH,
+  badge: true,
+};
+
+export const MESSAGE_CHANNEL = {
+  ...DEFAULT_CHANNEL,
+  id: 'messagechannel',
+  name: 'Messages',
+};
+
+export const LIKES_CHANNEL = {
+  ...DEFAULT_CHANNEL,
+  id: 'likechannel',
+  name: 'Likes',
+};
+
+export const setForegroundEvent = () => {
+  try {
+    return notifee.onForegroundEvent(({type, detail}) => {
+      const {notification, pressAction} = detail;
+      console.warn('foregroundevent');
+      switch (type) {
+        case EventType.ACTION_PRESS:
+          console.warn('action_press', EventType.ACTION_PRESS);
+          break;
+        case EventType.APP_BLOCKED:
+          console.warn('app_blocked', EventType.APP_BLOCKED);
+          break;
+        case EventType.DELIVERED:
+          console.warn('deleivered', EventType.DELIVERED);
+
+          break;
+        case EventType.CHANNEL_BLOCKED:
+          console.warn('channel blocked', EventType.CHANNEL_BLOCKED);
+
+          break;
+        case EventType.CHANNEL_GROUP_BLOCKED:
+          console.warn(
+            'channel_group_blocked',
+            EventType.CHANNEL_GROUP_BLOCKED,
+          );
+
+          break;
+        case EventType.PRESS:
+          console.warn('press', EventType.PRESS);
+
+          break;
+        case EventType.UNKNOWN:
+          console.warn('unknown', EventType.UNKNOWN);
+          break;
+        default:
+          console.warn('default');
+          break;
+      }
+    });
+  } catch (err) {
+    console.log(`setForegroundEvent`, err.toString());
+  }
+};
+
+export const setBackgroundEvent = async () => {
+  try {
+    return notifee.onBackgroundEvent(async ({type, detail}) => {
+      const {notification, pressAction} = detail;
+      console.warn('backgroundevent');
+      switch (type) {
+        case EventType.ACTION_PRESS:
+          console.warn('action_press', EventType.ACTION_PRESS);
+          break;
+        case EventType.APP_BLOCKED:
+          console.warn('app_blocked', EventType.APP_BLOCKED);
+          break;
+        case EventType.DELIVERED:
+          console.warn('deleivered', EventType.DELIVERED);
+          break;
+        case EventType.CHANNEL_BLOCKED:
+          console.warn('channel blocked', EventType.CHANNEL_BLOCKED);
+          break;
+        case EventType.CHANNEL_GROUP_BLOCKED:
+          console.warn(
+            'channel_group_blocked',
+            EventType.CHANNEL_GROUP_BLOCKED,
+          );
+          break;
+        case EventType.PRESS:
+          console.warn('press', EventType.PRESS);
+
+          break;
+        case EventType.UNKNOWN:
+          console.warn('unknown', EventType.UNKNOWN);
+          break;
+        default:
+          console.warn('default');
+          break;
+      }
+    });
+  } catch (err) {
+    console.log(`setForegroundEvent`, err.toString());
+  }
+};
+
+export async function displayNote(groupchannel = {}, channel = {}, data = {}) {
+  try {
+    if (isEmpty(data) || isEmpty(data.title) || isEmpty(data.body)) {
+      return false;
+    }
+
+    //create a channel group
+
+    // Create a channel
+    const channelId = await notifee.createChannel({
+      ...DEFAULT_CHANNEL,
+      ...channel,
+    });
+
+    // Required for iOS
+    // See https://notifee.app/react-native/docs/ios/permissions
+    await notifee.requestPermission();
+
+    // Display a notification
+    return await notifee.displayNotification({
+      title: data.title,
+      body: data.body,
+      android: {
+        channelId,
+        pressAction: {
+          launchActivity: 'default',
+          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+        },
+      },
+      ...data,
+    });
+  } catch (err) {
+    console.log(`displayNotification`, err.toString());
+  }
+}

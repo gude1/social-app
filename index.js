@@ -3,7 +3,7 @@
  */
 import {Navigation} from 'react-native-navigation';
 //import { gestureHandlerRootHOC } from 'react-native-gesture-handler'
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, Button, StyleSheet} from 'react-native';
 import {store, persistor} from './src/store';
 import {persistStore} from 'redux-persist';
@@ -45,14 +45,22 @@ import {setRoute, isEmpty, doDispatch} from './src/utilities';
 import {getGalleryPhotos, addDeviceToken} from './src/actions/index';
 import AsyncStorage from '@react-native-community/async-storage';
 import {ReduxNetworkProvider} from 'react-native-offline';
-import PushNotification from 'react-native-push-notification';
 import messaging from '@react-native-firebase/messaging';
 import {NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME} from './src/env';
+import {
+  setBackgroundEvent,
+  setForegroundEvent,
+} from './src/utilities/notificationhandler';
 
 const {colors} = useTheme();
 
+setForegroundEvent();
+
+setBackgroundEvent();
+
 // Register background handler
 messaging().setBackgroundMessageHandler(async remoteMessage => {
+  console.warn('setBackgroundMessageHandler', remoteMessage);
   let {user} = store.getState();
   try {
     let responseData = !isEmpty(remoteMessage.data.responseData)
@@ -60,7 +68,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
       : null;
     if (!isEmpty(remoteMessage.data.notification)) {
       let notification = JSON.parse(remoteMessage.data.notification);
-      PushNotification.localNotification({
+      /* PushNotification.localNotification({
         channelId: NOTIFICATION_CHANNEL_ID,
         showWhen: true,
         when: remoteMessage.sentTime,
@@ -69,7 +77,7 @@ messaging().setBackgroundMessageHandler(async remoteMessage => {
         largeIconUrl: notification.largeIconUrl,
         bigPictureUrl: notification.bigPictureUrl,
         message: notification.body || '',
-      });
+      });*/
     }
     if (!isEmpty(responseData)) {
       if (isEmpty(user) || isEmpty(user.token)) {
@@ -91,7 +99,7 @@ const setTheDefault = store => {
 
   //handles remote notification received in foreground
   messaging().onMessage(async remoteMessage => {
-    // console.warn('onMessage', remoteMessage)
+    console.warn('onMessage', remoteMessage);
     try {
       let responseData = !isEmpty(remoteMessage.data.responseData)
         ? JSON.parse(remoteMessage.data.responseData)
@@ -99,7 +107,7 @@ const setTheDefault = store => {
       if (!isEmpty(remoteMessage.data.notification)) {
         let notification = JSON.parse(remoteMessage.data.notification);
         console.warn(notification, remoteMessage);
-        PushNotification.localNotification({
+        /*PushNotification.localNotification({
           channelId: NOTIFICATION_CHANNEL_ID,
           showWhen: true,
           when: remoteMessage.sentTime,
@@ -108,7 +116,7 @@ const setTheDefault = store => {
           largeIconUrl: notification.largeIconUrl,
           bigPictureUrl: notification.bigPictureUrl,
           message: notification.body || '',
-        });
+        });*/
       }
       if (!isEmpty(responseData)) {
         console.warn('onmessage yeah');
@@ -132,72 +140,25 @@ const setTheDefault = store => {
     //alert('firebase background state');
   });
 
-  // Must be outside of any component LifeCycle (such as `componentDidMount`).
-  PushNotification.configure({
-    // (optional) Called when Token is generated (iOS and Android)
-    onRegister: function(tokenobj) {
-      try {
-        if (!isEmpty(user) && isEmpty(user.device_token)) {
-          store.dispatch(addDeviceToken());
-        } else {
-          console.warn('already sent');
-        }
-      } catch (error) {
-        console.warn('PUSH ntification onRegister', error.toString);
+  /*onRegister: function(tokenobj) {
+    try {
+      if (!isEmpty(user) && isEmpty(user.device_token)) {
+        store.dispatch(addDeviceToken());
+      } else {
+        console.warn('already sent');
       }
-    },
-
-    // (required) Called when a remote is received or opened, or local notification is opened
-    onNotification: function(notification) {
-      if (notification.channelId == NOTIFICATION_CHANNEL_ID) {
-        //console.warn('PUSH NOTIFICATION', notification.navdata);
-        // alert(`PUSH NOTIFICATION`)
-      }
-      // (required) Called when a remote is received or opened, or local notification is opened
-      notification.finish();
-    },
-
-    // (optional) Called when Registered Action is pressed and invokeApp is false, if true onNotification will be called (Android)
-    onAction: function(notification) {
-      //console.log("ACTION:", notification.action);
-      //console.log("NOTIFICATION:", notification);
-      // process the action
-    },
-
-    // (optional) Called when the user fails to register for remote notifications. Typically occurs when APNS is having issues, or the device is a simulator. (iOS)
-    onRegistrationError: function(err) {
-      console.error(err.message, err);
-    },
-
-    // IOS ONLY (optional): default: all - Permissions to register.
-    permissions: {
-      alert: true,
-      badge: true,
-      sound: true,
-    },
-
-    // Should the initial notification be popped automatically
-    // default: true
-    popInitialNotification: true,
-
-    /**
-     * (optional) default: true
-     * - Specified if permissions (ios) and token (android and ios) will requested or not,
-     * - if not, you must call PushNotificationsHandler.requestPermissions() later
-     * - if you are not using remote notification or do not have Firebase installed, use this:
-     *     requestPermissions: Platform.OS === 'ios'
-     */
-    requestPermissions: true,
-  });
-
-  PushNotification.createChannel(
+    } catch (error) {
+      console.warn('PUSH ntification onRegister', error.toString);
+    }
+  },*/
+  /*PushNotification.createChannel(
     {
       channelId: NOTIFICATION_CHANNEL_ID,
       channelName: NOTIFICATION_CHANNEL_NAME,
       channelDescription: 'A channel to test notification',
     },
     created => console.log(`created returned ${created}`),
-  );
+  );*/
 
   Navigation.setDefaultOptions({
     layout: {

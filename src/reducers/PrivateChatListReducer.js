@@ -286,7 +286,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
       let partnerprofile = action.payload[1];
       reducerdata = state.chatlist.map(chatlistitem => {
         if (
-          chatlistitem.created_chatid == action.payload.created_chatid ||
+          chatlistitem.created_chatid == newchat.created_chatid ||
           (!isEmpty(chatlistitem?.partnerprofile?.profile_id) &&
             chatlistitem?.partnerprofile?.profile_id ==
               partnerprofile?.profile_id)
@@ -294,6 +294,7 @@ const PrivateChatListReducer = (state = INITIAL_STATE, action) => {
           found = true;
           return {
             ...chatlistitem,
+            partnerprofile,
             created_chatid: newchat.created_chatid,
             num_new_msg: chatlistitem.num_new_msg + 1,
             first_id: action.payload.id,

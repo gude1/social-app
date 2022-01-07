@@ -38,6 +38,7 @@ const PrivateChatScreen = ({
   blockProfileAction,
   fetchPrivateChats,
   setReset,
+  setAppInfo,
   authprofile,
   privatechatobj,
 }) => {
