@@ -28,6 +28,12 @@ import RNFetchBlob from 'rn-fetch-blob';
 import messaging from '@react-native-firebase/messaging';
 import moment from 'moment';
 import {NOTIFICATION_CHANNEL_ID} from '../../env';
+import {
+  displayNote,
+  MESSAGE_CHANNEL,
+  POST_GROUP_CHANNEL,
+  PRIVATECHAT_GROUP_CHANNEL,
+} from '../../utilities/notificationhandler';
 
 const {colors} = useTheme();
 
@@ -143,121 +149,41 @@ const HomeScreen = ({
   };
 
   async function onDisplayNotification2() {
-    //create channel group
-    const groupChannelId = await notifee.createChannelGroup({
-      id: 'posts',
-      name: 'new group',
-    });
-
-    // Create a channel
-    const channelId = await notifee.createChannel({
-      id: 'test',
-      name: 'Test Channel',
-      sound: 'default',
-      importance: AndroidImportance.HIGH,
-      badge: true,
-      groupId: groupChannelId,
-    });
-    notifee.displayNotification({
-      subtitle: 'new',
-      id: '334',
+    let test = await displayNote({
+      title: 'elujoba posted an update',
+      body: 'CHECK THUS OUT',
       android: {
-        channelId,
-        groupId: groupChannelId,
-        showTimestamp: true,
-        groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
-        pressAction: {
-          id: 'default',
-          launchActivity: 'default',
-          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
-        },
-        groupSummary: true,
+        largeIcon:
+          'https://static2.srcdn.com/wordpress/wp-content/uploads/2021/02/Avatar-studios-Avatar-the-last-airbender-new-movie.jpg?q=50&fit=crop&w=960&h=500&dpr=1.5',
       },
     });
-
-    // Display a notification
-    await notifee.displayNotification({
-      title: String(new Date().getMilliseconds()),
-      body: 'Main body content of the notification',
-      android: {
-        channelId,
-        showTimestamp: true,
-        groupId: groupChannelId,
-        groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
-        style: {
-          type: AndroidStyle.MESSAGING,
-          person: {
-            name: 'John Doe',
-            icon:
-              'https://static2.srcdn.com/wordpress/wp-content/uploads/2021/02/Avatar-studios-Avatar-the-last-airbender-new-movie.jpg?q=50&fit=crop&w=960&h=500&dpr=1.5',
-          },
-          messages: [
-            {
-              text: 'Hey, how are you?',
-              timestamp: Date.now() - 600000, // 10 minutes ago
-            },
-          ],
-        },
-        pressAction: {
-          id: 'default',
-          launchActivity: 'default',
-          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
-        },
-      },
-    });
+    console.warn('onDisplay2', test);
   }
 
   async function onDisplayNotification() {
-    //create channel group
-    const groupChannelId = await notifee.createChannelGroup({
-      id: 'conversations',
-      name: 'Conversations',
-      description: 'categories all notifications related to chats or messages',
-    });
-
-    // Create a channel
-    const channelId = await notifee.createChannel({
-      id: 'test',
-      name: 'Test Channel',
-      sound: 'default',
-      importance: AndroidImportance.HIGH,
-      badge: true,
-      groupId: groupChannelId,
-    });
-
-    notifee.displayNotification({
-      subtitle: 'unread chats',
-      id: '164',
-      android: {
-        channelId,
-        groupId: groupChannelId,
-        showTimestamp: true,
-        groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
-        pressAction: {
-          id: 'default',
-          launchActivity: 'default',
-          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
-        },
-        groupSummary: true,
-      },
-    });
-
-    // Display a notification
-    await notifee.displayNotification({
-      title: String(new Date().getMilliseconds()),
-      body: 'Main body content of the notification',
-      android: {
-        channelId,
-        showTimestamp: true,
-        groupId: groupChannelId,
-        groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
-        pressAction: {
-          id: 'default',
-          launchActivity: 'default',
-          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+    let test = await displayNote(
+      {
+        android: {
+          style: {
+            type: AndroidStyle.MESSAGING,
+            person: {
+              name: 'John Doe',
+              icon:
+                'https://static2.srcdn.com/wordpress/wp-content/uploads/2021/02/Avatar-studios-Avatar-the-last-airbender-new-movie.jpg?q=50&fit=crop&w=960&h=500&dpr=1.5',
+            },
+            messages: [
+              {
+                text: 'Hey, how are you?',
+                timestamp: Date.now() - 600000, // 10 minutes ago
+              },
+            ],
+          },
         },
       },
-    });
+      {...PRIVATECHAT_GROUP_CHANNEL},
+      {...MESSAGE_CHANNEL},
+    );
+    console.warn('onDisplay1', test);
   }
 
   /**compoent function ends here */
@@ -271,10 +197,6 @@ const HomeScreen = ({
           headerTextStyle={{
             fontFamily: 'cursive',
             fontWeight: 'bold',
-          }}
-          lefticon={<Text style={{color: colors.text}}>Hello</Text>}
-          leftIconPress={() => {
-            onDisplayNotification2();
           }}
           headertextcolor={colors.text}
           headertextsize={responsiveFontSize(3.8)}
@@ -328,7 +250,9 @@ const HomeScreen = ({
             <View style={styles.onlineListContainer}>
               <OnlineList
                 status="pending"
-                onPress={() =>
+                onPress={() => {
+                  onDisplayNotification2();
+                  return;
                   Navigation.showModal({
                     component: {
                       name: 'FindUser',
@@ -337,8 +261,8 @@ const HomeScreen = ({
                         screentype: 'modal',
                       },
                     },
-                  })
-                }
+                  });
+                }}
                 num={4}
               />
             </View>

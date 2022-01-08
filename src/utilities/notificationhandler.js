@@ -1,6 +1,8 @@
 import notifee, {
-  AndroidLaunchActivityFlag,
+  AndroidGroupAlertBehavior,
   AndroidImportance,
+  AndroidStyle,
+  AndroidLaunchActivityFlag,
   EventType,
 } from '@notifee/react-native';
 import {isEmpty} from '.';
@@ -9,7 +11,7 @@ import appObj from '../../app.json';
 //GROUP CHANNELS
 export const DEFAULT_GROUP_CHANNEL = {
   id: 'defaultnotegroup',
-  name: appObj.displayName,
+  name: 'Notifcations',
   description: 'Notifications from hello',
 };
 
@@ -39,7 +41,7 @@ export const MEETCONV_GROUP_CHANNEL = {
 
 export const PRIVATECHAT_GROUP_CHANNEL = {
   id: 'privatechat',
-  name: 'PrivateChat',
+  name: 'PrivateChats',
   description: 'Notifications from private chats',
 };
 
@@ -149,40 +151,61 @@ export const setBackgroundEvent = async () => {
   }
 };
 
-export async function displayNote(groupchannel = {}, channel = {}, data = {}) {
+export async function displayNote(data = {}, groupchannel = {}, channel = {}) {
   try {
-    if (isEmpty(data) || isEmpty(data.title) || isEmpty(data.body)) {
+    if (isEmpty(data) || typeof data != 'object') {
       return false;
     }
+    let grpchnobj = {...DEFAULT_GROUP_CHANNEL, ...groupchannel};
+    let chnobj = {...DEFAULT_CHANNEL, ...channel};
 
     //create a channel group
-    const groupChannelId = await notifee.createChannelGroup({
-      ...DEFAULT_GROUP_CHANNEL,
-      ...groupchannel,
-    });
+    const groupChannelId = await notifee.createChannelGroup(grpchnobj);
 
     // Create a channel
     const channelId = await notifee.createChannel({
-      ...DEFAULT_CHANNEL,
-      ...channel,
+      groupId: groupChannelId,
+      ...chnobj,
     });
 
     // Required for iOS
     // See https://notifee.app/react-native/docs/ios/permissions
     await notifee.requestPermission();
 
-    // Display a notification
-    return await notifee.displayNotification({
-      title: data.title,
-      body: data.body,
+    //group summary
+    notifee.displayNotification({
+      subtitle: grpchnobj.name,
+      id: grpchnobj.id,
       android: {
         channelId,
+        groupId: groupChannelId,
+        showTimestamp: true,
+        groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
         pressAction: {
+          id: grpchnobj.id,
           launchActivity: 'default',
           launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
         },
+        groupSummary: true,
       },
+    });
+
+    // Display a notification
+    return await notifee.displayNotification({
       ...data,
+      android: {
+        channelId,
+        circularLargeIcon: true,
+        showTimestamp: true,
+        groupId: groupChannelId,
+        groupAlertBehavior: AndroidGroupAlertBehavior.SUMMARY,
+        pressAction: {
+          id: 'default',
+          launchActivity: 'default',
+          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+        },
+        ...data?.android,
+      },
     });
   } catch (err) {
     console.log(`displayNotification`, err.toString());
