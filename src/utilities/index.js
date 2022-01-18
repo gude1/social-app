@@ -298,6 +298,7 @@ export const getAppInfo = (data, name) => {
     case 'profile':
       let profile = data;
       if (
+        isEmpty(profile) ||
         checkData(profile.campus) == false ||
         checkData(profile.profile_name) == false ||
         checkData(profile.bio) == false ||

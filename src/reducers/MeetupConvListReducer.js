@@ -68,12 +68,12 @@ const arrangeConvList = (data = []) => {
 
 const arrayReduce = data => {
   if (!Array.isArray(data) || data.length < 1) {
-    return data;
+    return;
   }
   data = [...data];
   if (data.length > 100) {
     for (i = data.length; i > 100; i--) {
-      data.shift();
+      data.pop();
     }
     return data;
   }

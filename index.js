@@ -51,12 +51,15 @@ import {
   setBackgroundEvent,
   setForegroundEvent,
 } from './src/utilities/notificationhandler';
+import {setFcmHandler} from './src/utilities/fcmhandler';
 
 const {colors} = useTheme();
 
 setForegroundEvent();
 
 setBackgroundEvent();
+
+setFcmHandler(store);
 
 // Register background handler
 messaging().setBackgroundMessageHandler(async remoteMessage => {
@@ -99,32 +102,8 @@ const setTheDefault = store => {
 
   //handles remote notification received in foreground
   messaging().onMessage(async remoteMessage => {
-    console.warn('onMessage', remoteMessage);
     try {
-      let responseData = !isEmpty(remoteMessage.data.responseData)
-        ? JSON.parse(remoteMessage.data.responseData)
-        : null;
-      if (!isEmpty(remoteMessage.data.notification)) {
-        let notification = JSON.parse(remoteMessage.data.notification);
-        console.warn(notification, remoteMessage);
-        /*PushNotification.localNotification({
-          channelId: NOTIFICATION_CHANNEL_ID,
-          showWhen: true,
-          when: remoteMessage.sentTime,
-          data: responseData,
-          title: notification.title || '',
-          largeIconUrl: notification.largeIconUrl,
-          bigPictureUrl: notification.bigPictureUrl,
-          message: notification.body || '',
-        });*/
-      }
-      if (!isEmpty(responseData)) {
-        console.warn('onmessage yeah');
-        doDispatch(store, responseData);
-      }
-    } catch (err) {
-      console.warn('fcm onMessage', err.toString());
-    }
+    } catch (error) {}
   });
 
   //handles  interactions on remote notfication received in quit state

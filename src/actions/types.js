@@ -286,6 +286,12 @@ export const SET_FCM_MEET_CONV_TO_READ = 'SET_FCM_MEET_CONV_TO_READ';
 export const ADD_FCM_MEET_CONV = 'ADD_FCM_MEET_CONV';
 
 /***
+ * TYPE CONSTANT FOR FCMNOTIFICATION REDUCER
+ */
+export const UPDATE_FCM_NOTES = 'update_fcm_notes';
+export const REMOVE_FCM_NOTES = 'remove_fcm_notes';
+
+/***
  * TYPE CONSTANT FOR NOTIFICATION REDUCER
  */
 export const UPDATE_NOTIFICATIONS = 'update_notifications';

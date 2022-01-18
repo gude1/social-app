@@ -48,7 +48,7 @@ export const PRIVATECHAT_GROUP_CHANNEL = {
 //CHANNELS
 export const DEFAULT_CHANNEL = {
   id: `${appObj.name}default`,
-  name: `${appObj.displayName} Notes`,
+  name: `notes`,
   sound: 'default',
   importance: AndroidImportance.HIGH,
   badge: true,
@@ -148,6 +148,38 @@ export const setBackgroundEvent = async () => {
     });
   } catch (err) {
     console.log(`setForegroundEvent`, err.toString());
+  }
+};
+
+export const sortAndDisplayNote = (data = {}) => {
+  switch (data.name) {
+    case 'PrivateChat':
+      displayNote(data, PRIVATECHAT_GROUP_CHANNEL, MESSAGE_CHANNEL);
+      break;
+    case 'MeetConversation ':
+      displayNote(data, PRIVATECHAT_GROUP_CHANNEL, MESSAGE_CHANNEL);
+      break;
+    case 'PostCommentReply':
+      displayNote(data, POSTCOMMENTREPLY_GROUP_CHANNEL, DEFAULT_CHANNEL);
+      break;
+    case 'PostComment':
+      displayNote(data, POSTCOMMENT_GROUP_CHANNEL, DEFAULT_CHANNEL);
+      break;
+    case 'Post':
+      displayNote(data, POST_GROUP_CHANNEL, DEFAULT_CHANNEL);
+      break;
+    case 'PostCommentReplyLike':
+      displayNote(data, POSTCOMMENTREPLY_GROUP_CHANNEL, LIKES_CHANNEL);
+      break;
+    case 'PostCommentLike':
+      displayNote(data, POSTCOMMENT_GROUP_CHANNEL, LIKES_CHANNEL);
+      break;
+    case 'PostLike':
+      displayNote(data, POST_GROUP_CHANNEL, LIKES_CHANNEL);
+      break;
+    default:
+      displayNote(data);
+      break;
   }
 };
 

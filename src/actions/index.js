@@ -159,6 +159,8 @@ import {
   SET_FCM_MEET_CONV_TO_READ,
   UPDATE_MEETUPMAIN_REQUEST_ARR,
   UPDATE_MEETUPMAIN_MY_REQUEST_ARR,
+  UPDATE_FCM_NOTES,
+  REMOVE_FCM_NOTES,
 } from './types';
 import {
   deleteFile,
@@ -6573,6 +6575,7 @@ export const updateMeetConvList = (data = {}) => {
     payload: data,
   };
 };
+
 export const updateMeetConvListConvsArr = (data = []) => {
   return {
     type: UPDATE_MEETCONVLIST_CONVS_ARR,
@@ -7167,6 +7170,24 @@ export const fetchNotifications = (data = []) => {
         Toast('something went wrong please try again!');
       }
     }
+  };
+};
+
+/**
+ * ACTION CREATOR FCMNOTIFICATION REDUCER
+ *
+ */
+export const updateFcmNotes = (data = []) => {
+  return {
+    type: UPDATE_FCM_NOTES,
+    payload: data,
+  };
+};
+
+export const removeFcmNotes = (data = []) => {
+  return {
+    type: REMOVE_FCM_NOTES,
+    payload: data,
   };
 };
 

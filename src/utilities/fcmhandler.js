@@ -1,6 +1,9 @@
 import messaging from '@react-native-firebase/messaging';
+import {doDispatch, getAppInfo, isEmpty} from '.';
+import {updateFcmNotes} from '../actions';
+import {sortAndDisplayNote} from './notificationhandler';
 
-export const setFcm = async () => {
+export const setFcmHandler = async store => {
   //Register device with FCM
   if (!messaging().isDeviceRegisteredForRemoteMessages) {
     await messaging().registerDeviceForRemoteMessages();
@@ -12,29 +15,44 @@ export const setFcm = async () => {
   messaging().onTokenRefresh(async token => {});
 
   messaging().onMessage(async remoteMessage => {
-    console.warn('onMessage', remoteMessage);
-    return;
+    if (!isEmpty(store)) {
+      return;
+    }
+    let {user, profile} = store.getState();
+    if (
+      getAppInfo('user', user) != 'usertrue' ||
+      getAppInfo('profile', profile) != 'profiletrue'
+    ) {
+      return;
+    }
     try {
-      let responseData = !isEmpty(remoteMessage.data.responseData)
-        ? JSON.parse(remoteMessage.data.responseData)
+      let resdata = !isEmpty(remoteMessage.data.resdata)
+        ? JSON.parse(remoteMessage.data.resdata)
         : null;
+      doDispatch(store, resdata);
       if (!isEmpty(remoteMessage.data.notification)) {
         let notification = JSON.parse(remoteMessage.data.notification);
-        console.warn(notification, remoteMessage);
-        /*PushNotification.localNotification({
-          channelId: NOTIFICATION_CHANNEL_ID,
-          showWhen: true,
-          when: remoteMessage.sentTime,
-          data: responseData,
-          title: notification.title || '',
-          largeIconUrl: notification.largeIconUrl,
-          bigPictureUrl: notification.bigPictureUrl,
-          message: notification.body || '',
-        });*/
-      }
-      if (!isEmpty(responseData)) {
-        console.warn('onmessage yeah');
-        doDispatch(store, responseData);
+        store.dispatch(
+          updateFcmNotes([
+            {
+              identity: notification.identity,
+              receiver: notification.receiver_profile,
+              notes: [
+                {
+                  id: notification.id,
+                  note_id: notification.note_id,
+                  name: notification.name,
+                  body: notification.body,
+                },
+              ],
+            },
+          ]),
+        );
+        sortAndDisplayNote({
+          id: notification.id,
+          name: notification.name,
+          body: notification.body,
+        });
       }
     } catch (err) {
       console.warn('fcm onMessage', err.toString());

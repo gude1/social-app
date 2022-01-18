@@ -56,7 +56,7 @@ const arrayReduce = data => {
   data = [...data].filter(item => item.deleted != true);
   if (data.length > 100) {
     for (i = data.length; i > 100; i--) {
-      data.shift();
+      data.pop();
     }
     return data;
   }

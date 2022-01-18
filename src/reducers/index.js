@@ -41,6 +41,7 @@ import MeetupConvListReducer, {
   MeetConvListConfig,
 } from './MeetupConvListReducer';
 import NotificationReducer from './NotificationReducer';
+import FcmNotificationReducer from './FcmNoitificationReducer';
 
 export default combineReducers({
   user: userReducer,
@@ -79,6 +80,7 @@ export default combineReducers({
   userslist: UsersListReducer,
   appinfo: AppInfoReducer,
   mynotes: NotificationReducer,
+  fcmnotes: FcmNotificationReducer,
   photogalleryform: PhotoGalleryReducer,
   offlineactionslist: persistReducer(
     offlineActionsListConfig,
