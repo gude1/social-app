@@ -7,6 +7,11 @@ export const AUTHROUTE = {
             name: 'Signup',
           },
         },
+        {
+          component: {
+            name: 'Signin',
+          },
+        },
       ],
     },
   },

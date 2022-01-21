@@ -80,25 +80,21 @@ export const setForegroundEvent = () => {
           break;
         case EventType.DELIVERED:
           console.warn('deleivered', EventType.DELIVERED);
-
           break;
         case EventType.CHANNEL_BLOCKED:
           console.warn('channel blocked', EventType.CHANNEL_BLOCKED);
-
           break;
         case EventType.CHANNEL_GROUP_BLOCKED:
           console.warn(
             'channel_group_blocked',
             EventType.CHANNEL_GROUP_BLOCKED,
           );
-
           break;
         case EventType.PRESS:
           console.warn('press', EventType.PRESS);
-
           break;
-        case EventType.UNKNOWN:
-          console.warn('unknown', EventType.UNKNOWN);
+        case EventType.DISMISSED:
+          console.warn('unknown', EventType.DISMISSED);
           break;
         default:
           console.warn('default');
@@ -136,10 +132,9 @@ export const setBackgroundEvent = async () => {
           break;
         case EventType.PRESS:
           console.warn('press', EventType.PRESS);
-
           break;
-        case EventType.UNKNOWN:
-          console.warn('unknown', EventType.UNKNOWN);
+        case EventType.DISMISSED:
+          console.warn('unknown', EventType.DISMISSED);
           break;
         default:
           console.warn('default');

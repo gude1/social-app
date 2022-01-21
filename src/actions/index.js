@@ -187,6 +187,7 @@ import CameraRoll from '@react-native-community/cameraroll';
 import messaging from '@react-native-firebase/messaging';
 import {GIPHY_API_KEY1, GIPHY_API_KEY2} from '../env';
 import {SEARCH_INITIAL_STATE} from '../reducers/GiphyGalleryReducer';
+import AsyncStorage from '@react-native-community/async-storage';
 
 /**
  * GENERAL ACTION CREATORS
@@ -393,6 +394,7 @@ export const logIn = ({email, password, Navigation, componentId}) => {
           getAppInfo(store.getState().postform.savedposts, 'post') ==
             'posttrue' && dispatch(setAppInfo({postinformed: true}));
           Toast('Login successful', ToastAndroid.SHORT);
+          await AsyncStorage.setItem('signedin', 'true');
           dispatch(setProcessing(false, 'login'));
           dispatch(setReset('login'));
           setRoute(store.getState());

@@ -33,6 +33,7 @@ import {
   MESSAGE_CHANNEL,
   POST_GROUP_CHANNEL,
   PRIVATECHAT_GROUP_CHANNEL,
+  sortAndDisplayNote,
 } from '../../utilities/notificationhandler';
 
 const {colors} = useTheme();
@@ -45,6 +46,7 @@ const HomeScreen = ({
   componentId,
   setChatPics,
   blackListTimelinePost,
+  fcmnotes,
   fetchMoreTimelinePost,
   setTimelinePostForm,
   setTimelinePostFormLinks,
@@ -161,28 +163,36 @@ const HomeScreen = ({
   }
 
   async function onDisplayNotification() {
-    let test = await displayNote(
-      {
-        android: {
-          style: {
-            type: AndroidStyle.MESSAGING,
-            person: {
-              name: 'John Doe',
-              icon:
-                'https://static2.srcdn.com/wordpress/wp-content/uploads/2021/02/Avatar-studios-Avatar-the-last-airbender-new-movie.jpg?q=50&fit=crop&w=960&h=500&dpr=1.5',
-            },
-            messages: [
-              {
-                text: 'Hey, how are you?',
-                timestamp: Date.now() - 600000, // 10 minutes ago
-              },
-            ],
+    console.warn(`${Math.random()}`, fcmnotes);
+    return;
+    let test = await sortAndDisplayNote({
+      name: 'PrivateChat',
+      android: {
+        style: {
+          type: AndroidStyle.MESSAGING,
+          person: {
+            name: 'John Doe',
+            icon:
+              'https://static2.srcdn.com/wordpress/wp-content/uploads/2021/02/Avatar-studios-Avatar-the-last-airbender-new-movie.jpg?q=50&fit=crop&w=960&h=500&dpr=1.5',
           },
+          messages: [
+            {
+              text: 'Hey, how are you?',
+              timestamp: Date.now() - 600000, // 10 minutes ago
+            },
+            {
+              text:
+                'You no see your tacha see wetin she dae do for that video lol',
+              timestamp: Date.now() - 600000, // 10 minutes ago
+            },
+            {
+              text: 'Na wa oo :)',
+              timestamp: Date.now() - 600000, // 10 minutes ago
+            },
+          ],
         },
       },
-      {...PRIVATECHAT_GROUP_CHANNEL},
-      {...MESSAGE_CHANNEL},
-    );
+    });
     console.warn('onDisplay1', test);
   }
 
@@ -316,6 +326,7 @@ HomeScreen.options = {
 
 const mapStateToProps = state => ({
   //timelineposts: state.timelineposts,
+  fcmnotes: state.fcmnotes,
   timelinepostform: state.timelinepostform,
   profileactionform: state.profileactionform,
   privatechatlistform: state.privatechatlistform,

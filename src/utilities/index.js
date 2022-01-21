@@ -91,19 +91,7 @@ export const Toast = (message: String, duration: Number, gravity: Number) => {
 export const logOut = after => {
   alert('Session expired! you are required to login');
   persistor.purge();
-  Navigation.setRoot({
-    root: {
-      stack: {
-        children: [
-          {
-            component: {
-              name: 'Signin',
-            },
-          },
-        ],
-      },
-    },
-  });
+  Navigation.setRoot(AUTHROUTE);
 };
 
 export const convertByteToKbMb = data => {
