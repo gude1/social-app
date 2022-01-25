@@ -7179,10 +7179,11 @@ export const fetchNotifications = (data = []) => {
  * ACTION CREATOR FCMNOTIFICATION REDUCER
  *
  */
-export const updateFcmNotes = (data = []) => {
+export const updateFcmNotes = (data = [], shownote = true) => {
   return {
     type: UPDATE_FCM_NOTES,
     payload: data,
+    shownote,
   };
 };
 

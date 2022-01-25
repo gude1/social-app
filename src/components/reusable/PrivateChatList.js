@@ -390,6 +390,7 @@ class PrivateChatList extends Component {
           Navigation.showModal({
             component: {
               name: 'PrivateChat',
+              id: `pchat${item.created_chatid}`,
               passProps: {
                 navparent: true,
                 privatechatobj: item,

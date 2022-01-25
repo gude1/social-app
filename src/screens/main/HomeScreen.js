@@ -164,7 +164,6 @@ const HomeScreen = ({
 
   async function onDisplayNotification() {
     console.warn(`${Math.random()}`, fcmnotes);
-    return;
     let test = await sortAndDisplayNote({
       name: 'PrivateChat',
       android: {

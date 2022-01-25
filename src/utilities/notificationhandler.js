@@ -5,8 +5,11 @@ import notifee, {
   AndroidLaunchActivityFlag,
   EventType,
 } from '@notifee/react-native';
-import {isEmpty} from '.';
+import {getAppInfo, isEmpty} from '.';
+import {persistStore} from 'redux-persist';
 import appObj from '../../app.json';
+import {Navigation} from 'react-native-navigation';
+import AsyncStorage from '@react-native-community/async-storage';
 
 //GROUP CHANNELS
 export const DEFAULT_GROUP_CHANNEL = {
@@ -66,11 +69,78 @@ export const LIKES_CHANNEL = {
   name: 'Likes',
 };
 
-export const setForegroundEvent = () => {
+export const navNote = (data = {}, store) => {
   try {
-    return notifee.onForegroundEvent(({type, detail}) => {
+    if (
+      isEmpty(data) ||
+      isEmpty(data?.id) ||
+      isEmpty(data?.name) ||
+      isEmpty(data?.sender) ||
+      isEmpty(store) ||
+      store?.getState()?._persist?.rehydrated != true ||
+      getAppInfo(store?.getState(), 'user') != 'usertrue' ||
+      getAppInfo(store?.getState(), 'profile') != 'profiletrue' ||
+      getAppInfo(store?.getState(), 'post') != 'posttrue'
+    ) {
+      console.warn('navNote', 'validation failed');
+      return;
+    }
+    switch (data.name) {
+      case 'PrivateChat':
+        Navigation.showModal({
+          component: {
+            name: 'PrivateChat',
+            id: data.id,
+            passProps: {
+              navparent: true,
+              privatechatobj: {
+                partnerprofile: data.sender,
+                created_chatid: data.created_chatid,
+              },
+              screentype: 'modal',
+            },
+          },
+        });
+        break;
+      case 'MeetConversation ':
+        displayNote(data, PRIVATECHAT_GROUP_CHANNEL, MESSAGE_CHANNEL);
+        break;
+      case 'PostCommentReply':
+        displayNote(data, POSTCOMMENTREPLY_GROUP_CHANNEL, DEFAULT_CHANNEL);
+        break;
+      case 'PostComment':
+        displayNote(data, POSTCOMMENT_GROUP_CHANNEL, DEFAULT_CHANNEL);
+        break;
+      case 'Post':
+        displayNote(data, POST_GROUP_CHANNEL, DEFAULT_CHANNEL);
+        break;
+      case 'PostCommentReplyLike':
+        displayNote(data, POSTCOMMENTREPLY_GROUP_CHANNEL, LIKES_CHANNEL);
+        break;
+      case 'PostCommentLike':
+        displayNote(data, POSTCOMMENT_GROUP_CHANNEL, LIKES_CHANNEL);
+        break;
+      case 'PostLike':
+        displayNote(data, POST_GROUP_CHANNEL, LIKES_CHANNEL);
+        break;
+      default:
+        displayNote(data);
+        break;
+    }
+  } catch (err) {}
+};
+
+export const setForegroundEvent = store => {
+  try {
+    return notifee.onForegroundEvent(async ({type, detail}) => {
       const {notification, pressAction} = detail;
-      console.warn('foregroundevent');
+      if (isEmpty(store) || store.getState()._persist.rehydrated != true) {
+        await AsyncStorage.setItem(
+          'navnote',
+          JSON.stringify(notification.data),
+        );
+        return;
+      }
       switch (type) {
         case EventType.ACTION_PRESS:
           console.warn('action_press', EventType.ACTION_PRESS);
@@ -91,10 +161,11 @@ export const setForegroundEvent = () => {
           );
           break;
         case EventType.PRESS:
+          navNote(notification.data, store);
           console.warn('press', EventType.PRESS);
           break;
         case EventType.DISMISSED:
-          console.warn('unknown', EventType.DISMISSED);
+          console.warn('dismissed', EventType.DISMISSED);
           break;
         default:
           console.warn('default');
@@ -106,10 +177,17 @@ export const setForegroundEvent = () => {
   }
 };
 
-export const setBackgroundEvent = async () => {
+export const setBackgroundEvent = async store => {
   try {
     return notifee.onBackgroundEvent(async ({type, detail}) => {
       const {notification, pressAction} = detail;
+      if (isEmpty(store) || store.getState()._persist.rehydrated != true) {
+        await AsyncStorage.setItem(
+          'navnote',
+          JSON.stringify(notification.data),
+        );
+        return;
+      }
       console.warn('backgroundevent');
       switch (type) {
         case EventType.ACTION_PRESS:
@@ -131,10 +209,11 @@ export const setBackgroundEvent = async () => {
           );
           break;
         case EventType.PRESS:
+          navNote(notification.data, store);
           console.warn('press', EventType.PRESS);
           break;
         case EventType.DISMISSED:
-          console.warn('unknown', EventType.DISMISSED);
+          console.warn('dismissed', EventType.DISMISSED);
           break;
         default:
           console.warn('default');
