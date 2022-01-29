@@ -255,12 +255,12 @@ export const setUpInfo = store => {
   ) {
     return 'profilefalse';
   } else if (
-    posts == undefined ||
-    posts == null ||
-    posts == '' ||
-    posts == NaN ||
-    posts.length < 1 ||
-    posts.length == undefined
+    postform == undefined ||
+    postform == null ||
+    postform == '' ||
+    postform == NaN ||
+    postform.savedposts.length < 1 ||
+    postform.savedposts.length == undefined
   ) {
     return 'postfalse';
   } else {
@@ -298,14 +298,14 @@ export const getAppInfo = (data, name) => {
       }
       break;
     case 'post':
-      let posts = data;
+      let postform = data;
       if (
-        posts == undefined ||
-        posts == null ||
-        posts == '' ||
-        posts == NaN ||
-        posts.length < 1 ||
-        posts.length == undefined
+        postform == undefined ||
+        postform == null ||
+        postform == '' ||
+        postform == NaN ||
+        postform.savedposts.length < 1 ||
+        postform.savedposts.length == undefined
       ) {
         return 'postfalse';
       } else {

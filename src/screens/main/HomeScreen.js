@@ -20,21 +20,17 @@ import {Header} from '../../components/reusable/ResuableWidgets';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import OnlineList from '../../components/reusable/OnlineList';
-import * as Animatable from 'react-native-animatable';
 import PostList from '../../components/reusable/PostList';
 import OfflineActionsDispatcher from '../../components/reusable/OfflineActionsDispatcher';
-import {getFileInfo, rnPath, cpFile} from '../../utilities/index';
-import RNFetchBlob from 'rn-fetch-blob';
-import messaging from '@react-native-firebase/messaging';
-import moment from 'moment';
-import {NOTIFICATION_CHANNEL_ID} from '../../env';
 import {
   displayNote,
-  MESSAGE_CHANNEL,
-  POST_GROUP_CHANNEL,
-  PRIVATECHAT_GROUP_CHANNEL,
+  navNote,
   sortAndDisplayNote,
 } from '../../utilities/notificationhandler';
+import AsyncStorage from '@react-native-community/async-storage';
+import {store} from '../../store';
+import {isEmpty} from '../../utilities/index';
+import {DEFAULT_NAV_OPTIONS} from '../../utilities/nav';
 
 const {colors} = useTheme();
 
@@ -44,12 +40,9 @@ const {colors} = useTheme();
 
 const HomeScreen = ({
   componentId,
-  setChatPics,
   blackListTimelinePost,
   fcmnotes,
   fetchMoreTimelinePost,
-  setTimelinePostForm,
-  setTimelinePostFormLinks,
   removeProfileTimeLinePostForm,
   privatechatlistform,
   setProcessing,
@@ -60,13 +53,8 @@ const HomeScreen = ({
   shareTimelinePostAction,
   refreshTimelinePost,
   profile,
-  profileactionform,
-  setTimelinepostRefresh,
-  setTimelinePostFormProfileChanges,
   updateTimelinePostFormProfileChanges,
-  fetchTimelinePost,
   timelinepostform,
-  addTimelinePostForm,
   updateTimelinePostForm,
 }) => {
   let righticon = (
@@ -86,10 +74,15 @@ const HomeScreen = ({
     />
   );
   const [loaded, setLoaded] = useState(false);
+
+  /**conditional statments */
+  if (!loaded) {
+    setLoaded(true);
+  }
+
   /**compoent function goes here */
   useEffect(() => {
     refreshTimelinePost();
-
     Entypo.getImageSource('home', 100).then(e => {
       Navigation.mergeOptions('POST_HOME_SCREEN', {
         bottomTab: {
@@ -97,7 +90,6 @@ const HomeScreen = ({
         },
       });
     });
-
     Navigation.mergeOptions('POST_HOME_SCREEN', {
       bottomTabs: {
         visible: true,
@@ -125,11 +117,6 @@ const HomeScreen = ({
     };
   }, []);
 
-  /**determines whether to open screen or not */
-  if (!loaded) {
-    setLoaded(true);
-  }
-
   function startOfflineDispatcher() {
     if (
       privatechatlistform.chatlist.length <
@@ -139,16 +126,6 @@ const HomeScreen = ({
     }
     return <OfflineActionsDispatcher />;
   }
-
-  const updatePostItemLiked = postid => {
-    alert('liked');
-    //updateTimelinePostForm({ postid, likedstatus: "pending" });
-  };
-
-  const updatePostItemShared = postid => {
-    alert('shared');
-    //updateTimelinePostForm({ postid, sharedstatus: "pending" });
-  };
 
   async function onDisplayNotification2() {
     let test = await displayNote({
@@ -166,6 +143,14 @@ const HomeScreen = ({
     console.warn(`${Math.random()}`, fcmnotes);
     let test = await sortAndDisplayNote({
       name: 'PrivateChat',
+      id: `hagashsajas`,
+      data: {
+        id: `pchat${privatechatlistform.persistedchatlist[0].created_chatid}`,
+        sender: JSON.stringify(
+          privatechatlistform.persistedchatlist[0].partnerprofile,
+        ),
+        name: 'PrivateChat',
+      },
       android: {
         style: {
           type: AndroidStyle.MESSAGING,
@@ -195,11 +180,18 @@ const HomeScreen = ({
     console.warn('onDisplay1', test);
   }
 
+  async function navigateNote() {
+    let navdata = await AsyncStorage.getItem('navnote');
+    navdata = !isEmpty(navdata) ? JSON.parse(navdata) : {};
+    navNote(navdata, store);
+    AsyncStorage.removeItem('navnote');
+  }
   /**compoent function ends here */
+
   return (
     <>
       {startOfflineDispatcher()}
-      <SafeAreaView style={styles.containerStyle}>
+      <View style={styles.containerStyle}>
         <Header
           headercolor={colors.card}
           headertext="Ello"
@@ -307,11 +299,12 @@ const HomeScreen = ({
             </View>
           </View>
         )}
-      </SafeAreaView>
+      </View>
     </>
   );
 };
 HomeScreen.options = {
+  ...DEFAULT_NAV_OPTIONS,
   topBar: {
     visible: false,
   },
@@ -319,6 +312,7 @@ HomeScreen.options = {
     // visible: true
   },
   bottomTab: {
+    ...DEFAULT_NAV_OPTIONS.bottomTab,
     text: 'Home',
   },
 };

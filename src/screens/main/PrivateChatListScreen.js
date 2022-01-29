@@ -10,6 +10,7 @@ import EntypoIcon from 'react-native-vector-icons/Entypo';
 import {Navigation} from 'react-native-navigation';
 import {responsiveFontSize} from 'react-native-responsive-dimensions';
 import PrivateChatList from '../../components/reusable/PrivateChatList';
+import {DEFAULT_NAV_OPTIONS} from '../../utilities/nav';
 //import OfflineActionsDispatcher from '../../components/reusable/OfflineActionsDispatcher';
 
 const {colors} = useTheme();
@@ -172,13 +173,16 @@ const PrivateChatListScreen = ({
   );
 };
 PrivateChatListScreen.options = {
+  ...DEFAULT_NAV_OPTIONS,
   topBar: {
     visible: false,
   },
   bottomTabs: {
+    ...DEFAULT_NAV_OPTIONS.bottomTabs,
     visible: true,
   },
   bottomTab: {
+    ...DEFAULT_NAV_OPTIONS.bottomTab,
     text: 'Chat',
   },
 };

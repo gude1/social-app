@@ -16,7 +16,7 @@ export const SEARCH_INITIAL_STATE = {
   offset: 0,
 };
 
-export const INITIAL_STATE = {
+const INITIAL_STATE = {
   results: [],
   percount: 50,
   fetching: false,

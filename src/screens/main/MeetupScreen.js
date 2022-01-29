@@ -46,6 +46,7 @@ import MeetTypes from '../../assets/static/MeetTypes.json';
 import CampusList from '../../assets/static/CampusList.json';
 import {isEmpty, checkData, Toast} from '../../utilities/index';
 import moment from 'moment';
+import {DEFAULT_NAV_OPTIONS} from '../../utilities/nav';
 
 const {colors} = useTheme();
 
@@ -840,10 +841,13 @@ const styles = StyleSheet.create({
 });
 
 MeetupScreen.options = {
+  ...DEFAULT_NAV_OPTIONS,
   bottomTabs: {
+    ...DEFAULT_NAV_OPTIONS.bottomTabs,
     visible: true,
   },
   bottomTab: {
+    ...DEFAULT_NAV_OPTIONS.bottomTab,
     text: 'Meet',
     dotIndicator: {
       color: 'green',

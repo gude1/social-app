@@ -39,6 +39,7 @@ import {
 } from '../../components/reusable/viewpager';
 import {ToastAndroid} from 'react-native';
 import PostImageGallery from '../../components/reusable/PostImageGallery';
+import {DEFAULT_NAV_OPTIONS} from '../../utilities/nav';
 
 const {colors} = useTheme();
 
@@ -1173,13 +1174,16 @@ const mapStateToProps = state => ({
 });
 
 ViewProfileScreen.options = {
+  ...DEFAULT_NAV_OPTIONS,
   topBar: {
     visible: false,
   },
   bottomTabs: {
+    ...DEFAULT_NAV_OPTIONS.bottomTabs,
     visible: true,
   },
   bottomTab: {
+    ...DEFAULT_NAV_OPTIONS.bottomTab,
     text: 'Profile',
   },
 };

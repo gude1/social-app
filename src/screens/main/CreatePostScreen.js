@@ -91,10 +91,7 @@ const CreatePostScreen = ({
    */
   useEffect(() => {
     //to show toast modal if profile is not here completed and pageinfo modal has already being shown
-    if (
-      postinfo == true &&
-      getAppInfo(postform.savedposts, 'post') == 'postfalse'
-    ) {
+    if (postinfo == true && getAppInfo(postform, 'post') == 'postfalse') {
       Toast(
         'You need to have a post to continue into the app',
         ToastAndroid.LONG,

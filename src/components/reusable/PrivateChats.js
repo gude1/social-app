@@ -34,10 +34,10 @@ const {colors} = useTheme();
 const ShowChats = ({data, onLongPress = () => {}, userprofile}) => {
   return data
     .sort((item1, item2) => item1.id - item2.id)
-    .map(item => {
+    .map((item, index) => {
       return (
         <PrivateChatItem
-          key={item.id}
+          key={String(index)}
           item={item}
           onLongPress={() => (item.read == 'sending' ? {} : onLongPress(item))}
           userprofile={userprofile}
@@ -677,7 +677,7 @@ class PrivateChats extends Component {
     this.setState({modallistvisible: true});
   };
 
-  _keyExtractor = (item, index) => index.toString();
+  _keyExtractor = (item, index) => item.private_chatid;
   _renderItem = ({item, index}) => {
     return (
       <ShowChats

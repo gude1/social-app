@@ -21,6 +21,7 @@ import {
 } from '../../components/reusable/ResuableWidgets';
 import PrivateChats from '../../components/reusable/PrivateChats';
 import {checkData, Toast, formatDate, isEmpty} from '../../utilities/index';
+import {DEFAULT_NAV_OPTIONS} from '../../utilities/nav';
 
 const {colors} = useTheme();
 
@@ -593,9 +594,7 @@ const PrivateChatScreen = ({
   }
 
   /**component function ends here*/
-  return (
-    <SafeAreaView style={styles.containerStyle}>{renderView()}</SafeAreaView>
-  );
+  return <View style={styles.containerStyle}>{renderView()}</View>;
 };
 
 const mapStateToProps = state => ({
@@ -606,23 +605,7 @@ const mapStateToProps = state => ({
 });
 
 PrivateChatScreen.options = {
-  /* animations: {
-         showModal: {
-             waitForRender: true,
-             translationX: {
-                 from: responsiveWidth(100),
-                 to: 0,
-                 duration: 100
-             }
-         },
-         dismissModal: {
-             translationX: {
-                 from: 0,
-                 to: responsiveWidth(100),
-                 duration: 100
-             }
-         }
-     }*/
+  ...DEFAULT_NAV_OPTIONS,
 };
 
 const styles = StyleSheet.create({

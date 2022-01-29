@@ -5,12 +5,15 @@ import notifee, {
   AndroidLaunchActivityFlag,
   EventType,
 } from '@notifee/react-native';
-import {getAppInfo, isEmpty} from '.';
+import {doDispatch, getAppInfo, isEmpty} from '.';
 import {persistStore} from 'redux-persist';
 import appObj from '../../app.json';
 import {Navigation} from 'react-native-navigation';
 import AsyncStorage from '@react-native-community/async-storage';
+import {removeFcmNotes} from '../actions';
+import {useTheme} from '../assets/themes';
 
+const {colors} = useTheme();
 //GROUP CHANNELS
 export const DEFAULT_GROUP_CHANNEL = {
   id: 'defaultnotegroup',
@@ -69,163 +72,217 @@ export const LIKES_CHANNEL = {
   name: 'Likes',
 };
 
-export const navNote = (data = {}, store) => {
+export const structureNote = notification => {
+  if (
+    isEmpty(notification) ||
+    isEmpty(notification.identity) ||
+    isEmpty(notification.name) ||
+    isEmpty(notification.sender)
+  ) {
+    return notification;
+  }
+  switch (notification.name) {
+    case 'PrivateChat':
+      return {
+        name: notification?.name,
+        id: notification?.identity,
+        data: {
+          id: notification?.identity,
+          sender: JSON.stringify(notification?.sender),
+          name: notification?.name,
+        },
+        android: {
+          style: {
+            type: AndroidStyle.MESSAGING,
+            person: {
+              name: notification?.sender?.profile_name,
+              icon: notification?.sender?.avatar[1],
+            },
+            messages: [{text: notification.body, timestamp: Date.now()}],
+          },
+        },
+      };
+      break;
+    case 'MeetConversation':
+      return {
+        name: notification?.name,
+        id: notification?.identity,
+        data: {
+          id: notification?.identity,
+          sender: JSON.stringify(notification?.sender),
+          name: notification?.name,
+        },
+        android: {
+          style: {
+            type: AndroidStyle.MESSAGING,
+            person: {
+              name: notification?.sender?.meetup_name,
+              icon: notification?.sender?.meetup_avatar,
+            },
+            messages: [{text: notification.body, timestamp: Date.now()}],
+          },
+        },
+      };
+      break;
+    default:
+      return notification;
+      break;
+  }
+};
+
+export const handleEvent = async (type = '', detail = {}, store = {}) => {
+  persistStore(store, null, async () => {
+    let actions = await AsyncStorage.getItem('actions');
+    if (!isEmpty(actions)) {
+      actions = JSON.parse(actions);
+      actions.forEach(item => {
+        doDispatch(store, item);
+      });
+      AsyncStorage.removeItem('actions');
+    }
+  });
+
+  if (isEmpty(detail)) {
+    console.warn('handleEvent', 'validation failed');
+    return;
+  }
+  const {notification, pressAction} = detail;
+  if (isEmpty(store) || store?.getState()?._persist?.rehydrated != true) {
+    console.warn('store not ready');
+    await AsyncStorage.setItem('navnote', JSON.stringify(notification.data));
+    return;
+  }
+  switch (type) {
+    case EventType.ACTION_PRESS:
+      console.warn('action_press', EventType.ACTION_PRESS);
+      break;
+    case EventType.APP_BLOCKED:
+      console.warn('app_blocked', EventType.APP_BLOCKED);
+      break;
+    case EventType.DELIVERED:
+      console.warn('deleivered', EventType.DELIVERED);
+      break;
+    case EventType.CHANNEL_BLOCKED:
+      console.warn('channel blocked', EventType.CHANNEL_BLOCKED);
+      break;
+    case EventType.CHANNEL_GROUP_BLOCKED:
+      console.warn('channel_group_blocked', EventType.CHANNEL_GROUP_BLOCKED);
+      break;
+    case EventType.PRESS:
+      navNote(notification.data, store);
+      console.warn('press', EventType.PRESS);
+      break;
+    case EventType.DISMISSED:
+      console.warn('dismissed', EventType.DISMISSED);
+      break;
+    default:
+      console.warn('default');
+      break;
+  }
+};
+
+export const navNote = (navdata = {}, store) => {
   try {
     if (
-      isEmpty(data) ||
-      isEmpty(data?.id) ||
-      isEmpty(data?.name) ||
-      isEmpty(data?.sender) ||
+      isEmpty(navdata) ||
+      isEmpty(navdata?.id) ||
+      isEmpty(navdata?.name) ||
+      isEmpty(navdata?.sender) ||
       isEmpty(store) ||
       store?.getState()?._persist?.rehydrated != true ||
-      getAppInfo(store?.getState(), 'user') != 'usertrue' ||
-      getAppInfo(store?.getState(), 'profile') != 'profiletrue' ||
-      getAppInfo(store?.getState(), 'post') != 'posttrue'
+      getAppInfo(store?.getState()?.user, 'user') != 'usertrue' ||
+      getAppInfo(store?.getState()?.profile, 'profile') != 'profiletrue' ||
+      getAppInfo(store?.getState()?.postform, 'post') != 'posttrue'
     ) {
-      console.warn('navNote', 'validation failed');
+      console.warn('navNote', [
+        store?.getState()?._persist?.rehydrated != true,
+        getAppInfo(store?.getState()?.user, 'user') != 'usertrue',
+        getAppInfo(store?.getState()?.profile, 'profile') != 'profiletrue',
+        getAppInfo(store?.getState()?.postform, 'post') != 'posttrue',
+      ]);
       return;
     }
-    switch (data.name) {
+    switch (navdata.name) {
       case 'PrivateChat':
+        store.dispatch(removeFcmNotes([navdata.id]));
         Navigation.showModal({
           component: {
             name: 'PrivateChat',
-            id: data.id,
+            id: navdata.id,
             passProps: {
               navparent: true,
               privatechatobj: {
-                partnerprofile: data.sender,
-                created_chatid: data.created_chatid,
+                partnerprofile: JSON.parse(navdata.sender),
+                created_chatid: navdata.created_chatid,
               },
               screentype: 'modal',
             },
           },
         });
         break;
-      case 'MeetConversation ':
-        displayNote(data, PRIVATECHAT_GROUP_CHANNEL, MESSAGE_CHANNEL);
+      case 'MeetConversation':
+        store.dispatch(removeFcmNotes([navdata.id]));
+        Navigation.showModal({
+          component: {
+            name: 'MeetConversation',
+            id: navdata.id,
+            passProps: {
+              navparent: true,
+              privatechatobj: {
+                partnerprofile: JSON.parse(navdata.sender),
+                created_chatid: navdata.created_chatid,
+              },
+              screentype: 'modal',
+            },
+          },
+        });
         break;
       case 'PostCommentReply':
-        displayNote(data, POSTCOMMENTREPLY_GROUP_CHANNEL, DEFAULT_CHANNEL);
         break;
       case 'PostComment':
-        displayNote(data, POSTCOMMENT_GROUP_CHANNEL, DEFAULT_CHANNEL);
         break;
       case 'Post':
-        displayNote(data, POST_GROUP_CHANNEL, DEFAULT_CHANNEL);
         break;
       case 'PostCommentReplyLike':
-        displayNote(data, POSTCOMMENTREPLY_GROUP_CHANNEL, LIKES_CHANNEL);
         break;
       case 'PostCommentLike':
-        displayNote(data, POSTCOMMENT_GROUP_CHANNEL, LIKES_CHANNEL);
         break;
       case 'PostLike':
-        displayNote(data, POST_GROUP_CHANNEL, LIKES_CHANNEL);
         break;
       default:
-        displayNote(data);
         break;
     }
-  } catch (err) {}
+  } catch (err) {
+    console.warn('navNote', String(err));
+  }
 };
 
 export const setForegroundEvent = store => {
-  try {
-    return notifee.onForegroundEvent(async ({type, detail}) => {
-      const {notification, pressAction} = detail;
-      if (isEmpty(store) || store.getState()._persist.rehydrated != true) {
-        await AsyncStorage.setItem(
-          'navnote',
-          JSON.stringify(notification.data),
-        );
-        return;
-      }
-      switch (type) {
-        case EventType.ACTION_PRESS:
-          console.warn('action_press', EventType.ACTION_PRESS);
-          break;
-        case EventType.APP_BLOCKED:
-          console.warn('app_blocked', EventType.APP_BLOCKED);
-          break;
-        case EventType.DELIVERED:
-          console.warn('deleivered', EventType.DELIVERED);
-          break;
-        case EventType.CHANNEL_BLOCKED:
-          console.warn('channel blocked', EventType.CHANNEL_BLOCKED);
-          break;
-        case EventType.CHANNEL_GROUP_BLOCKED:
-          console.warn(
-            'channel_group_blocked',
-            EventType.CHANNEL_GROUP_BLOCKED,
-          );
-          break;
-        case EventType.PRESS:
-          navNote(notification.data, store);
-          console.warn('press', EventType.PRESS);
-          break;
-        case EventType.DISMISSED:
-          console.warn('dismissed', EventType.DISMISSED);
-          break;
-        default:
-          console.warn('default');
-          break;
-      }
-    });
-  } catch (err) {
-    console.log(`setForegroundEvent`, err.toString());
-  }
+  return notifee.onForegroundEvent(async ({type, detail}) => {
+    try {
+      handleEvent(type, detail, store);
+    } catch (err) {
+      console.log(`setForegroundEvent`, err.toString());
+    }
+  });
 };
 
 export const setBackgroundEvent = async store => {
-  try {
-    return notifee.onBackgroundEvent(async ({type, detail}) => {
-      const {notification, pressAction} = detail;
-      if (isEmpty(store) || store.getState()._persist.rehydrated != true) {
-        await AsyncStorage.setItem(
-          'navnote',
-          JSON.stringify(notification.data),
-        );
-        return;
-      }
-      console.warn('backgroundevent');
-      switch (type) {
-        case EventType.ACTION_PRESS:
-          console.warn('action_press', EventType.ACTION_PRESS);
-          break;
-        case EventType.APP_BLOCKED:
-          console.warn('app_blocked', EventType.APP_BLOCKED);
-          break;
-        case EventType.DELIVERED:
-          console.warn('deleivered', EventType.DELIVERED);
-          break;
-        case EventType.CHANNEL_BLOCKED:
-          console.warn('channel blocked', EventType.CHANNEL_BLOCKED);
-          break;
-        case EventType.CHANNEL_GROUP_BLOCKED:
-          console.warn(
-            'channel_group_blocked',
-            EventType.CHANNEL_GROUP_BLOCKED,
-          );
-          break;
-        case EventType.PRESS:
-          navNote(notification.data, store);
-          console.warn('press', EventType.PRESS);
-          break;
-        case EventType.DISMISSED:
-          console.warn('dismissed', EventType.DISMISSED);
-          break;
-        default:
-          console.warn('default');
-          break;
-      }
-    });
-  } catch (err) {
-    console.log(`setForegroundEvent`, err.toString());
-  }
+  return notifee.onBackgroundEvent(async ({type, detail}) => {
+    console.warn('notifee background');
+    try {
+      handleEvent(type, detail, store);
+    } catch (err) {
+      console.log(`setBackgroundEvent`, err.toString());
+    }
+  });
 };
 
 export const sortAndDisplayNote = (data = {}) => {
+  if (isEmpty(data) || isEmpty(data.name)) {
+    console.warn('sortAndDisplayNote', 'validation failed');
+    return;
+  }
   switch (data.name) {
     case 'PrivateChat':
       displayNote(data, PRIVATECHAT_GROUP_CHANNEL, MESSAGE_CHANNEL);
