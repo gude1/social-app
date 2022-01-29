@@ -72,6 +72,10 @@ const PrivateChatListScreen = ({
       },
     });
 
+  /**conditonal statments */
+  if (!loaded) {
+    setLoaded(true);
+  }
   /**compoent function goes here */
   useEffect(() => {
     EntypoIcon.getImageSource('chat', 100).then(e =>
@@ -95,7 +99,6 @@ const PrivateChatListScreen = ({
 
     const listener = {
       componentDidAppear: () => {
-        setLoaded(true);
         Navigation.mergeOptions(componentId, {
           bottomTabs: {
             visible: true,

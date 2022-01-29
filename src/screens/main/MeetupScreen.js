@@ -240,6 +240,11 @@ export const MeetupScreen = ({
   let meetupreqobj = filterMeets();
   let category = meetupreqobj.options.request_category;
   let mood = meetupreqobj.options.request_mood;
+
+  /**conditonal statments */
+  if (!loaded) {
+    setLoaded(true);
+  }
   //COMPONENT FUNCTION STARTS HERE
   useEffect(() => {
     EntypoIcon.getImageSource('network', 100).then(e =>
@@ -261,9 +266,6 @@ export const MeetupScreen = ({
     }
     const listener = {
       componentDidAppear: () => {
-        if (!loaded) {
-          setLoaded(true);
-        }
         setOnScreen(true);
         setScreenInfo();
       },
