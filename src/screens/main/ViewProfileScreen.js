@@ -568,12 +568,6 @@ const ViewProfileScreen = ({
       />
     );
 
-  /**conditional statment  */
-  if (!screenshown) {
-    screenshown = true;
-    handleFecthViewProfile();
-  }
-
   /**COMPONENT FUNCTION STARTS HERE */
 
   Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
@@ -592,6 +586,10 @@ const ViewProfileScreen = ({
     );
     const listener = {
       componentDidAppear: () => {
+        if (!screenshown) {
+          screenshown = true;
+          handleFecthViewProfile();
+        }
         Navigation.mergeOptions(componentId, {
           bottomTabs: {
             visible: true,
