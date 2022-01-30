@@ -517,6 +517,7 @@ const ViewProfileScreen = ({
   const [hideparallax, setHideParallax] = useState(false);
   const [youblockedpass, setYouBlockedPass] = useState(false);
   const [listModalVisible, setListModalVisible] = useState(false);
+  const [screenshown, setScreenShow] = useState(false);
   const [confrimModal, setConfirmModalProps] = useState({
     visible: false,
     msg: null,
@@ -535,7 +536,6 @@ const ViewProfileScreen = ({
       title: 'Share Profile Link',
     },
   ];
-  let screenshown = false;
   let useowner = !checkData(reqprofile)
     ? true
     : reqprofile.profile_id == authprofile.profile_id;
@@ -568,14 +568,13 @@ const ViewProfileScreen = ({
       />
     );
 
+  /**conditional statements */
+  if (!screenshown) {
+    setScreenShow(true);
+    handleFecthViewProfile();
+  }
+
   /**COMPONENT FUNCTION STARTS HERE */
-
-  Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
-    bottomTabs: {
-      //visible: false
-    },
-  });
-
   useEffect(() => {
     EntypoIcon.getImageSource('user', 100).then(e =>
       Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
@@ -586,19 +585,13 @@ const ViewProfileScreen = ({
     );
     const listener = {
       componentDidAppear: () => {
-        if (!screenshown) {
-          screenshown = true;
-          handleFecthViewProfile();
-        }
         Navigation.mergeOptions(componentId, {
           bottomTabs: {
             visible: true,
           },
         });
       },
-      componentDidDisappear: () => {
-        //setHideParallax(false);
-      },
+      componentDidDisappear: () => {},
     };
     // Register the listener to all events related to our component
     const unsubscribe = Navigation.events().bindComponent(

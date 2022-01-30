@@ -98,13 +98,7 @@ const PrivateChatListScreen = ({
     fetchPrivateChatList();
 
     const listener = {
-      componentDidAppear: () => {
-        Navigation.mergeOptions(componentId, {
-          bottomTabs: {
-            visible: true,
-          },
-        });
-      },
+      componentDidAppear: () => {},
       componentDidDisappear: () => {},
     };
 

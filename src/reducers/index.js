@@ -1,4 +1,5 @@
 import {combineReducers} from 'redux';
+import AsyncStorage from '@react-native-community/async-storage';
 import {persistReducer} from 'redux-persist';
 import userReducer from './userReducer';
 import AuthReducer from './AuthReducer';
@@ -42,8 +43,9 @@ import MeetupConvListReducer, {
 } from './MeetupConvListReducer';
 import NotificationReducer from './NotificationReducer';
 import FcmNotificationReducer from './FcmNoitificationReducer';
+import {LOGOUT} from '../actions/types';
 
-export default combineReducers({
+const appReducer = combineReducers({
   user: userReducer,
   auth: AuthReducer,
   profileform: ProfileFormReducer,
@@ -88,3 +90,36 @@ export default combineReducers({
   ),
   network,
 });
+
+const rootReducer = (state, action) => {
+  switch (action.type) {
+    case LOGOUT:
+      AsyncStorage.removeItem('persist:campusmeetup');
+      AsyncStorage.removeItem(`persist:${MakePostFormListConfig.key}`);
+      AsyncStorage.removeItem(`persist:${MeetConvListConfig.key}`);
+      AsyncStorage.removeItem(`persist:${TimelinePostFormConfig.key}`);
+      AsyncStorage.removeItem(`persist:${PostCommentFormListConfig.key}`);
+      AsyncStorage.removeItem(`persist:${PostCommentReplyFormListConfig.key}`);
+      AsyncStorage.removeItem(`persist:${PrivateChatListConfig.key}`);
+      AsyncStorage.removeItem(`persist:${offlineActionsListConfig.key}`);
+
+      return appReducer(undefined, action);
+      break;
+    case 'STRUCTURE_STATE':
+      state = {
+        ...state,
+        privatechatlistform: {
+          ...state.privatechatlistform,
+          chatlist: state.privatechatlistform.persistedchatlist,
+        },
+      };
+      return appReducer(state, action);
+      break;
+
+    default:
+      return appReducer(state, action);
+      break;
+  }
+};
+
+export default rootReducer;

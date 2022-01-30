@@ -6,6 +6,7 @@ export const SET_ERRORS = 'set_errors';
 export const PROCESSING = 'processing';
 export const SINGUP = 'signup';
 export const LOGIN = 'login';
+export const LOGOUT = 'logout';
 export const EMAIL_CHANGED = 'email_changed';
 export const PASSWORD_CHANGED = 'password_changed';
 export const NAME_CHANGED = 'name_changed';

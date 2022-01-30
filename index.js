@@ -20,13 +20,14 @@ import {App} from './App';
 import {DEFAULT_NAV_OPTIONS} from './src/utilities/nav';
 
 const {colors} = useTheme();
-
 setFcm(store);
 setForegroundEvent(store);
 setBackgroundEvent(store);
 
 Navigation.events().registerAppLaunchedListener(async () => {
   persistStore(store, null, async () => {
+    store.dispatch({type: 'STRUCTURE_STATE'});
+    store.dispatch(getGalleryPhotos());
     Navigation.registerComponent(
       'App',
       () => props => (
@@ -46,7 +47,6 @@ Navigation.events().registerAppLaunchedListener(async () => {
         doDispatch(store, item);
       });
     }
-    store.dispatch(getGalleryPhotos());
     setRoute(store.getState());
     navNote(navdata, store);
     AsyncStorage.removeItem('actions');

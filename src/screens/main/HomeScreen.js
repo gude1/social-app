@@ -117,16 +117,6 @@ const HomeScreen = ({
     };
   }, []);
 
-  function startOfflineDispatcher() {
-    if (
-      privatechatlistform.chatlist.length <
-      privatechatlistform.persistedchatlist.length
-    ) {
-      return null;
-    }
-    return <OfflineActionsDispatcher />;
-  }
-
   async function onDisplayNotification2() {
     let test = await displayNote({
       title: 'elujoba posted an update',
@@ -190,7 +180,7 @@ const HomeScreen = ({
 
   return (
     <>
-      {startOfflineDispatcher()}
+      <OfflineActionsDispatcher />
       <View style={styles.containerStyle}>
         <Header
           headercolor={colors.card}

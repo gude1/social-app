@@ -300,10 +300,7 @@ export const getAppInfo = (data, name) => {
     case 'post':
       let postform = data;
       if (
-        postform == undefined ||
-        postform == null ||
-        postform == '' ||
-        postform == NaN ||
+        isEmpty(postform) ||
         postform.savedposts.length < 1 ||
         postform.savedposts.length == undefined
       ) {

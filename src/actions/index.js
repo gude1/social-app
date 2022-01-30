@@ -391,8 +391,8 @@ export const logIn = ({email, password, Navigation, componentId}) => {
           getAppInfo(store.getState().profile, 'profile') == 'profiletrue'
             ? dispatch(setAppInfo({editprofileinformed: true}))
             : null;
-          getAppInfo(store.getState().postform.savedposts, 'post') ==
-            'posttrue' && dispatch(setAppInfo({postinformed: true}));
+          getAppInfo(store.getState().postform, 'post') == 'posttrue' &&
+            dispatch(setAppInfo({postinformed: true}));
           Toast('Login successful', ToastAndroid.SHORT);
           await AsyncStorage.setItem('signedin', 'true');
           dispatch(setProcessing(false, 'login'));
@@ -413,7 +413,7 @@ export const logIn = ({email, password, Navigation, componentId}) => {
           break;
       }
     } catch (e) {
-      console.warn(e.toString());
+      console.warn('login', e.toString());
       if (e.toString().indexOf('Network Error') > -1) {
         Toast(
           'Network error please check your internet connection',
@@ -1487,7 +1487,7 @@ export const makePost = (postimages, posttext, okAction, failedAction) => {
   return async dispatch => {
     dispatch(setProcessing(true, 'POSTFORM'));
     const {user, postform} = store.getState();
-    let postcompleted = getAppInfo(postform.savedposts, 'post');
+    let postcompleted = getAppInfo(postform, 'post');
     if (checkData(postimages) != true || postimages.length < 1) {
       dispatch(setProcessing(false, 'POSTFORM'));
       Toast('Post Images not found', ToastAndroid.LONG, ToastAndroid.CENTER);
@@ -1552,8 +1552,7 @@ export const makePost = (postimages, posttext, okAction, failedAction) => {
           //if user didnt have any post before now probably the user is new to platform so navigate to homescreen
           if (
             postcompleted == 'postfalse' &&
-            getAppInfo(store.getState().postform.savedposts, 'post') ==
-              'posttrue'
+            getAppInfo(store.getState().postform, 'post') == 'posttrue'
           ) {
             setRoute(store.getState());
           }
