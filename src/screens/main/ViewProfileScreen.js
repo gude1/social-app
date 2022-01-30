@@ -576,13 +576,6 @@ const ViewProfileScreen = ({
 
   /**COMPONENT FUNCTION STARTS HERE */
   useEffect(() => {
-    EntypoIcon.getImageSource('user', 100).then(e =>
-      Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
-        bottomTab: {
-          icon: e,
-        },
-      }),
-    );
     const listener = {
       componentDidAppear: () => {
         Navigation.mergeOptions(componentId, {

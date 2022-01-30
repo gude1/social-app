@@ -247,13 +247,6 @@ export const MeetupScreen = ({
   }
   //COMPONENT FUNCTION STARTS HERE
   useEffect(() => {
-    EntypoIcon.getImageSource('network', 100).then(e =>
-      Navigation.mergeOptions(componentId, {
-        bottomTab: {
-          icon: e,
-        },
-      }),
-    );
     if (
       meetupconvlist?.list?.length < 1 &&
       meetupconvlist?.persistedlist?.length > 0
@@ -266,6 +259,11 @@ export const MeetupScreen = ({
     }
     const listener = {
       componentDidAppear: () => {
+        Navigation.mergeOptions(componentId, {
+          bottomTabs: {
+            visible: true,
+          },
+        });
         setOnScreen(true);
         setScreenInfo();
       },

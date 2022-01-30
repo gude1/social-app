@@ -75,29 +75,18 @@ const HomeScreen = ({
   );
   const [loaded, setLoaded] = useState(false);
 
-  /**conditional statments */
+  /**CONDITIONAL STATEMENTS*/
   if (!loaded) {
     setLoaded(true);
   }
 
-  /**compoent function goes here */
+  /**COMPONENT FUNCTIONS */
   useEffect(() => {
+    setBottomTabIcons();
     refreshTimelinePost();
-    Entypo.getImageSource('home', 100).then(e => {
-      Navigation.mergeOptions('POST_HOME_SCREEN', {
-        bottomTab: {
-          icon: e,
-        },
-      });
-    });
-    Navigation.mergeOptions('POST_HOME_SCREEN', {
-      bottomTabs: {
-        visible: true,
-      },
-    });
     const listener = {
       componentDidAppear: () => {
-        Navigation.mergeOptions('POST_HOME_SCREEN', {
+        Navigation.mergeOptions(componentId, {
           bottomTabs: {
             visible: true,
           },
@@ -176,7 +165,45 @@ const HomeScreen = ({
     navNote(navdata, store);
     AsyncStorage.removeItem('navnote');
   }
-  /**compoent function ends here */
+
+  async function setBottomTabIcons() {
+    Entypo.getImageSource('home', 100).then(e => {
+      Navigation.mergeOptions('POST_HOME_SCREEN', {
+        bottomTab: {
+          icon: e,
+        },
+        bottomTabs: {
+          visible: true,
+        },
+      });
+    });
+
+    Entypo.getImageSource('network', 100).then(e =>
+      Navigation.mergeOptions('MEETUP_SCREEN', {
+        bottomTab: {
+          icon: e,
+        },
+      }),
+    );
+    Entypo.getImageSource('chat', 100).then(e =>
+      Navigation.mergeOptions('CHAT_SCREEN', {
+        bottomTab: {
+          icon: e,
+        },
+        bottomTabs: {
+          visible: true,
+        },
+      }),
+    );
+    Entypo.getImageSource('user', 100).then(e =>
+      Navigation.mergeOptions('VIEW_PROFILE_SCREEN', {
+        bottomTab: {
+          icon: e,
+        },
+      }),
+    );
+  }
+  /**COMPONENT FUNCTIONS ENDS HERE */
 
   return (
     <>
@@ -299,7 +326,7 @@ HomeScreen.options = {
     visible: false,
   },
   bottomTabs: {
-    // visible: true
+    visible: true,
   },
   bottomTab: {
     ...DEFAULT_NAV_OPTIONS.bottomTab,

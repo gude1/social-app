@@ -78,17 +78,6 @@ const PrivateChatListScreen = ({
   }
   /**compoent function goes here */
   useEffect(() => {
-    EntypoIcon.getImageSource('chat', 100).then(e =>
-      Navigation.mergeOptions(componentId, {
-        bottomTab: {
-          icon: e,
-        },
-        bottomTabs: {
-          visible: true,
-        },
-      }),
-    );
-
     if (
       privatechatlistform.chatlist.length < 1 &&
       privatechatlistform.persistedchatlist.length > 0
@@ -98,7 +87,13 @@ const PrivateChatListScreen = ({
     fetchPrivateChatList();
 
     const listener = {
-      componentDidAppear: () => {},
+      componentDidAppear: () => {
+        Navigation.mergeOptions(componentId, {
+          bottomTabs: {
+            visible: true,
+          },
+        });
+      },
       componentDidDisappear: () => {},
     };
 
