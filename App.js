@@ -30,6 +30,8 @@ import FindUserScreen from './src/screens/main/FindUserScreen';
 import PrivateChatScreen from './src/screens/main/PrivateChatScreen';
 import GiphyGalleryScreen from './src/screens/main/GiphyGalleryScreen.js';
 import GiphyViewerScreen from './src/screens/main/GiphyViewerScreen.js';
+import MeetupConversationScreen from './src/screens/main/MeetupConversationScreen';
+import NotificationScreen from './src/screens/main/NotificationScreen';
 
 const {colors} = useTheme();
 

@@ -12,6 +12,7 @@ import {Navigation} from 'react-native-navigation';
 import AsyncStorage from '@react-native-community/async-storage';
 import {removeFcmNotes} from '../actions';
 import {useTheme} from '../assets/themes';
+import {setAppData, setAppNav} from '../..';
 
 const {colors} = useTheme();
 //GROUP CHANNELS
@@ -131,15 +132,9 @@ export const structureNote = notification => {
 };
 
 export const handleEvent = async (type = '', detail = {}, store = {}) => {
+  let state = store?.getState() || {};
   persistStore(store, null, async () => {
-    let actions = await AsyncStorage.getItem('actions');
-    if (!isEmpty(actions)) {
-      actions = JSON.parse(actions);
-      actions.forEach(item => {
-        doDispatch(store, item);
-      });
-      AsyncStorage.removeItem('actions');
-    }
+    setAppData(store);
   });
 
   if (isEmpty(detail)) {
@@ -147,7 +142,11 @@ export const handleEvent = async (type = '', detail = {}, store = {}) => {
     return;
   }
   const {notification, pressAction} = detail;
-  if (isEmpty(store) || store?.getState()?._persist?.rehydrated != true) {
+  if (
+    isEmpty(store) ||
+    state?._persist?.rehydrated != true ||
+    state?.appinfo?.routed != true
+  ) {
     console.warn('store not ready');
     await AsyncStorage.setItem('navnote', JSON.stringify(notification.data));
     return;

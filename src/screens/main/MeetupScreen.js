@@ -356,7 +356,16 @@ export const MeetupScreen = ({
         [
           {
             text: 'Ok',
-            onPress: () => setShowMeetProfileOpt(true),
+            onPress: () => {
+              Navigation.showModal({
+                component: {
+                  name: 'MeetupForm',
+                  passProps: {
+                    navparent: true,
+                  },
+                },
+              });
+            },
           },
           {
             text: 'Cancel',
@@ -658,12 +667,9 @@ export const MeetupScreen = ({
               setShowMakeMeetModal(false);
               setCreateReq(REQUEST_SCHEMA);
             }}
-            updateArr={`
-                        ${createReq.expires_at}
-                        ${createReq.request_category}
-                        ${createReq.request_mood}
-                       ${createReq.request_msg}
-                    `}
+            updateArr={`${createReq.expires_at} ${createReq.request_category}${
+              createReq.request_mood
+            }${createReq.request_msg}`}
             height={400}
             submitactiontxt={'Create'}
             onBackdropPress={() => {

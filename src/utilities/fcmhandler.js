@@ -5,17 +5,11 @@ import notifee from '@notifee/react-native';
 import {doDispatch, getAppInfo, isEmpty} from '.';
 import {updateFcmNotes} from '../actions';
 import {sortAndDisplayNote, structureNote} from './notificationhandler';
+import {setAppData} from '../../index';
 
 const fcmHandler = async (remoteMessage, store) => {
   persistStore(store, null, async () => {
-    let actions = await AsyncStorage.getItem('actions');
-    if (!isEmpty(actions)) {
-      actions = JSON.parse(actions);
-      actions.forEach(item => {
-        doDispatch(store, item);
-      });
-      AsyncStorage.removeItem('actions');
-    }
+    setAppData(store);
   });
 
   let delaydispatch =

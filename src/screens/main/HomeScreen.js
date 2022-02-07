@@ -220,15 +220,15 @@ const HomeScreen = ({
           headertextsize={responsiveFontSize(3.8)}
           righticon={righticon}
           rightIconPress={() => {
-            onDisplayNotification();
-            /*Navigation.showModal({
+            //onDisplayNotification();
+            Navigation.showModal({
               component: {
                 name: 'Notification',
                 passProps: {
                   navparent: true,
                 },
               },
-            });*/
+            });
 
             /* PushNotification.localNotification({
               channelId: NOTIFICATION_CHANNEL_ID,

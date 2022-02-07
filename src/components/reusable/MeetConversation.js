@@ -208,7 +208,6 @@ class MeetConversationItem extends Component {
                     type: 'url',
                     style: styles.parsedText,
                     onPress: LinkingHandler().handleUrlPress,
-                    renderText: this.renderUrlText,
                   },
                   {
                     type: 'phone',
@@ -284,7 +283,6 @@ class MeetConversationItem extends Component {
                     type: 'url',
                     style: styles.parsedText,
                     onPress: LinkingHandler().handleUrlPress,
-                    renderText: this.renderUrlText,
                   },
                   {
                     type: 'phone',
@@ -435,7 +433,6 @@ class MeetConversationItem extends Component {
                   type: 'url',
                   style: styles.parsedText,
                   onPress: LinkingHandler().handleUrlPress,
-                  renderText: this.renderUrlText,
                 },
                 {
                   type: 'phone',

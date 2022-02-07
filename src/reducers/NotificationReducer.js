@@ -14,7 +14,7 @@ const INITIAL_STATE = {
   loadingmorenotes: false,
   loadingmentions: false,
   loadingmorementions: false,
-  metions: [],
+  mentions: [],
 };
 
 const arrangeItems = data => {
@@ -80,12 +80,12 @@ const NotificationReducer = (state = INITIAL_STATE, action) => {
       };
       break;
     case SET_MENTIONS:
-      return {...state, metions: action.payload};
+      return {...state, mentions: action.payload};
       break;
     case UPDATE_MENTIONS:
       exclude_ids = [];
       toadditems = [];
-      reducerdata = state.metions.map(item => {
+      reducerdata = state.mentions.map(item => {
         let newitem = action.payload.find(newitem => newitem.id == item.id);
         if (newitem) {
           exclude_ids.push(newitem.id);
@@ -99,7 +99,7 @@ const NotificationReducer = (state = INITIAL_STATE, action) => {
       );
       return {
         ...state,
-        metions: arrangeItems([...reducerdata, ...toadditems]),
+        mentions: arrangeItems([...reducerdata, ...toadditems]),
       };
       break;
     case PROCESSING:

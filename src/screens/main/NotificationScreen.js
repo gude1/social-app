@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Navigation} from 'react-native-navigation';
-import {View, StyleSheet, SafeAreaView} from 'react-native';
+import {View, StyleSheet, SafeAreaView, Keyboard} from 'react-native';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import {LoaderScreen, Header} from '../../components/reusable/ResuableWidgets';
@@ -27,11 +27,13 @@ const NotificationScreen = ({
   screentype,
   componentId,
   setReset,
+  fetchMentions,
   mynotes,
   fetchNotifications,
   navparent,
 }) => {
   const [loaded, setLoaded] = useState(false);
+  //console.warn(mynotes.metions);
   let lefticon =
     navparent == true ? (
       <Icon
@@ -67,6 +69,7 @@ const NotificationScreen = ({
 
   //function to determine dismiss of navigation based on screentype
   function setDismissNav() {
+    Keyboard.dismiss();
     if (screentype == 'screen') return () => Navigation.pop(componentId);
     else return () => Navigation.dismissModal(componentId);
   }
@@ -166,7 +169,7 @@ const NotificationScreen = ({
               list={mynotes.mentions}
               loading={mynotes.loadingmentions}
               loadingmore={mynotes.loadingmorementions}
-              //fetchMentions={}
+              fetchMentions={fetchMentions}
             />
           </View>
         </IndicatorViewPager>

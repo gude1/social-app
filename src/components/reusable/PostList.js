@@ -317,7 +317,6 @@ export class PostItem extends Component {
                     type: 'url',
                     style: styles.parsedText,
                     onPress: LinkingHandler().handleUrlPress,
-                    renderText: this.renderUrlText,
                   },
                   {
                     type: 'phone',

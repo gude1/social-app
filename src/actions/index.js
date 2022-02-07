@@ -1303,7 +1303,7 @@ export const uploadProfilePic = image => {
 export const saveProfileUpdate = (
   updateusername,
   updateprofile_name,
-  updatebio,
+  updatebio = '',
   updatecampus,
   updategender,
   updatephone,
@@ -1312,6 +1312,8 @@ export const saveProfileUpdate = (
     const {user, profile} = store.getState();
     let iserror = false;
     let profilecompleted = getAppInfo(profile, 'profile'); //very essential determines wheter set root or wait
+    let mentions = updatebio.match(/@(\w+)/g) || [];
+    mentions = mentions.map(name => name.slice(1));
 
     dispatch(setReset('updateprofileerrors'));
     dispatch(setProcessing(true, 'updateProfile'));
@@ -1326,7 +1328,7 @@ export const saveProfileUpdate = (
       );
       iserror = true;
     }
-    if (checkData(updatebio) != true) {
+    if (isEmpty(updatebio)) {
       dispatch(setProcessing(false, 'updateProfile'));
       dispatch(
         setUpdateProfileErrors(
@@ -1383,6 +1385,7 @@ export const saveProfileUpdate = (
     let requestData = {
       bio: updatebio,
       profile_name: updateprofile_name,
+      mentions,
       phone: updatephone,
       campus: updatecampus,
     };
@@ -1483,11 +1486,13 @@ export const setUpdatedPostFormImage = data => {
 };
 
 //make post and upload to server starts here
-export const makePost = (postimages, posttext, okAction, failedAction) => {
+export const makePost = (postimages, posttext = '', okAction, failedAction) => {
   return async dispatch => {
     dispatch(setProcessing(true, 'POSTFORM'));
     const {user, postform} = store.getState();
     let postcompleted = getAppInfo(postform, 'post');
+    let mentions = posttext.match(/@(\w+)/g) || [];
+    mentions = mentions.map(name => name.slice(1));
     if (checkData(postimages) != true || postimages.length < 1) {
       dispatch(setProcessing(false, 'POSTFORM'));
       Toast('Post Images not found', ToastAndroid.LONG, ToastAndroid.CENTER);
@@ -1499,8 +1504,9 @@ export const makePost = (postimages, posttext, okAction, failedAction) => {
     }
     var formData = new FormData();
     formData.append('anonymous', 0);
-    if (checkData(posttext)) {
+    if (!isEmpty(posttext)) {
       formData.append('post_text', posttext);
+      formData.append('mentions', mentions);
     }
     let resizedimgcaches = await resizeMultipleImage(postimages);
     resizedimgcaches = resizedimgcaches.filter(e => e != null);
@@ -2743,6 +2749,8 @@ export const makePostComment = (data = []) => {
   return async dispatch => {
     let postid = data[0];
     let comment_text = data[1];
+    let mentions = comment_text.match(/@(\w+)/g) || [];
+    mentions = mentions.map(name => name.slice(1));
     let tempid = data[2];
     if (checkData(postid) != true || checkData(comment_text) != true) {
       return;
@@ -2783,6 +2791,7 @@ export const makePostComment = (data = []) => {
         'postcomment',
         {
           postid,
+          mentions,
           comment_text,
         },
         options,
@@ -3538,6 +3547,8 @@ export const makePostCommentReply = (data = []) => {
     if (checkData(originid) != true || checkData(reply_text) != true) {
       return;
     }
+    let mentions = reply_text.match(/@(\w+)/g) || [];
+    mentions = mentions.map(name => name.slice(1));
     const {user, profile} = store.getState();
     tempid = tempid || String(Math.floor(Math.random() * 1000000));
     data[2] = tempid;
@@ -3573,6 +3584,7 @@ export const makePostCommentReply = (data = []) => {
         'postcommentreply',
         {
           originid,
+          mentions,
           reply_text,
         },
         options,
@@ -7154,6 +7166,56 @@ export const fetchNotifications = (data = []) => {
         case 200:
           //console.warn('200', notes);
           dispatch(updateNotifications(notes));
+          dispatch(setProcessing(false, processtxt));
+          break;
+        default:
+          Toast(errmsg);
+          //console.warn(response.data);
+          dispatch(setProcessing(false, processtxt));
+          break;
+      }
+    } catch (err) {
+      console.warn('err', err.toString());
+      dispatch(setProcessing(false, processtxt));
+      if (err.toString().indexOf('Network Error') != -1) {
+        Toast('network error!');
+      } else {
+        Toast('something went wrong please try again!');
+      }
+    }
+  };
+};
+
+export const fetchMentions = (data = []) => {
+  return async dispatch => {
+    let processtxt = 'loadingmentions';
+    if (!isEmpty(data)) {
+      processtxt = 'loadingmorementions';
+    }
+    dispatch(setProcessing(true, processtxt));
+    let max = null;
+    let min = null;
+    try {
+      let {user, mynotes} = store.getState();
+      if (data[1] == true) {
+        max = mynotes.mentions
+          .map(item => item.id)
+          .reduce((a, b) => Math.max(a, b));
+      } else if (data[0] == true) {
+        min = mynotes.mentions
+          .map(item => item.id)
+          .reduce((a, b) => Math.min(a, b));
+      }
+
+      const options = {
+        headers: {Authorization: `Bearer ${user.token}`},
+      };
+      const response = await session.post('fetchmentions', {max, min}, options);
+      const {status, errmsg, message, mentions} = response.data;
+      switch (status) {
+        case 200:
+          //console.warn('200', notes);
+          dispatch(updateMentions(mentions));
           dispatch(setProcessing(false, processtxt));
           break;
         default:

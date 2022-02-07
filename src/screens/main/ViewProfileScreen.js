@@ -28,7 +28,7 @@ import {
 } from 'react-native-responsive-dimensions';
 import {useTheme} from '../../assets/themes/index';
 import TouchableScale from 'react-native-touchable-scale';
-import {checkData, Toast} from '../../utilities/index';
+import {checkData, LinkingHandler, Toast} from '../../utilities/index';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import {Navigation} from 'react-native-navigation';
 import Menu, {MenuItem, MenuDivider} from 'react-native-material-menu';
@@ -40,6 +40,7 @@ import {
 import {ToastAndroid} from 'react-native';
 import PostImageGallery from '../../components/reusable/PostImageGallery';
 import {DEFAULT_NAV_OPTIONS} from '../../utilities/nav';
+import ParsedText from 'react-native-parsed-text';
 
 const {colors} = useTheme();
 
@@ -208,10 +209,30 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
         </View>
         <View style={styles.profileInfoCtn}>
           <Text style={styles.profileInfoItemText}>{profile.profile_name}</Text>
-          <Text style={[styles.profileInfoItemText, {color: colors.iconcolor}]}>
-            {profile.user.username}
-          </Text>
-          <Text style={styles.profileInfoItemText}>{profile.bio}</Text>
+
+          <Text style={{color: colors.iconcolor}}>{profile.user.username}</Text>
+          <ParsedText
+            style={[styles.profileInfoItemText]}
+            parse={[
+              {
+                type: 'url',
+                style: styles.parsedText,
+                onPress: LinkingHandler().handleUrlPress,
+              },
+              {
+                type: 'phone',
+                style: styles.parsedText,
+                onPress: LinkingHandler().handlePhonePress,
+              },
+              {
+                type: 'email',
+                style: styles.parsedText,
+                onPress: LinkingHandler().handleEmailPress,
+              },
+              {pattern: /@(\w+)/, style: styles.parsedText},
+            ]}>
+            {profile.bio}
+          </ParsedText>
           {showButton()}
           {profile.followsu && (
             <Button
@@ -1201,6 +1222,9 @@ const styles = StyleSheet.create({
   buttonTitleStyle: {
     fontSize: responsiveFontSize(1.8),
     color: 'dimgray',
+  },
+  parsedText: {
+    color: colors.blue,
   },
   avatarIconCtn: {
     //borderWidth: 1,
