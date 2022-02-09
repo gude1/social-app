@@ -482,6 +482,25 @@ export const LinkingHandler = () => {
     }
   }
 
+  function handleUsernamePress(username, matchIndex, mentions = []) {
+    username = username.slice(1);
+    let profile_id = mentions[username];
+    if (isEmpty(mentions) || isEmpty(profile_id)) {
+      return;
+    }
+
+    Navigation.showModal({
+      component: {
+        name: 'ViewProfile',
+        passProps: {
+          navparent: true,
+          reqprofile: {profile_id, profileblockedu: false, user: {username}},
+          screentype: 'modal',
+        },
+      },
+    });
+  }
+
   function handleEmailPress(url, matchIndex /*: number*/) {
     if (url.slice(0, 6) != 'mailto') {
       Linking.openURL(`mailto:${url}`);
@@ -489,7 +508,12 @@ export const LinkingHandler = () => {
       Linking.openURL(`${url}`);
     }
   }
-  return {handleEmailPress, handlePhonePress, handleUrlPress};
+  return {
+    handleEmailPress,
+    handlePhonePress,
+    handleUrlPress,
+    handleUsernamePress,
+  };
 };
 
 export const resizeImage = async (

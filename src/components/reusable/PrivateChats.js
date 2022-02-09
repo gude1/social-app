@@ -180,6 +180,9 @@ class PrivateChatItem extends Component {
     }
   };
 
+  namePress = uname => {
+    console.warn(uname);
+  };
   formatConvTime = time => {
     if (isEmpty(time)) {
       return time;
@@ -232,7 +235,17 @@ class PrivateChatItem extends Component {
                     style: styles.parsedText,
                     onPress: LinkingHandler().handleEmailPress,
                   },
-                  {pattern: /@(\w+)/, style: styles.parsedText},
+                  {
+                    pattern: /@(\w+)/,
+                    style: styles.parsedText,
+                    onPress: (username, matchIndex) => {
+                      LinkingHandler().handleUsernamePress(
+                        username,
+                        matchIndex,
+                        item.mentions,
+                      );
+                    },
+                  },
                 ]}>
                 {item.chat_msg}
               </ParsedText>
@@ -308,7 +321,13 @@ class PrivateChatItem extends Component {
                     style: styles.parsedText,
                     onPress: LinkingHandler().handleEmailPress,
                   },
-                  {pattern: /@(\w+)/, style: styles.parsedText},
+                  {
+                    pattern: /@(\w+)/,
+                    style: styles.parsedText,
+                    onPress: (username, matchIndex) => {
+                      console.warn(item.mentions);
+                    },
+                  },
                 ]}>
                 {item.chat_msg}
               </ParsedText>
@@ -497,7 +516,13 @@ class PrivateChatItem extends Component {
                 style: styles.parsedText,
                 onPress: LinkingHandler().handleEmailPress,
               },
-              {pattern: /@(\w+)/, style: styles.parsedText},
+              {
+                pattern: /@(\w+)/,
+                style: styles.parsedText,
+                onPress: (username, matchIndex) => {
+                  console.warn(item.mentions);
+                },
+              },
             ]}>
             {item.chat_msg}
           </ParsedText>

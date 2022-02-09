@@ -3992,15 +3992,6 @@ export const fetchPrivateChatList = () => {
             override: true,
           }),
         );
-      } else if (err.indexOf('500') != -1) {
-        dispatch(
-          addOfflineAction({
-            id: 'fetchpchatlist8383',
-            funcName: 'fetchPrivateChatList',
-            param: null,
-            override: true,
-          }),
-        );
       }
     }
   };
@@ -4653,15 +4644,6 @@ export const fetchPrivateChats = (data, ok, fail) => {
             override: true,
           }),
         );
-      } else if (err.toString().indexOf('500') != -1) {
-        dispatch(
-          addOfflineAction({
-            id: `fetchprivatechat${created_chatid || partner_id}`,
-            funcName: 'fetchPrivateChats',
-            param: data,
-            override: true,
-          }),
-        );
       }
     }
   };
@@ -4734,7 +4716,10 @@ export const sendPrivateChat = (data = {}) => {
       };
       let formData = new FormData();
       if (checkData(data.reqobj.chat_msg)) {
+        let mentions = data.reqobj.chat_msg.match(/@(\w+)/g) || [];
+        mentions = mentions.map(name => name.slice(1));
         formData.append('chat_msg', data.reqobj.chat_msg);
+        formData.append('mentions', mentions);
       }
       formData.append('receiver_id', data.reqobj.receiver_id);
       if (!isEmpty(data.reqobj.chat_pics)) {
@@ -6980,9 +6965,13 @@ export const sendMeetConversation = (data = []) => {
     formdata.append('request_id', origin_meet_request.request_id);
 
     if (!isEmpty(conv_txt)) {
+      let mentions = data.reqobj.chat_msg.match(/@(\w+)/g) || [];
+      mentions = mentions.map(name => name.slice(1));
       formdata.append('chat_msg', conv_txt);
+      formData.append('mentions', mentions);
       convschema['chat_msg'] = conv_txt;
     }
+
     if (!isEmpty(conv_image)) {
       let chat_pic = null;
       if (conv_image.processed != true) {

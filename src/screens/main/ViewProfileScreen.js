@@ -28,7 +28,13 @@ import {
 } from 'react-native-responsive-dimensions';
 import {useTheme} from '../../assets/themes/index';
 import TouchableScale from 'react-native-touchable-scale';
-import {checkData, LinkingHandler, Toast} from '../../utilities/index';
+import {
+  checkData,
+  hasProperty,
+  isEmpty,
+  LinkingHandler,
+  Toast,
+} from '../../utilities/index';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
 import {Navigation} from 'react-native-navigation';
 import Menu, {MenuItem, MenuDivider} from 'react-native-material-menu';
@@ -46,7 +52,7 @@ const {colors} = useTheme();
 
 /**top section */
 const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
-  let avatar = checkData(profile.avatar[1]) ? {uri: profile.avatar[1]} : null;
+  let avatar = checkData(profile?.avatar[1]) ? {uri: profile?.avatar[1]} : null;
   const showButton = () => {
     let btn = null;
     if (isprofileowner) {
@@ -156,7 +162,7 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                   name: 'PhotoViewer',
                   passProps: {
                     navparent: true,
-                    photos: [profile.avatar[1]],
+                    photos: [profile?.avatar[1]],
                   },
                 },
               })
@@ -208,9 +214,13 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
           )}
         </View>
         <View style={styles.profileInfoCtn}>
-          <Text style={styles.profileInfoItemText}>{profile.profile_name}</Text>
+          <Text style={styles.profileInfoItemText}>
+            {profile?.profile_name}
+          </Text>
 
-          <Text style={{color: colors.iconcolor}}>{profile.user.username}</Text>
+          <Text style={{color: colors.iconcolor}}>
+            {profile?.user?.username}
+          </Text>
           <ParsedText
             style={[styles.profileInfoItemText]}
             parse={[
@@ -630,6 +640,7 @@ const ViewProfileScreen = ({
     }
     return false;
   }
+
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', backButtonHandler);
     return () => {
@@ -639,6 +650,7 @@ const ViewProfileScreen = ({
 
   //handles fetching of profiles data
   function handleFecthViewProfile() {
+    setLoaded('pending');
     if (!checkData(toshowprofile)) {
       setLoaded('failed');
       ToastAndroid.show('profile not found', ToastAndroid.LONG);
@@ -685,7 +697,7 @@ const ViewProfileScreen = ({
       return null;
     } else {
       if (
-        checkData(viewprofileform.viewprofile) &&
+        !isEmpty(viewprofileform.viewprofile) &&
         viewprofileform.viewprofile.profile_id == reqprofile.profile_id
       )
         return viewprofileform.viewprofile;
@@ -1028,33 +1040,36 @@ const ViewProfileScreen = ({
   //renders viewprofile view
   const renderView = () => {
     let torenderview = null;
-    /**also check to confirm block status */
-    if (checkData(toshowprofile)) {
-      if (toshowprofile.profileblockedu == true) {
-        torenderview = (
-          <View style={{flex: 1, alignItems: 'center'}}>
-            <PanelMsg message="Can't view profile, profile owner has blocked you " />
-          </View>
-        );
-        return torenderview;
-      } else if (
-        toshowprofile.ublockedprofile == true &&
-        youblockedpass == false
-      ) {
-        torenderview = (
-          <View style={{flex: 1, alignItems: 'center'}}>
-            <PanelMsg
-              message="Profile is blocked by you "
-              buttonTitle={'View Profile'}
-              buttonPress={() => {
-                if (!youblockedpass) setYouBlockedPass(true);
-              }}
-            />
-          </View>
-        );
-        return torenderview;
-      }
+
+    if (!hasProperty(toshowprofile, ['avatar', 'user']) && loaded == true) {
+      setLoaded('retry');
     }
+    /**also check to confirm block status */
+    if (toshowprofile.profileblockedu == true) {
+      torenderview = (
+        <View style={{flex: 1, alignItems: 'center'}}>
+          <PanelMsg message="Can't view profile, profile owner has blocked you " />
+        </View>
+      );
+      return torenderview;
+    } else if (
+      toshowprofile.ublockedprofile == true &&
+      youblockedpass == false
+    ) {
+      torenderview = (
+        <View style={{flex: 1, alignItems: 'center'}}>
+          <PanelMsg
+            message="Profile is blocked by you "
+            buttonTitle={'View Profile'}
+            buttonPress={() => {
+              if (!youblockedpass) setYouBlockedPass(true);
+            }}
+          />
+        </View>
+      );
+      return torenderview;
+    }
+
     /**check if loaded is true to determine return */
     if (loaded == true) {
       torenderview = (
