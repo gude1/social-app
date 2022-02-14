@@ -65,6 +65,35 @@ class PrivateChatItem extends Component {
       />
     );
 
+    this.parseArr = [
+      {
+        type: 'url',
+        style: styles.parsedText,
+        onPress: LinkingHandler().handleUrlPress,
+      },
+      {
+        type: 'phone',
+        style: styles.parsedText,
+        onPress: LinkingHandler().handlePhonePress,
+      },
+      {
+        type: 'email',
+        style: styles.parsedText,
+        onPress: LinkingHandler().handleEmailPress,
+      },
+      {
+        pattern: /@(\w+)/,
+        style: styles.parsedText,
+        onPress: (username, matchIndex) => {
+          LinkingHandler().handleUsernamePress(
+            username,
+            matchIndex,
+            this.props.item.mentions,
+          );
+        },
+      },
+    ];
+
     if (colors.theme == 'black') {
       this.ownerchatbgcolor = colors.border;
       this.ownerchattextcolor = colors.text;
@@ -219,34 +248,7 @@ class PrivateChatItem extends Component {
                     backgroundColor: this.ownerchatbgcolor,
                   },
                 ]}
-                parse={[
-                  {
-                    type: 'url',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handleUrlPress,
-                  },
-                  {
-                    type: 'phone',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handlePhonePress,
-                  },
-                  {
-                    type: 'email',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handleEmailPress,
-                  },
-                  {
-                    pattern: /@(\w+)/,
-                    style: styles.parsedText,
-                    onPress: (username, matchIndex) => {
-                      LinkingHandler().handleUsernamePress(
-                        username,
-                        matchIndex,
-                        item.mentions,
-                      );
-                    },
-                  },
-                ]}>
+                parse={this.parseArr}>
                 {item.chat_msg}
               </ParsedText>
             </TouchableOpacity>
@@ -305,30 +307,7 @@ class PrivateChatItem extends Component {
                     backgroundColor: this.ownerchatbgcolor,
                   },
                 ]}
-                parse={[
-                  {
-                    type: 'url',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handleUrlPress,
-                  },
-                  {
-                    type: 'phone',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handlePhonePress,
-                  },
-                  {
-                    type: 'email',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handleEmailPress,
-                  },
-                  {
-                    pattern: /@(\w+)/,
-                    style: styles.parsedText,
-                    onPress: (username, matchIndex) => {
-                      console.warn(item.mentions);
-                    },
-                  },
-                ]}>
+                parse={this.parseArr}>
                 {item.chat_msg}
               </ParsedText>
             </TouchableOpacity>
@@ -458,7 +437,9 @@ class PrivateChatItem extends Component {
     if (!isEmpty(item.chat_msg) && isEmpty(item.chat_pics)) {
       return (
         <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
-          <ParsedText style={styles.othersChatText}>{item.chat_msg}</ParsedText>
+          <ParsedText style={styles.othersChatText} parse={this.parseArr}>
+            {item.chat_msg}
+          </ParsedText>
           <Text style={styles.othersChatTime}>
             {this.formatConvTime(item.created_at * 1000)}
           </Text>
@@ -498,32 +479,7 @@ class PrivateChatItem extends Component {
               {this.renderDownloadBtn(item.chat_pics.size)}
             </Image>
           </TouchableOpacity>
-          <ParsedText
-            style={styles.othersChatText}
-            parse={[
-              {
-                type: 'url',
-                style: styles.parsedText,
-                onPress: LinkingHandler().handleUrlPress,
-              },
-              {
-                type: 'phone',
-                style: styles.parsedText,
-                onPress: LinkingHandler().handlePhonePress,
-              },
-              {
-                type: 'email',
-                style: styles.parsedText,
-                onPress: LinkingHandler().handleEmailPress,
-              },
-              {
-                pattern: /@(\w+)/,
-                style: styles.parsedText,
-                onPress: (username, matchIndex) => {
-                  console.warn(item.mentions);
-                },
-              },
-            ]}>
+          <ParsedText style={styles.othersChatText} parse={this.parseArr}>
             {item.chat_msg}
           </ParsedText>
           <Text style={styles.othersChatTime}>

@@ -77,19 +77,23 @@ export const structureNote = notification => {
   if (
     isEmpty(notification) ||
     isEmpty(notification.identity) ||
-    isEmpty(notification.name) ||
-    isEmpty(notification.sender)
+    isEmpty(notification.sender) ||
+    isEmpty(notification.name)
   ) {
     return notification;
   }
+  let sender = isEmpty(notification.sender)
+    ? JSON.stringify(notification?.sender)
+    : null;
   switch (notification.name) {
     case 'PrivateChat':
+      if (!sender) return notification;
       return {
         name: notification?.name,
         id: notification?.identity,
         data: {
           id: notification?.identity,
-          sender: JSON.stringify(notification?.sender),
+          sender: sender,
           name: notification?.name,
         },
         android: {
@@ -105,12 +109,13 @@ export const structureNote = notification => {
       };
       break;
     case 'MeetConversation':
+      if (!sender) return notification;
       return {
         name: notification?.name,
         id: notification?.identity,
         data: {
           id: notification?.identity,
-          sender: JSON.stringify(notification?.sender),
+          sender: sender,
           name: notification?.name,
         },
         android: {
@@ -126,7 +131,18 @@ export const structureNote = notification => {
       };
       break;
     default:
-      return notification;
+      return {
+        ...notification,
+        name: notification?.name,
+        id: notification?.identity,
+        data: {
+          id: notification?.identity,
+          sender: sender,
+          name: notification?.name,
+          ...notification,
+        },
+        android: {largeIcon: notification?.sender?.avatar[1]},
+      };
       break;
   }
 };
@@ -182,23 +198,29 @@ export const handleEvent = async (type = '', detail = {}, store = {}) => {
 
 export const navNote = (navdata = {}, store) => {
   try {
-    if (
-      isEmpty(navdata) ||
+    let validate_data =
       isEmpty(navdata?.id) ||
       isEmpty(navdata?.name) ||
-      isEmpty(navdata?.sender) ||
+      isEmpty(navdata?.sender);
+
+    let validate_store =
       isEmpty(store) ||
-      store?.getState()?._persist?.rehydrated != true ||
       getAppInfo(store?.getState()?.user, 'user') != 'usertrue' ||
       getAppInfo(store?.getState()?.profile, 'profile') != 'profiletrue' ||
-      getAppInfo(store?.getState()?.postform, 'post') != 'posttrue'
+      getAppInfo(store?.getState()?.postform, 'post') != 'posttrue' ||
+      store?.getState()?._persist?.rehydrated != true;
+
+    if (
+      isEmpty(navdata) ||
+      (validate_data && isEmpty(notification.notifee)) ||
+      validate_store
     ) {
-      console.warn('navNote', [
+      /*console.warn('navNote', [
         store?.getState()?._persist?.rehydrated != true,
         getAppInfo(store?.getState()?.user, 'user') != 'usertrue',
         getAppInfo(store?.getState()?.profile, 'profile') != 'profiletrue',
         getAppInfo(store?.getState()?.postform, 'post') != 'posttrue',
-      ]);
+      ]);*/
       return;
     }
     switch (navdata.name) {

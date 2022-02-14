@@ -25,13 +25,13 @@ const fcmHandler = async (remoteMessage, store) => {
   let notification = !isEmpty(remoteMessage.data.notification)
     ? JSON.parse(remoteMessage.data.notification)
     : null;
-  let structured_note = structureNote(notification);
+  let structured_note = structureNote(notification, resdata);
   let persistnotes = ['PrivateChat', 'MeetConversation'];
 
   if (delaydispatch) {
     let actions = await AsyncStorage.getItem('actions');
     actions = !isEmpty(actions) ? JSON.parse(actions) : [];
-    resdata && actions.push(resdata);
+    !isEmpty(resdata) && actions.push(resdata);
     if (notification && persistnotes.includes(notification.name)) {
       let data = [
         {
@@ -51,7 +51,7 @@ const fcmHandler = async (remoteMessage, store) => {
     }
     await AsyncStorage.setItem('actions', JSON.stringify(actions));
   } else {
-    resdata && doDispatch(store, resdata);
+    !isEmpty(resdata) && doDispatch(store, resdata);
     if (notification && persistnotes.includes(notification.name)) {
       store.dispatch(
         updateFcmNotes([

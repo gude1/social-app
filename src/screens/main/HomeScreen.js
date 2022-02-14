@@ -121,39 +121,11 @@ const HomeScreen = ({
   async function onDisplayNotification() {
     console.warn(`${Math.random()}`, fcmnotes);
     let test = await sortAndDisplayNote({
-      name: 'PrivateChat',
-      id: `hagashsajas`,
-      data: {
-        id: `pchat${privatechatlistform.persistedchatlist[0].created_chatid}`,
-        sender: JSON.stringify(
-          privatechatlistform.persistedchatlist[0].partnerprofile,
-        ),
-        name: 'PrivateChat',
-      },
+      name: 'Notes',
+      title: 'Gideon Owolabi liked your comment',
       android: {
-        style: {
-          type: AndroidStyle.MESSAGING,
-          person: {
-            name: 'John Doe',
-            icon:
-              'https://static2.srcdn.com/wordpress/wp-content/uploads/2021/02/Avatar-studios-Avatar-the-last-airbender-new-movie.jpg?q=50&fit=crop&w=960&h=500&dpr=1.5',
-          },
-          messages: [
-            {
-              text: 'Hey, how are you?',
-              timestamp: Date.now() - 600000, // 10 minutes ago
-            },
-            {
-              text:
-                'You no see your tacha see wetin she dae do for that video lol',
-              timestamp: Date.now() - 600000, // 10 minutes ago
-            },
-            {
-              text: 'Na wa oo :)',
-              timestamp: Date.now() - 600000, // 10 minutes ago
-            },
-          ],
-        },
+        largeIcon:
+          'https://static2.srcdn.com/wordpress/wp-content/uploads/2021/02/Avatar-studios-Avatar-the-last-airbender-new-movie.jpg?q=50&fit=crop&w=960&h=500&dpr=1.5',
       },
     });
     console.warn('onDisplay1', test);
@@ -220,15 +192,15 @@ const HomeScreen = ({
           headertextsize={responsiveFontSize(3.8)}
           righticon={righticon}
           rightIconPress={() => {
-            //onDisplayNotification();
-            Navigation.showModal({
+            onDisplayNotification();
+            /* Navigation.showModal({
               component: {
                 name: 'Notification',
                 passProps: {
                   navparent: true,
                 },
               },
-            });
+            });*/
 
             /* PushNotification.localNotification({
               channelId: NOTIFICATION_CHANNEL_ID,

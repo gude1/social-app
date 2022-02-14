@@ -239,7 +239,17 @@ const TopSection = ({profile, profileform, isprofileowner, profileActions}) => {
                 style: styles.parsedText,
                 onPress: LinkingHandler().handleEmailPress,
               },
-              {pattern: /@(\w+)/, style: styles.parsedText},
+              {
+                pattern: /@(\w+)/,
+                style: styles.parsedText,
+                onPress: (username, matchIndex) => {
+                  LinkingHandler().handleUsernamePress(
+                    username,
+                    matchIndex,
+                    profile.mentions,
+                  );
+                },
+              },
             ]}>
             {profile.bio}
           </ParsedText>
@@ -607,6 +617,9 @@ const ViewProfileScreen = ({
 
   /**COMPONENT FUNCTION STARTS HERE */
   useEffect(() => {
+    if (!useowner) {
+      setReset('othersviewprofileform');
+    }
     const listener = {
       componentDidAppear: () => {
         Navigation.mergeOptions(componentId, {

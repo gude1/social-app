@@ -328,7 +328,17 @@ export class PostItem extends Component {
                     style: styles.parsedText,
                     onPress: LinkingHandler().handleEmailPress,
                   },
-                  {pattern: /@(\w+)/, style: styles.parsedText},
+                  {
+                    pattern: /@(\w+)/,
+                    style: styles.parsedText,
+                    onPress: (username, matchIndex) => {
+                      LinkingHandler().handleUsernamePress(
+                        username,
+                        matchIndex,
+                        this.props.mentions,
+                      );
+                    },
+                  },
                 ]}
                 childrenProps={{allowFontScaling: false}}>
                 {this.props.posttext}
@@ -859,6 +869,7 @@ export default class PostList extends React.Component {
           });
         }}
         deleted={item.deleted}
+        mentions={item.mentions}
         profile={item.profile}
         posttext={item.post_text}
         numlikes={item.num_post_likes}

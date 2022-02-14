@@ -25,8 +25,6 @@ import {ScrollableListOverLay, ListItem} from './ResuableWidgets';
 
 const {colors} = useTheme();
 
-//const PressableWrapper = Animatable.createAnimatableComponent(TouchableOpacity);
-
 const ShowConvs = props => {
   return props.data
     .sort((item1, item2) => item1.id - item2.id)
@@ -53,6 +51,35 @@ class MeetConversationItem extends Component {
         size={responsiveFontSize(4)}
       />
     );
+
+    this.parseArr = [
+      {
+        type: 'url',
+        style: styles.parsedText,
+        onPress: LinkingHandler().handleUrlPress,
+      },
+      {
+        type: 'phone',
+        style: styles.parsedText,
+        onPress: LinkingHandler().handlePhonePress,
+      },
+      {
+        type: 'email',
+        style: styles.parsedText,
+        onPress: LinkingHandler().handleEmailPress,
+      },
+      {
+        pattern: /@(\w+)/,
+        style: styles.parsedText,
+        onPress: (username, matchIndex) => {
+          LinkingHandler().handleUsernamePress(
+            username,
+            matchIndex,
+            this.props.item.mentions,
+          );
+        },
+      },
+    ];
 
     if (colors.theme == 'black') {
       this.ownerchatbgcolor = colors.border;
@@ -203,24 +230,7 @@ class MeetConversationItem extends Component {
                     backgroundColor: this.ownerchatbgcolor,
                   },
                 ]}
-                parse={[
-                  {
-                    type: 'url',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handleUrlPress,
-                  },
-                  {
-                    type: 'phone',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handlePhonePress,
-                  },
-                  {
-                    type: 'email',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handleEmailPress,
-                  },
-                  {pattern: /@(\w+)/, style: styles.parsedText},
-                ]}>
+                parse={this.parseArr}>
                 {item.chat_msg}
               </ParsedText>
             </TouchableOpacity>
@@ -270,34 +280,7 @@ class MeetConversationItem extends Component {
               />
             </TouchableOpacity>
             <TouchableOpacity onPress={onPress}>
-              <ParsedText
-                style={[
-                  styles.ownerChatText,
-                  {
-                    color: this.ownerchattextcolor,
-                    backgroundColor: this.ownerchatbgcolor,
-                  },
-                ]}
-                parse={[
-                  {
-                    type: 'url',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handleUrlPress,
-                  },
-                  {
-                    type: 'phone',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handlePhonePress,
-                  },
-                  {
-                    type: 'email',
-                    style: styles.parsedText,
-                    onPress: LinkingHandler().handleEmailPress,
-                  },
-                  {pattern: /@(\w+)/, style: styles.parsedText},
-                ]}>
-                {item.chat_msg}
-              </ParsedText>
+              <ParsedText style={this.parseArr}>{item.chat_msg}</ParsedText>
             </TouchableOpacity>
             {this.renderCheck(item)}
           </View>
@@ -426,26 +409,7 @@ class MeetConversationItem extends Component {
       return (
         <Animatable.View animation={'slideInLeft'} useNativeDriver={true}>
           <View style={{marginVertical: 5, alignItems: 'flex-start'}}>
-            <ParsedText
-              style={styles.othersChatText}
-              parse={[
-                {
-                  type: 'url',
-                  style: styles.parsedText,
-                  onPress: LinkingHandler().handleUrlPress,
-                },
-                {
-                  type: 'phone',
-                  style: styles.parsedText,
-                  onPress: LinkingHandler().handlePhonePress,
-                },
-                {
-                  type: 'email',
-                  style: styles.parsedText,
-                  onPress: LinkingHandler().handleEmailPress,
-                },
-                {pattern: /@(\w+)/, style: styles.parsedText},
-              ]}>
+            <ParsedText style={styles.othersChatText} parse={this.parseArr}>
               {item.chat_msg}
             </ParsedText>
             <Text style={styles.othersChatTime}>
@@ -488,7 +452,7 @@ class MeetConversationItem extends Component {
                 {this.renderDownloadBtn(item.chat_pic.size)}
               </Image>
             </TouchableOpacity>
-            <ParsedText style={styles.othersChatText}>
+            <ParsedText style={styles.othersChatText} parse={this.parseArr}>
               {item.chat_msg}
             </ParsedText>
             <Text style={styles.othersChatTime}>
