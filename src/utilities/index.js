@@ -137,7 +137,7 @@ export const rnPath = data => {
   return data;
 };
 
-export const setRoute = store => {
+export const setRoute = (store, afterAction) => {
   let {user, profile, postform, timelinepostform} = store;
   if (
     checkData(user) == false ||
@@ -175,6 +175,7 @@ export const setRoute = store => {
     //console.warn(profile);
     //console.warn(posts);
   }
+  checkData(afterAction) && afterAction();
 };
 
 export const downloadFile = (

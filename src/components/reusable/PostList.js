@@ -201,8 +201,34 @@ export class PostItem extends Component {
       return null;
     }
     return (
-      <View style={styles.postListItemContainer}>
-        <View style={styles.postListItemTopBar}>
+      <View
+        style={{
+          ...styles.postListItemContainer,
+        }}>
+        {this.props.postinfo && (
+          <Text
+            style={styles.postInfoText}
+            onPress={() => {
+              Navigation.showModal({
+                component: {
+                  name: 'ViewProfile',
+                  passProps: {
+                    navparent: true,
+                    reqprofile: {profile_id: this.props.postinfo[0]},
+                    screentype: 'modal',
+                  },
+                },
+              });
+            }}>
+            {this.props.postinfo[1]}
+          </Text>
+        )}
+        <View
+          style={{
+            ...styles.postListItemTopBar,
+            //borderWidth: 1,
+            borderColor: 'green',
+          }}>
           <View style={styles.postListItemTopBarItem}>
             <Avatar
               size={35}
@@ -844,6 +870,7 @@ export default class PostList extends React.Component {
         posteravatar={item.profile.avatar[1]}
         sharemsg={sharemsg}
         postimages={this._arrangePostImage(item.post_image)}
+        postinfo={item.info}
         postliked={item.postliked}
         pendingpostliked={item.pendingpostliked}
         pendingpostshared={item.pendingpostshared}
@@ -1129,6 +1156,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  postInfoText: {
+    color: 'dimgray',
+    marginTop: 5,
+    width: postwidth,
+  },
   postImageViewPagerContainer: {
     marginTop: 5,
     alignItems: 'center',
@@ -1138,9 +1170,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderBottomColor: colors.border,
     borderBottomWidth: 0.18,
+    marginTop: 8,
     alignItems: 'center',
     paddingBottom: 10,
-    justifyContent: 'center',
+    //justifyContent: 'center',
     width: '100%',
   },
   postImagePlaceHolderStyle: {
@@ -1219,17 +1252,15 @@ const styles = StyleSheet.create({
   postListItemTopBar: {
     width: postwidth,
     flexDirection: 'row',
-    flex: 1,
     //borderWidth: 1,
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
-    paddingVertical: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 5,
   },
   postListItemTopBarItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
     //borderWidth: 1,
   },
   postListItemTopBarItemAvatar: {
@@ -1244,7 +1275,6 @@ const styles = StyleSheet.create({
   postListItemBottomBar: {
     width: postwidth,
     flexDirection: 'row',
-    flex: 1,
     //borderWidth: 1,
     justifyContent: 'space-evenly',
     alignItems: 'center',

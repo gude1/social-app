@@ -5,7 +5,6 @@ const {colors} = useTheme();
 export const DEFAULT_NAV_OPTIONS = {
   layout: {
     fitSystemWindows: false,
-    // topMargin: 0,
     componentBackgroundColor: colors.background,
     //orientation: ['portrait']
   },

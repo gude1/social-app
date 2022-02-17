@@ -80,71 +80,76 @@ export const structureNote = notification => {
     isEmpty(notification.sender) ||
     isEmpty(notification.name)
   ) {
+    console.warn('structurenote', notification);
     return notification;
   }
-  let sender = isEmpty(notification.sender)
-    ? JSON.stringify(notification?.sender)
-    : null;
-  switch (notification.name) {
-    case 'PrivateChat':
-      if (!sender) return notification;
-      return {
-        name: notification?.name,
+
+  let postarr = ['Post', 'PostLike', 'PostShare'];
+  let postcommentarr = ['PostComment', 'PostCommentLike'];
+  let postcommentreplyarr = ['PostCommentReply', 'PostCommentReplyLike'];
+  let profile = ['Profile'];
+  let pchatarr = ['PrivateChat'];
+  let mconvarr = ['MeetConversation'];
+
+  let sender = JSON.stringify(notification.sender);
+
+  if (pchatarr.includes(notification.name)) {
+    return {
+      name: notification?.name,
+      id: notification?.identity,
+      data: {
         id: notification?.identity,
-        data: {
-          id: notification?.identity,
-          sender: sender,
-          name: notification?.name,
-        },
-        android: {
-          style: {
-            type: AndroidStyle.MESSAGING,
-            person: {
-              name: notification?.sender?.profile_name,
-              icon: notification?.sender?.avatar[1],
-            },
-            messages: [{text: notification.body, timestamp: Date.now()}],
+        sender: sender,
+        name: notification?.name,
+      },
+      android: {
+        style: {
+          type: AndroidStyle.MESSAGING,
+          person: {
+            name: notification?.sender?.profile_name,
+            icon: notification?.sender?.avatar[1],
           },
+          messages: [{text: notification.body, timestamp: Date.now()}],
         },
-      };
-      break;
-    case 'MeetConversation':
-      if (!sender) return notification;
-      return {
-        name: notification?.name,
+      },
+    };
+  } else if (mconvarr.includes(notification.name)) {
+    return {
+      name: notification?.name,
+      id: notification?.identity,
+      data: {
         id: notification?.identity,
-        data: {
-          id: notification?.identity,
-          sender: sender,
-          name: notification?.name,
-        },
-        android: {
-          style: {
-            type: AndroidStyle.MESSAGING,
-            person: {
-              name: notification?.sender?.meetup_name,
-              icon: notification?.sender?.meetup_avatar,
-            },
-            messages: [{text: notification.body, timestamp: Date.now()}],
+        sender: sender,
+        name: notification?.name,
+      },
+      android: {
+        style: {
+          type: AndroidStyle.MESSAGING,
+          person: {
+            name: notification?.sender?.meetup_name,
+            icon: notification?.sender?.meetup_avatar,
           },
+          messages: [{text: notification.body, timestamp: Date.now()}],
         },
-      };
-      break;
-    default:
-      return {
-        ...notification,
-        name: notification?.name,
+      },
+    };
+  } else if (postarr.includes(notification.name)) {
+    return {
+      ...notification,
+      name: notification?.name,
+      id: notification?.identity,
+      data: {
         id: notification?.identity,
-        data: {
-          id: notification?.identity,
-          sender: sender,
-          name: notification?.name,
-          ...notification,
-        },
-        android: {largeIcon: notification?.sender?.avatar[1]},
-      };
-      break;
-  }
+        sender: sender,
+        post: JSON.stringify(notification.post),
+        name: notification?.name,
+      },
+      android: {largeIcon: notification?.sender?.avatar[1]},
+    };
+  } else if (postcommentarr.includes(notification.name)) {
+  } else if (postcommentreplyarr.includes(notification.name)) {
+  } else if (profile.includes(notification.name)) {
+  } else return;
 };
 
 export const handleEvent = async (type = '', detail = {}, store = {}) => {
@@ -198,23 +203,20 @@ export const handleEvent = async (type = '', detail = {}, store = {}) => {
 
 export const navNote = (navdata = {}, store) => {
   try {
-    let validate_data =
+    let data_fail =
+      isEmpty(navdata) ||
       isEmpty(navdata?.id) ||
       isEmpty(navdata?.name) ||
       isEmpty(navdata?.sender);
 
-    let validate_store =
+    let store_fail =
       isEmpty(store) ||
       getAppInfo(store?.getState()?.user, 'user') != 'usertrue' ||
       getAppInfo(store?.getState()?.profile, 'profile') != 'profiletrue' ||
       getAppInfo(store?.getState()?.postform, 'post') != 'posttrue' ||
       store?.getState()?._persist?.rehydrated != true;
 
-    if (
-      isEmpty(navdata) ||
-      (validate_data && isEmpty(notification.notifee)) ||
-      validate_store
-    ) {
+    if (data_fail || store_fail) {
       /*console.warn('navNote', [
         store?.getState()?._persist?.rehydrated != true,
         getAppInfo(store?.getState()?.user, 'user') != 'usertrue',
@@ -223,56 +225,64 @@ export const navNote = (navdata = {}, store) => {
       ]);*/
       return;
     }
-    switch (navdata.name) {
-      case 'PrivateChat':
-        store.dispatch(removeFcmNotes([navdata.id]));
-        Navigation.showModal({
-          component: {
-            name: 'PrivateChat',
-            id: navdata.id,
-            passProps: {
-              navparent: true,
-              privatechatobj: {
-                partnerprofile: JSON.parse(navdata.sender),
-                created_chatid: navdata.created_chatid,
-              },
-              screentype: 'modal',
+    let postarr = ['Post', 'PostLike', 'PostShare'];
+    let postcommentarr = ['PostComment', 'PostCommentLike'];
+    let postcommentreplyarr = ['PostCommentReply', 'PostCommentReplyLike'];
+    let profile = ['Profile'];
+    let pchatarr = ['PrivateChat'];
+    let mconvarr = ['MeetConversation'];
+
+    let sender = JSON.parse(navdata.sender);
+
+    if (pchatarr.includes(navdata.name)) {
+      store.dispatch(removeFcmNotes([navdata.id]));
+      Navigation.showModal({
+        component: {
+          name: 'PrivateChat',
+          id: navdata.id,
+          passProps: {
+            navparent: true,
+            privatechatobj: {
+              partnerprofile: sender,
+              created_chatid: navdata.created_chatid,
             },
+            screentype: 'modal',
           },
-        });
-        break;
-      case 'MeetConversation':
-        store.dispatch(removeFcmNotes([navdata.id]));
-        Navigation.showModal({
-          component: {
-            name: 'MeetConversation',
-            id: navdata.id,
-            passProps: {
-              navparent: true,
-              privatechatobj: {
-                partnerprofile: JSON.parse(navdata.sender),
-                created_chatid: navdata.created_chatid,
-              },
-              screentype: 'modal',
+        },
+      });
+    } else if (mconvarr.includes(navdata.name)) {
+      store.dispatch(removeFcmNotes([navdata.id]));
+      Navigation.showModal({
+        component: {
+          name: 'MeetConversation',
+          id: navdata.id,
+          passProps: {
+            navparent: true,
+            privatechatobj: {
+              partnerprofile: sender,
+              created_chatid: navdata.created_chatid,
             },
+            screentype: 'modal',
           },
-        });
-        break;
-      case 'PostCommentReply':
-        break;
-      case 'PostComment':
-        break;
-      case 'Post':
-        break;
-      case 'PostCommentReplyLike':
-        break;
-      case 'PostCommentLike':
-        break;
-      case 'PostLike':
-        break;
-      default:
-        break;
-    }
+        },
+      });
+    } else if (postarr.includes(navdata.name)) {
+      if (isEmpty(navdata.post)) return;
+      Navigation.showModal({
+        component: {
+          name: 'PostShow',
+          id: navdata.id,
+          passProps: {
+            navparent: true,
+            toshowpost: JSON.parse(navdata.post),
+            screentype: 'modal',
+          },
+        },
+      });
+    } else if (postcommentarr.includes(navdata.name)) {
+    } else if (postcommentreplyarr.includes(navdata.name)) {
+    } else if (profile.includes(navdata.name)) {
+    } else return;
   } catch (err) {
     console.warn('navNote', String(err));
   }

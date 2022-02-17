@@ -35,7 +35,6 @@ const arrangePost = (data: Array) => {
     return data;
   }
   data = [...data];
-  return data;
   return data.sort((item1, item2) => item2.created_at - item1.created_at);
 };
 
@@ -123,12 +122,12 @@ const TimelinePostFormReducer = (state = INITIAL_STATE, action) => {
           ? {...item, ...action.payload.data}
           : item;
       });
-      if (action.payload.add == true) {
-        updatedstate.find(item => item.postid == action.payload.data.postid) ==
-        undefined
-          ? updatedstate.push({...action.payload.data})
-          : null;
-      }
+      // if (action.payload.add == true) {
+      updatedstate.find(item => item.postid == action.payload.data.postid) ==
+      undefined
+        ? updatedstate.push({...action.payload.data})
+        : null;
+      //}
       return {...state, timelineposts: arrangePost(updatedstate)};
       break;
     case SET_TIMELINE_POST_FORM_LINKS:

@@ -3,9 +3,19 @@ import {persistStore} from 'redux-persist';
 import messaging from '@react-native-firebase/messaging';
 import notifee from '@notifee/react-native';
 import {doDispatch, getAppInfo, isEmpty} from '.';
-import {updateFcmNotes} from '../actions';
+import {updateFcmNotes, updateTimelinePostForm} from '../actions';
 import {sortAndDisplayNote, structureNote} from './notificationhandler';
 import {setAppData} from '../../index';
+
+const structureResData = (note, resdata) => {
+  if (isEmpty(note) || !isEmpty(resdata)) {
+    return resdata;
+  }
+  let postarr = ['Post', 'PostLike', 'PostShare'];
+  let postcommentarr = ['PostComment', 'PostCommentLike'];
+  let postcommentreplyarr = ['PostCommentReply', 'PostCommentReplyLike'];
+  let profile = ['Profile'];
+};
 
 const fcmHandler = async (remoteMessage, store) => {
   persistStore(store, null, async () => {
@@ -22,10 +32,11 @@ const fcmHandler = async (remoteMessage, store) => {
   let resdata = !isEmpty(remoteMessage.data.resdata)
     ? JSON.parse(remoteMessage.data.resdata)
     : null;
+
   let notification = !isEmpty(remoteMessage.data.notification)
     ? JSON.parse(remoteMessage.data.notification)
     : null;
-  let structured_note = structureNote(notification, resdata);
+  let structured_note = structureNote(notification);
   let persistnotes = ['PrivateChat', 'MeetConversation'];
 
   if (delaydispatch) {

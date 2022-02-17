@@ -32,6 +32,8 @@ import GiphyGalleryScreen from './src/screens/main/GiphyGalleryScreen.js';
 import GiphyViewerScreen from './src/screens/main/GiphyViewerScreen.js';
 import MeetupConversationScreen from './src/screens/main/MeetupConversationScreen';
 import NotificationScreen from './src/screens/main/NotificationScreen';
+import {DEFAULT_NAV_OPTIONS} from './src/utilities/nav';
+import {View} from 'react-native';
 
 const {colors} = useTheme();
 
@@ -323,6 +325,13 @@ Navigation.setLazyComponentRegistrator(componentName => {
       break;
   }
 });
+
+App.options = {
+  ...DEFAULT_NAV_OPTIONS,
+  topBar: {
+    visible: false,
+  },
+};
 
 const mapStateToProps = state => ({
   privatechatlistform: state.privatechatlistform,

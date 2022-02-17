@@ -16,6 +16,7 @@ import * as actions from '../../actions';
 import * as Animatable from 'react-native-animatable';
 import {checkData, Toast} from '../../utilities/index';
 import {ToastAndroid} from 'react-native';
+import {DEFAULT_NAV_OPTIONS} from '../../utilities/nav';
 const {colors} = useTheme();
 
 const PostShowScreen = ({
@@ -100,13 +101,14 @@ const PostShowScreen = ({
       updateTimelinePostForm(toshowpost, true);
       return toshowpost;
     }
-    return check;
+    return {...check, ...toshowpost};
   }
   //function to determine dismiss of navigation based on screentype
   function setDismissNav() {
     if (screentype == 'screen') return Navigation.pop(componentId);
     else return Navigation.dismissModal(componentId);
   }
+  console.warn(toshowpost.info);
   /**component functions ends here */
   return (
     <SafeAreaView style={styles.containerStyle}>
@@ -178,6 +180,7 @@ const PostShowScreen = ({
   );
 };
 PostShowScreen.options = {
+  ...DEFAULT_NAV_OPTIONS,
   topBar: {
     visible: false,
   },

@@ -669,24 +669,24 @@ const ViewProfileScreen = ({
       ToastAndroid.show('profile not found', ToastAndroid.LONG);
       return;
     }
-    if (toshowprofile.profileblockedu == false) {
-      fetchAProfile(
-        toshowprofile.profile_id,
-        null,
-        profile => {
-          if (useowner) {
-            setProfileData({...profile});
-            updateUser(profile.user);
-          } else {
-            setViewProfile(profile);
-          }
-          setLoaded(true);
-        },
-        action => {
-          action == 'cancel' ? setLoaded('failed') : setLoaded(true);
-        },
-      );
-    }
+    //if (toshowprofile.profileblockedu == false) {
+    fetchAProfile(
+      toshowprofile.profile_id,
+      null,
+      profile => {
+        if (useowner) {
+          setProfileData({...profile});
+          updateUser(profile.user);
+        } else {
+          setViewProfile(profile);
+        }
+        setLoaded(true);
+      },
+      action => {
+        action == 'cancel' ? setLoaded('failed') : setLoaded(true);
+      },
+    );
+    //}
   }
 
   //funnction to set view profile
@@ -706,7 +706,7 @@ const ViewProfileScreen = ({
   function returnViewProfile() {
     if (useowner) {
       return authprofile;
-    } else if (!checkData(reqprofile) || !checkData(reqprofile.user)) {
+    } else if (!checkData(reqprofile) || !checkData(reqprofile.profile_id)) {
       return null;
     } else {
       if (

@@ -29,17 +29,21 @@ setForegroundEvent(store);
 setBackgroundEvent(store);
 
 export const setAppData = async store => {
-  store.dispatch({type: 'STRUCTURE_STATE'});
-  store.dispatch(getGalleryPhotos());
-  let actions = await AsyncStorage.getItem('actions');
-  actions = !isEmpty(actions) ? JSON.parse(actions) : {};
+  try {
+    store.dispatch({type: 'STRUCTURE_STATE'});
+    store.dispatch(getGalleryPhotos());
+    let actions = await AsyncStorage.getItem('actions');
+    // console.warn('actions', actions);
+    actions = !isEmpty(actions) ? JSON.parse(actions) : [];
 
-  if (!isEmpty(actions)) {
-    actions = JSON.parse(actions);
-    actions.forEach(item => {
-      doDispatch(store, item);
-    });
-    AsyncStorage.removeItem('actions');
+    if (!isEmpty(actions)) {
+      actions.forEach(item => {
+        doDispatch(store, item);
+      });
+      AsyncStorage.removeItem('actions');
+    }
+  } catch (error) {
+    console.warn('setAppData', String(error));
   }
 };
 
@@ -47,7 +51,6 @@ export const setAppNav = async store => {
   let navdata = await AsyncStorage.getItem('navnote');
   navdata = !isEmpty(navdata) ? JSON.parse(navdata) : {};
   AsyncStorage.removeItem('navnote');
-
   Navigation.registerComponent(
     'App',
     () => props => (
@@ -58,9 +61,7 @@ export const setAppNav = async store => {
     () => App,
   );
   Navigation.setDefaultOptions(DEFAULT_NAV_OPTIONS);
-
   setRoute(store.getState());
-  store.dispatch(setAppInfo({routed: true}));
   navNote(navdata, store);
 };
 
