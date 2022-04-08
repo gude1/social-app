@@ -682,14 +682,13 @@ export default class PostList extends React.Component {
   _onMuteProfilePress = () => {
     let initaction = () =>
       this.props.setProcessing(true, 'processmutetimelinepostform');
-    let failedaction = () =>
-      this.props.setProcessing(false, 'processmutetimelinepostform');
-    let okaction = () => {
+    let failedaction = () => {};
+    let okaction = muted => {
       this.props.updateProfileChanges({
         profileid: this.currentselectedpostownerid,
-        profilemuted: !this.state.profilemuted,
+        profilemuted: muted,
       });
-      if (!this.state.profilemuted) {
+      if (muted) {
         this.props.removeProfilePosts(this.currentselectedpostownerid);
       }
       this.props.setProcessing(false, 'processmutetimelinepostform');
@@ -1058,8 +1057,13 @@ export default class PostList extends React.Component {
           rejectText="Nah"
         />
         <ActivityOverlay
-          text={'Deleting'}
-          isVisible={this.props.onitemdeleting}
+          text={'Processing'}
+          isVisible={
+            this.props.onitemdeleting ||
+            this.props.onitemarchiving ||
+            this.props.onitemblacklisting ||
+            this.props.onitemmuting
+          }
         />
         <ConfirmModal
           isVisible={this.state.confirmarchivevisible}
@@ -1069,10 +1073,7 @@ export default class PostList extends React.Component {
           rejectAction={() => this.setState({confirmarchivevisible: false})}
           rejectText="Nah"
         />
-        <ActivityOverlay
-          text={'Archiving'}
-          isVisible={this.props.onitemarchiving}
-        />
+
         <ConfirmModal
           isVisible={this.state.confirmblacklistvisible}
           confirmMsg="Blacklist post?"
@@ -1080,10 +1081,6 @@ export default class PostList extends React.Component {
           acceptAction={this._onBlackListPress}
           rejectAction={() => this.setState({confirmblacklistvisible: false})}
           rejectText="Nah"
-        />
-        <ActivityOverlay
-          text={'Blacklisting'}
-          isVisible={this.props.onitemblacklisting}
         />
 
         <ConfirmModal
@@ -1095,10 +1092,6 @@ export default class PostList extends React.Component {
           acceptAction={this._onMuteProfilePress}
           rejectAction={() => this.setState({confirmmutevisible: false})}
           rejectText="Nah"
-        />
-        <ActivityOverlay
-          text={this.state.profilemuted == true ? 'Unmuting' : 'Muting'}
-          isVisible={this.props.onitemmuting}
         />
 
         <BottomListModal
@@ -1158,6 +1151,7 @@ const styles = StyleSheet.create({
   },
   postInfoText: {
     color: 'dimgray',
+    fontWeight: 'bold',
     marginTop: 5,
     width: postwidth,
   },

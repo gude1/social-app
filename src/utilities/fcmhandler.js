@@ -6,6 +6,7 @@ import {doDispatch, getAppInfo, isEmpty} from '.';
 import {updateFcmNotes, updateTimelinePostForm} from '../actions';
 import {sortAndDisplayNote, structureNote} from './notificationhandler';
 import {setAppData} from '../../index';
+import {store} from '../store';
 
 const structureResData = (note, resdata) => {
   if (isEmpty(note) || !isEmpty(resdata)) {
@@ -17,7 +18,7 @@ const structureResData = (note, resdata) => {
   let profile = ['Profile'];
 };
 
-const fcmHandler = async (remoteMessage, store) => {
+const fcmHandler = async remoteMessage => {
   persistStore(store, null, async () => {
     setAppData(store);
   });
@@ -86,13 +87,13 @@ const fcmHandler = async (remoteMessage, store) => {
   sortAndDisplayNote(structured_note);
 };
 
-export const setFcm = async store => {
+export const setFcm = async () => {
   try {
     //set background message handler
     messaging().setBackgroundMessageHandler(async remoteMessage => {
       console.warn('setBackgroundMessageHandler');
       try {
-        fcmHandler(remoteMessage, store);
+        fcmHandler(remoteMessage);
       } catch (err) {
         console.warn('fcm BackgroundMessageHandler', err.toString());
       }
@@ -102,7 +103,7 @@ export const setFcm = async store => {
     messaging().onMessage(async remoteMessage => {
       console.warn('onmessage');
       try {
-        fcmHandler(remoteMessage, store);
+        fcmHandler(remoteMessage);
       } catch (err) {
         console.warn('fcm onMessageHandler', err.toString());
       }

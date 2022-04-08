@@ -4,7 +4,7 @@
 import {Navigation} from 'react-native-navigation';
 import React, {useEffect, useState} from 'react';
 import {Provider} from 'react-redux';
-import {store, persistor} from './src/store';
+import {store} from './src/store';
 import {persistStore} from 'redux-persist';
 import {useTheme} from './src/assets/themes/index';
 import {setRoute, isEmpty, doDispatch} from './src/utilities';
@@ -24,9 +24,13 @@ import {App} from './App';
 import {DEFAULT_NAV_OPTIONS} from './src/utilities/nav';
 
 const {colors} = useTheme();
-setFcm(store);
-setForegroundEvent(store);
-setBackgroundEvent(store);
+try {
+  setFcm();
+  setForegroundEvent();
+  setBackgroundEvent();
+} catch (error) {
+  console.warn(`${String(error)}`);
+}
 
 export const setAppData = async store => {
   try {
@@ -61,7 +65,7 @@ export const setAppNav = async store => {
     () => App,
   );
   Navigation.setDefaultOptions(DEFAULT_NAV_OPTIONS);
-  setRoute(store.getState());
+  setRoute(store.getState(), () => store.dispatch(setAppInfo({routed: true})));
   navNote(navdata, store);
 };
 

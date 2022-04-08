@@ -44,6 +44,7 @@ import MeetupConvListReducer, {
 import NotificationReducer from './NotificationReducer';
 import FcmNotificationReducer from './FcmNoitificationReducer';
 import {LOGOUT} from '../actions/types';
+import PostGalleryReducer from './PostGalleryReducer';
 
 const appReducer = combineReducers({
   user: userReducer,
@@ -83,6 +84,7 @@ const appReducer = combineReducers({
   appinfo: AppInfoReducer,
   mynotes: NotificationReducer,
   fcmnotes: FcmNotificationReducer,
+  postgallery: PostGalleryReducer,
   photogalleryform: PhotoGalleryReducer,
   offlineactionslist: persistReducer(
     offlineActionsListConfig,

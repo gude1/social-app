@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import {removeFcmNotes} from '../actions';
 import {useTheme} from '../assets/themes';
 import {setAppData, setAppNav} from '../..';
+import {store} from '../store';
 
 const {colors} = useTheme();
 //GROUP CHANNELS
@@ -152,9 +153,10 @@ export const structureNote = notification => {
   } else return;
 };
 
-export const handleEvent = async (type = '', detail = {}, store = {}) => {
+export const handleEvent = async (type = '', detail = {}) => {
   let state = store?.getState() || {};
   persistStore(store, null, async () => {
+    console.warn('hey');
     setAppData(store);
   });
 
@@ -168,7 +170,10 @@ export const handleEvent = async (type = '', detail = {}, store = {}) => {
     state?._persist?.rehydrated != true ||
     state?.appinfo?.routed != true
   ) {
-    console.warn('store not ready');
+    console.warn('store not ready', [
+      state?._persist?.rehydrated,
+      state?.appinfo,
+    ]);
     await AsyncStorage.setItem('navnote', JSON.stringify(notification.data));
     return;
   }
@@ -201,7 +206,7 @@ export const handleEvent = async (type = '', detail = {}, store = {}) => {
   }
 };
 
-export const navNote = (navdata = {}, store) => {
+export const navNote = (navdata = {}) => {
   try {
     let data_fail =
       isEmpty(navdata) ||
@@ -217,12 +222,12 @@ export const navNote = (navdata = {}, store) => {
       store?.getState()?._persist?.rehydrated != true;
 
     if (data_fail || store_fail) {
-      /*console.warn('navNote', [
+      console.warn('navNote', [
         store?.getState()?._persist?.rehydrated != true,
         getAppInfo(store?.getState()?.user, 'user') != 'usertrue',
         getAppInfo(store?.getState()?.profile, 'profile') != 'profiletrue',
         getAppInfo(store?.getState()?.postform, 'post') != 'posttrue',
-      ]);*/
+      ]);
       return;
     }
     let postarr = ['Post', 'PostLike', 'PostShare'];
@@ -288,21 +293,21 @@ export const navNote = (navdata = {}, store) => {
   }
 };
 
-export const setForegroundEvent = store => {
+export const setForegroundEvent = () => {
   return notifee.onForegroundEvent(async ({type, detail}) => {
     try {
-      handleEvent(type, detail, store);
+      handleEvent(type, detail);
     } catch (err) {
       console.log(`setForegroundEvent`, err.toString());
     }
   });
 };
 
-export const setBackgroundEvent = async store => {
+export const setBackgroundEvent = async () => {
   return notifee.onBackgroundEvent(async ({type, detail}) => {
     console.warn('notifee background');
     try {
-      handleEvent(type, detail, store);
+      handleEvent(type, detail);
     } catch (err) {
       console.log(`setBackgroundEvent`, err.toString());
     }

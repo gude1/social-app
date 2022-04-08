@@ -323,6 +323,13 @@ export const UNSET_SELECTED_LIST = 'unset_selected_list';
 export const SET_GALLERY_PHOTOS_NUM = 'set_gallery_photos_num';
 
 /**
+ * TYPE CONSTANT FOR POSTGALLERY REDUCER
+ */
+export const UPDATE_POSTGALLERY_ARCHIVE = 'update_postgallery_archive';
+export const UPDATE_POSTGALLERY_BLACKLIST = 'update_postgallery_blacklist';
+export const UPDATE_POSTGALLERY_OTHERS = 'update_postgallery_others';
+
+/**
  * TYPE CONSTANT FOR APPINFO REDUCER
  */
 export const SET_APP_INFO = 'set_app_info';

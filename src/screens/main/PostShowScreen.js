@@ -23,6 +23,7 @@ const PostShowScreen = ({
   componentId,
   profileactionform,
   blackListTimelinePost,
+  setProcessing,
   removeProfileTimeLinePostForm,
   archiveTimelinePost,
   deleteTimelinePost,
@@ -53,8 +54,7 @@ const PostShowScreen = ({
       />
     ) : null;
   let lefticonpress = navparent == true ? () => setDismissNav() : null;
-  let righticon = '';
-  let righticonpress = '';
+  /**component functions starts here */
   useEffect(() => {
     if (checkData(toshowpost)) {
       fetchParticularPost(toshowpost.postid);
@@ -82,7 +82,6 @@ const PostShowScreen = ({
       }
     };
   }, []);
-  /**component functions starts here */
   function setShowPost() {
     if (
       !checkData(toshowpost) ||
@@ -108,7 +107,7 @@ const PostShowScreen = ({
     if (screentype == 'screen') return Navigation.pop(componentId);
     else return Navigation.dismissModal(componentId);
   }
-  console.warn(toshowpost.info);
+  //console.warn(toshowpost.info);
   /**component functions ends here */
   return (
     <SafeAreaView style={styles.containerStyle}>
@@ -139,6 +138,7 @@ const PostShowScreen = ({
               data={[toshowpost]}
               hideHeader={true}
               hideFooter={true}
+              setProcessing={setProcessing}
               fetching={timelinepostform.fetching}
               onPostItemLiked={likeTimelinePostAction}
               onPostItemShared={shareTimelinePostAction}

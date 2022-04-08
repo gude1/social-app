@@ -1,4 +1,4 @@
-import React, {Component, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {SafeAreaView, StyleSheet, View, ScrollView} from 'react-native';
 import {useTheme} from '../../assets/themes';
 import {Navigation} from 'react-native-navigation';
@@ -6,11 +6,7 @@ import {
   LoaderScreen,
   ActivityOverlay,
 } from '../../components/reusable/ResuableWidgets';
-import {
-  responsiveFontSize,
-  responsiveHeight,
-  responsiveWidth,
-} from 'react-native-responsive-dimensions';
+import {responsiveFontSize} from 'react-native-responsive-dimensions';
 import {Icon, Text, CheckBox, ListItem} from 'react-native-elements';
 import {Header} from '../../components/reusable/ResuableWidgets';
 import {connect} from 'react-redux';
@@ -124,7 +120,7 @@ const PostSettingScreen = ({
                 }}
               />
               <CheckBox
-                title="Posts from my campus only"
+                title="Posts from my location only"
                 checked={campuscheck}
                 onPress={() => {
                   postSettingUpdate({timeline_post_range: 'campus'});
@@ -141,25 +137,42 @@ const PostSettingScreen = ({
               />
             </View>
 
-            <View>
-              <ListItem
-                title={'Blacklisted Posts'}
-                subtitle={'Press to view posts you blacklisted'}
-                subtitleStyle={{color: colors.iconcolor}}
-                Component={TouchableScale}
-                activeScale={0.9}
-                containerStyle={styles.listItem}
-                friction={90}
-                //onPress={() => console.warn('coool')}
-                titleStyle={{color: colors.text, fontWeight: 'bold'}}
-                chevron={{
-                  name: 'block',
-                  size: responsiveFontSize(2.6),
-                  color: colors.text,
-                  type: 'entypo',
-                }}
-              />
-            </View>
+            <ListItem
+              title={'Blacklisted Posts'}
+              subtitle={'Press to view posts you blacklisted'}
+              subtitleStyle={{color: colors.iconcolor}}
+              Component={TouchableScale}
+              activeScale={0.9}
+              containerStyle={styles.listItem}
+              friction={90}
+              //onPress={() => console.warn('coool')}
+              titleStyle={{color: colors.text, fontWeight: 'bold'}}
+              chevron={{
+                name: 'block',
+                size: responsiveFontSize(2.6),
+                color: colors.text,
+                type: 'entypo',
+              }}
+            />
+
+            <ListItem
+              title={'Archived Posts'}
+              subtitle={'Press to view posts you archived'}
+              subtitleStyle={{color: colors.iconcolor}}
+              Component={TouchableScale}
+              activeScale={0.9}
+              containerStyle={styles.listItem}
+              friction={90}
+              //onPress={() => console.warn('coool')}
+              titleStyle={{color: colors.text, fontWeight: 'bold'}}
+              chevron={{
+                name: 'archive',
+                size: responsiveFontSize(2.6),
+                color: colors.text,
+                type: 'entypo',
+              }}
+            />
+
             <ActivityOverlay
               text="Processing"
               isVisible={postsetting.processing}

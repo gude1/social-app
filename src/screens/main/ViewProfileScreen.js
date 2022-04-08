@@ -456,15 +456,8 @@ const BottomSection = ({
       iconSource: 'pencil-square-o',
       iconType: 'font-awesome',
     },
-    /*{
-            iconSource: 'maximize',
-            iconType: 'feather'
-        }*/
   ];
-  let data = [];
-  for (var i = 0; i <= 10; i++) {
-    data.push(String(i));
-  }
+
   /**
    * component functions
    */

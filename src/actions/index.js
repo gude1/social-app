@@ -569,12 +569,12 @@ export const muteProfileAction = (
         {profileid},
         options,
       );
-      const {errmsg, message, status} = response.data;
+      const {errmsg, message, muted,status} = response.data;
       switch (status) {
         case 200:
           dispatch(setProcessing(false, 'profileactionmuting'));
           Toast(message, ToastAndroid.LONG);
-          okAction && okAction();
+          okAction && okAction(muted);
           break;
         case 400:
           dispatch(setProcessing(false, 'profileactionmuting'));
@@ -1506,7 +1506,7 @@ export const makePost = (postimages, posttext = '', okAction, failedAction) => {
     formData.append('anonymous', 0);
     if (!isEmpty(posttext)) {
       formData.append('post_text', posttext);
-      formData.append('mentions', mentions);
+      formData.append('mentions', JSON.stringify(mentions));
     }
     let resizedimgcaches = await resizeMultipleImage(postimages);
     resizedimgcaches = resizedimgcaches.filter(e => e != null);
@@ -1534,12 +1534,14 @@ export const makePost = (postimages, posttext = '', okAction, failedAction) => {
         name: imageObj.thumbpostimage,
       });
     });
+
     try {
       const options = {
         headers: {Authorization: `Bearer ${user.token}`},
       };
       const response = await session.post('post', formData, options);
       let {errors, errmsg, status, perror, post} = response.data;
+      console.warn('response', response.data);
       switch (status) {
         case 200:
           dispatch(prependTimelinePostForm([post]));
@@ -1760,6 +1762,7 @@ export const fetchParticularPost = (
       };
       const response = await session.post('postshow', {postid}, options);
       const {status, message, errmsg, blockmsg, postdetails} = response.data;
+      //console.warn(response.data);
       endAction && endAction();
       switch (status) {
         case 200:
@@ -4719,7 +4722,7 @@ export const sendPrivateChat = (data = {}) => {
         let mentions = data.reqobj.chat_msg.match(/@(\w+)/g) || [];
         mentions = mentions.map(name => name.slice(1));
         formData.append('chat_msg', data.reqobj.chat_msg);
-        formData.append('mentions', mentions);
+        formData.append('mentions', JSON.stringify(mentions));
       }
       formData.append('receiver_id', data.reqobj.receiver_id);
       if (!isEmpty(data.reqobj.chat_pics)) {
@@ -6968,7 +6971,7 @@ export const sendMeetConversation = (data = []) => {
       let mentions = data.reqobj.chat_msg.match(/@(\w+)/g) || [];
       mentions = mentions.map(name => name.slice(1));
       formdata.append('chat_msg', conv_txt);
-      formData.append('mentions', mentions);
+      formData.append('mentions', JSON.stringify(mentions));
       convschema['chat_msg'] = conv_txt;
     }
 
