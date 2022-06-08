@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import EntypoIcon from 'react-native-vector-icons/Entypo';
+
 import {
   Animated,
   View,
@@ -679,7 +680,7 @@ export const MeetupScreen = ({
             visible={showmakemeetmodal}
             ListTitle={'Create Meet'}
             loading={false}
-            contentContainerStyle={{marginLeft: 0}}>
+            contentContainerStyle={{marginLeft: 0, width: 400}}>
             <View
               style={{
                 marginLeft: 10,

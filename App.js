@@ -110,6 +110,7 @@ Navigation.registerComponent(
   ),
   () => ExploreScreen,
 );
+
 Navigation.setLazyComponentRegistrator(componentName => {
   switch (componentName) {
     case 'EditProfile':

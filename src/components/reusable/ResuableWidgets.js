@@ -529,7 +529,7 @@ export class ScrollableListOverLay extends Component {
     } else {
       return (
         <ScrollView
-          //showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             marginLeft: 40,
             ...this.props.contentContainerStyle,
@@ -852,7 +852,6 @@ export class InputBox extends Component {
           onChangeText={onChangeText}
           onSubmitEditing={onSubmitEditing}
           value={inputvalue}
-          maxLength={maxLength}
           selectionColor="#2196F3"
           autoFocus={autoFocus}
           multiline={checkData(multiline) ? multiline : false}
@@ -861,7 +860,6 @@ export class InputBox extends Component {
             flexDirection: 'row',
             flex: 1,
           }}
-          leftIcon={leftIcon}
           leftIconContainerStyle={{marginHorizontal: 5}}
           rightIcon={{
             onPress: onSubmit,

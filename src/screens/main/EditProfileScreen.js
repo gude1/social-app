@@ -451,7 +451,6 @@ const EditProfileScreen = ({
                     color: colors.iconcolor,
                     fontSize: responsiveFontSize(2.1),
                   }}>
-                  {' '}
                   {username}
                 </Text>
               </View>
